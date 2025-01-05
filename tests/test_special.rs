@@ -9,11 +9,12 @@ mod helper;
 use magba::special::cel;
 use rand::Rng;
 
-/// Rust wrapper for MagpyLib
+// Rust wrapper for MagpyLib
 fn magpy_cel0(kc: f64, p: f64, c: f64, s: f64) -> f64 {
     pyfun!("magpylib._src.fields.special_cel", "cel0", (kc, p, c, s), f64)
 }
 
+// Tests
 #[test]
 fn test_cel() {
     let n = 1000;
