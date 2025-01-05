@@ -54,5 +54,5 @@ pub fn cel(kc: f64, p: f64, c: f64, s: f64) -> f64 {
         em = k + em;
     }
 
-    PI * (ss + cc * em) / (em * (em + pp))
+    (PI / 2.0) * (ss + cc * em) / (em * (em + pp))
 }
