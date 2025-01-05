@@ -5,3 +5,13 @@ edition = "2021"
 
 [dependencies]
 nalgebra = "0.33.2"
+
+[dev-dependencies]
+criterion = "0.5.1"
+pyo3 = "0.23.3"
+rand = "0.8.5"
+
+
+[[bench]]
+name="bench_special"
+harness=false

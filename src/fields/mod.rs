@@ -3,5 +3,5 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-pub const PI: f64 = std::f64::consts::PI;
-pub const PI_2: f64 = PI / 2.0;
+pub mod field_cylindrical;
+pub use field_cylindrical::*;

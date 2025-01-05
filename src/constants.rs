@@ -3,5 +3,5 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-pub mod cel;
-pub use cel::*;
+pub const PI: f64 = std::f64::consts::PI;
+pub const MU0: f64 = 4e-7 * PI;

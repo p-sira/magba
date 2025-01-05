@@ -3,17 +3,16 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-use super::constants::PI_2;
+use super::super::constants::PI;
 
+/// Special case of complete elliptical integral
+/// Reduced operation algorithm modified from Kirby, 2009.
 pub fn cel(kc: f64, p: f64, c: f64, s: f64) -> f64 {
-    // Special case of complete elliptical integral
-    // Reduced operation algorithm modified from Kirby, 2009.
-
     if kc == 0.0 {
         panic!("cel fn: kc cannot be zero");
     }
 
-    let errtol = 0.000001;
+    let errtol = 0.00001;
     let mut k = kc.abs();
     let mut cc;
     let mut pp;
@@ -55,5 +54,5 @@ pub fn cel(kc: f64, p: f64, c: f64, s: f64) -> f64 {
         em = k + em;
     }
 
-    PI_2 * (ss + cc * em) / (em * (em + pp))
+    PI * (ss + cc * em) / (em * (em + pp))
 }
