@@ -3,6 +3,8 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
+use crate::constants::ERRTOL;
+
 use super::super::constants::PI;
 
 /// Special case of complete elliptical integral
@@ -12,7 +14,6 @@ pub fn cel(kc: f64, p: f64, c: f64, s: f64) -> f64 {
         panic!("cel fn: kc cannot be zero");
     }
 
-    let errtol = 0.00001;
     let mut k = kc.abs();
     let mut cc;
     let mut pp;
@@ -42,7 +43,7 @@ pub fn cel(kc: f64, p: f64, c: f64, s: f64) -> f64 {
     em = k + em;
     let mut kk = k;
 
-    while (g - k).abs() > (g * errtol) {
+    while (g - k).abs() > (g * ERRTOL) {
         k = 2.0 * kk.sqrt();
         kk = k * em;
         f = cc;
