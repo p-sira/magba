@@ -8,9 +8,6 @@ nalgebra = "0.33.2"
 
 [dev-dependencies]
 criterion = "0.5.1"
-numpy = "0.23.0"
-pyo3 = "0.23.3"
-rand = "0.8.5"
 
 
 [[bench]]
