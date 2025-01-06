@@ -3,7 +3,7 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-use nalgebra::Vector3;
+use ndarray::prelude::*;
 
 use crate::special::cel;
 
@@ -15,7 +15,7 @@ pub fn axial_cyl_b_cyl(
     radius: f64,
     height: f64,
     // polarization: f64,
-) -> Vector3<f64> {
+) -> Array1<f64> {
     let b = height / 2.0;
     let zp = z + b;
     let zm = z - b;
@@ -45,5 +45,5 @@ pub fn axial_cyl_b_cyl(
     // let b0 = polarization / PI;
 
     // bphi = 0
-    Vector3::new(br, 0.0, bz)
+    array![br, 0.0, bz]
 }

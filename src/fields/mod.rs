@@ -3,5 +3,5 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-pub mod field_cylindrical;
-pub use field_cylindrical::*;
+pub mod field_cylinder;
+pub use field_cylinder::*;

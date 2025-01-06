@@ -3,15 +3,15 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-use crate::constants::ERRTOL;
+use std::f64::{consts::PI, NAN};
 
-use super::super::constants::PI;
+use crate::constants::ERRTOL;
 
 /// Special case of complete elliptical integral
 /// Reduced operation algorithm modified from Kirby, 2009.
 pub fn cel(kc: f64, p: f64, c: f64, s: f64) -> f64 {
     if kc == 0.0 {
-        panic!("cel fn: kc cannot be zero");
+        return NAN;
     }
 
     let mut k = kc.abs();
