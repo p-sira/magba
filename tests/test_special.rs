@@ -11,7 +11,7 @@ use rand::Rng;
 
 // Rust wrapper for MagpyLib
 fn magpy_cel0(kc: f64, p: f64, c: f64, s: f64) -> f64 {
-    pyfun!("magpylib._src.fields.special_cel", "cel0", (kc, p, c, s), f64)
+    pyfn!("magpylib._src.fields.special_cel", "cel0", (kc, p, c, s), f64)
 }
 
 // Tests

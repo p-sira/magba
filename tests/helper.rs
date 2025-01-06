@@ -4,7 +4,7 @@
  */
 
 #[macro_export]
-macro_rules! pyfun {
+macro_rules! pyfn {
     ($module:expr, $func:expr, ($($arg:expr),*), $return_ty:ty) => {{
         use pyo3::types::PyAnyMethods;
 
@@ -23,6 +23,26 @@ macro_rules! pyfun {
                 .expect("Failed to extract result");
             result
         })
+    }};
+}
+
+#[macro_export]
+macro_rules! pyfnvec {
+    ($py: expr, $module:expr, $func:expr, ($($arg:expr),*), $return_ty:ty) => {{
+        use pyo3::types::PyAnyMethods;
+
+        let the_module = pyo3::types::PyModule::import($py, $module)
+            .expect(&format!("Failed to import {}", $module));
+        
+        let the_func = the_module.getattr($func)
+            .expect(&format!("Function {} not found", $func));
+
+        let result = the_func
+            .call1(($($arg),*))
+            .expect("Function call failed");
+
+        result.extract::<$return_ty>()
+            .expect("Failed to extract result")
     }};
 }
 

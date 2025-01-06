@@ -8,15 +8,15 @@ use nalgebra::Vector3;
 use crate::special::cel;
 
 /// Get the magnetic field B at (r, z) in Cyl CS
-/// for the axially polarized (z-axis) magnet of dimension (radius, length)
+/// for the axially polarized (z-axis) magnet of dimension (radius, height)
 pub fn axial_cyl_b_cyl(
     r: f64,
     z: f64,
     radius: f64,
-    length: f64,
+    height: f64,
     // polarization: f64,
 ) -> Vector3<f64> {
-    let b = length / 2.0;
+    let b = height / 2.0;
     let zp = z + b;
     let zm = z - b;
     let zp2 = zp * zp;
