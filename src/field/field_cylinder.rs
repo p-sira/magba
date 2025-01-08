@@ -11,6 +11,7 @@ use crate::geometry::{cart2cyl, vec_cyl2cart};
 use crate::special::{cel, ellipe, ellipk};
 use crate::util;
 
+#[inline]
 pub fn unit_axial_cyl_b_cyl(r: f64, z: f64, z0: f64) -> Result<Vector3<f64>, &'static str> {
     let (zp, zm) = (z + z0, z - z0);
     let (rp, rm) = (1.0 + r, 1.0 - r);
@@ -34,6 +35,7 @@ pub fn unit_axial_cyl_b_cyl(r: f64, z: f64, z0: f64) -> Result<Vector3<f64>, &'s
     Ok(Vector3::new(br, 0.0, bz))
 }
 
+#[inline]
 pub fn unit_diametric_cyl_b_cyl(
     r: f64,
     phi: f64,
@@ -121,7 +123,7 @@ pub fn unit_diametric_cyl_b_cyl(
     Ok(Vector3::new(br, bphi, bz))
 }
 
-// M = Mz + Mr (Caciagli et al., 2018)
+#[inline]
 pub fn cyl_b_cyl(
     r: f64,
     phi: f64,
@@ -141,6 +143,7 @@ pub fn cyl_b_cyl(
         return Ok(Vector3::zeros());
     }
 
+    // M = Mz + Mr (Caciagli et al., 2018)
     let mut b = Vector3::zeros();
     if pol_z != 0.0 {
         let b_axial_cyl =

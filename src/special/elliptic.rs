@@ -28,6 +28,7 @@ pub fn ellipe(m: f64) -> Result<f64, &'static str> {
 /// Original authors:
 ///  - Copyright 1984, 1987 by Stephen L. Moshier
 ///  - Copyright 2014, Eric W. Moore
+#[inline]
 pub fn ellipk_neg_m(phi: f64, m: f64) -> f64 {
     let mpp = (m * phi) * phi;
 
