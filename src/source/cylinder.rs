@@ -24,10 +24,10 @@ pub struct CylinderMagnet {
 impl_transform!(CylinderMagnet);
 
 impl Field for CylinderMagnet {
-    fn b_field(&self, point: Point3<f64>) -> Vector3<f64> {
+    fn b_field(&self, point: Point3<f64>) -> Result<Vector3<f64>, &'static str> {
         let local_point = local_point(point, self);
-        let local_vector = cyl_b(local_point, self.radius, self.height, self.polarization);
-        global_vector(local_vector, self)
+        let local_vector = cyl_b(local_point, self.radius, self.height, self.polarization)?;
+        Ok(global_vector(local_vector, self))
     }
 }
 

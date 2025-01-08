@@ -3,15 +3,15 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-use std::f64::{consts::PI, NAN};
+use std::f64::consts::PI;
 
 use crate::constants::ERRTOL;
 
 /// Special case of complete elliptical integral
 /// Reduced operation algorithm modified from Kirby, 2009.
-pub fn cel(kc: f64, p: f64, c: f64, s: f64) -> f64 {
+pub fn cel(kc: f64, p: f64, c: f64, s: f64) -> Result<f64, &'static str> {
     if kc == 0.0 {
-        return NAN;
+        return Err("fn cel: kc cannot be zero.");
     }
 
     let mut k = kc.abs();
@@ -55,5 +55,5 @@ pub fn cel(kc: f64, p: f64, c: f64, s: f64) -> f64 {
         em = k + em;
     }
 
-    (PI / 2.0) * (ss + cc * em) / (em * (em + pp))
+    Ok((PI / 2.0) * (ss + cc * em) / (em * (em + pp)))
 }
