@@ -3,7 +3,6 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-mod cel;
-pub use cel::*;
-mod elliptic;
-pub use elliptic::*;
+pub fn is_close(a: f64, b: f64, rtol: f64) -> bool {
+    (a - b).abs() <= rtol * b.abs()
+}
