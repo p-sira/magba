@@ -10,11 +10,17 @@ use russell_lab::math::{elliptic_e, elliptic_f};
 /// Compute elliptic integral of the second kind for m≠0
 /// Implementation based on SciPy
 pub fn ellipe(m: f64) -> Result<f64, &'static str> {
-    if m < 0.0 {
-        Ok(ellipe(m / (m - 1.0))? * (1.0 - m).sqrt())
-    } else {
-        elliptic_e(FRAC_PI_2, m)
+    const IT_LIMIT: u8 = 11;
+    let mut m = m;
+    let mut k = 1.0;
+    for _ in 0..IT_LIMIT {
+        if m >= 0.0 {
+            return Ok(k * elliptic_e(FRAC_PI_2, m)?);
+        }
+        k *= (1.0 - m).sqrt();
+        m = m / (m - 1.0);
     }
+    Err("fn ellipe: Fail to converge.")
 }
 
 /// Compute elliptic integral of the first kind for m<0
@@ -83,7 +89,6 @@ pub fn ellipk_neg_m(phi: f64, m: f64) -> f64 {
 
     scale * (1.0 - e2 / 10.0 + e3 / 14.0 + e2 * e2 / 24.0 - 3.0 * e2 * e3 / 44.0) / a.sqrt()
 }
-
 
 pub fn ellipk(m: f64) -> Result<f64, &'static str> {
     if m < 0.0 {
