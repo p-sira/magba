@@ -19,7 +19,7 @@ use crate::special::cel;
 ///
 /// # Examples
 /// ```
-/// use magba::fields;
+/// use magba::field;
 ///
 /// let r = 0.0;
 /// let z = 16e-3;
@@ -71,14 +71,122 @@ pub fn axial_cyl_b_cyl(r: f64, z: f64, radius: f64, height: f64, pol_z: f64) -> 
     [br, 0.0, bz]
 }
 
+/// ```
+/// use magba::field;
+/// 
+/// let r = 1e-5;
+/// let z = 16e-3;
+/// let radius = 5e-3;
+/// let height = 20e-3;
+/// let pol_z = 8e5 * magba::constants::MU0;
+///
+/// let b = field::axial_cyl_b_cyl_new(r, z, radius, height, pol_z);
+/// // Computed using Bz formula Eq. 3.89 in Permanent Magnet and Electromechanical Devices, chp. 3, p. 129 (Furlani, 2001).
+/// assert_eq! (b, Ok([0.0, 0.0, 0.10746014580764005]));
+/// ```
+pub fn axial_cyl_b_cyl_new(
+    r: f64,
+    z: f64,
+    radius: f64,
+    height: f64,
+    pol_z: f64,
+) -> Result<[f64; 3], StrError> {
+    if pol_z == 0.0 {
+        return Ok([0.0; 3]);
+    }
+
+    // Redefine cylinder parameters
+    let h_2 = height / 2.0;
+    let zi = [-h_2, h_2];
+    let r2 = r * r;
+    let radius2 = radius * radius;
+
+    // Define computation parameters
+    let dr = r - radius;
+    let dr2 = dr * dr;
+    let dz = [z - zi[0], z - zi[1]];
+    let dz2 = [dz[0] * dz[0], dz[1] * dz[1]];
+
+    let c = r2 + radius2;
+    let a = [c + dz2[0], c + dz2[1]];
+    let b = 2.0 * r * radius;
+
+    let alpha = [dr2 + dz2[0], dr2 + dz2[1]];
+    let e1 = [(a[0] - c) / (a[0] + b), (a[1] - c) / (a[1] + b)];
+    let e2 = [(a[0] - b) / (a[0] + b), (a[1] - b) / (a[1] + b)];
+    let e3 = [
+        -((a[0] + b) / (a[0] - b)).asin(),
+        -((a[1] + b) / (a[1] - b)).asin(),
+    ];
+    let e4 = [
+        (2.0 * radius * dz[0]) / (b * (a[0] - c) * (-a[0] - b).sqrt()),
+        (2.0 * radius * dz[1]) / (b * (a[1] - c) * (-a[1] - b).sqrt()),
+    ];
+
+    // Compute elliptics
+    let ell_arg = [(-2.0 * b) / alpha[0], (-2.0 * b) / alpha[1]];
+    let ca_ellk = [
+        elliptic_f(FRAC_PI_2, ell_arg[0])?,
+        elliptic_f(FRAC_PI_2, ell_arg[1])?,
+    ];
+    let ca_elle = [
+        elliptic_e(FRAC_PI_2, ell_arg[0])?,
+        elliptic_e(FRAC_PI_2, ell_arg[1])?,
+    ];
+    // Ok([e1[0], e3[0], e2[0]])
+    let cb_ellpi1 = [
+        elliptic_pi(e1[0], e3[0], e2[0])?,
+        elliptic_pi(e1[1], e3[1], e2[1])?,
+    ];
+
+    let cb_ellpi2 = [
+        elliptic_pi(e1[0], FRAC_PI_2, e2[0])?,
+        elliptic_pi(e1[1], FRAC_PI_2, e2[1])?,
+    ];
+    let cb_ellf = [elliptic_f(e3[0], e2[0])?, elliptic_f(e3[1], e2[1])?];
+    let cb_ellk = [elliptic_f(FRAC_PI_2, e2[0])?, elliptic_f(FRAC_PI_2, e2[1])?];
+    
+    return Ok([ca_ellk[0], ca_elle[0], cb_ellk[0]]);
+    // return Ok([cb_ellpi1[0], cb_ellpi2[0], cb_ellf[0]]);
+
+    // Compute function C_a and C_b
+    let sqrt_alpha = [alpha[0].sqrt(), alpha[1].sqrt()];
+    let ca = [
+        -(a[0] / (r * sqrt_alpha[0]) * ca_ellk[0] - (sqrt_alpha[0] / r) * ca_elle[0]),
+        a[1] / (r * sqrt_alpha[1]) * ca_ellk[1] - (sqrt_alpha[1] / r) * ca_elle[1],
+    ];
+    let crbr = c * r - b * radius;
+    let cb = [
+        -e4[0]
+            * (crbr * (cb_ellpi1[0] + cb_ellpi2[0])
+                + (b * radius - a[0] * r) * (cb_ellf[0] + cb_ellk[0])),
+        e4[1]
+            * (crbr * (cb_ellpi1[1] + cb_ellpi2[1])
+                + (b * radius - a[1] * r) * (cb_ellf[1] + cb_ellk[1])),
+    ];
+
+    // Compute B-field
+    let k = pol_z / (2.0 * PI);
+    let br = k * (ca[0] + ca[1]);
+    let bz = k * (cb[0] + cb[1]);
+
+    Ok([br, 0.0, bz])
+    // Ok([0.0; 3])
+}
+
 /// Compute the magnetic field B at point(x, y, z)
-pub fn axial_cyl_b(point: Point3<f64>, radius: f64, height: f64, pol_z: f64) -> Vector3<f64> {
+pub fn axial_cyl_b(
+    point: Point3<f64>,
+    radius: f64,
+    height: f64,
+    pol_z: f64,
+) -> Result<Vector3<f64>, StrError> {
     let (x, y, z) = (point.x, point.y, point.z);
     let r = (x * x + y * y).sqrt();
-    let [br, bphi, bz] = axial_cyl_b_cyl(r, z, radius, height, pol_z);
+    let [br, bphi, bz] = axial_cyl_b_cyl_new(r, z, radius, height, pol_z)?;
     let (bx, by) = cyl2cart(br, bphi);
 
-    Vector3::new(bx, by, bz)
+    Ok(Vector3::new(bx, by, bz))
 }
 
 /// Calculate complete elliptic integral of the first, second, and third kinds
@@ -155,7 +263,7 @@ pub fn diametric_cyl_b_cyl(cyl_point: [f64; 3], radius: f64, height: f64, pol_r:
     let gam2_term = gam2 / (1.0 - gam2);
     let p3p = inv_arg_kp * (celk_p - cele_p) - gam2_term * (celp_p - celk_p);
     let p3m = inv_arg_km * (celk_m - cele_m) - gam2_term * (celp_m - celk_m);
-    
+
     let p4p = gam2_term * (celp_p - celk_p) + gam2_term * (gam2 * celp_p - celk_p) - p1p;
     let p4m = gam2_term * (celp_m - celk_m) + gam2_term * (gam2 * celp_m - celk_m) - p1m;
 
