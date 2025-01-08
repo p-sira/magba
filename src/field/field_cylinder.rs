@@ -31,65 +31,27 @@ use crate::special::cel;
 /// // Computed using Bz formula Eq. 3.89 in Permanent Magnet and Electromechanical Devices, chp. 3, p. 129 (Furlani, 2001).
 /// assert_eq! (b, Ok([0.0, 0.0, 0.10746014580764005]));
 /// ```
-pub fn axial_cyl_b_cyl(
-    r: f64,
-    z: f64,
-    radius: f64,
-    height: f64,
-    pol_z: f64,
-) -> Result<[f64; 3], &'static str> {
-    if pol_z == 0.0 {
-        return Ok([0.0; 3]);
-    }
+pub fn unit_axial_cyl_b_cyl(r: f64, z: f64, z0: f64) -> Result<Vector3<f64>, &'static str> {
+    let (zp, zm) = (z + z0, z - z0);
+    let (rp, rm) = (1.0 + r, 1.0 - r);
 
-    let b = height / 2.0;
-    let zp = z + b;
-    let zm = z - b;
-    let zp2 = zp * zp;
-    let zm2 = zm * zm;
+    let (zp2, zm2) = (zp * zp, zm * zm);
+    let (rp2, rm2) = (rp * rp, rm * rm);
 
-    let radius_p = radius + r;
-    let radius_m = radius - r;
-    let radius_p2 = radius_p * radius_p;
-    let radius_m2 = radius_m * radius_m;
+    let sq0 = (zm2 + rp2).sqrt();
+    let sq1 = (zp2 + rp2).sqrt();
 
-    let gamma = radius_m / radius_p;
+    let kp = ((zp2 + rm2) / (zp2 + rp2)).sqrt();
+    let km = ((zm2 + rm2) / (zm2 + rp2)).sqrt();
+
+    let gamma = rm / rp;
     let gamma2 = gamma * gamma;
 
-    let sqrt_p = (zp2 + radius_p2).sqrt();
-    let sqrt_m = (zm2 + radius_p2).sqrt();
-
-    let alpha_p = radius / sqrt_p;
-    let alpha_m = radius / sqrt_m;
-
-    let beta_p = zp / sqrt_p;
-    let beta_m = zm / sqrt_m;
-
-    let kp = (zp2 + radius_m2).sqrt() / sqrt_p;
-    let km = (zm2 + radius_m2).sqrt() / sqrt_m;
-
-    let b0 = pol_z / PI;
-    let br = b0 * (alpha_p * cel(kp, 1.0, 1.0, -1.0)? - alpha_m * cel(km, 1.0, 1.0, -1.0)?);
-    let bz = b0 * radius / radius_p
-        * (beta_p * cel(kp, gamma2, 1.0, gamma)? - beta_m * cel(km, gamma2, 1.0, gamma)?);
-
+    let br = (cel(kp, 1.0, 1.0, -1.0)? - cel(km, 1.0, 1.0, -1.0)?) / (sq0 * PI);
+    let bz = (zp * cel(kp, gamma2, 1.0, gamma)? / sq1 - zm * cel(km, gamma2, 1.0, gamma)? / sq0)
+        / (rp * PI);
     // bphi = 0
-    Ok([br, 0.0, bz])
-}
-
-/// Compute the magnetic field B at point(x, y, z)
-pub fn axial_cyl_b(
-    point: Point3<f64>,
-    radius: f64,
-    height: f64,
-    pol_z: f64,
-) -> Result<Vector3<f64>, StrError> {
-    let (x, y, z) = (point.x, point.y, point.z);
-    let r = (x * x + y * y).sqrt();
-    let [br, bphi, bz] = axial_cyl_b_cyl(r, z, radius, height, pol_z)?;
-    let (bx, by) = cyl2cart(br, bphi);
-
-    Ok(Vector3::new(bx, by, bz))
+    Ok(Vector3::new(br, 0.0, bz))
 }
 
 /// Calculate complete elliptic integral of the first, second, and third kinds
@@ -196,8 +158,9 @@ pub fn cyl_b_cyl(
     pol_r: f64,
     pol_z: f64,
 ) -> Result<[f64; 3], &'static str> {
-    let b_axial_cyl = axial_cyl_b_cyl(cyl_point[0], cyl_point[2], radius, height, pol_z)
-        .expect("fn cyl_b_cyl: cannot compute axial B.");
+    let z0 = (height / 2.0) / radius;
+
+    let b_axial_cyl = pol_z * unit_axial_cyl_b_cyl(cyl_point[0], cyl_point[2], z0).expect("fn cyl_b_cyl: cannot compute axial B.");
     let b_diametric_cyl = diametric_cyl_b_cyl(cyl_point, radius, height, pol_r);
     let (br, bphi, bz) = (
         b_axial_cyl[0] + b_diametric_cyl[0],
