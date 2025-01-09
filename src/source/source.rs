@@ -8,8 +8,7 @@ use nalgebra::{Point3, Vector3};
 use crate::geometry::Transform;
 
 pub trait Field {
-    fn b_field(&self, point: &Point3<f64>) -> Result<Vector3<f64>, &'static str>;
-    fn b_fields(&self, points: &[Point3<f64>]) -> Result<Vec<Vector3<f64>>, &'static str>;
+    fn b_field(&self, points: &[Point3<f64>]) -> Result<Vec<Vector3<f64>>, &'static str>;
 }
 
 pub trait Source: Transform + Field {}

@@ -9,8 +9,9 @@ use nalgebra::{Point3, UnitQuaternion, Vector3};
 
 use crate::geometry::{cart2cyl, global_vectors, local_points, vec_cyl2cart};
 use crate::special::{cel, ellipe, ellipk};
-use crate::util;
+use crate::{compute_in_local, util};
 use rayon::prelude::*;
+
 #[inline]
 pub fn unit_axial_cyl_b_cyl(r: f64, z: f64, z0: f64) -> Result<Vector3<f64>, &'static str> {
     let (zp, zm) = (z + z0, z - z0);
@@ -175,6 +176,7 @@ pub fn cyl_b_cyl(
 /// let b = field::local_cyl_b(&Point3::new(0.0, 0.0, 0.0), 1.5, 3.0, &Vector3::new(1.0, 1.0, 1.0)).expect("invalid b calculation");
 /// assert_eq! (b, Vector3::new(0.6464466094067263, 0.6464466094067263, 0.7071067811865476));
 /// ```
+#[inline]
 pub fn local_cyl_b(
     point: &Point3<f64>,
     radius: f64,
@@ -195,6 +197,7 @@ pub fn local_cyl_b(
     Ok(Vector3::new(bx, by, b_cyl.z))
 }
 
+#[inline]
 pub fn local_cyl_b_vec(
     points: &[Point3<f64>],
     radius: f64,
@@ -223,8 +226,11 @@ pub fn cyl_b_vec(
     height: f64,
     pol: &Vector3<f64>,
 ) -> Result<Vec<Vector3<f64>>, &'static str> {
-    let local_points = local_points(points, position, orientation);
-    let local_vectors = local_cyl_b_vec(&local_points, radius, height, &pol)?;
-    let global_vectors = global_vectors(&local_vectors, position, orientation);
-    Ok(global_vectors)
+    Ok(compute_in_local!(
+        local_cyl_b_vec,
+        &points,
+        (radius, height, &pol),
+        &position,
+        &orientation
+    ))
 }

@@ -6,12 +6,8 @@ use std::fmt::Display;
  */
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
-use crate::{
-    field::{local_cyl_b, local_cyl_b_vec},
-    geometry::{global_vector, local_point, Transform},
-    impl_transform,
-};
-
+use crate::{field::cyl_b_vec, impl_transform};
+use crate::geometry::Transform;
 use super::Field;
 
 #[derive(Debug, Clone, PartialEq, Default)]
@@ -28,27 +24,15 @@ pub struct CylinderMagnet {
 impl_transform!(CylinderMagnet);
 
 impl Field for CylinderMagnet {
-    fn b_field(&self, point: &Point3<f64>) -> Result<Vector3<f64>, &'static str> {
-        let local_point = local_point(point, &self.position, &self.orientation);
-        let local_vector = local_cyl_b(&local_point, self.radius, self.height, &self.polarization)?;
-        Ok(global_vector(
-            &local_vector,
+    fn b_field(&self, points: &[Point3<f64>]) -> Result<Vec<Vector3<f64>>, &'static str> {
+        Ok(cyl_b_vec(
+            &points,
             &self.position,
             &self.orientation,
-        ))
-    }
-
-    fn b_fields(&self, points: &[Point3<f64>]) -> Result<Vec<Vector3<f64>>, &'static str> {
-        let local_points = points
-            .iter()
-            .map(|point| local_point(point, &self.position, &self.orientation))
-            .collect::<Vec<Point3<f64>>>();
-        let local_vectors = local_cyl_b_vec(&local_points, self.radius, self.height, &self.polarization)?;
-        let global_vectors = local_vectors
-            .iter()
-            .map(|local_vector| global_vector(local_vector, &self.position, &self.orientation))
-            .collect();
-        Ok(global_vectors)
+            self.radius,
+            self.height,
+            &self.polarization,
+        )?)
     }
 }
 
