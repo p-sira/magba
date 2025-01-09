@@ -10,7 +10,7 @@ use russell_lab::math::{elliptic_e, elliptic_f};
 /// Compute elliptic integral of the second kind for m≠0
 /// Implementation based on SciPy
 pub fn ellipe(m: f64) -> Result<f64, &'static str> {
-    const IT_LIMIT: u8 = 11;
+    const IT_LIMIT: usize = 11;
     let mut m = m;
     let mut k = 1.0;
     for _ in 0..IT_LIMIT {
