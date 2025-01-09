@@ -5,12 +5,12 @@
 
 use std::f64::consts::PI;
 
-use nalgebra::{Point3, Vector3};
+use nalgebra::{Point3, UnitQuaternion, Vector3};
 
-use crate::geometry::{cart2cyl, vec_cyl2cart};
+use crate::geometry::{cart2cyl, global_vectors, local_points, vec_cyl2cart};
 use crate::special::{cel, ellipe, ellipk};
 use crate::util;
-
+use rayon::prelude::*;
 #[inline]
 pub fn unit_axial_cyl_b_cyl(r: f64, z: f64, z0: f64) -> Result<Vector3<f64>, &'static str> {
     let (zp, zm) = (z + z0, z - z0);
@@ -166,20 +166,20 @@ pub fn cyl_b_cyl(
 /// use magba::field;
 /// use nalgebra::{Point3, Vector3};
 ///
-/// let b = field::cyl_b(Point3::new(1.0, -1.0, 0.0), 1.0, 2.0, Vector3::new(1.0, 2.0, 3.0)).expect("invalid b calculation");
+/// let b = field::local_cyl_b(&Point3::new(1.0, -1.0, 0.0), 1.0, 2.0, &Vector3::new(1.0, 2.0, 3.0)).expect("invalid b calculation");
 /// assert_eq! (b, Vector3::new(-0.36846056628423807, -0.10171405289381408, -0.3300649209932216));
 ///
-/// let b = field::cyl_b(Point3::new(1.0, 1.0, 1.0), 0.5, 2.0, Vector3::new(3.0, 2.0, -1.0)).expect("invalid b calculation");
+/// let b = field::local_cyl_b(&Point3::new(1.0, 1.0, 1.0), 0.5, 2.0, &Vector3::new(3.0, 2.0, -1.0)).expect("invalid b calculation");
 /// assert_eq! (b, Vector3::new(0.053312250540044605, 0.07895873346514166, 0.10406997810599936));
 ///
-/// let b = field::cyl_b(Point3::new(0.0, 0.0, 0.0), 1.5, 3.0, Vector3::new(1.0, 1.0, 1.0)).expect("invalid b calculation");
+/// let b = field::local_cyl_b(&Point3::new(0.0, 0.0, 0.0), 1.5, 3.0, &Vector3::new(1.0, 1.0, 1.0)).expect("invalid b calculation");
 /// assert_eq! (b, Vector3::new(0.6464466094067263, 0.6464466094067263, 0.7071067811865476));
 /// ```
-pub fn cyl_b(
-    point: Point3<f64>,
+pub fn local_cyl_b(
+    point: &Point3<f64>,
     radius: f64,
     height: f64,
-    pol: Vector3<f64>,
+    pol: &Vector3<f64>,
 ) -> Result<Vector3<f64>, &'static str> {
     let (r, phi) = cart2cyl(point.x, point.y);
     let (pol_r, theta) = cart2cyl(pol.x, pol.y);
@@ -193,4 +193,38 @@ pub fn cyl_b(
     }
 
     Ok(Vector3::new(bx, by, b_cyl.z))
+}
+
+pub fn local_cyl_b_vec(
+    points: &[Point3<f64>],
+    radius: f64,
+    height: f64,
+    pol: &Vector3<f64>,
+) -> Result<Vec<Vector3<f64>>, &'static str> {
+    // If small number, serial is faster owing to less overhead
+    if points.len() <= 20 {
+        Ok(points
+            .iter()
+            .map(|p| local_cyl_b(p, radius, height, &pol).unwrap())
+            .collect())
+    } else {
+        Ok(points
+            .par_iter()
+            .map(|p| local_cyl_b(p, radius, height, &pol).unwrap())
+            .collect())
+    }
+}
+
+pub fn cyl_b_vec(
+    points: &[Point3<f64>],
+    position: &Point3<f64>,
+    orientation: &UnitQuaternion<f64>,
+    radius: f64,
+    height: f64,
+    pol: &Vector3<f64>,
+) -> Result<Vec<Vector3<f64>>, &'static str> {
+    let local_points = local_points(points, position, orientation);
+    let local_vectors = local_cyl_b_vec(&local_points, radius, height, &pol)?;
+    let global_vectors = global_vectors(&local_vectors, position, orientation);
+    Ok(global_vectors)
 }

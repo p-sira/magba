@@ -1,0 +1,26 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../../python/pymagba"
+		}
+	],
+	"settings": {
+		"psi-header.variables": [
+			[
+				"project",
+				"Magba"
+			],
+			[
+				"license",
+				"The 3-Clause BSD"
+			],
+			[
+				"yearpublished",
+				"2025"
+			]
+		]
+	}
+}
