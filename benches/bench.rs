@@ -4,7 +4,7 @@
  */
 
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
-use magba::field::local_cyl_b;
+use magba::field::local_cyl_B;
 use nalgebra::{Point3, Vector3};
 use rayon::prelude::*;
 
@@ -39,7 +39,7 @@ fn bench_b_cyl_parallel_vs_serial(c: &mut Criterion) {
             b.iter(|| {
                 points
                     .iter()
-                    .map(|p| local_cyl_b(p, radius, height, &pol).unwrap())
+                    .map(|p| local_cyl_B(p, radius, height, &pol).unwrap())
                     .collect::<Vec<_>>()
             });
         });
@@ -48,7 +48,7 @@ fn bench_b_cyl_parallel_vs_serial(c: &mut Criterion) {
             b.iter(|| {
                 points
                     .par_iter()
-                    .map(|p| local_cyl_b(p, radius, height, &pol).unwrap())
+                    .map(|p| local_cyl_B(p, radius, height, &pol).unwrap())
                     .collect::<Vec<_>>()
             });
         });

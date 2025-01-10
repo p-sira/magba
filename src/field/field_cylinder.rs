@@ -3,17 +3,17 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-use std::f64::consts::PI;
-
 use nalgebra::{Point3, UnitQuaternion, Vector3};
+use std::f64::consts::PI;
 
 use crate::geometry::{cart2cyl, global_vectors, local_points, vec_cyl2cart};
 use crate::special::{cel, ellipe, ellipk};
 use crate::{compute_in_local, util};
 use rayon::prelude::*;
 
+#[allow(non_snake_case)]
 #[inline]
-pub fn unit_axial_cyl_b_cyl(r: f64, z: f64, z0: f64) -> Result<Vector3<f64>, &'static str> {
+pub fn unit_axial_cyl_B_cyl(r: f64, z: f64, z0: f64) -> Result<Vector3<f64>, &'static str> {
     let (zp, zm) = (z + z0, z - z0);
     let (rp, rm) = (1.0 + r, 1.0 - r);
 
@@ -36,8 +36,9 @@ pub fn unit_axial_cyl_b_cyl(r: f64, z: f64, z0: f64) -> Result<Vector3<f64>, &'s
     Ok(Vector3::new(br, 0.0, bz))
 }
 
+#[allow(non_snake_case)]
 #[inline]
-pub fn unit_diametric_cyl_b_cyl(
+pub fn unit_diametric_cyl_B_cyl(
     r: f64,
     phi: f64,
     z: f64,
@@ -124,8 +125,9 @@ pub fn unit_diametric_cyl_b_cyl(
     Ok(Vector3::new(br, bphi, bz))
 }
 
+#[allow(non_snake_case)]
 #[inline]
-pub fn cyl_b_cyl(
+pub fn cyl_B_cyl(
     r: f64,
     phi: f64,
     z: f64,
@@ -148,13 +150,13 @@ pub fn cyl_b_cyl(
     let mut b = Vector3::zeros();
     if pol_z != 0.0 {
         let b_axial_cyl =
-            pol_z * unit_axial_cyl_b_cyl(r, z, z0).expect("fn cyl_b_cyl: cannot compute axial B.");
+            pol_z * unit_axial_cyl_B_cyl(r, z, z0).expect("fn cyl_b_cyl: cannot compute axial B.");
         b += b_axial_cyl;
     }
 
     if pol_r != 0.0 {
         let b_diametric_cyl = pol_r
-            * unit_diametric_cyl_b_cyl(r, phi, z, z0)
+            * unit_diametric_cyl_B_cyl(r, phi, z, z0)
                 .expect("fn cyl_b_cyl: cannot compute diametric B.");
         b += b_diametric_cyl;
     }
@@ -176,8 +178,9 @@ pub fn cyl_b_cyl(
 /// let b = field::local_cyl_b(&Point3::new(0.0, 0.0, 0.0), 1.5, 3.0, &Vector3::new(1.0, 1.0, 1.0)).expect("invalid b calculation");
 /// assert_eq! (b, Vector3::new(0.6464466094067263, 0.6464466094067263, 0.7071067811865476));
 /// ```
+#[allow(non_snake_case)]
 #[inline]
-pub fn local_cyl_b(
+pub fn local_cyl_B(
     point: &Point3<f64>,
     radius: f64,
     height: f64,
@@ -186,7 +189,7 @@ pub fn local_cyl_b(
     let (r, phi) = cart2cyl(point.x, point.y);
     let (pol_r, theta) = cart2cyl(pol.x, pol.y);
 
-    let b_cyl = cyl_b_cyl(r, phi - theta, point.z, radius, height, pol_r, pol.z)?;
+    let b_cyl = cyl_B_cyl(r, phi - theta, point.z, radius, height, pol_r, pol.z)?;
 
     let (bx, by) = vec_cyl2cart(b_cyl.x, b_cyl.y, phi);
     // Check if point is in the magnet
@@ -197,8 +200,9 @@ pub fn local_cyl_b(
     Ok(Vector3::new(bx, by, b_cyl.z))
 }
 
+#[allow(non_snake_case)]
 #[inline]
-pub fn local_cyl_b_vec(
+pub fn local_cyl_B_vec(
     points: &[Point3<f64>],
     radius: f64,
     height: f64,
@@ -208,17 +212,18 @@ pub fn local_cyl_b_vec(
     if points.len() <= 20 {
         Ok(points
             .iter()
-            .map(|p| local_cyl_b(p, radius, height, &pol).unwrap())
+            .map(|p| local_cyl_B(p, radius, height, &pol).unwrap())
             .collect())
     } else {
         Ok(points
             .par_iter()
-            .map(|p| local_cyl_b(p, radius, height, &pol).unwrap())
+            .map(|p| local_cyl_B(p, radius, height, &pol).unwrap())
             .collect())
     }
 }
 
-pub fn cyl_b_vec(
+#[allow(non_snake_case)]
+pub fn cyl_B(
     points: &[Point3<f64>],
     position: &Point3<f64>,
     orientation: &UnitQuaternion<f64>,
@@ -227,10 +232,43 @@ pub fn cyl_b_vec(
     pol: &Vector3<f64>,
 ) -> Result<Vec<Vector3<f64>>, &'static str> {
     Ok(compute_in_local!(
-        local_cyl_b_vec,
+        local_cyl_B_vec,
         &points,
         (radius, height, &pol),
         &position,
         &orientation
     ))
+}
+
+#[allow(non_snake_case)]
+pub fn sum_multiple_cyl_B(
+    points: &[Point3<f64>],
+    positions: &[Point3<f64>],
+    orientations: &[UnitQuaternion<f64>],
+    radii: &[f64],
+    heights: &[f64],
+    pols: &[Vector3<f64>],
+) -> Result<Vec<Vector3<f64>>, &'static str> {
+    if positions.len() != orientations.len()
+        || positions.len() != radii.len()
+        || positions.len() != heights.len()
+        || positions.len() != pols.len()
+    {
+        return Err("fn sum_multiple_cyl_b: Length of input vectors must be equal.");
+    }
+    let vectors = positions
+        .par_iter()
+        .zip(orientations)
+        .zip(radii)
+        .zip(heights)
+        .zip(pols)
+        .map(|((((position, orientation), radius), height), pol)| {
+            cyl_B(&points, position, orientation, *radius, *height, pol)
+        })
+        .collect::<Result<Vec<Vec<_>>, _>>()?;
+
+    let net_vector: Vec<Vector3<f64>> = (0..points.len())
+        .map(|i| vectors.iter().map(|v| v[i]).sum())
+        .collect();
+    Ok(net_vector)
 }
