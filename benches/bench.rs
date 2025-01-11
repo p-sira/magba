@@ -4,18 +4,10 @@
  */
 
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
-use magba::field::local_cyl_B;
+use magba::field::field_cylinder::local_cyl_B;
 use nalgebra::{Point3, Vector3};
 use rayon::prelude::*;
 
-/// ```
-/// use russell_lab::*;
-///
-/// println!("Using Intel MKL  = {}", using_intel_mkl());
-/// println!("BLAS num threads = {}", get_num_threads());
-/// set_num_threads(2);
-/// println!("BLAS num threads = {}", get_num_threads());
-/// ```
 fn generate_local_cyl_b_test_data(size: usize) -> (Vec<Point3<f64>>, f64, f64, Vector3<f64>) {
     let test_points = [
         Point3::new(1.0, -1.0, 1.5),

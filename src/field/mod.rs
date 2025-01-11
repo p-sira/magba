@@ -3,5 +3,5 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-mod field_cylinder;
+pub mod field_cylinder;
 pub use field_cylinder::{cyl_B, sum_multiple_cyl_B};
