@@ -3,7 +3,6 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-
 /// Convert Cartesian coordinates (x, y) to cylindrical coordinates (r, phi)
 pub fn cart2cyl(x: f64, y: f64) -> (f64, f64) {
     let r = (x * x + y * y).sqrt();

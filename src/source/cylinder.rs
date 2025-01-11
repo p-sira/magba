@@ -1,14 +1,14 @@
-use std::fmt::Display;
-
 /*
  * Magba is licensed under The 3-Clause BSD, see LICENSE.
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
-use crate::{field::cyl_B, impl_transform};
-use crate::geometry::Transform;
 use super::Field;
+use crate::geometry::Transform;
+use crate::{field::cyl_B, impl_transform};
+
+use std::fmt::Display;
 
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct CylinderMagnet {
