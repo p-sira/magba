@@ -4,4 +4,4 @@
  */
 
 mod field_cylinder;
-pub use field_cylinder::*;
+pub use field_cylinder::{cyl_B, sum_multiple_cyl_B};
