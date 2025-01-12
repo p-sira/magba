@@ -4,7 +4,7 @@
  */
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
-use super::Field;
+use super::{Field, Source};
 use crate::geometry::transform::Transform;
 use crate::{fields::cyl_B, impl_transform};
 
@@ -20,6 +20,26 @@ pub struct CylinderMagnet {
     radius: f64,
     height: f64,
 }
+
+impl CylinderMagnet {
+    pub fn new(
+        position: Point3<f64>,
+        orientation: UnitQuaternion<f64>,
+        polarization: Vector3<f64>,
+        radius: f64,
+        height: f64,
+    ) -> Self {
+        CylinderMagnet {
+            position,
+            orientation,
+            polarization,
+            radius,
+            height,
+        }
+    }
+}
+
+impl Source for CylinderMagnet {}
 
 impl_transform!(CylinderMagnet);
 
@@ -40,7 +60,7 @@ impl Display for CylinderMagnet {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "CylinderMagnet (r={}, h={}, pol={}) at ({}, {})",
+            "CylinderMagnet (r={}, h={}, pol={:?}) at ({}, {})",
             self.radius, self.height, self.polarization, self.position, self.orientation
         )
     }
