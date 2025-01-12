@@ -8,7 +8,7 @@ use rayon::iter::{
     IntoParallelIterator, IntoParallelRefIterator, IntoParallelRefMutIterator, ParallelIterator,
 };
 
-use crate::geometry::Transform;
+use crate::geometry::transform::Transform;
 
 #[allow(non_snake_case)]
 pub trait Field {
@@ -76,7 +76,7 @@ impl Field for SourceCollection {
             .into_par_iter()
             .map(|i| b_fields.iter().map(|vector| vector[i]).sum())
             .collect::<Vec<Vector3<_>>>();
-        
+
         Ok(net_field)
     }
 }

@@ -4,4 +4,9 @@
             "path": "."
         }
     ],
+    "settings": {
+        "rust-analyzer.cargo.features": [
+            "sources"
+        ]
+    },
 }

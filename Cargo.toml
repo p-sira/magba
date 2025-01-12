@@ -11,6 +11,11 @@ russell_lab = "1.9.1"
 [dev-dependencies]
 criterion = "0.5.1"
 
+[features]
+default = ["sources"]
+transform = []
+sources = ["transform"]
+
 [[bench]]
 name = "bench"
 harness = false

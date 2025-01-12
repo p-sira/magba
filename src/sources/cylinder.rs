@@ -5,8 +5,8 @@
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
 use super::Field;
-use crate::geometry::Transform;
-use crate::{field::cyl_B, impl_transform};
+use crate::geometry::transform::Transform;
+use crate::{fields::cyl_B, impl_transform};
 
 use std::fmt::Display;
 

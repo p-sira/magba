@@ -3,7 +3,7 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-mod coordinate;
-pub use coordinate::*;
-mod transform;
-pub use transform::*;
+pub mod coordinate;
+
+#[cfg(feature = "transform")]
+pub mod transform;

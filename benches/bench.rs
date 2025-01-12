@@ -4,7 +4,7 @@
  */
 
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
-use magba::field::field_cylinder::local_cyl_B;
+use magba::fields::field_cylinder::local_cyl_B;
 use nalgebra::{Point3, Vector3};
 use rayon::prelude::*;
 
