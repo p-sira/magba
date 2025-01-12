@@ -3,6 +3,8 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
+use std::fmt::Debug;
+
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 use rayon::iter::{
     IntoParallelIterator, IntoParallelRefIterator, IntoParallelRefMutIterator, ParallelIterator,
@@ -15,13 +17,45 @@ pub trait Field {
     fn get_B(&self, points: &[Point3<f64>]) -> Result<Vec<Vector3<f64>>, &'static str>;
 }
 
-pub trait Source: Transform + Field + Send + Sync {}
+pub trait Source: Transform + Field + Debug + Send + Sync {}
 
 pub struct SourceCollection {
     position: Point3<f64>,
     orientation: UnitQuaternion<f64>,
 
-    sources: [Box<dyn Source>],
+    sources: Vec<Box<dyn Source>>,
+}
+
+impl SourceCollection {
+    pub fn new(
+        position: Point3<f64>,
+        orientation: UnitQuaternion<f64>,
+        sources: Vec<Box<dyn Source>>,
+    ) -> Self {
+        Self {
+            position,
+            orientation,
+            sources,
+        }
+    }
+
+    pub fn add(&mut self, source: Box<dyn Source>) {
+        self.sources.push(source);
+    }
+
+    pub fn add_sources(&mut self, source: &mut Vec<Box<dyn Source>>) {
+        self.sources.append(source);
+    }
+}
+
+impl Default for SourceCollection {
+    fn default() -> Self {
+        Self {
+            position: Point3::new(0.0, 0.0, 0.0),
+            orientation: UnitQuaternion::identity(),
+            sources: Vec::new(),
+        }
+    }
 }
 
 impl Transform for SourceCollection {
