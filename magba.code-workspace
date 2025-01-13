@@ -7,6 +7,20 @@
     "settings": {
         "rust-analyzer.cargo.features": [
             "sources"
+        ],
+        "psi-header.variables": [
+            [
+                "project",
+                "Magba"
+            ],
+            [
+                "license",
+                "The 3-Clause BSD"
+            ],
+            [
+                "yearpublished",
+                "2025"
+            ]
         ]
     },
 }
