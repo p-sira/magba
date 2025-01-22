@@ -74,27 +74,17 @@ mod tests {
 
     use crate::geometry::transform::Transform;
     use crate::sources::CylinderMagnet;
-    use crate::sources::Field;
     use crate::testing_util::*;
 
     use super::*;
 
-    fn get_points() -> Vec<Point3<f64>> {
-        matrix_to_point_vec(&load_matrix(
+    fn compare_with_file(magnet: &CylinderMagnet, ref_path_str: &str, rtol: f64) {
+        compare_B_with_file(
+            magnet,
             "./tests/test-data/cylinder-points.mtx",
-        ))
-    }
-
-    fn compare_with_file(magnet: &CylinderMagnet, path_str: &str, rtol: f64) {
-        let expected = matrix_to_vector_vec(&load_matrix(path_str));
-        let points = get_points();
-
-        let b_fields = magnet.get_B(&points).expect("can calculate b field");
-
-        b_fields
-            .iter()
-            .zip(&expected)
-            .for_each(|(b_field, reference)| assert_close_vector(b_field, reference, rtol));
+            ref_path_str,
+            rtol,
+        );
     }
 
     #[test]
