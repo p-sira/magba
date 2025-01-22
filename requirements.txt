@@ -22,6 +22,7 @@ matplotlib==3.10.0
     # via magpylib
 numpy==2.2.2
     # via
+    #   -r requirements.in
     #   contourpy
     #   magpylib
     #   matplotlib
@@ -46,7 +47,9 @@ pyproject-hooks==1.2.0
 python-dateutil==2.9.0.post0
     # via matplotlib
 scipy==1.15.1
-    # via magpylib
+    # via
+    #   -r requirements.in
+    #   magpylib
 six==1.17.0
     # via python-dateutil
 tenacity==9.0.0
