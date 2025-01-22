@@ -84,7 +84,7 @@ def test_rotate_translate_cylinder(points):
 
 if __name__ == "__main__":
     points = get_points()
-    mmwrite(TEST_DATA_DIR / "points.mtx", coo_array(points))
+    mmwrite(TEST_DATA_DIR / "cylinder-points.mtx", coo_array(points))
 
     test_cylinder(points)
     test_small_cylinder(points)
