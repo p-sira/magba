@@ -279,10 +279,8 @@ mod tests {
 
     use crate::geometry::transform::Transform;
     use crate::sources::Field;
-    use crate::testing_util::{
-        assert_close_vector, load_matrix, matrix_to_vector_vec, quat_from_rotvec,
-    };
-    use crate::{sources::CylinderMagnet, testing_util::matrix_to_point_vec};
+    use crate::testing_util::*;
+    use crate::sources::CylinderMagnet;
 
     use super::*;
 
