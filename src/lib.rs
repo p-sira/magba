@@ -14,4 +14,4 @@ pub mod fields;
 pub mod sources;
 
 #[cfg(test)]
-mod testing_util;
+pub mod testing_util;
