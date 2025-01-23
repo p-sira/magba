@@ -50,9 +50,27 @@ def test_cylinder_collection(points):
             (0.9, 0.8, 0.6),
         ),
     )
+
     field = magnets.getB(points)
     mmwrite(TEST_DATA_DIR / "cylinder-collection-result.mtx", coo_array(field))
+    # print(magnets.position.tolist(), magnets.orientation.as_quat().tolist())
+    # [print(magnet.position.tolist(), magnet.orientation.as_quat().tolist()) for magnet in magnets] 
+    # print()
 
+    magnets.position = (0.1, 0.15, 0.2)
+    field = magnets.getB(points)
+    mmwrite(TEST_DATA_DIR / "cylinder-collection-translate-result.mtx", coo_array(field))
+
+    magnets.position = (0, 0, 0)
+    # print(magnets.position.tolist(), magnets.orientation.as_quat().tolist())
+    # [print(magnet.position.tolist(), magnet.orientation.as_quat().tolist()) for magnet in magnets] 
+    magnets.orientation = Rotation.from_rotvec((np.pi / 3, np.pi / 4, np.pi / 5))
+    field = magnets.getB(points)
+    mmwrite(TEST_DATA_DIR / "cylinder-collection-rotate-result.mtx", coo_array(field))
+
+    magnets.position = (0.1, 0.15, 0.2)
+    field = magnets.getB(points)
+    mmwrite(TEST_DATA_DIR / "cylinder-collection-translate-rotate-result.mtx", coo_array(field))
 
 if __name__ == "__main__":
     points = get_points()
