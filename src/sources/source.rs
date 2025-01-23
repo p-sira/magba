@@ -71,7 +71,15 @@ macro_rules! impl_transform_collection {
             self.orientation = rotation * self.orientation;
         }
 
-        fn rotate_anchor(&mut self, rotation: &UnitQuaternion<f64>, anchor: &Point3<f64>) {}
+        fn rotate_anchor(&mut self, rotation: &UnitQuaternion<f64>, anchor: &Point3<f64>) {
+            self.sources
+                .par_iter_mut()
+                .for_each(|source| source.rotate_anchor(rotation, anchor));
+
+            let local_position = self.position - anchor;
+            self.position = Point3::from(rotation * local_position + Vector3::from(anchor.coords));
+            self.orientation = rotation * &self.orientation;
+        }
     };
 }
 
