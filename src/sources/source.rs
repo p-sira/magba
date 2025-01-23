@@ -53,7 +53,7 @@ macro_rules! impl_transform_collection {
             let rotation = orientation * &self.orientation.inverse();
             self.sources
                 .par_iter_mut()
-                .for_each(|source| source.rotate(&rotation));
+                .for_each(|source| source.rotate_anchor(&rotation, &self.position));
             self.orientation = orientation;
         }
 
@@ -67,9 +67,11 @@ macro_rules! impl_transform_collection {
         fn rotate(&mut self, rotation: &UnitQuaternion<f64>) {
             self.sources
                 .par_iter_mut()
-                .for_each(|source| source.rotate(rotation));
+                .for_each(|source| source.rotate_anchor(rotation, &self.position));
             self.orientation = rotation * self.orientation;
         }
+
+        fn rotate_anchor(&mut self, rotation: &UnitQuaternion<f64>, anchor: &Point3<f64>) {}
     };
 }
 
@@ -178,6 +180,8 @@ impl Field for SourceCollection {
 
 #[cfg(test)]
 mod single_source_collection_tests {
+    use std::f64::consts::PI;
+
     use super::*;
     use crate::{sources::*, testing_util::*};
 
@@ -226,6 +230,46 @@ mod single_source_collection_tests {
         compare_with_file(
             &collection,
             "./tests/test-data/cylinder-collection-result.mtx",
+            1e-3,
+        );
+    }
+
+    #[test]
+    fn test_cylinder_collection_translate() {
+        let mut collection = get_cylinder_collection();
+        let translation = Translation3::new(0.1, 0.15, 0.2);
+        collection.translate(&translation);
+        compare_with_file(
+            &collection,
+            "./tests/test-data/cylinder-collection-translate-result.mtx",
+            1e-3,
+        );
+
+        collection.translate(&translation.inverse());
+        collection.set_position(Point3::new(0.1, 0.15, 0.2));
+        compare_with_file(
+            &collection,
+            "./tests/test-data/cylinder-collection-translate-result.mtx",
+            1e-3,
+        );
+    }
+
+    #[test]
+    fn test_cylinder_collection_rotate() {
+        let mut collection = get_cylinder_collection();
+        let rotation = quat_from_rotvec(PI / 3.0, PI / 4.0, PI / 5.0);
+        collection.rotate(&rotation);
+        compare_with_file(
+            &collection,
+            "./tests/test-data/cylinder-collection-rotate-result.mtx",
+            1e-3,
+        );
+
+        collection.rotate(&rotation.inverse());
+        collection.set_orientation(rotation);
+        compare_with_file(
+            &collection,
+            "./tests/test-data/cylinder-collection-rotate-result.mtx",
             1e-3,
         );
     }

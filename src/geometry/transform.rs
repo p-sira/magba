@@ -13,6 +13,7 @@ pub trait Transform {
     fn set_orientation(&mut self, orientation: UnitQuaternion<f64>);
     fn translate(&mut self, translation: &Translation3<f64>);
     fn rotate(&mut self, rotation: &UnitQuaternion<f64>);
+    fn rotate_anchor(&mut self, rotation: &UnitQuaternion<f64>, anchor: &Point3<f64>);
 }
 
 /// Implement shallow Transform for objects with no children
@@ -41,6 +42,13 @@ macro_rules! impl_transform {
             }
 
             fn rotate(&mut self, rotation: &UnitQuaternion<f64>) {
+                self.orientation = rotation * &self.orientation;
+            }
+
+            fn rotate_anchor(&mut self, rotation: &UnitQuaternion<f64>, anchor: &Point3<f64>) {
+                let local_position = self.position - anchor;
+                self.position =
+                    Point3::from(rotation * local_position + Vector3::from(anchor.coords));
                 self.orientation = rotation * &self.orientation;
             }
         }
