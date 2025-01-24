@@ -10,8 +10,9 @@ russell_lab = "1.9.1"
 
 [dev-dependencies]
 criterion = "0.5.1"
-nalgebra = { version = "0.33.2", features = ["sparse"] }
+nalgebra = { version = "0.33.2", features = ["rand", "sparse"] }
 nalgebra-sparse = { version = "0.10.0", features = ["io"] }
+rand = "0.8.5"
 rayon = "1.10.0"
 
 [features]

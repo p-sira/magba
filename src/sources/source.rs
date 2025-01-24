@@ -11,7 +11,7 @@ use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
 #[cfg(feature = "parallel")]
 use rayon::iter::{
-    IntoParallelIterator, IntoParallelRefIterator, IntoParallelRefMutIterator, ParallelIterator,
+    IntoParallelIterator, IntoParallelRefIterator, ParallelIterator,
 };
 
 use crate::geometry::transform::Transform;
@@ -54,12 +54,6 @@ macro_rules! impl_transform_collection {
 
         fn set_position(&mut self, position: Point3<f64>) {
             let translation = Translation3::from(position - &self.position);
-
-            #[cfg(feature = "parallel")]
-            self.children
-                .par_iter_mut()
-                .for_each(|source| source.translate(&translation));
-            #[cfg(not(feature = "parallel"))]
             self.children
                 .iter_mut()
                 .for_each(|source| source.translate(&translation));
@@ -69,12 +63,6 @@ macro_rules! impl_transform_collection {
 
         fn set_orientation(&mut self, orientation: UnitQuaternion<f64>) {
             let rotation = orientation * &self.orientation.inverse();
-
-            #[cfg(feature = "parallel")]
-            self.children
-                .par_iter_mut()
-                .for_each(|source| source.rotate_anchor(&rotation, &self.position));
-            #[cfg(not(feature = "parallel"))]
             self.children
                 .iter_mut()
                 .for_each(|source| source.rotate_anchor(&rotation, &self.position));
@@ -83,11 +71,6 @@ macro_rules! impl_transform_collection {
         }
 
         fn translate(&mut self, translation: &Translation3<f64>) {
-            #[cfg(feature = "parallel")]
-            self.children
-                .par_iter_mut()
-                .for_each(|source| source.translate(&translation));
-            #[cfg(not(feature = "parallel"))]
             self.children
                 .iter_mut()
                 .for_each(|source| source.translate(&translation));
@@ -96,11 +79,6 @@ macro_rules! impl_transform_collection {
         }
 
         fn rotate(&mut self, rotation: &UnitQuaternion<f64>) {
-            #[cfg(feature = "parallel")]
-            self.children
-                .par_iter_mut()
-                .for_each(|source| source.rotate_anchor(rotation, &self.position));
-            #[cfg(not(feature = "parallel"))]
             self.children
                 .iter_mut()
                 .for_each(|source| source.rotate_anchor(rotation, &self.position));
@@ -109,11 +87,6 @@ macro_rules! impl_transform_collection {
         }
 
         fn rotate_anchor(&mut self, rotation: &UnitQuaternion<f64>, anchor: &Point3<f64>) {
-            #[cfg(feature = "parallel")]
-            self.children
-                .par_iter_mut()
-                .for_each(|source| source.rotate_anchor(rotation, anchor));
-            #[cfg(not(feature = "parallel"))]
             self.children
                 .iter_mut()
                 .for_each(|source| source.rotate_anchor(rotation, anchor));
