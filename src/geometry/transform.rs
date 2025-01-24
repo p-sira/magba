@@ -3,7 +3,7 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-//! Transform object position and orientation. Provide [`Transform`] trait.
+//! Transform object position and orientation. Provide [Transform] trait.
 
 use nalgebra::{Point3, Translation3, UnitQuaternion};
 
@@ -18,7 +18,7 @@ pub trait Transform {
     fn rotate_anchor(&mut self, rotation: &UnitQuaternion<f64>, anchor: &Point3<f64>);
 }
 
-/// Implement shallow Transform for objects with no children.
+/// Implement shallow [Transform] for objects with no children.
 #[macro_export]
 macro_rules! impl_transform {
     ($type:ty) => {

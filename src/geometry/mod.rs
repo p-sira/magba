@@ -3,7 +3,7 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-//! Geometry utilities, such as [`transform`] and [`coordinate`].
+//! Geometry utilities, such as [Transform] and coordinate conversion.
 
 pub mod coordinate;
 
