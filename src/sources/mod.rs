@@ -6,11 +6,11 @@
 //! Magnetic source structs.
 //!
 //! Permanent magnets:
-//! - [`CylinderMagnet`]
+//! - [CylinderMagnet]
 //!
 //! Magnetic source collection:
-//! - [`SourceCollection`]
-//! - [`MultiSourceCollection`]
+//! - [SourceCollection]
+//! - [MultiSourceCollection]
 
 mod cylinder;
 mod source;

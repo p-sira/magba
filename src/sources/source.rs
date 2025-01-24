@@ -3,7 +3,7 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-//! Provide definitions for [`Source`], [`SourceCollection`], and [`MultiSourceCollection`].
+//! Provide definitions for [Source], [SourceCollection], and [MultiSourceCollection].
 
 use std::{fmt::Debug, fmt::Display};
 

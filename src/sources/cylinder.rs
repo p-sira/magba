@@ -3,7 +3,7 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-//! [`CylinderMagnet`] struct
+//! [CylinderMagnet] struct
 
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
