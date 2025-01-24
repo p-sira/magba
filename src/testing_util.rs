@@ -10,7 +10,7 @@ use std::path::Path;
 use nalgebra::{DMatrix, Point3, UnitQuaternion, Vector3};
 use nalgebra_sparse::io::load_coo_from_matrix_market_file;
 
-use crate::{sources::Source, util::is_close};
+use crate::util::is_close;
 
 pub fn load_matrix(path_str: &str) -> DMatrix<f64> {
     let path = Path::new(path_str);
@@ -43,20 +43,29 @@ pub fn assert_close_vector(vec1: &Vector3<f64>, vec2: &Vector3<f64>, rtol: f64) 
         .for_each(|(a, b)| assert!(is_close(*a, *b, rtol)));
 }
 
-#[allow(non_snake_case)]
-pub fn compare_B_with_file<T: Source>(
-    source: &T,
-    points_path_str: &str,
-    ref_path_str: &str,
-    rtol: f64,
-) {
-    let expected = matrix_to_vector_vec(&load_matrix(ref_path_str));
-    let points = matrix_to_point_vec(&load_matrix(points_path_str));
+#[cfg(feature="sources")]
+pub use source_testing_util::*;
 
-    let b_fields = source.get_B(&points).expect("can calculate b field");
+#[cfg(feature="sources")]
+pub mod source_testing_util {
+    use super::*;
+    use crate::sources::*;
 
-    b_fields
-        .iter()
-        .zip(&expected)
-        .for_each(|(b_field, reference)| assert_close_vector(b_field, reference, rtol));
+    #[allow(non_snake_case)]
+    pub fn compare_B_with_file<T: Source>(
+        source: &T,
+        points_path_str: &str,
+        ref_path_str: &str,
+        rtol: f64,
+    ) {
+        let expected = matrix_to_vector_vec(&load_matrix(ref_path_str));
+        let points = matrix_to_point_vec(&load_matrix(points_path_str));
+
+        let b_fields = source.get_B(&points).expect("can calculate b field");
+
+        b_fields
+            .iter()
+            .zip(&expected)
+            .for_each(|(b_field, reference)| assert_close_vector(b_field, reference, rtol));
+    }
 }

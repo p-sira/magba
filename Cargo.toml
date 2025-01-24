@@ -4,19 +4,21 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-nalgebra = { version = "0.33.2", features = ["rayon"] }
-rayon = "1.10.0"
+nalgebra = { version = "0.33.2" }
+rayon = { version = "1.10.0", optional = true }
 russell_lab = "1.9.1"
 
 [dev-dependencies]
 criterion = "0.5.1"
 nalgebra = { version = "0.33.2", features = ["sparse"] }
 nalgebra-sparse = { version = "0.10.0", features = ["io"] }
+rayon = "1.10.0"
 
 [features]
-default = ["sources"]
+default = ["sources", "parallel"]
 transform = []
 sources = ["transform"]
+parallel = ["dep:rayon", "nalgebra/rayon"]
 
 [[bench]]
 name = "bench"

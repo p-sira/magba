@@ -11,6 +11,7 @@ use std::f64::consts::PI;
 use crate::geometry::coordinate::{cart2cyl, global_vectors, local_points, vec_cyl2cart};
 use crate::special::{cel, ellipe, ellipk};
 use crate::{compute_in_local, util};
+#[cfg(feature = "parallel")]
 use rayon::prelude::*;
 
 /// Compute B-field of a cylindrical magnet with unit axial (z-axis) polarization
@@ -226,7 +227,7 @@ pub fn local_cyl_B(
 /// Compute B-field of a cylindrical magnet at multiple points in local frame.
 ///
 /// Serialized approach is used if the number of points is small.
-/// Otherwise, the calculation is parallel.
+/// Otherwise, the calculation is parallel (need *parallel* feature).
 #[allow(non_snake_case)]
 #[inline]
 pub fn local_cyl_B_vec(
@@ -235,18 +236,19 @@ pub fn local_cyl_B_vec(
     height: f64,
     pol: &Vector3<f64>,
 ) -> Result<Vec<Vector3<f64>>, &'static str> {
-    // If small number, serial is faster owing to less overhead
-    if points.len() <= 20 {
-        Ok(points
-            .iter()
-            .map(|p| local_cyl_B(p, radius, height, &pol).unwrap())
-            .collect())
-    } else {
-        Ok(points
+    #[cfg(feature = "parallel")]
+    if points.len() > 20 {
+        return Ok(points
             .par_iter()
             .map(|p| local_cyl_B(p, radius, height, &pol).unwrap())
-            .collect())
+            .collect());
     }
+
+    // If small number of points or not using parallel feature
+    Ok(points
+        .iter()
+        .map(|p| local_cyl_B(p, radius, height, &pol).unwrap())
+        .collect())
 }
 
 /// Compute B-field of a cylindrical magnet at multiple points.
@@ -269,7 +271,7 @@ pub fn cyl_B(
 }
 
 /// Compute net B-field of multiple cylindrical magnets at multiple points.
-/// 
+///
 /// The B-field contributions of each cylindrical magnet at every points are summed.
 #[allow(non_snake_case)]
 pub fn sum_multiple_cyl_B(
@@ -287,8 +289,22 @@ pub fn sum_multiple_cyl_B(
     {
         return Err("fn sum_multiple_cyl_b: Length of input vectors must be equal.");
     }
+
+    #[cfg(feature = "parallel")]
     let vectors = positions
         .par_iter()
+        .zip(orientations)
+        .zip(radii)
+        .zip(heights)
+        .zip(pols)
+        .map(|((((position, orientation), radius), height), pol)| {
+            cyl_B(&points, position, orientation, *radius, *height, pol)
+        })
+        .collect::<Result<Vec<Vec<_>>, _>>()?;
+
+    #[cfg(not(feature = "parallel"))]
+    let vectors = positions
+        .iter()
         .zip(orientations)
         .zip(radii)
         .zip(heights)

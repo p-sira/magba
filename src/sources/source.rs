@@ -8,6 +8,8 @@
 use std::{fmt::Debug, fmt::Display};
 
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
+
+#[cfg(feature = "parallel")]
 use rayon::iter::{
     IntoParallelIterator, IntoParallelRefIterator, IntoParallelRefMutIterator, ParallelIterator,
 };
@@ -52,37 +54,68 @@ macro_rules! impl_transform_collection {
 
         fn set_position(&mut self, position: Point3<f64>) {
             let translation = Translation3::from(position - &self.position);
+
+            #[cfg(feature = "parallel")]
             self.children
                 .par_iter_mut()
                 .for_each(|source| source.translate(&translation));
+            #[cfg(not(feature = "parallel"))]
+            self.children
+                .iter_mut()
+                .for_each(|source| source.translate(&translation));
+
             self.position = position
         }
 
         fn set_orientation(&mut self, orientation: UnitQuaternion<f64>) {
             let rotation = orientation * &self.orientation.inverse();
+
+            #[cfg(feature = "parallel")]
             self.children
                 .par_iter_mut()
                 .for_each(|source| source.rotate_anchor(&rotation, &self.position));
+            #[cfg(not(feature = "parallel"))]
+            self.children
+                .iter_mut()
+                .for_each(|source| source.rotate_anchor(&rotation, &self.position));
+
             self.orientation = orientation;
         }
 
         fn translate(&mut self, translation: &Translation3<f64>) {
+            #[cfg(feature = "parallel")]
             self.children
                 .par_iter_mut()
                 .for_each(|source| source.translate(&translation));
+            #[cfg(not(feature = "parallel"))]
+            self.children
+                .iter_mut()
+                .for_each(|source| source.translate(&translation));
+
             self.position = translation.transform_point(&self.position);
         }
 
         fn rotate(&mut self, rotation: &UnitQuaternion<f64>) {
+            #[cfg(feature = "parallel")]
             self.children
                 .par_iter_mut()
                 .for_each(|source| source.rotate_anchor(rotation, &self.position));
+            #[cfg(not(feature = "parallel"))]
+            self.children
+                .iter_mut()
+                .for_each(|source| source.rotate_anchor(rotation, &self.position));
+
             self.orientation = rotation * self.orientation;
         }
 
         fn rotate_anchor(&mut self, rotation: &UnitQuaternion<f64>, anchor: &Point3<f64>) {
+            #[cfg(feature = "parallel")]
             self.children
                 .par_iter_mut()
+                .for_each(|source| source.rotate_anchor(rotation, anchor));
+            #[cfg(not(feature = "parallel"))]
+            self.children
+                .iter_mut()
                 .for_each(|source| source.rotate_anchor(rotation, anchor));
 
             let local_position = self.position - anchor;
@@ -96,16 +129,34 @@ macro_rules! impl_transform_collection {
 macro_rules! impl_field_collection {
     () => {
         fn get_B(&self, points: &[Point3<f64>]) -> Result<Vec<Vector3<f64>>, &'static str> {
-            let b_fields = self
-                .children
-                .par_iter()
-                .map(|source| source.get_B(points))
-                .collect::<Result<Vec<_>, _>>()?;
+            let net_field;
+            #[cfg(feature = "parallel")]
+            {
+                let b_fields = self
+                    .children
+                    .par_iter()
+                    .map(|source| source.get_B(points))
+                    .collect::<Result<Vec<_>, _>>()?;
 
-            let net_field = (0..points.len())
-                .into_par_iter()
-                .map(|i| b_fields.iter().map(|vector| vector[i]).sum())
-                .collect::<Vec<Vector3<_>>>();
+                net_field = (0..points.len())
+                    .into_par_iter()
+                    .map(|i| b_fields.iter().map(|vector| vector[i]).sum())
+                    .collect::<Vec<Vector3<_>>>();
+            }
+
+            #[cfg(not(feature = "parallel"))]
+            {
+                let b_fields = self
+                    .children
+                    .iter()
+                    .map(|source| source.get_B(points))
+                    .collect::<Result<Vec<_>, _>>()?;
+
+                net_field = (0..points.len())
+                    .into_iter()
+                    .map(|i| b_fields.iter().map(|vector| vector[i]).sum())
+                    .collect::<Vec<Vector3<_>>>();
+            }
 
             Ok(net_field)
         }
