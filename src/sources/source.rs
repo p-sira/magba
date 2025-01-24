@@ -3,7 +3,7 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-use std::fmt::Debug;
+use std::{fmt::Debug, fmt::Display};
 
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 use rayon::iter::{
@@ -17,7 +17,7 @@ pub trait Field {
     fn get_B(&self, points: &[Point3<f64>]) -> Result<Vec<Vector3<f64>>, &'static str>;
 }
 
-pub trait Source: Transform + Field + Debug + Send + Sync {}
+pub trait Source: Transform + Field + Debug + Send + Sync + Display {}
 
 macro_rules! impl_default {
     () => {
@@ -144,6 +144,23 @@ impl<S: Source> SourceCollection<S> {
     }
 }
 
+impl<S: Source> Display for SourceCollection<S> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(
+            f,
+            "SourceCollection at {}, {}",
+            self.position, self.orientation
+        )?;
+        if let Some((last, sources)) = self.sources.split_last() {
+            for source in sources {
+                writeln!(f, "├── {}", source)?;
+            }
+            writeln!(f, "└── {}", last)?;
+        }
+        Ok(())
+    }
+}
+
 impl<S: Source> Default for SourceCollection<S> {
     impl_default!();
 }
@@ -190,6 +207,24 @@ impl MultiSourceCollection {
 
 impl Default for MultiSourceCollection {
     impl_default!();
+}
+
+impl Display for MultiSourceCollection {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(
+            f,
+            "MultiSourceCollection at {}, {}",
+            self.position, self.orientation
+        )?;
+
+        if let Some((last, sources)) = self.sources.split_last() {
+            for source in sources {
+                writeln!(f, "├── {}", source)?;
+            }
+            writeln!(f, "└── {}", last)?;
+        }
+        Ok(())
+    }
 }
 
 impl Transform for MultiSourceCollection {
