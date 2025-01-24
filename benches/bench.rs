@@ -3,13 +3,12 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use magba::{
     fields::field_cylinder::local_cyl_B,
     sources::{CylinderMagnet, Field},
 };
-use nalgebra::{Matrix3, Point3, Translation3, UnitQuaternion, Vector3};
-use rand::prelude::*;
+use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 use rayon::prelude::*;
 
 fn generate_local_cyl_b_test_data(size: usize) -> (Vec<Point3<f64>>, f64, f64, Vector3<f64>) {
@@ -27,25 +26,26 @@ fn generate_local_cyl_b_test_data(size: usize) -> (Vec<Point3<f64>>, f64, f64, V
 /// Found that parallel is better after 20
 fn bench_b_cyl_parallel_vs_serial(c: &mut Criterion) {
     let mut group = c.benchmark_group("parallel_overhead");
-
     for size in [10, 20, 50, 100, 1000].iter() {
         let (points, radius, height, pol) = generate_local_cyl_b_test_data(*size);
 
         group.bench_with_input(BenchmarkId::new("b_cyl_serial", size), &size, |b, _| {
             b.iter(|| {
-                points
+                let field = points
                     .iter()
                     .map(|p| local_cyl_B(p, radius, height, &pol).unwrap())
-                    .collect::<Vec<_>>()
+                    .collect::<Vec<_>>();
+                assert!(!field.is_empty())
             });
         });
 
         group.bench_with_input(BenchmarkId::new("b_cyl_parallel", size), &size, |b, _| {
             b.iter(|| {
-                points
+                let field = points
                     .par_iter()
                     .map(|p| local_cyl_B(p, radius, height, &pol).unwrap())
-                    .collect::<Vec<_>>()
+                    .collect::<Vec<_>>();
+                assert!(!field.is_empty())
             });
         });
     }
@@ -71,9 +71,11 @@ fn bench_translate_parallel_vs_serial(c: &mut Criterion) {
 
         group.bench_with_input(BenchmarkId::new("translate_serial", size), &size, |b, _| {
             b.iter(|| {
-                points.iter().for_each(|point| {
-                    let _ = &translation.transform_point(&point);
-                });
+                let results = points
+                    .iter()
+                    .map(|point| translation.transform_point(&point))
+                    .collect::<Vec<_>>();
+                assert!(!results.is_empty())
             });
         });
 
@@ -82,9 +84,11 @@ fn bench_translate_parallel_vs_serial(c: &mut Criterion) {
             &size,
             |b, _| {
                 b.iter(|| {
-                    points.par_iter().for_each(|point| {
-                        let _ = &translation.transform_point(&point);
-                    });
+                    let results = points
+                        .par_iter()
+                        .map(|point| translation.transform_point(&point))
+                        .collect::<Vec<_>>();
+                    assert!(!results.is_empty())
                 });
             },
         );
@@ -92,7 +96,7 @@ fn bench_translate_parallel_vs_serial(c: &mut Criterion) {
     group.finish();
 }
 
-/// Serial is always faster
+/// Serial is mostly faster, except at very large collection size
 fn bench_rotate_parallel_vs_serial(c: &mut Criterion) {
     let mut group = c.benchmark_group("parallel_overhead");
 
@@ -101,10 +105,11 @@ fn bench_rotate_parallel_vs_serial(c: &mut Criterion) {
         current_orientation: &UnitQuaternion<f64>,
         rotation: &UnitQuaternion<f64>,
         anchor: &Point3<f64>,
-    ) {
+    ) -> (Point3<f64>, UnitQuaternion<f64>) {
         let local_position = current_position - anchor;
-        let _ = Point3::from(rotation * local_position + Vector3::from(anchor.coords));
-        let _ = rotation * current_orientation;
+        let new_position = Point3::from(rotation * local_position + Vector3::from(anchor.coords));
+        let new_orientation = rotation * current_orientation;
+        (new_position, new_orientation)
     }
 
     for size in [10, 100, 100000].iter() {
@@ -115,17 +120,25 @@ fn bench_rotate_parallel_vs_serial(c: &mut Criterion) {
 
         group.bench_with_input(BenchmarkId::new("rotate_serial", size), &size, |b, _| {
             b.iter(|| {
-                points.iter().for_each(|point| {
-                    rotate_anchor(&point, &current_orientation, &rotation, &anchor);
-                });
+                let results = points
+                    .iter()
+                    .map(|point| {
+                        rotate_anchor(&point, &current_orientation, &rotation, &anchor);
+                    })
+                    .collect::<Vec<_>>();
+                assert!(!results.is_empty())
             });
         });
 
         group.bench_with_input(BenchmarkId::new("rotate_parallel", size), &size, |b, _| {
             b.iter(|| {
-                points.par_iter().for_each(|point| {
-                    rotate_anchor(&point, &current_orientation, &rotation, &anchor);
-                });
+                let results = points
+                    .par_iter()
+                    .map(|point| {
+                        rotate_anchor(&point, &current_orientation, &rotation, &anchor);
+                    })
+                    .collect::<Vec<_>>();
+                assert!(!results.is_empty())
             });
         });
     }
@@ -133,21 +146,25 @@ fn bench_rotate_parallel_vs_serial(c: &mut Criterion) {
 }
 
 fn get_cylinder_collection(n: usize) -> Vec<CylinderMagnet> {
-    let mut rng = rand::thread_rng();
     (0..n)
         .map(|_| {
             CylinderMagnet::new(
-                Point3::new(rng.gen(), rng.gen(), rng.gen()),
-                UnitQuaternion::from_matrix(&Matrix3::new_random()),
-                Vector3::new_random(),
-                rng.gen(),
-                rng.gen(),
+                Point3::new(-0.004694999999999998, 0.008131978541535878, -0.006),
+                UnitQuaternion::from_scaled_axis(Vector3::new(
+                    1.5315599088338596,
+                    0.41038024073191587,
+                    0.4103802407319159,
+                )),
+                Vector3::new(0.4, 0.5, 0.6),
+                2e-3,
+                5e-3,
             )
         })
         .collect()
 }
 
-/// Parallel is always faster
+/// Parallel is always faster, except with 1 source.
+/// However, I don't think it is worth branching.
 fn bench_collection_b_parallel_vs_serial(c: &mut Criterion) {
     let mut group = c.benchmark_group("parallel_overhead");
 
@@ -160,11 +177,11 @@ fn bench_collection_b_parallel_vs_serial(c: &mut Criterion) {
             &size,
             |b, _| {
                 b.iter(|| {
-                    let results: Vec<_> = collection
+                    let field = collection
                         .iter()
                         .map(|magnet| magnet.get_B(&points))
-                        .collect();
-                    black_box(results);
+                        .collect::<Vec<_>>();
+                    assert!(!field.is_empty())
                 });
             },
         );
@@ -174,11 +191,11 @@ fn bench_collection_b_parallel_vs_serial(c: &mut Criterion) {
             &size,
             |b, _| {
                 b.iter(|| {
-                    let results: Vec<_> = collection
+                    let field = collection
                         .par_iter()
                         .map(|magnet| magnet.get_B(&points))
-                        .collect();
-                    black_box(results);
+                        .collect::<Vec<_>>();
+                    assert!(!field.is_empty())
                 });
             },
         );
