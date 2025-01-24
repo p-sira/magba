@@ -11,6 +11,12 @@ use crate::special::{cel, ellipe, ellipk};
 use crate::{compute_in_local, util};
 use rayon::prelude::*;
 
+/// Compute B-field of a cylindrical magnet with unit axial (z-axis) polarization
+/// at point *(r, z)* in cylindrical CS.
+///
+/// *z0*: Dimensionless quantity of half the height over radius
+///
+/// Translated from MagpyLib, which is based on Derby & Olbert, 2010.
 #[allow(non_snake_case)]
 #[inline]
 pub fn unit_axial_cyl_B_cyl(r: f64, z: f64, z0: f64) -> Result<Vector3<f64>, &'static str> {
@@ -36,6 +42,12 @@ pub fn unit_axial_cyl_B_cyl(r: f64, z: f64, z0: f64) -> Result<Vector3<f64>, &'s
     Ok(Vector3::new(br, 0.0, bz))
 }
 
+/// Compute B-field of a cylindrical magnet with unit diametrial (r-axis) polarization
+/// at point *(r, phi, z)* in cylindrical CS.
+///
+/// *z0*: Dimensionless quantity of half the height over radius
+///
+/// Translated from MagpyLib, which is based on Derby & Olbert, 2010.
 #[allow(non_snake_case)]
 #[inline]
 pub fn unit_diametric_cyl_B_cyl(
@@ -125,6 +137,12 @@ pub fn unit_diametric_cyl_B_cyl(
     Ok(Vector3::new(br, bphi, bz))
 }
 
+/// Compute B-field of a cylindrical magnet
+/// at point *(r, phi, z)* in cylindrical CS.
+///
+/// Zero vector is returned if the point is close to the cylindrical magnet's edge (rim).
+///
+/// Translated from MagpyLib, which is based on Derby & Olbert, 2010.
 #[allow(non_snake_case)]
 #[inline]
 pub fn cyl_B_cyl(
@@ -164,6 +182,9 @@ pub fn cyl_B_cyl(
     Ok(b)
 }
 
+/// Compute B-field at point *(x, y, z)* of a cylindrical magnet in local frame
+///
+/// Translated from MagpyLib, which is based on Derby & Olbert, 2010.
 ///
 /// ```
 /// use magba::fields::field_cylinder;
@@ -200,6 +221,10 @@ pub fn local_cyl_B(
     Ok(Vector3::new(bx, by, b_cyl.z))
 }
 
+/// Compute B-field of a cylindrical magnet at multiple points in local frame
+///
+/// Serialized approach is used if the number of points is small.
+/// Otherwise, the calculation is parallel.
 #[allow(non_snake_case)]
 #[inline]
 pub fn local_cyl_B_vec(
@@ -222,6 +247,7 @@ pub fn local_cyl_B_vec(
     }
 }
 
+/// Compute B-field of a cylindrical magnet at multiple points
 #[allow(non_snake_case)]
 pub fn cyl_B(
     points: &[Point3<f64>],
@@ -240,6 +266,9 @@ pub fn cyl_B(
     ))
 }
 
+/// Compute net B-field of multiple cylindrical magnets at multiple points
+/// 
+/// The B-field contributions of each cylindrical magnet at every points are summed.
 #[allow(non_snake_case)]
 pub fn sum_multiple_cyl_B(
     points: &[Point3<f64>],

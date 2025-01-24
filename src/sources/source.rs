@@ -31,6 +31,7 @@ macro_rules! impl_default {
     };
 }
 
+/// Implement deep Transform for objects with children
 macro_rules! impl_transform_collection {
     () => {
         fn position(&self) -> Point3<f64> {

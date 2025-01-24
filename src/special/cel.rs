@@ -7,8 +7,9 @@ use std::f64::consts::PI;
 
 use crate::constants::ERRTOL;
 
-/// Special case of complete elliptical integral
-/// Reduced operation algorithm modified from Kirby, 2009.
+/// Compute special case of complete elliptical integral
+/// 
+/// Reduced operation algorithm modified from Derby & Olbert, 2010.
 pub fn cel(kc: f64, p: f64, c: f64, s: f64) -> Result<f64, &'static str> {
     if kc == 0.0 {
         return Err("fn cel: kc cannot be zero.");

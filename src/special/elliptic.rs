@@ -8,7 +8,8 @@ use std::f64::consts::FRAC_PI_2;
 use russell_lab::math::{elliptic_e, elliptic_f};
 
 /// Compute elliptic integral of the second kind for m≠0
-/// Implementation based on SciPy
+/// 
+/// Implementation based on SciPy, combined with the elliptic_e funcion from Russell Lab
 pub fn ellipe(m: f64) -> Result<f64, &'static str> {
     let mut m = m;
     let mut k = 1.0;
@@ -22,7 +23,9 @@ pub fn ellipe(m: f64) -> Result<f64, &'static str> {
 }
 
 /// Compute elliptic integral of the first kind for m<0
+/// 
 /// Translated from SciPy implementation
+/// 
 /// Original authors:
 ///  - Copyright 1984, 1987 by Stephen L. Moshier
 ///  - Copyright 2014, Eric W. Moore
@@ -89,6 +92,7 @@ fn ellipk_neg_m(phi: f64, m: f64) -> f64 {
     scale * (1.0 - e2 / 10.0 + e3 / 14.0 + e2 * e2 / 24.0 - 3.0 * e2 * e3 / 44.0) / a.sqrt()
 }
 
+/// Compute elliptic integral of the first kind
 pub fn ellipk(m: f64) -> Result<f64, &'static str> {
     if m < 0.0 {
         Ok(ellipk_neg_m(FRAC_PI_2, m))

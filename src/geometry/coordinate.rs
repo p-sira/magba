@@ -12,12 +12,17 @@ pub fn cart2cyl(x: f64, y: f64) -> (f64, f64) {
     (r, phi)
 }
 
+/// Convert vector with component *(r, phi)* in cylindrical CS to Cartesian CS
+/// 
+/// *theta*: angle of the vector on XY plane
 pub fn vec_cyl2cart(r: f64, phi: f64, theta: f64) -> (f64, f64) {
     let x = r * theta.cos() - phi * theta.sin();
     let y = r * theta.sin() + phi * theta.cos();
     (x, y)
 }
 
+/// Convenience macro for transforming function arguments to local frame 
+/// and convert back the result to global frame
 #[macro_export]
 macro_rules! compute_in_local {
     ($func: ident, $points: expr, ($($func_args:expr),*), $position: expr, $orientation: expr) => {
@@ -34,6 +39,7 @@ pub fn local_point(
     orientation.inverse() * Point3::from(point.coords - position.coords)
 }
 
+/// Transfrom multiple points in global frame to the local frame of the object
 pub fn local_points(
     points: &[Point3<f64>],
     position: &Point3<f64>,
@@ -50,6 +56,7 @@ pub fn global_vector(vector: &Vector3<f64>, orientation: &UnitQuaternion<f64>) -
     orientation * vector
 }
 
+/// Transform local vectors to the global frame
 pub fn global_vectors(
     local_vectors: &[Vector3<f64>],
     orientation: &UnitQuaternion<f64>,
