@@ -8,4 +8,6 @@
 pub mod coordinate;
 
 #[cfg(feature = "transform")]
-pub mod transform;
+mod transform;
+#[cfg(feature = "transform")]
+pub use transform::*;

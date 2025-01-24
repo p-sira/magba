@@ -8,7 +8,7 @@
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
 use super::{Field, Source};
-use crate::geometry::transform::Transform;
+use crate::geometry::Transform;
 use crate::{fields::cyl_B, impl_transform};
 
 use std::fmt::Display;
@@ -76,7 +76,7 @@ mod tests {
 
     use nalgebra::Translation3;
 
-    use crate::geometry::transform::Transform;
+    use crate::geometry::Transform;
     use crate::sources::CylinderMagnet;
     use crate::testing_util::*;
 

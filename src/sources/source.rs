@@ -12,7 +12,7 @@ use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 #[cfg(feature = "parallel")]
 use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
 
-use crate::geometry::transform::Transform;
+use crate::geometry::Transform;
 
 /// Trait shared by objects that generate magnetic field.
 #[allow(non_snake_case)]
