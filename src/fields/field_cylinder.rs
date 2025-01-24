@@ -3,6 +3,8 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
+//! Analytical B-field computation for cylindrical magnets.
+
 use nalgebra::{Point3, UnitQuaternion, Vector3};
 use std::f64::consts::PI;
 
@@ -47,7 +49,7 @@ pub fn unit_axial_cyl_B_cyl(r: f64, z: f64, z0: f64) -> Result<Vector3<f64>, &'s
 ///
 /// *z0*: Dimensionless quantity of half the height over radius
 ///
-/// Translated from MagpyLib, which is based on Derby & Olbert, 2010.
+/// Translated from MagpyLib, which is based on Caciagli et al., 2018.
 #[allow(non_snake_case)]
 #[inline]
 pub fn unit_diametric_cyl_B_cyl(
@@ -142,7 +144,7 @@ pub fn unit_diametric_cyl_B_cyl(
 ///
 /// Zero vector is returned if the point is close to the cylindrical magnet's edge (rim).
 ///
-/// Translated from MagpyLib, which is based on Derby & Olbert, 2010.
+/// Translated from MagpyLib.
 #[allow(non_snake_case)]
 #[inline]
 pub fn cyl_B_cyl(
@@ -182,9 +184,9 @@ pub fn cyl_B_cyl(
     Ok(b)
 }
 
-/// Compute B-field at point *(x, y, z)* of a cylindrical magnet in local frame
+/// Compute B-field at point *(x, y, z)* of a cylindrical magnet in local frame.
 ///
-/// Translated from MagpyLib, which is based on Derby & Olbert, 2010.
+/// Translated from MagpyLib.
 ///
 /// ```
 /// use magba::fields::field_cylinder;
@@ -221,7 +223,7 @@ pub fn local_cyl_B(
     Ok(Vector3::new(bx, by, b_cyl.z))
 }
 
-/// Compute B-field of a cylindrical magnet at multiple points in local frame
+/// Compute B-field of a cylindrical magnet at multiple points in local frame.
 ///
 /// Serialized approach is used if the number of points is small.
 /// Otherwise, the calculation is parallel.
@@ -247,7 +249,7 @@ pub fn local_cyl_B_vec(
     }
 }
 
-/// Compute B-field of a cylindrical magnet at multiple points
+/// Compute B-field of a cylindrical magnet at multiple points.
 #[allow(non_snake_case)]
 pub fn cyl_B(
     points: &[Point3<f64>],
@@ -266,7 +268,7 @@ pub fn cyl_B(
     ))
 }
 
-/// Compute net B-field of multiple cylindrical magnets at multiple points
+/// Compute net B-field of multiple cylindrical magnets at multiple points.
 /// 
 /// The B-field contributions of each cylindrical magnet at every points are summed.
 #[allow(non_snake_case)]

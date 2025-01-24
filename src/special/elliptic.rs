@@ -3,13 +3,15 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
+//! Elliptic integral functions.
+
 use std::f64::consts::FRAC_PI_2;
 
 use russell_lab::math::{elliptic_e, elliptic_f};
 
-/// Compute elliptic integral of the second kind for m≠0
+/// Compute elliptic integral of the second kind for m≠0.
 /// 
-/// Implementation based on SciPy, combined with the elliptic_e funcion from Russell Lab
+/// Implementation based on SciPy, combined with the elliptic_e funcion from Russell Lab.
 pub fn ellipe(m: f64) -> Result<f64, &'static str> {
     let mut m = m;
     let mut k = 1.0;
@@ -22,9 +24,9 @@ pub fn ellipe(m: f64) -> Result<f64, &'static str> {
     }
 }
 
-/// Compute elliptic integral of the first kind for m<0
+/// Compute elliptic integral of the first kind for m<0.
 /// 
-/// Translated from SciPy implementation
+/// Translated from SciPy implementation.
 /// 
 /// Original authors:
 ///  - Copyright 1984, 1987 by Stephen L. Moshier

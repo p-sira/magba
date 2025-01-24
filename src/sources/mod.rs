@@ -3,8 +3,17 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-mod source;
-mod cylinder;
+//! Magnetic source structs.
+//!
+//! Permanent magnets:
+//! - [`CylinderMagnet`]
+//!
+//! Magnetic source collection:
+//! - [`SourceCollection`]
+//! - [`MultiSourceCollection`]
 
-pub use source::*;
+mod cylinder;
+mod source;
+
 pub use cylinder::*;
+pub use source::*;

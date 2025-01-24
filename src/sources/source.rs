@@ -3,6 +3,8 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
+//! Provide definitions for [`Source`], [`SourceCollection`], and [`MultiSourceCollection`].
+
 use std::{fmt::Debug, fmt::Display};
 
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
@@ -12,11 +14,17 @@ use rayon::iter::{
 
 use crate::geometry::transform::Transform;
 
+/// Trait shared by objects that generate magnetic field.
 #[allow(non_snake_case)]
 pub trait Field {
     fn get_B(&self, points: &[Point3<f64>]) -> Result<Vec<Vector3<f64>>, &'static str>;
 }
 
+/// Trait shared by magnetic sources.
+///
+/// Primarily implements:
+/// - [`Transform`]
+/// - [`Field`]
 pub trait Source: Transform + Field + Debug + Send + Sync + Display {}
 
 macro_rules! impl_default {
@@ -31,7 +39,7 @@ macro_rules! impl_default {
     };
 }
 
-/// Implement deep Transform for objects with children
+/// Implement deep Transform for objects with children.
 macro_rules! impl_transform_collection {
     () => {
         fn position(&self) -> Point3<f64> {
@@ -84,6 +92,7 @@ macro_rules! impl_transform_collection {
     };
 }
 
+/// Implement Field for source collection-like structs.
 macro_rules! impl_field_collection {
     () => {
         fn get_B(&self, points: &[Point3<f64>]) -> Result<Vec<Vector3<f64>>, &'static str> {
@@ -103,6 +112,7 @@ macro_rules! impl_field_collection {
     };
 }
 
+/// Stack-allocated collection of single source type.
 #[derive(Debug)]
 pub struct SourceCollection<S: Source> {
     position: Point3<f64>,
@@ -128,6 +138,7 @@ impl<S: Source + PartialEq> PartialEq for SourceCollection<S> {
 impl<S: Source> Source for SourceCollection<S> {}
 
 impl<S: Source> SourceCollection<S> {
+    /// Initialize [`SourceCollection`].
     pub fn new(position: Point3<f64>, orientation: UnitQuaternion<f64>, sources: Vec<S>) -> Self {
         Self {
             position,
@@ -136,10 +147,12 @@ impl<S: Source> SourceCollection<S> {
         }
     }
 
+    /// Add [`Source`] to the collection.
     pub fn add(&mut self, source: S) {
         self.children.push(source);
     }
 
+    /// Add multiple [`Source`] to the collection.
     pub fn add_sources(&mut self, source: &mut Vec<S>) {
         self.children.append(source);
     }
@@ -174,6 +187,7 @@ impl<S: Source> Field for SourceCollection<S> {
     impl_field_collection!();
 }
 
+/// Heap-allocated collection of multiple source types.
 #[derive(Debug)]
 pub struct MultiSourceCollection {
     position: Point3<f64>,
@@ -185,6 +199,7 @@ pub struct MultiSourceCollection {
 impl Source for MultiSourceCollection {}
 
 impl MultiSourceCollection {
+    /// Initialize [`MultiSourceCollection`].
     pub fn new(
         position: Point3<f64>,
         orientation: UnitQuaternion<f64>,
@@ -197,10 +212,12 @@ impl MultiSourceCollection {
         }
     }
 
+    /// Add [`Source`] to the collection.
     pub fn add(&mut self, source: Box<dyn Source>) {
         self.children.push(source);
     }
 
+    /// Add multiple [`Source`] to the collection.
     pub fn add_sources(&mut self, source: &mut Vec<Box<dyn Source>>) {
         self.children.append(source);
     }

@@ -3,6 +3,8 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
+//! Testing utilities.
+
 use std::path::Path;
 
 use nalgebra::{DMatrix, Point3, UnitQuaternion, Vector3};

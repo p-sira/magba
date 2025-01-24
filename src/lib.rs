@@ -3,6 +3,10 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
+//! # Magba
+//! **Magba** is a performant analytical magnetic computation library for Rust.
+//! 
+
 mod geometry;
 mod special;
 mod util;

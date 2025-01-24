@@ -3,11 +3,13 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
+//! Special case of complete elliptic integral.
+
 use std::f64::consts::PI;
 
 use crate::constants::ERRTOL;
 
-/// Compute special case of complete elliptical integral
+/// Compute special case of complete elliptic integral.
 /// 
 /// Reduced operation algorithm modified from Derby & Olbert, 2010.
 pub fn cel(kc: f64, p: f64, c: f64, s: f64) -> Result<f64, &'static str> {
