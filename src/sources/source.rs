@@ -10,9 +10,7 @@ use std::{fmt::Debug, fmt::Display};
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
 #[cfg(feature = "parallel")]
-use rayon::iter::{
-    IntoParallelIterator, IntoParallelRefIterator, ParallelIterator,
-};
+use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
 
 use crate::geometry::transform::Transform;
 

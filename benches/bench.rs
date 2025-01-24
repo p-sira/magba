@@ -160,7 +160,8 @@ fn bench_collection_b_parallel_vs_serial(c: &mut Criterion) {
             &size,
             |b, _| {
                 b.iter(|| {
-                    let results: Vec<_> = collection.iter()
+                    let results: Vec<_> = collection
+                        .iter()
                         .map(|magnet| magnet.get_B(&points))
                         .collect();
                     black_box(results);
@@ -173,7 +174,8 @@ fn bench_collection_b_parallel_vs_serial(c: &mut Criterion) {
             &size,
             |b, _| {
                 b.iter(|| {
-                    let results: Vec<_> = collection.par_iter()
+                    let results: Vec<_> = collection
+                        .par_iter()
                         .map(|magnet| magnet.get_B(&points))
                         .collect();
                     black_box(results);
