@@ -5,7 +5,8 @@
 
 //! Geometry utilities, such as [Transform] and coordinate conversion.
 
-pub mod coordinate;
+mod coordinate;
+pub use coordinate::*;
 
 #[cfg(feature = "transform")]
 mod transform;

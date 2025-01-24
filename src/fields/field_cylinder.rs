@@ -8,7 +8,7 @@
 use nalgebra::{Point3, UnitQuaternion, Vector3};
 use std::f64::consts::PI;
 
-use crate::geometry::coordinate::{cart2cyl, global_vectors, local_points, vec_cyl2cart};
+use crate::geometry::{cart2cyl, global_vectors, local_points, vec_cyl2cart};
 use crate::special::{cel, ellipe, ellipk};
 use crate::{compute_in_local, util};
 #[cfg(feature = "parallel")]
