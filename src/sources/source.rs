@@ -103,14 +103,14 @@ macro_rules! impl_field_collection {
 }
 
 #[derive(Debug)]
-pub struct SingleSourceCollection<S: Source> {
+pub struct SourceCollection<S: Source> {
     position: Point3<f64>,
     orientation: UnitQuaternion<f64>,
 
     sources: Vec<S>,
 }
 
-impl<S: Source + PartialEq> PartialEq for SingleSourceCollection<S> {
+impl<S: Source + PartialEq> PartialEq for SourceCollection<S> {
     fn eq(&self, other: &Self) -> bool {
         self.position == other.position
             && self.orientation == other.orientation
@@ -124,9 +124,9 @@ impl<S: Source + PartialEq> PartialEq for SingleSourceCollection<S> {
     }
 }
 
-impl<S: Source> Source for SingleSourceCollection<S> {}
+impl<S: Source> Source for SourceCollection<S> {}
 
-impl<S: Source> SingleSourceCollection<S> {
+impl<S: Source> SourceCollection<S> {
     pub fn new(position: Point3<f64>, orientation: UnitQuaternion<f64>, sources: Vec<S>) -> Self {
         Self {
             position,
@@ -144,29 +144,29 @@ impl<S: Source> SingleSourceCollection<S> {
     }
 }
 
-impl<S: Source> Default for SingleSourceCollection<S> {
+impl<S: Source> Default for SourceCollection<S> {
     impl_default!();
 }
 
-impl<S: Source> Transform for SingleSourceCollection<S> {
+impl<S: Source> Transform for SourceCollection<S> {
     impl_transform_collection!();
 }
 
-impl<S: Source> Field for SingleSourceCollection<S> {
+impl<S: Source> Field for SourceCollection<S> {
     impl_field_collection!();
 }
 
 #[derive(Debug)]
-pub struct SourceCollection {
+pub struct MultiSourceCollection {
     position: Point3<f64>,
     orientation: UnitQuaternion<f64>,
 
     sources: Vec<Box<dyn Source>>,
 }
 
-impl Source for SourceCollection {}
+impl Source for MultiSourceCollection {}
 
-impl SourceCollection {
+impl MultiSourceCollection {
     pub fn new(
         position: Point3<f64>,
         orientation: UnitQuaternion<f64>,
@@ -188,15 +188,15 @@ impl SourceCollection {
     }
 }
 
-impl Default for SourceCollection {
+impl Default for MultiSourceCollection {
     impl_default!();
 }
 
-impl Transform for SourceCollection {
+impl Transform for MultiSourceCollection {
     impl_transform_collection!();
 }
 
-impl Field for SourceCollection {
+impl Field for MultiSourceCollection {
     impl_field_collection!();
 }
 
@@ -208,7 +208,7 @@ mod single_source_collection_tests {
     use crate::{sources::*, testing_util::*};
 
     fn compare_with_file(
-        collection: &SingleSourceCollection<CylinderMagnet>,
+        collection: &SourceCollection<CylinderMagnet>,
         ref_path_str: &str,
         rtol: f64,
     ) {
@@ -220,8 +220,8 @@ mod single_source_collection_tests {
         );
     }
 
-    fn get_cylinder_collection() -> SingleSourceCollection<CylinderMagnet> {
-        let mut collection = SingleSourceCollection::default();
+    fn get_cylinder_collection() -> SourceCollection<CylinderMagnet> {
+        let mut collection = SourceCollection::default();
         collection.add(CylinderMagnet::new(
             Point3::new(0.009389999999999999, 0.0, -0.006),
             quat_from_rotvec(1.2091995761561452, 1.209199576156145, 1.2091995761561452),
