@@ -110,6 +110,20 @@ pub struct SingleSourceCollection<S: Source> {
     sources: Vec<S>,
 }
 
+impl<S: Source + PartialEq> PartialEq for SingleSourceCollection<S> {
+    fn eq(&self, other: &Self) -> bool {
+        self.position == other.position
+            && self.orientation == other.orientation
+            && self.sources.len() == other.sources.len()
+            && self.sources.iter().all(|source| {
+                other
+                    .sources
+                    .iter()
+                    .any(|other_source| source.eq(other_source))
+            })
+    }
+}
+
 impl<S: Source> Source for SingleSourceCollection<S> {}
 
 impl<S: Source> SingleSourceCollection<S> {
