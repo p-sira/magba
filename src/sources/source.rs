@@ -25,7 +25,7 @@ macro_rules! impl_default {
             Self {
                 position: Point3::origin(),
                 orientation: UnitQuaternion::identity(),
-                sources: Vec::new(),
+                children: Vec::new(),
             }
         }
     };
@@ -44,7 +44,7 @@ macro_rules! impl_transform_collection {
 
         fn set_position(&mut self, position: Point3<f64>) {
             let translation = Translation3::from(position - &self.position);
-            self.sources
+            self.children
                 .par_iter_mut()
                 .for_each(|source| source.translate(&translation));
             self.position = position
@@ -52,28 +52,28 @@ macro_rules! impl_transform_collection {
 
         fn set_orientation(&mut self, orientation: UnitQuaternion<f64>) {
             let rotation = orientation * &self.orientation.inverse();
-            self.sources
+            self.children
                 .par_iter_mut()
                 .for_each(|source| source.rotate_anchor(&rotation, &self.position));
             self.orientation = orientation;
         }
 
         fn translate(&mut self, translation: &Translation3<f64>) {
-            self.sources
+            self.children
                 .par_iter_mut()
                 .for_each(|source| source.translate(&translation));
             self.position = translation.transform_point(&self.position);
         }
 
         fn rotate(&mut self, rotation: &UnitQuaternion<f64>) {
-            self.sources
+            self.children
                 .par_iter_mut()
                 .for_each(|source| source.rotate_anchor(rotation, &self.position));
             self.orientation = rotation * self.orientation;
         }
 
         fn rotate_anchor(&mut self, rotation: &UnitQuaternion<f64>, anchor: &Point3<f64>) {
-            self.sources
+            self.children
                 .par_iter_mut()
                 .for_each(|source| source.rotate_anchor(rotation, anchor));
 
@@ -88,7 +88,7 @@ macro_rules! impl_field_collection {
     () => {
         fn get_B(&self, points: &[Point3<f64>]) -> Result<Vec<Vector3<f64>>, &'static str> {
             let b_fields = self
-                .sources
+                .children
                 .par_iter()
                 .map(|source| source.get_B(points))
                 .collect::<Result<Vec<_>, _>>()?;
@@ -108,17 +108,17 @@ pub struct SourceCollection<S: Source> {
     position: Point3<f64>,
     orientation: UnitQuaternion<f64>,
 
-    sources: Vec<S>,
+    children: Vec<S>,
 }
 
 impl<S: Source + PartialEq> PartialEq for SourceCollection<S> {
     fn eq(&self, other: &Self) -> bool {
         self.position == other.position
             && self.orientation == other.orientation
-            && self.sources.len() == other.sources.len()
-            && self.sources.iter().all(|source| {
+            && self.children.len() == other.children.len()
+            && self.children.iter().all(|source| {
                 other
-                    .sources
+                    .children
                     .iter()
                     .any(|other_source| source.eq(other_source))
             })
@@ -132,16 +132,16 @@ impl<S: Source> SourceCollection<S> {
         Self {
             position,
             orientation,
-            sources,
+            children: sources,
         }
     }
 
     pub fn add(&mut self, source: S) {
-        self.sources.push(source);
+        self.children.push(source);
     }
 
     pub fn add_sources(&mut self, source: &mut Vec<S>) {
-        self.sources.append(source);
+        self.children.append(source);
     }
 }
 
@@ -152,7 +152,7 @@ impl<S: Source> Display for SourceCollection<S> {
             "SourceCollection at {}, {}",
             self.position, self.orientation
         )?;
-        if let Some((last, sources)) = self.sources.split_last() {
+        if let Some((last, sources)) = self.children.split_last() {
             for source in sources {
                 writeln!(f, "├── {}", source)?;
             }
@@ -179,7 +179,7 @@ pub struct MultiSourceCollection {
     position: Point3<f64>,
     orientation: UnitQuaternion<f64>,
 
-    sources: Vec<Box<dyn Source>>,
+    children: Vec<Box<dyn Source>>,
 }
 
 impl Source for MultiSourceCollection {}
@@ -193,16 +193,16 @@ impl MultiSourceCollection {
         Self {
             position,
             orientation,
-            sources,
+            children: sources,
         }
     }
 
     pub fn add(&mut self, source: Box<dyn Source>) {
-        self.sources.push(source);
+        self.children.push(source);
     }
 
     pub fn add_sources(&mut self, source: &mut Vec<Box<dyn Source>>) {
-        self.sources.append(source);
+        self.children.append(source);
     }
 }
 
@@ -218,7 +218,7 @@ impl Display for MultiSourceCollection {
             self.position, self.orientation
         )?;
 
-        if let Some((last, sources)) = self.sources.split_last() {
+        if let Some((last, sources)) = self.children.split_last() {
             for source in sources {
                 writeln!(f, "├── {}", source)?;
             }
