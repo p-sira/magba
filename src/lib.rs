@@ -6,6 +6,7 @@
 /*!
 # Magba
 **Magba** is a performant analytical magnetic computation library for Rust.
+Source available on [GitHub](https://github.com/p-sira/magba).
 
 ## Features
 - Compute magnetic fields
