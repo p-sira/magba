@@ -9,27 +9,17 @@ on:
 env:
   CARGO_TERM_COLOR: always
 
-jobs:
-  check-fmt:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Check formatting
-        run: cargo fmt -- --check
-  
-  clippy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install clippy
-        run: rustup component add clippy
-      - name: Run clippy
-        run: cargo clippy
-  
+jobs:  
   test:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+    - name: Install OpenBLAS
+      run: sudo apt-get update; sudo apt-get install -y libopenblas-dev
+    - name: Check formatting
+      run: cargo fmt -- --check
+    - name: Run clippy
+      run: cargo clippy 
     - name: Test default
       run: cargo test
     - name: Test no-default
@@ -38,10 +28,5 @@ jobs:
       run: cargo test --no-default-features --features=sources
     - name: Test parallel
       run: cargo test --no-default-features --features=parallel
-
-  docs:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Make docs
-        run: cargo doc
+    - name: Make docs
+      run: cargo doc
