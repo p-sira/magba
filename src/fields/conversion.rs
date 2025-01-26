@@ -18,10 +18,7 @@ pub fn B_to_H(B_vector: &Vector3<f64>) -> Vector3<f64> {
 /// Convert vector of B-fields to vector of H-fields.
 #[allow(non_snake_case)]
 pub fn Bs_to_Hs(B_vectors: &[Vector3<f64>]) -> Vec<Vector3<f64>> {
-    B_vectors
-        .iter()
-        .map(|vector| vector.scale(MU0))
-        .collect()
+    B_vectors.iter().map(|vector| vector.scale(MU0)).collect()
 }
 
 /// Convert magnetization (**M**) to polarization (**J**).
