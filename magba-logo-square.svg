@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="97.562683mm"
+   height="99.562683mm"
+   viewBox="0 0 97.562683 99.562688"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.4 (e7c3feb100, 2024-10-09)"
+   sodipodi:docname="magba-logo-square.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="0.74835468"
+     inkscape:cx="96.211064"
+     inkscape:cy="191.754"
+     inkscape:window-width="1239"
+     inkscape:window-height="782"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs1" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-98.997155,-40.713048)">
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:25.4px;font-family:FreeSans;-inkscape-font-specification:FreeSans;text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#000000;stroke-width:0.264583"
+       x="148.5"
+       y="105"
+       id="text1"
+       inkscape:label="magba-text"><tspan
+         sodipodi:role="line"
+         id="tspan1"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Ubuntu;-inkscape-font-specification:Ubuntu;text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="148.5"
+         y="105">m<tspan
+   style="font-size:5.64444px"
+   id="tspan7"> </tspan>a<tspan
+   style="font-size:5.64444px"
+   id="tspan6"> </tspan>g<tspan
+   style="font-size:5.64444px"
+   id="tspan5"> </tspan>b<tspan
+   style="font-size:5.64444px"
+   id="tspan4"> </tspan>a<tspan
+   style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.64444px;font-family:Ubuntu;-inkscape-font-specification:Ubuntu;text-align:center;text-anchor:middle"
+   id="tspan2"> </tspan>.</tspan></text>
+    <path
+       style="fill:#000000;stroke:#ff5e00;stroke-width:1.743;stroke-linecap:round;stroke-dasharray:0.522899, 3.48599, 1.2201, 4.35749, 3.48599, 5.22899, 5.22899, 5.22899, 6.97198;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 147.7785,88.188519 c 0,-33.363114 0,-35.558069 0,-35.558069"
+       id="path8"
+       inkscape:label="lava-straight" />
+    <path
+       style="fill:none;stroke:#ff5e00;stroke-width:1.743;stroke-linecap:round;stroke-dasharray:0.522898, 3.48599, 1.2201, 4.35748, 3.48599, 5.22899, 5.22899, 5.22899, 5.22899, 5.22899, 5.22899, 5.22899, 5.22899, 5.22899;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 150.79833,88.174089 c 0,0 6.8905,-45.414015 41.68608,-17.84252"
+       id="path9"
+       sodipodi:nodetypes="cc"
+       inkscape:label="branch-right" />
+    <path
+       style="fill:none;stroke:#ff5e00;stroke-width:1.743;stroke-linecap:round;stroke-dasharray:0.522899, 3.48599, 1.22009, 4.35749, 3.48599, 5.22899, 5.22899, 5.22899, 5.22899, 5.22899, 5.22899, 5.22899, 5.22899, 5.22899;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 144.74645,88.21308 c 0,0 -6.59244,-45.546735 -39.88285,-17.894664"
+       id="path9-1"
+       sodipodi:nodetypes="cc"
+       inkscape:label="branch-left" />
+  </g>
+  <metadata
+     id="metadata1">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <cc:license
+           rdf:resource="http://creativecommons.org/licenses/by/4.0/" />
+      </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/licenses/by/4.0/">
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Reproduction" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Distribution" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#Notice" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#Attribution" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+</svg>
