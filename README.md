@@ -17,7 +17,9 @@
 
 -----
 
-**Magba** a performant analytical magnetic computation library for Rust.
+**Magba** is a performant analytical magnetic computation library for Rust.
+
+To install, make sure you have [OpenBLAS](http://www.openmathlib.org/OpenBLAS/docs/install/) on your system, then simply: `cargo add magba`.
 
 A python interface for Magba is also available: [Pymagba](https://github.com/p-sira/pymagba).
 
