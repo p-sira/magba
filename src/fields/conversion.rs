@@ -19,7 +19,7 @@ pub fn B_to_H(B_vector: &Vector3<f64>) -> Vector3<f64> {
 #[allow(non_snake_case)]
 pub fn Bs_to_Hs(B_vectors: &[Vector3<f64>]) -> Vec<Vector3<f64>> {
     B_vectors
-        .into_iter()
+        .iter()
         .map(|vector| vector.scale(MU0))
         .collect()
 }
@@ -32,7 +32,7 @@ pub fn mag_to_pol(mag_vector: &Vector3<f64>) -> Vector3<f64> {
 /// Convert magnetizations (**M**) to polarizations (**J**).
 pub fn mags_to_pols(mag_vectors: &[Vector3<f64>]) -> Vec<Vector3<f64>> {
     mag_vectors
-        .into_iter()
+        .iter()
         .map(|vector| vector.scale(1.0 / MU0))
         .collect()
 }

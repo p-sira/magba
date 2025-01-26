@@ -49,14 +49,14 @@ impl_transform!(CylinderMagnet);
 
 impl Field for CylinderMagnet {
     fn get_B(&self, points: &[Point3<f64>]) -> Result<Vec<Vector3<f64>>, &'static str> {
-        Ok(cyl_B(
-            &points,
+        cyl_B(
+            points,
             &self.position,
             &self.orientation,
             self.radius,
             self.height,
             &self.polarization,
-        )?)
+        )
     }
 }
 

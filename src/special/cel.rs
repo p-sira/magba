@@ -38,24 +38,24 @@ pub fn cel(kc: f64, p: f64, c: f64, s: f64) -> Result<f64, &'static str> {
 
     let mut em = 1.0;
     let mut f = cc;
-    cc = cc + ss / pp;
+    cc += ss / pp;
     let mut g = k / pp;
     ss = 2.0 * (ss + f * g);
-    pp = g + pp;
+    pp += g;
     g = em;
-    em = k + em;
+    em += k;
     let mut kk = k;
 
     while (g - k).abs() > (g * ERRTOL) {
         k = 2.0 * kk.sqrt();
         kk = k * em;
         f = cc;
-        cc = cc + ss / pp;
+        cc += ss / pp;
         g = kk / pp;
         ss = 2.0 * (ss + f * g);
-        pp = g + pp;
+        pp += g;
         g = em;
-        em = k + em;
+        em += k;
     }
 
     Ok((PI / 2.0) * (ss + cc * em) / (em * (em + pp)))

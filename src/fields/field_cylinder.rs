@@ -240,14 +240,14 @@ pub fn local_cyl_B_vec(
     if points.len() > 20 {
         return Ok(points
             .par_iter()
-            .map(|p| local_cyl_B(p, radius, height, &pol).unwrap())
+            .map(|p| local_cyl_B(p, radius, height, pol).unwrap())
             .collect());
     }
 
     // If small number of points or not using parallel feature
     Ok(points
         .iter()
-        .map(|p| local_cyl_B(p, radius, height, &pol).unwrap())
+        .map(|p| local_cyl_B(p, radius, height, pol).unwrap())
         .collect())
 }
 
@@ -298,7 +298,7 @@ pub fn sum_multiple_cyl_B(
         .zip(heights)
         .zip(pols)
         .map(|((((position, orientation), radius), height), pol)| {
-            cyl_B(&points, position, orientation, *radius, *height, pol)
+            cyl_B(points, position, orientation, *radius, *height, pol)
         })
         .collect::<Result<Vec<Vec<_>>, _>>()?;
 
@@ -310,7 +310,7 @@ pub fn sum_multiple_cyl_B(
         .zip(heights)
         .zip(pols)
         .map(|((((position, orientation), radius), height), pol)| {
-            cyl_B(&points, position, orientation, *radius, *height, pol)
+            cyl_B(points, position, orientation, *radius, *height, pol)
         })
         .collect::<Result<Vec<Vec<_>>, _>>()?;
 
