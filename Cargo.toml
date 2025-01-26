@@ -1,6 +1,16 @@
 [package]
 name = "magba"
 version = "0.1.0"
+authors = ["Sira Pornsiriprasert <code@psira.me>"]
+
+description = "Magnetic computation library for Rust"
+categories = ["science", "simulation"]
+keywords = ["magnet", "magnetic", "field", "analytical", "simulation"]
+documentation = "https://docs.rs/magba"
+homepage = "https://github.com/p-sira/magba"
+repository = "https://github.com/p-sira/magba"
+readme = "README.md"
+license = "BSD-3-Clause"
 edition = "2021"
 
 [dependencies]
