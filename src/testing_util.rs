@@ -38,15 +38,43 @@ pub fn quat_from_rotvec(x: f64, y: f64, z: f64) -> UnitQuaternion<f64> {
 }
 
 pub fn assert_close_vector(vec1: &Vector3<f64>, vec2: &Vector3<f64>, rtol: f64) {
-    vec1.iter()
-        .zip(vec2)
-        .for_each(|(a, b)| assert!(is_close(*a, *b, rtol)));
+    let mut n_fail: usize = 0;
+    vec1.iter().zip(vec2).for_each(|(a, b)| {
+        if !is_close(*a, *b, rtol) {
+            n_fail += 1
+        }
+    });
+    if n_fail > 0 {
+        let percent_fail = n_fail as f64 / 3.0 * 100.0;
+        panic!("assert_close_vector fails. Difference={percent_fail}% ({n_fail}/3)")
+    }
 }
 
-#[cfg(feature="sources")]
+pub fn assert_close_vec_vector(vecs1: &Vec<Vector3<f64>>, vecs2: &Vec<Vector3<f64>>, rtol: f64) {
+    let len = vecs1.len();
+    if len != vecs2.len() {
+        panic!("assert_close_vector fails. Two vector of Vector3 must be the same length.")
+    }
+
+    let mut n_fail: usize = 0;
+    vecs1.iter().zip(vecs2).for_each(|(vec1, vec2)| {
+        for (a, b) in vec1.iter().zip(vec2) {
+            if !is_close(*a, *b, rtol) {
+                n_fail += 1;
+                break;
+            }
+        }
+    });
+    if n_fail > 0 {
+        let percent_fail = n_fail as f64 / len as f64 * 100.0;
+        panic!("assert_close_vector fails. Difference={percent_fail}% ({n_fail}/{len})")
+    }
+}
+
+#[cfg(feature = "sources")]
 pub use source_testing_util::*;
 
-#[cfg(feature="sources")]
+#[cfg(feature = "sources")]
 pub mod source_testing_util {
     use super::*;
     use crate::sources::*;
@@ -63,9 +91,6 @@ pub mod source_testing_util {
 
         let b_fields = source.get_B(&points).expect("can calculate b field");
 
-        b_fields
-            .iter()
-            .zip(&expected)
-            .for_each(|(b_field, reference)| assert_close_vector(b_field, reference, rtol));
+        assert_close_vec_vector(&b_fields, &expected, rtol);
     }
 }
