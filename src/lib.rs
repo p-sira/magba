@@ -20,7 +20,10 @@ simply: `cargo add magba`.
 ### Create sources and group as a collection
 */
 //!
-#![cfg_attr(not(feature = "sources"), doc = "This functionality need `sources` feature flag.")]
+#![cfg_attr(
+    not(feature = "sources"),
+    doc = "This functionality need `sources` feature flag."
+)]
 #![cfg_attr(not(feature = "sources"), doc = "```ignore")]
 #![cfg_attr(feature = "sources", doc = "```")]
 //! use magba::{CylinderMagnet, SourceCollection};
@@ -51,8 +54,11 @@ simply: `cargo add magba`.
 //!
 //! ### Compute the field
 //! The methods like [Field::get_B] are available for all [Source] and types that implement [Field].
-//! 
-#![cfg_attr(not(feature = "sources"), doc = "This functionality need `sources` feature flag.")]
+//!
+#![cfg_attr(
+    not(feature = "sources"),
+    doc = "This functionality need `sources` feature flag."
+)]
 #![cfg_attr(not(feature = "sources"), doc = "```ignore")]
 #![cfg_attr(feature = "sources", doc = "```")]
 //! use magba::sources::{CylinderMagnet, Field};
@@ -97,7 +103,10 @@ simply: `cargo add magba`.
 //! ### Move and rotate objects
 //! The transformation functionalities are available for all [Source] and types that implement [geometry::Transform].
 //!
-#![cfg_attr(not(feature = "sources"), doc = "This functionality need `sources` feature flag.")]
+#![cfg_attr(
+    not(feature = "sources"),
+    doc = "This functionality need `sources` feature flag."
+)]
 #![cfg_attr(not(feature = "sources"), doc = "```ignore")]
 #![cfg_attr(feature = "sources", doc = "```")]
 //! use magba::{CylinderMagnet, Field};
@@ -131,7 +140,7 @@ simply: `cargo add magba`.
 //! magnet.set_orientation(UnitQuaternion::from_scaled_axis(Vector3::new(PI / 2.0, 0.0, 0.0)));
 //! assert_eq! (magnet.get_B(&points).unwrap(), [Vector3::new(6.086025172136602e-35, 0.003642460886175623, 0.0)]);
 //! ```
-//! 
+//!
 //! ### Directly calculate fields
 //! If you just need to access the field functions, you can use [fields].
 //! ```
