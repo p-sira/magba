@@ -26,7 +26,7 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
      inkscape:zoom="0.74835468"
-     inkscape:cx="96.211064"
+     inkscape:cx="96.879196"
      inkscape:cy="191.754"
      inkscape:window-width="1239"
      inkscape:window-height="782"
@@ -43,39 +43,39 @@
      transform="translate(-98.997155,-40.713048)">
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:25.4px;font-family:FreeSans;-inkscape-font-specification:FreeSans;text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#000000;stroke-width:0.264583"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:25.4px;font-family:FreeSans;-inkscape-font-specification:FreeSans;text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#ff4918;stroke-width:0.264583;fill-opacity:1"
        x="148.5"
        y="105"
        id="text1"
        inkscape:label="magba-text"><tspan
          sodipodi:role="line"
          id="tspan1"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Ubuntu;-inkscape-font-specification:Ubuntu;text-align:center;text-anchor:middle;stroke-width:0.264583"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Ubuntu;-inkscape-font-specification:Ubuntu;text-align:center;text-anchor:middle;stroke-width:0.264583;fill:#ff4918;fill-opacity:1"
          x="148.5"
          y="105">m<tspan
-   style="font-size:5.64444px"
+   style="font-size:5.64444px;fill:#ff4918;fill-opacity:1"
    id="tspan7"> </tspan>a<tspan
-   style="font-size:5.64444px"
+   style="font-size:5.64444px;fill:#ff4918;fill-opacity:1"
    id="tspan6"> </tspan>g<tspan
-   style="font-size:5.64444px"
+   style="font-size:5.64444px;fill:#ff4918;fill-opacity:1"
    id="tspan5"> </tspan>b<tspan
-   style="font-size:5.64444px"
+   style="font-size:5.64444px;fill:#ff4918;fill-opacity:1"
    id="tspan4"> </tspan>a<tspan
-   style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.64444px;font-family:Ubuntu;-inkscape-font-specification:Ubuntu;text-align:center;text-anchor:middle"
+   style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.64444px;font-family:Ubuntu;-inkscape-font-specification:Ubuntu;text-align:center;text-anchor:middle;fill:#ff4918;fill-opacity:1"
    id="tspan2"> </tspan>.</tspan></text>
     <path
-       style="fill:#000000;stroke:#ff5e00;stroke-width:1.743;stroke-linecap:round;stroke-dasharray:0.522899, 3.48599, 1.2201, 4.35749, 3.48599, 5.22899, 5.22899, 5.22899, 6.97198;stroke-dashoffset:0;stroke-opacity:1"
+       style="fill:#000000;stroke:#ff5d1c;stroke-width:1.743;stroke-linecap:round;stroke-dasharray:0.522899, 3.48599, 1.2201, 4.35749, 3.48599, 5.22899, 5.22899, 5.22899, 6.97198;stroke-dashoffset:0;stroke-opacity:1"
        d="m 147.7785,88.188519 c 0,-33.363114 0,-35.558069 0,-35.558069"
        id="path8"
        inkscape:label="lava-straight" />
     <path
-       style="fill:none;stroke:#ff5e00;stroke-width:1.743;stroke-linecap:round;stroke-dasharray:0.522898, 3.48599, 1.2201, 4.35748, 3.48599, 5.22899, 5.22899, 5.22899, 5.22899, 5.22899, 5.22899, 5.22899, 5.22899, 5.22899;stroke-dashoffset:0;stroke-opacity:1"
+       style="fill:none;stroke:#ff5d1c;stroke-width:1.743;stroke-linecap:round;stroke-dasharray:0.522898, 3.48599, 1.2201, 4.35748, 3.48599, 5.22899, 5.22899, 5.22899, 5.22899, 5.22899, 5.22899, 5.22899, 5.22899, 5.22899;stroke-dashoffset:0;stroke-opacity:1"
        d="m 150.79833,88.174089 c 0,0 6.8905,-45.414015 41.68608,-17.84252"
        id="path9"
        sodipodi:nodetypes="cc"
        inkscape:label="branch-right" />
     <path
-       style="fill:none;stroke:#ff5e00;stroke-width:1.743;stroke-linecap:round;stroke-dasharray:0.522899, 3.48599, 1.22009, 4.35749, 3.48599, 5.22899, 5.22899, 5.22899, 5.22899, 5.22899, 5.22899, 5.22899, 5.22899, 5.22899;stroke-dashoffset:0;stroke-opacity:1"
+       style="fill:none;stroke:#ff5d1c;stroke-width:1.743;stroke-linecap:round;stroke-dasharray:0.522899, 3.48599, 1.22009, 4.35749, 3.48599, 5.22899, 5.22899, 5.22899, 5.22899, 5.22899, 5.22899, 5.22899, 5.22899, 5.22899;stroke-dashoffset:0;stroke-opacity:1"
        d="m 144.74645,88.21308 c 0,0 -6.59244,-45.546735 -39.88285,-17.894664"
        id="path9-1"
        sodipodi:nodetypes="cc"
