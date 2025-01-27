@@ -228,7 +228,7 @@ pub fn local_cyl_B(
 /// Compute B-field of a cylindrical magnet at multiple points in local frame.
 ///
 /// Serialized approach is used if the number of points is small.
-/// Otherwise, the calculation is parallel (need *parallel* feature).
+/// Otherwise, the calculation is parallel (need `parallel` feature).
 #[allow(non_snake_case)]
 #[inline]
 pub fn local_cyl_B_vec(
