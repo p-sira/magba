@@ -5,11 +5,12 @@
 
 //! Analytical B-field computation for cylindrical magnets.
 
+use ellip::{ellipe, ellipk};
 use nalgebra::{Point3, UnitQuaternion, Vector3};
 use std::f64::consts::PI;
 
 use crate::geometry::{cart2cyl, global_vectors, local_points, vec_cyl2cart};
-use crate::special::{cel, ellipe, ellipk};
+use crate::special::cel;
 use crate::{compute_in_local, util};
 #[cfg(feature = "parallel")]
 use rayon::prelude::*;
@@ -193,13 +194,13 @@ pub fn cyl_B_cyl(
 /// use magba::fields::field_cylinder;
 /// use nalgebra::{Point3, Vector3};
 ///
-/// let b = field_cylinder::local_cyl_B(&Point3::new(1.0, -1.0, 0.0), 1.0, 2.0, &Vector3::new(1.0, 2.0, 3.0)).expect("invalid b calculation");
-/// assert_eq! (b, Vector3::new(-0.36846056628423807, -0.10171405289381408, -0.3300649209932216));
+/// let b = field_cylinder::local_cyl_B(&Point3::new(1.0, -1.0, 0.0), 1.0, 2.0, &Vector3::new(1.0, 2.0, 3.0)).expect("Invalid b calculation");
+/// assert_eq! (b, Vector3::new(-0.36846056628423773, -0.10171405289381394, -0.3300649209932216));
 ///
-/// let b = field_cylinder::local_cyl_B(&Point3::new(1.0, 1.0, 1.0), 0.5, 2.0, &Vector3::new(3.0, 2.0, -1.0)).expect("invalid b calculation");
-/// assert_eq! (b, Vector3::new(0.053312250540044605, 0.07895873346514166, 0.10406997810599936));
+/// let b = field_cylinder::local_cyl_B(&Point3::new(1.0, 1.0, 1.0), 0.5, 2.0, &Vector3::new(3.0, 2.0, -1.0)).expect("Invalid b calculation");
+/// assert_eq! (b, Vector3::new(0.05331225054004448, 0.07895873346514143, 0.10406997810600024));
 ///
-/// let b = field_cylinder::local_cyl_B(&Point3::new(0.0, 0.0, 0.0), 1.5, 3.0, &Vector3::new(1.0, 1.0, 1.0)).expect("invalid b calculation");
+/// let b = field_cylinder::local_cyl_B(&Point3::new(0.0, 0.0, 0.0), 1.5, 3.0, &Vector3::new(1.0, 1.0, 1.0)).expect("Invalid b calculation");
 /// assert_eq! (b, Vector3::new(0.6464466094067263, 0.6464466094067263, 0.7071067811865476));
 /// ```
 #[allow(non_snake_case)]
