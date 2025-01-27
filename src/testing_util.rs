@@ -89,7 +89,7 @@ pub mod source_testing_util {
         let expected = matrix_to_vector_vec(&load_matrix(ref_path_str));
         let points = matrix_to_point_vec(&load_matrix(points_path_str));
 
-        let b_fields = source.get_B(&points).expect("can calculate b field");
+        let b_fields = source.get_B(&points).expect("cannot calculate b field");
 
         assert_close_vec_vector(&b_fields, &expected, rtol);
     }

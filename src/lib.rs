@@ -65,7 +65,7 @@ let points = [
     Point3::new(0.0, 0.0, 0.030),
 ];
 
-let b_field = magnet.get_B(&points).expect("can compute field"); // Don't forget to extract the Result
+let b_field = magnet.get_B(&points).expect("Fail to compute field"); // Don't forget to extract the Result
 assert_eq!(
     b_field,
     [
