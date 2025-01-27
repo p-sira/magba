@@ -7,5 +7,3 @@
 
 mod cel;
 pub use cel::*;
-mod elliptic;
-pub use elliptic::*;
