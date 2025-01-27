@@ -327,27 +327,27 @@ mod single_source_collection_tests {
         compare_with_file(
             &collection,
             "./tests/test-data/cylinder-collection-result.mtx",
-            1e-3,
+            1e-6,
         );
     }
 
     #[test]
     fn test_cylinder_collection_translate() {
         let mut collection = get_cylinder_collection();
-        let translation = Translation3::new(0.1, 0.15, 0.2);
+        let translation = Translation3::new(0.01, 0.015, 0.02);
         collection.translate(&translation);
         compare_with_file(
             &collection,
             "./tests/test-data/cylinder-collection-translate-result.mtx",
-            1e-3,
+            1e-6,
         );
 
         collection.translate(&translation.inverse());
-        collection.set_position(Point3::new(0.1, 0.15, 0.2));
+        collection.set_position(Point3::new(0.01, 0.015, 0.02));
         compare_with_file(
             &collection,
             "./tests/test-data/cylinder-collection-translate-result.mtx",
-            1e-3,
+            1e-6,
         );
     }
 
@@ -359,7 +359,7 @@ mod single_source_collection_tests {
         compare_with_file(
             &collection,
             "./tests/test-data/cylinder-collection-rotate-result.mtx",
-            1e-3,
+            1e-6,
         );
 
         collection.rotate(&rotation.inverse());
@@ -367,7 +367,7 @@ mod single_source_collection_tests {
         compare_with_file(
             &collection,
             "./tests/test-data/cylinder-collection-rotate-result.mtx",
-            1e-3,
+            1e-6,
         );
     }
 }

@@ -17,7 +17,7 @@ from test_generation_util import TEST_DATA_DIR, generate_grid
 
 
 def get_points():
-    bounds = np.array([[-1, 1]] * 3)
+    bounds = np.array([[-0.1, 0.1]] * 3)
     N = [10] * 3
     points = generate_grid(bounds, N)
     return points
@@ -54,7 +54,7 @@ def test_cylinder_collection(points):
     field = magnets.getB(points)
     mmwrite(TEST_DATA_DIR / "cylinder-collection-result.mtx", coo_array(field))
 
-    magnets.position = (0.1, 0.15, 0.2)
+    magnets.position = (0.01, 0.015, 0.02)
     field = magnets.getB(points)
     mmwrite(TEST_DATA_DIR / "cylinder-collection-translate-result.mtx", coo_array(field))
 
@@ -63,7 +63,7 @@ def test_cylinder_collection(points):
     field = magnets.getB(points)
     mmwrite(TEST_DATA_DIR / "cylinder-collection-rotate-result.mtx", coo_array(field))
 
-    magnets.position = (0.1, 0.15, 0.2)
+    magnets.position = (0.01, 0.015, 0.02)
     field = magnets.getB(points)
     mmwrite(TEST_DATA_DIR / "cylinder-collection-translate-rotate-result.mtx", coo_array(field))
 
