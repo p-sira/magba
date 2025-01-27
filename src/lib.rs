@@ -14,8 +14,7 @@ Source available on [GitHub](https://github.com/p-sira/magba).
 - Move and rotate objects
 
 ## Quick Start
-In this section, you will learn Magba in 5 minutes. To install, make sure you have
-[OpenBLAS](http://www.openmathlib.org/OpenBLAS/docs/install/) on your system, then
+In this section, you will learn Magba in 5 minutes. To install,
 simply: `cargo add magba`.
 
 ### Create sources and group as a collection
