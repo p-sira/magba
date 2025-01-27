@@ -131,7 +131,16 @@ simply: `cargo add magba`.
 //! magnet.set_orientation(UnitQuaternion::from_scaled_axis(Vector3::new(PI / 2.0, 0.0, 0.0)));
 //! assert_eq! (magnet.get_B(&points).unwrap(), [Vector3::new(6.086025172136602e-35, 0.003642460886175623, 0.0)]);
 //! ```
-
+//! 
+//! ### Directly calculate fields
+//! If you just need to access the field functions, you can use [fields].
+//! ```
+//! use magba::fields::field_cylinder;
+//! use nalgebra::{Point3, Vector3};
+//!
+//! let b = field_cylinder::local_cyl_B(&Point3::new(1.0, -1.0, 0.0), 1.0, 2.0, &Vector3::new(1.0, 2.0, 3.0)).expect("Invalid b calculation");
+//! assert_eq! (b, Vector3::new(-0.36846056628423773, -0.10171405289381394, -0.3300649209932216));
+//! ```
 /*!
 ## Feature Flags
 - `default`: enable `sources` and `parallel`
