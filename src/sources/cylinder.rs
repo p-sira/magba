@@ -168,4 +168,48 @@ mod tests {
             1e-6,
         )
     }
+
+    #[test]
+    fn test_axial_cylinder() {
+        let magnet = CylinderMagnet::new(
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            Vector3::new(0.0, 0.0, 3.0),
+            0.5,
+            2.0,
+        );
+        compare_with_file(&magnet, "./tests/test-data/cylinder-axial-result.mtx", 1e-6)
+    }
+
+    #[test]
+    fn test_diametric_cylinder() {
+        let magnet = CylinderMagnet::new(
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            Vector3::new(0.0, 1.0, 0.0),
+            0.5,
+            2.0,
+        );
+        compare_with_file(
+            &magnet,
+            "./tests/test-data/cylinder-diametric-result.mtx",
+            1e-6,
+        )
+    }
+
+    #[test]
+    fn test_diametric_cylinder_2() {
+        let magnet = CylinderMagnet::new(
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            Vector3::new(2.0, 1.0, 0.0),
+            0.5,
+            2.0,
+        );
+        compare_with_file(
+            &magnet,
+            "./tests/test-data/cylinder-diametric-result-2.mtx",
+            1e-6,
+        )
+    }
 }

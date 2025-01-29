@@ -82,6 +82,42 @@ def test_rotate_translate_cylinder(points):
     mmwrite(TEST_DATA_DIR / "cylinder-rotate-translate-result.mtx", coo_array(field))
 
 
+def test_axial_cylinder(points):
+    magnet = Cylinder(
+        (0, 0, 0),
+        Rotation.identity(),
+        (1, 2),
+        (0, 0, 3),
+    )
+
+    field = magnet.getB(points)
+    mmwrite(TEST_DATA_DIR / "cylinder-axial-result.mtx", coo_array(field))
+
+
+def test_diametric_cylinder(points):
+    magnet = Cylinder(
+        (0, 0, 0),
+        Rotation.identity(),
+        (1, 2),
+        (0, 1, 0),
+    )
+
+    field = magnet.getB(points)
+    mmwrite(TEST_DATA_DIR / "cylinder-diametric-result.mtx", coo_array(field))
+
+
+def test_diametric_cylinder_2(points):
+    magnet = Cylinder(
+        (0, 0, 0),
+        Rotation.identity(),
+        (1, 2),
+        (2, 1, 0),
+    )
+
+    field = magnet.getB(points)
+    mmwrite(TEST_DATA_DIR / "cylinder-diametric-result-2.mtx", coo_array(field))
+
+
 if __name__ == "__main__":
     points = get_points()
     mmwrite(TEST_DATA_DIR / "cylinder-points.mtx", coo_array(points))
@@ -91,3 +127,6 @@ if __name__ == "__main__":
     test_translate_cylinder(points)
     test_rotate_cylinder(points)
     test_rotate_translate_cylinder(points)
+    test_axial_cylinder(points)
+    test_diametric_cylinder(points)
+    test_diametric_cylinder_2(points)
