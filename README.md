@@ -1,6 +1,6 @@
 <p align="center">
     <a href="https://github.com/p-sira/magba/">
-        <img src="https://github.com/p-sira/magba/blob/main/magba-logo-fit.svg?raw=true" alt="Magba" width="300">
+        <img src="https://github.com/p-sira/magba/blob/main/logo/magba-logo.svg?raw=true" alt="Magba" width="300">
     </a>
 </p>
 <p align="center">
