@@ -12,7 +12,7 @@ repository = "https://github.com/p-sira/magba"
 readme = "README.md"
 license = "BSD-3-Clause"
 edition = "2021"
-include = ["src", "tests", "!tests/test-data", "LICENSE", "README.md"]
+exclude = ["benches", "logo", "magba.code-workspace", "python", "tests/test-data", "requirements*", ".github", ".gitignore"]
 
 [dependencies]
 ellip = "~0.3"
