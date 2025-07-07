@@ -12,6 +12,6 @@
 ### 0.1.0
 **New Features**
 - Cylindrical magnet B field
-- CylinderMagnet
-- SourceCollection
-- MultiSourceCollection
+- `CylinderMagnet`
+- `SourceCollection`
+- `MultiSourceCollection`
