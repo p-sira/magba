@@ -161,7 +161,8 @@ Most of the field computation used in Magba is based on [MagpyLib](https://githu
 We would like to thank MagpyLib contributors their hard work and contributions to the scientific community.
 */
 
-mod util;
+mod crate_util;
+pub mod util;
 
 pub mod constants;
 pub mod fields;

@@ -10,7 +10,7 @@ use std::path::Path;
 use nalgebra::{DMatrix, Point3, UnitQuaternion, Vector3};
 use nalgebra_sparse::io::load_coo_from_matrix_market_file;
 
-use crate::util::{is_close, relative_error, relative_vec_distance};
+use crate::crate_util::{relative_vec_distance};
 
 pub fn load_matrix(path_str: &str) -> DMatrix<f64> {
     let path = Path::new(path_str);
@@ -35,27 +35,6 @@ pub fn matrix_to_vector_vec(matrix: &DMatrix<f64>) -> Vec<Vector3<f64>> {
 
 pub fn quat_from_rotvec(x: f64, y: f64, z: f64) -> UnitQuaternion<f64> {
     UnitQuaternion::from_scaled_axis(Vector3::new(x, y, z))
-}
-
-pub fn assert_close_vector(vec1: &Vector3<f64>, vec2: &Vector3<f64>, rtol: f64) {
-    let mut n_fail: usize = 0;
-    vec1.iter().zip(vec2).enumerate().for_each(|(n, (&a, &b))| {
-        if !is_close(a, b, rtol) {
-            eprintln!(
-                "Element {} mismatch. actual={}, expected={}, relative={:e}, rtol={:e}",
-                n,
-                a,
-                b,
-                relative_error(a, b),
-                rtol
-            );
-            n_fail += 1
-        }
-    });
-    if n_fail > 0 {
-        let percent_fail = n_fail as f64 / 3.0 * 100.0;
-        panic!("assert_close_vector fails. Difference={percent_fail}% ({n_fail}/3)")
-    }
 }
 
 pub fn assert_close_vec_vector(vecs1: &Vec<Vector3<f64>>, vecs2: &Vec<Vector3<f64>>, rtol: f64) {
