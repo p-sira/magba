@@ -327,7 +327,7 @@ mod single_source_collection_tests {
         compare_with_file(
             &collection,
             "./tests/test-data/cylinder-collection-result.mtx",
-            1e-6,
+            5e-9,
         );
     }
 
@@ -339,7 +339,7 @@ mod single_source_collection_tests {
         compare_with_file(
             &collection,
             "./tests/test-data/cylinder-collection-translate-result.mtx",
-            1e-6,
+            1e-8,
         );
 
         collection.translate(&translation.inverse());
@@ -347,7 +347,7 @@ mod single_source_collection_tests {
         compare_with_file(
             &collection,
             "./tests/test-data/cylinder-collection-translate-result.mtx",
-            1e-6,
+            1e-8,
         );
     }
 
@@ -359,7 +359,7 @@ mod single_source_collection_tests {
         compare_with_file(
             &collection,
             "./tests/test-data/cylinder-collection-rotate-result.mtx",
-            1e-6,
+            5e-8,
         );
 
         collection.rotate(&rotation.inverse());
@@ -367,7 +367,7 @@ mod single_source_collection_tests {
         compare_with_file(
             &collection,
             "./tests/test-data/cylinder-collection-rotate-result.mtx",
-            1e-6,
+            5e-8,
         );
     }
 }
