@@ -9,8 +9,21 @@ use nalgebra::{distance, Point3, Vector3};
 
 /// Calculate the symmetric relative error
 pub fn relative_error(a: f64, b: f64) -> f64 {
+    if a == 0.0 && b == 0.0 {
+        return 0.0;
+    }
     let difference = a - b;
-    (difference / a).abs().max((difference / b).abs())
+    let rel1 = (difference / a).abs();
+    let rel2 = (difference / b).abs();
+
+    if rel1.is_nan() {
+        return rel2;
+    }
+    if rel2.is_nan() {
+        return rel1;
+    }
+
+    rel1.max(rel2)
 }
 
 /// Check if two numbers are close
