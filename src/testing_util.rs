@@ -10,12 +10,11 @@ use std::path::Path;
 use nalgebra::{DMatrix, Point3, UnitQuaternion, Vector3};
 use nalgebra_sparse::io::load_coo_from_matrix_market_file;
 
-use crate::crate_util::{relative_vec_distance};
+use crate::crate_util::relative_vec_distance;
 
-pub fn load_matrix(path_str: &str) -> DMatrix<f64> {
-    let path = Path::new(path_str);
+pub fn load_matrix(path: &Path) -> DMatrix<f64> {
     let points: DMatrix<f64> =
-        (&load_coo_from_matrix_market_file(path).expect("can parse matrix")).into();
+        (&load_coo_from_matrix_market_file(path).expect("Cannot parse matrix")).into();
     points
 }
 
@@ -40,7 +39,7 @@ pub fn quat_from_rotvec(x: f64, y: f64, z: f64) -> UnitQuaternion<f64> {
 pub fn assert_close_vec_vector(vecs1: &Vec<Vector3<f64>>, vecs2: &Vec<Vector3<f64>>, rtol: f64) {
     let len = vecs1.len();
     if len != vecs2.len() {
-        panic!("assert_close_vector fails. Two vector of Vector3 must be the same length.")
+        panic!("assert_close_vector fails. Two vecs of Vector3 must be the same length.")
     }
 
     let mut n_fail: usize = 0;
@@ -59,7 +58,7 @@ pub fn assert_close_vec_vector(vecs1: &Vec<Vector3<f64>>, vecs2: &Vec<Vector3<f6
                     worst_params = (n, vec1, vec2, rdist);
                 }
                 eprintln!(
-                    "Vector {} mismatch. actual={:?}, expected={:?}, rdist={:e}, rtol={:e}.",
+                    "Vector {} mismatched. actual={:?}, expected={:?}, rdist={:e}, rtol={:e}.",
                     n, vec1, vec2, rdist, rtol
                 );
                 n_fail += 1;
@@ -91,10 +90,22 @@ pub mod source_testing_util {
         ref_path_str: &str,
         rtol: f64,
     ) {
-        let expected = matrix_to_vector_vec(&load_matrix(ref_path_str));
-        let points = matrix_to_point_vec(&load_matrix(points_path_str));
+        let points_path = Path::new(points_path_str);
+        let ref_path = Path::new(ref_path_str);
+        if !points_path.is_file() {
+            println!("Test data {points_path:?} not found. Download from https://github.com/p-sira/magba/tree/main/tests/test-data.");
+            return;
+        }
+        if !ref_path.is_file() {
+            println!("Test data {ref_path:?} not found. Download from https://github.com/p-sira/magba/tree/main/tests/test-data.");
+            return;
+        }
 
-        let b_fields = source.get_B(&points).expect("cannot calculate b field");
+
+        let expected = matrix_to_vector_vec(&load_matrix(ref_path));
+        let points = matrix_to_point_vec(&load_matrix(points_path));
+
+        let b_fields = source.get_B(&points).expect("Cannot calculate b field");
 
         assert_close_vec_vector(&b_fields, &expected, rtol);
     }
