@@ -1,6 +1,6 @@
 [package]
 name = "magba"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Sira Pornsiriprasert <code@psira.me>"]
 
 description = "Magnetic computation library for Rust"
@@ -12,6 +12,7 @@ repository = "https://github.com/p-sira/magba"
 readme = "README.md"
 license = "BSD-3-Clause"
 edition = "2021"
+include = ["src", "tests", "!tests/test-data", "LICENSE", "README.md"]
 
 [dependencies]
 ellip = "~0.3"
