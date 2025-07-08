@@ -3,22 +3,37 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-//! Transform object position and orientation. Provide [Transform] trait.
+//! # Transform
+//!
+//! Provides the [`Transform`] trait for 3D position/orientation and macros for implementing it.
 
 use nalgebra::{Point3, Translation3, UnitQuaternion};
 
-/// Transform object in 3D Cartesian CS.
+/// Trait for transforming objects in 3D Cartesian CS.
+///
+/// # Example
+/// ```
+/// use magba::geometry::Transform;
+/// // Implement Transform for your type to support 3D movement and rotation.
+/// ```
 pub trait Transform {
+    /// Get the object position.
     fn position(&self) -> Point3<f64>;
+    /// Get the object orientation.
     fn orientation(&self) -> UnitQuaternion<f64>;
+    /// Set the object position.
     fn set_position(&mut self, position: Point3<f64>);
+    /// Set the object orientation.
     fn set_orientation(&mut self, orientation: UnitQuaternion<f64>);
+    /// Translate the object.
     fn translate(&mut self, translation: &Translation3<f64>);
+    /// Rotate the object.
     fn rotate(&mut self, rotation: &UnitQuaternion<f64>);
+    /// Rotate the object using the anchor point as the center of rotation.
     fn rotate_anchor(&mut self, rotation: &UnitQuaternion<f64>, anchor: &Point3<f64>);
 }
 
-/// Implement shallow [Transform] for objects with no children.
+/// Macro to implement shallow [`Transform`] for types with no children.
 #[macro_export]
 macro_rules! impl_transform {
     ($type:ty) => {

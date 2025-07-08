@@ -19,13 +19,52 @@
 
 **Magba** is a performant analytical magnetic computation library for Rust.
 
+# Quick Start
+
 To install, simply: `cargo add magba`.
 
-A python interface for Magba is also available: [Pymagba](https://github.com/p-sira/pymagba).
+Compute the B-field of a cylindrical magnet at a point:
+
+```rust
+use magba::{CylinderMagnet, Field};
+use nalgebra::{Point3, UnitQuaternion, Vector3};
+
+let magnet = CylinderMagnet::new(
+    Point3::origin(), // position
+    UnitQuaternion::identity(), // orientation
+    Vector3::new(0.0, 0.0, 1.0), // polarization
+    0.005, // radius
+    0.020, // height
+);
+
+let b = magnet.get_B(&[Point3::new(0.01, 0.0, 0.0)]).unwrap();
+println!("B-field: {:?}", b[0]);
+```
 
 ## Features
-- Compute magnetic fields
-- Create magnetic sources and group them as collections
-- Move and rotate objects
 
-Learn more at [docs.rs](https://docs.rs/magba).
+- Analytical magnetic field computation for:
+  - Cylindrical magnets (axial and diametric)
+  - Source collections (grouping magnets)
+- Transformations: Move and rotate sources in 3D space
+- Parallel computation (optional, via Rayon)
+- Tested against MagpyLib and reference data
+- Python bindings available via [Pymagba](https://github.com/p-sira/pymagba)
+
+## Testing
+
+Results are validated against MagpyLib and reference data.
+See `/tests/test-data` and the accuracy report for details.
+
+## Documentation
+
+- [API Docs (docs.rs)](https://docs.rs/magba)
+- [GitHub Repository](https://github.com/p-sira/magba)
+
+## License
+
+BSD-3-Clause
+
+---
+
+Learn more at [docs.rs/magba](https://docs.rs/magba).

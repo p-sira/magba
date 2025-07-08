@@ -3,7 +3,12 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-//! Analytical magnetic field computation for various magnetic sources.
+//! # Fields
+//!
+//! Analytical computation of magnetic fields for various source geometries.
+//!
+//! - [`field_cylinder`]: Analytical B-field for cylindrical magnets.
+//! - [`conversion`]: Utilities for converting between B-field, H-field, magnetization, and polarization.
 
 pub mod field_cylinder;
 pub use field_cylinder::{cyl_B, sum_multiple_cyl_B};

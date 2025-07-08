@@ -3,7 +3,14 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-//! Provide definitions for [Source], [SourceCollection], and [MultiSourceCollection].
+//! # Sources
+//!
+//! Defines the core traits and types for magnetic field sources, including collections of sources.
+//!
+//! - [`Field`] trait: For objects that can compute the magnetic field at given points.
+//! - [`Source`] trait: For magnetic sources, requiring both [`Field`] and [`Transform`].
+//! - [`SourceCollection<S>`]: Stack-allocated collection of a single source type, supports adding sources and computing net field.
+//! - [`MultiSourceCollection`]: Collection of heterogeneous sources (`Box<dyn Source>`), supports adding sources and computing net field.
 
 use std::{fmt::Debug, fmt::Display};
 
@@ -17,14 +24,21 @@ use crate::geometry::Transform;
 /// Trait shared by objects that generate magnetic field.
 #[allow(non_snake_case)]
 pub trait Field {
+    /// Compute the magnetic field (B) at the given points.
+    ///
+    /// # Arguments
+    /// * `points` - Slice of 3D points where the field is evaluated.
+    ///
+    /// # Returns
+    /// * `Ok(Vec<Vector3<f64>>)` - B-field vectors at each point.
+    /// * `Err(&'static str)` - If computation fails.
     fn get_B(&self, points: &[Point3<f64>]) -> Result<Vec<Vector3<f64>>, &'static str>;
 }
 
 /// Trait shared by magnetic sources.
 ///
-/// Primarily implements:
-/// - [`Transform`]
-/// - [`Field`]
+/// Requires [`Transform`] and [`Field`].
+
 pub trait Source: Transform + Field + Debug + Send + Sync + Display {}
 
 macro_rules! impl_default {
@@ -134,7 +148,16 @@ macro_rules! impl_field_collection {
     };
 }
 
-/// Stack-allocated collection of single source type.
+/// Stack-allocated collection of a single source type.
+///
+/// # Example
+/// ```
+/// use magba::sources::{SourceCollection, CylinderMagnet};
+/// use nalgebra::{Point3, UnitQuaternion, Vector3};
+/// 
+/// let magnet = CylinderMagnet::new(Point3::origin(), UnitQuaternion::identity(), Vector3::z(), 0.005, 0.02);
+/// let mut collection = SourceCollection::new(Point3::origin(), UnitQuaternion::identity(), vec![magnet]);
+/// ```
 #[derive(Debug)]
 pub struct SourceCollection<S: Source> {
     position: Point3<f64>,
@@ -210,6 +233,15 @@ impl<S: Source> Field for SourceCollection<S> {
 }
 
 /// Heap-allocated collection of multiple source types.
+///
+/// # Example
+/// ```
+/// use magba::sources::{MultiSourceCollection, CylinderMagnet, Source};
+/// use nalgebra::{Point3, UnitQuaternion, Vector3};
+/// 
+/// let cylinder_magnet: Box<dyn Source> = Box::new(CylinderMagnet::new(Point3::origin(), UnitQuaternion::identity(), Vector3::z(), 0.005, 0.02));
+/// let mut collection = MultiSourceCollection::new(Point3::origin(), UnitQuaternion::identity(), vec![cylinder_magnet]);
+/// ```
 #[derive(Debug)]
 pub struct MultiSourceCollection {
     position: Point3<f64>,

@@ -3,7 +3,11 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-//! Analytical B-field computation for cylindrical magnets.
+//! # Cylindrical Magnet Field Computation
+//!
+//! Analytical B-field computation for cylindrical magnets, supporting both axial and diametric polarization or combined.
+//!
+//! Based on Derby & Olbert (2010), Caciagli et al. (2018), and MagpyLib.
 
 use ellip::{cel, ellipe, ellipk};
 use nalgebra::{Point3, UnitQuaternion, Vector3};
@@ -17,9 +21,18 @@ use rayon::prelude::*;
 /// Compute B-field of a cylindrical magnet with unit axial (z-axis) polarization
 /// at point *(r, z)* in cylindrical CS.
 ///
-/// *z0*: Dimensionless quantity of half the height over radius
+/// # Arguments
+/// * `r` - Radial coordinate (normalized by radius)
+/// * `z` - Axial coordinate (normalized by radius)
+/// * `z0` - Half the height over radius
 ///
-/// Translated from MagpyLib, which is based on Derby & Olbert, 2010.
+/// # Returns
+/// * `Ok(Vector3<f64>)` - B-field vector
+/// * `Err(&'static str)` - If computation fails
+///
+/// # References
+/// - Derby, Norman, and Stanislaw Olbert. “Cylindrical Magnets and Ideal Solenoids.” American Journal of Physics 78, no. 3 (March 1, 2010): 229–35. https://doi.org/10.1119/1.3256157.
+/// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. https://doi.org/10.1016/j.softx.2020.100466.
 #[allow(non_snake_case)]
 #[inline]
 pub fn unit_axial_cyl_B_cyl(r: f64, z: f64, z0: f64) -> Result<Vector3<f64>, &'static str> {
@@ -48,9 +61,19 @@ pub fn unit_axial_cyl_B_cyl(r: f64, z: f64, z0: f64) -> Result<Vector3<f64>, &'s
 /// Compute B-field of a cylindrical magnet with unit diametrial (r-axis) polarization
 /// at point *(r, phi, z)* in cylindrical CS.
 ///
-/// *z0*: Dimensionless quantity of half the height over radius
+/// # Arguments
+/// * `r` - Radial coordinate (normalized by radius)
+/// * `phi` - Azimuthal angle
+/// * `z` - Axial coordinate (normalized by radius)
+/// * `z0` - Half the height over radius
 ///
-/// Translated from MagpyLib, which is based on Caciagli et al., 2018.
+/// # Returns
+/// * `Ok(Vector3<f64>)` - B-field vector
+/// * `Err(&'static str)` - If computation fails
+///
+/// # References
+/// - Caciagli, Alessio, Roel J. Baars, Albert P. Philipse, and Bonny W. M. Kuipers. “Exact Expression for the Magnetic Field of a Finite Cylinder with Arbitrary Uniform Magnetization.” Journal of Magnetism and Magnetic Materials 456 (June 15, 2018): 423–32. https://doi.org/10.1016/j.jmmm.2018.02.003.
+/// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. https://doi.org/10.1016/j.softx.2020.100466.
 #[allow(non_snake_case)]
 #[inline]
 pub fn unit_diametric_cyl_B_cyl(
@@ -140,12 +163,24 @@ pub fn unit_diametric_cyl_B_cyl(
     Ok(Vector3::new(br, bphi, bz))
 }
 
-/// Compute B-field of a cylindrical magnet
-/// at point *(r, phi, z)* in cylindrical CS.
+/// Compute B-field of a cylindrical magnet at point *(r, phi, z)* in cylindrical CS.
 ///
-/// Zero vector is returned if the point is close to the cylindrical magnet's edge (rim).
+/// # Arguments
+/// * `r`, `phi`, `z` - Cylindrical coordinates (normalized by radius)
+/// * `radius` - Cylinder radius
+/// * `height` - Cylinder height
+/// * `pol_r` - Radial polarization
+/// * `pol_z` - Axial polarization
 ///
-/// Translated from MagpyLib.
+/// # Returns
+/// * `Ok(Vector3<f64>)` - B-field vector
+/// * `Err(&'static str)` - If computation fails
+/// 
+/// # Notes
+/// - Zero vector is returned if the point is close to the cylindrical magnet's edge (rim).
+/// 
+/// # References
+/// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. https://doi.org/10.1016/j.softx.2020.100466.
 #[allow(non_snake_case)]
 #[inline]
 pub fn cyl_B_cyl(
@@ -187,25 +222,18 @@ pub fn cyl_B_cyl(
 
 /// Compute B-field at point *(x, y, z)* of a cylindrical magnet in local frame.
 ///
-/// Translated from MagpyLib.
+/// # Arguments
+/// * `point` - 3D point in local frame
+/// * `radius` - Cylinder radius
+/// * `height` - Cylinder height
+/// * `pol` - Polarization vector
 ///
-/// ```
-/// use magba::fields::field_cylinder;
-/// use magba::util::*;
-/// use nalgebra::{Point3, Vector3};
+/// # Returns
+/// * `Ok(Vector3<f64>)` - B-field vector
+/// * `Err(&'static str)` - If computation fails
 ///
-/// let b = field_cylinder::local_cyl_B(&Point3::new(1.0, -1.0, 0.0), 1.0, 2.0, &Vector3::new(1.0, 2.0, 3.0)).expect("Invalid b calculation");
-/// let expected = Vector3::new(-0.3684605662842379, -0.10171405289381347, -0.330064920993222);
-/// assert_close_vector_elem (&b, &expected, 1e-12);
-///
-/// let b = field_cylinder::local_cyl_B(&Point3::new(1.0, 1.0, 1.0), 0.5, 2.0, &Vector3::new(3.0, 2.0, -1.0)).expect("Invalid b calculation");
-/// let expected = Vector3::new(0.05331225054004453, 0.07895873346514155, 0.1040699781059997);
-/// assert_close_vector_elem (&b, &expected, 1e-12);
-///
-/// let b = field_cylinder::local_cyl_B(&Point3::new(0.0, 0.0, 0.0), 1.5, 3.0, &Vector3::new(1.0, 1.0, 1.0)).expect("Invalid b calculation");
-/// let expected = Vector3::new(0.6464466094067263, 0.6464466094067263, 0.7071067811865476);
-/// assert_close_vector_elem (&b, &expected, 1e-12);
-/// ```
+/// # References
+/// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. https://doi.org/10.1016/j.softx.2020.100466.
 #[allow(non_snake_case)]
 #[inline]
 pub fn local_cyl_B(
@@ -228,7 +256,17 @@ pub fn local_cyl_B(
     Ok(Vector3::new(bx, by, b_cyl.z))
 }
 
-/// Compute B-field of a cylindrical magnet at multiple points in local frame.
+/// Compute B-field at multiple points in local frame.
+///
+/// # Arguments
+/// * `points` - 3D points in local frame
+/// * `radius` - Cylinder radius
+/// * `height` - Cylinder height
+/// * `pol` - Polarization vector
+///
+/// # Returns
+/// * `Ok(Vec<Vector3<f64>>)` - B-field vectors
+/// * `Err(&'static str)` - If computation fails
 ///
 /// Serialized approach is used if the number of points is small.
 /// Otherwise, the calculation is parallel (need `parallel` feature).
@@ -255,7 +293,19 @@ pub fn local_cyl_B_vec(
         .collect())
 }
 
-/// Compute B-field of a cylindrical magnet at multiple points.
+/// Compute B-field at points in global frame for a single cylindrical magnet.
+///
+/// # Arguments
+/// * `points` - 3D points in global frame
+/// * `position` - Magnet position
+/// * `orientation` - Magnet orientation
+/// * `radius` - Cylinder radius
+/// * `height` - Cylinder height
+/// * `pol` - Polarization vector
+///
+/// # Returns
+/// * `Ok(Vec<Vector3<f64>>)` - B-field vectors
+/// * `Err(&'static str)` - If computation fails
 #[allow(non_snake_case)]
 pub fn cyl_B(
     points: &[Point3<f64>],
@@ -274,9 +324,19 @@ pub fn cyl_B(
     ))
 }
 
-/// Compute net B-field of multiple cylindrical magnets at multiple points.
+/// Compute B-field at points in global frame for multiple cylindrical magnets.
 ///
-/// The B-field contributions of each cylindrical magnet at every points are summed.
+/// # Arguments
+/// * `points` - 3D points in global frame
+/// * `positions` - Magnet positions
+/// * `orientations` - Magnet orientations
+/// * `radii` - Cylinder radii
+/// * `heights` - Cylinder heights
+/// * `pols` - Polarization vectors
+///
+/// # Returns
+/// * `Ok(Vec<Vector3<f64>>)` - B-field vectors
+/// * `Err(&'static str)` - If computation fails
 #[allow(non_snake_case)]
 pub fn sum_multiple_cyl_B(
     points: &[Point3<f64>],
