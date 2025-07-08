@@ -3,7 +3,9 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-//! [CylinderMagnet] struct
+//! # Cylinder Magnet
+//!
+//! Defines the [`CylinderMagnet`] struct, representing a uniformly magnetized cylindrical magnet in 3D space.
 
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
@@ -13,7 +15,28 @@ use crate::{fields::cyl_B, impl_transform};
 
 use std::fmt::Display;
 
-/// Cylindrical magnet object.
+/// Uniformly magnetized cylindrical magnet in 3D space.
+///
+/// # Fields
+/// - `position`: Center of the cylinder (global coordinates)
+/// - `orientation`: Orientation as a unit quaternion
+/// - `polarization`: Magnetization vector (A/m)
+/// - `radius`: Cylinder radius (m)
+/// - `height`: Cylinder height (m)
+///
+/// # Example
+/// ```
+/// use magba::sources::CylinderMagnet;
+/// use nalgebra::{Point3, UnitQuaternion, Vector3};
+/// 
+/// let magnet = CylinderMagnet::new(
+///     Point3::origin(),
+///     UnitQuaternion::identity(),
+///     Vector3::z(),
+///     0.005,
+///     0.02,
+/// );
+/// ```
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct CylinderMagnet {
     position: Point3<f64>,
@@ -26,6 +49,31 @@ pub struct CylinderMagnet {
 }
 
 impl CylinderMagnet {
+    /// Create a new [`CylinderMagnet`].
+    ///
+    /// # Arguments
+    /// * `position` - Center of the cylinder (global coordinates)
+    /// * `orientation` - Orientation as a unit quaternion
+    /// * `polarization` - Magnetization vector (A/m)
+    /// * `radius` - Cylinder radius (m)
+    /// * `height` - Cylinder height (m)
+    ///
+    /// # Returns
+    /// * `CylinderMagnet` instance
+    ///
+    /// # Example
+    /// ```
+    /// use magba::sources::CylinderMagnet;
+    /// use nalgebra::{Point3, UnitQuaternion, Vector3};
+    /// 
+    /// let magnet = CylinderMagnet::new(
+    ///     Point3::origin(),
+    ///     UnitQuaternion::identity(),
+    ///     Vector3::z(),
+    ///     0.005,
+    ///     0.02,
+    /// );
+    /// ```
     pub fn new(
         position: Point3<f64>,
         orientation: UnitQuaternion<f64>,
