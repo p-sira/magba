@@ -6,13 +6,11 @@ import numpy as np
 from pathlib import Path
 import sys
 
-from scipy.sparse import coo_array
 from scipy.spatial.transform import Rotation
-from scipy.io import mmwrite
 
 sys.path.append(str(Path(__file__).parent.parent))
 
-from test_generation_util import generate_grid, TEST_DATA_DIR
+from test_generation_util import generate_grid, TEST_DATA_DIR, save_array_to_file
 
 
 def get_points():
@@ -30,7 +28,7 @@ def test_cylinder(points):
         (1, 2, 3),
     )
     field = magnet.getB(points)
-    mmwrite(TEST_DATA_DIR / "cylinder-result.mtx", coo_array(field))
+    save_array_to_file(TEST_DATA_DIR / "cylinder-result.csv", field)
 
 
 def test_small_cylinder(points):
@@ -41,7 +39,7 @@ def test_small_cylinder(points):
         (0.15, 0.15, 0.3),
     )
     field = magnet.getB(points)
-    mmwrite(TEST_DATA_DIR / "cylinder-small-result.mtx", coo_array(field))
+    save_array_to_file(TEST_DATA_DIR / "cylinder-small-result.csv", field)
 
 
 def test_translate_cylinder(points):
@@ -53,7 +51,7 @@ def test_translate_cylinder(points):
     )
     magnet.move((-0.1, -0.2, -0.3))
     field = magnet.getB(points)
-    mmwrite(TEST_DATA_DIR / "cylinder-translate-result.mtx", coo_array(field))
+    save_array_to_file(TEST_DATA_DIR / "cylinder-translate-result.csv", field)
 
 
 def test_rotate_cylinder(points):
@@ -66,7 +64,7 @@ def test_rotate_cylinder(points):
     )
     magnet.rotate(rotation.inv())
     field = magnet.getB(points)
-    mmwrite(TEST_DATA_DIR / "cylinder-rotate-result.mtx", coo_array(field))
+    save_array_to_file(TEST_DATA_DIR / "cylinder-rotate-result.csv", field)
 
 
 def test_rotate_translate_cylinder(points):
@@ -79,12 +77,12 @@ def test_rotate_translate_cylinder(points):
     magnet.move((3, 2, 1))
     magnet.rotate(Rotation.from_rotvec((np.pi / 3, np.pi / 2, np.pi)))
     field = magnet.getB(points)
-    mmwrite(TEST_DATA_DIR / "cylinder-rotate-translate-result.mtx", coo_array(field))
+    save_array_to_file(TEST_DATA_DIR / "cylinder-rotate-translate-result.csv", field)
 
 
 if __name__ == "__main__":
     points = get_points()
-    mmwrite(TEST_DATA_DIR / "cylinder-points.mtx", coo_array(points))
+    save_array_to_file(TEST_DATA_DIR / "cylinder-points.csv", points)
 
     test_cylinder(points)
     test_small_cylinder(points)

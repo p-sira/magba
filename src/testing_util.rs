@@ -5,17 +5,43 @@
 
 //! Testing utilities.
 
-use std::path::Path;
+use std::{fs::File, io::BufReader, path::Path};
 
+use csv::ReaderBuilder;
 use nalgebra::{DMatrix, Point3, UnitQuaternion, Vector3};
-use nalgebra_sparse::io::load_coo_from_matrix_market_file;
 
 use crate::crate_util::relative_vec_distance;
 
-pub fn load_matrix(path: &Path) -> DMatrix<f64> {
-    let points: DMatrix<f64> =
-        (&load_coo_from_matrix_market_file(path).expect("Cannot parse matrix")).into();
-    points
+pub fn load_matrix_from_csv(path: &Path) -> DMatrix<f64> {
+    let file = File::open(path)
+        .unwrap_or_else(|e| panic!("Cannot open file {}: {}", path.display(), e));
+    let mut reader = ReaderBuilder::new()
+        .has_headers(false)
+        .from_reader(BufReader::new(file));
+
+    let mut data = Vec::new();
+    let mut ncols = 0;
+    let mut nrows = 0;
+
+    for result in reader.records() {
+        let record = result.unwrap_or_else(|e| panic!("Cannot read file: {}", e));
+        if ncols == 0 {
+            ncols = record.len();
+        } else if ncols != record.len() {
+            panic!("CSV row {} has inconsistent number of columns: expected {}, got {}", nrows + 1, ncols, record.len());
+        }
+
+        for field in record.iter() {
+            let value: f64 = field.parse().unwrap_or_else(|e| {
+                panic!("Failed to parse '{}' as f64 on row {}: {}", field, nrows + 1, e)
+            });
+            data.push(value);
+        }
+
+        nrows += 1;
+    }
+
+    DMatrix::from_row_slice(nrows, ncols, &data)
 }
 
 pub fn matrix_to_point_vec(matrix: &DMatrix<f64>) -> Vec<Point3<f64>> {
@@ -102,8 +128,8 @@ pub mod source_testing_util {
         }
 
 
-        let expected = matrix_to_vector_vec(&load_matrix(ref_path));
-        let points = matrix_to_point_vec(&load_matrix(points_path));
+        let expected = matrix_to_vector_vec(&load_matrix_from_csv(ref_path));
+        let points = matrix_to_point_vec(&load_matrix_from_csv(points_path));
 
         let b_fields = source.get_B(&points).expect("Cannot calculate b field");
 

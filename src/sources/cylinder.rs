@@ -85,7 +85,7 @@ mod tests {
     fn compare_with_file(magnet: &CylinderMagnet, ref_path_str: &str, rtol: f64) {
         compare_B_with_file(
             magnet,
-            "./tests/test-data/cylinder-points.mtx",
+            "./tests/test-data/cylinder-points.csv",
             ref_path_str,
             rtol,
         );
@@ -100,7 +100,7 @@ mod tests {
             0.5,
             2.0,
         );
-        compare_with_file(&magnet, "./tests/test-data/cylinder-result.mtx", 1e-6)
+        compare_with_file(&magnet, "./tests/test-data/cylinder-result.csv", 1e-6)
     }
 
     #[test]
@@ -113,7 +113,7 @@ mod tests {
             10e-3,
         );
         // Small magnet at far distances have less numerical stability
-        compare_with_file(&magnet, "./tests/test-data/cylinder-small-result.mtx", 1e-3)
+        compare_with_file(&magnet, "./tests/test-data/cylinder-small-result.csv", 1e-3)
     }
 
     #[test]
@@ -128,7 +128,7 @@ mod tests {
         magnet.translate(&Translation3::new(-0.1, -0.2, -0.3));
         compare_with_file(
             &magnet,
-            "./tests/test-data/cylinder-translate-result.mtx",
+            "./tests/test-data/cylinder-translate-result.csv",
             1e-6,
         )
     }
@@ -146,7 +146,7 @@ mod tests {
         magnet.rotate(&rotation.inverse());
         compare_with_file(
             &magnet,
-            "./tests/test-data/cylinder-rotate-result.mtx",
+            "./tests/test-data/cylinder-rotate-result.csv",
             1e-6,
         )
     }
@@ -164,7 +164,7 @@ mod tests {
         magnet.rotate(&quat_from_rotvec(PI / 3.0, PI / 2.0, PI));
         compare_with_file(
             &magnet,
-            "./tests/test-data/cylinder-rotate-translate-result.mtx",
+            "./tests/test-data/cylinder-rotate-translate-result.csv",
             1e-6,
         )
     }
