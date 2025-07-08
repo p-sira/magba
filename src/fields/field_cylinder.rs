@@ -175,10 +175,10 @@ pub fn unit_diametric_cyl_B_cyl(
 /// # Returns
 /// * `Ok(Vector3<f64>)` - B-field vector
 /// * `Err(&'static str)` - If computation fails
-/// 
+///
 /// # Notes
 /// - Zero vector is returned if the point is close to the cylindrical magnet's edge (rim).
-/// 
+///
 /// # References
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. https://doi.org/10.1016/j.softx.2020.100466.
 #[allow(non_snake_case)]

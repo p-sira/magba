@@ -28,7 +28,7 @@ use std::fmt::Display;
 /// ```
 /// use magba::sources::CylinderMagnet;
 /// use nalgebra::{Point3, UnitQuaternion, Vector3};
-/// 
+///
 /// let magnet = CylinderMagnet::new(
 ///     Point3::origin(),
 ///     UnitQuaternion::identity(),
@@ -65,7 +65,7 @@ impl CylinderMagnet {
     /// ```
     /// use magba::sources::CylinderMagnet;
     /// use nalgebra::{Point3, UnitQuaternion, Vector3};
-    /// 
+    ///
     /// let magnet = CylinderMagnet::new(
     ///     Point3::origin(),
     ///     UnitQuaternion::identity(),

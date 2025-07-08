@@ -153,7 +153,7 @@ macro_rules! impl_field_collection {
 /// ```
 /// use magba::sources::{SourceCollection, CylinderMagnet};
 /// use nalgebra::{Point3, UnitQuaternion, Vector3};
-/// 
+///
 /// let magnet = CylinderMagnet::new(Point3::origin(), UnitQuaternion::identity(), Vector3::z(), 0.005, 0.02);
 /// let mut collection = SourceCollection::new(Point3::origin(), UnitQuaternion::identity(), vec![magnet]);
 /// ```
@@ -237,7 +237,7 @@ impl<S: Source> Field for SourceCollection<S> {
 /// ```
 /// use magba::sources::{MultiSourceCollection, CylinderMagnet, Source};
 /// use nalgebra::{Point3, UnitQuaternion, Vector3};
-/// 
+///
 /// let cylinder_magnet: Box<dyn Source> = Box::new(CylinderMagnet::new(Point3::origin(), UnitQuaternion::identity(), Vector3::z(), 0.005, 0.02));
 /// let mut collection = MultiSourceCollection::new(Point3::origin(), UnitQuaternion::identity(), vec![cylinder_magnet]);
 /// ```

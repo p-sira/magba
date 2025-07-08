@@ -133,12 +133,12 @@ simply: `cargo add magba`.
 //! let b = magnet.get_B(&points).unwrap()[0];
 //! let expected = Vector3::new(0.0, 0.0, 0.0038894698700304275);
 //! assert_close_vector_elem (&b, &expected, 1e-12);
-//! 
+//!
 //! magnet.set_position(Point3::new(0.0, 0.0, 0.02));
 //! let b = magnet.get_B(&points).unwrap()[0];
 //! let expected = Vector3::new(0.0, 0.0, 0.00996091945575112);
 //! assert_close_vector_elem (&b, &expected, 1e-12);
-//! 
+//!
 //! // Let's try rotating the magnet next.
 //! use std::f64::consts::PI;
 //! magnet.rotate(&UnitQuaternion::from_scaled_axis(Vector3::new(PI / 4.0, 0.0, 0.0)));

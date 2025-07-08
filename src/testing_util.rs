@@ -13,8 +13,8 @@ use nalgebra::{DMatrix, Point3, UnitQuaternion, Vector3};
 use crate::crate_util::relative_vec_distance;
 
 pub fn load_matrix_from_csv(path: &Path) -> DMatrix<f64> {
-    let file = File::open(path)
-        .unwrap_or_else(|e| panic!("Cannot open file {}: {}", path.display(), e));
+    let file =
+        File::open(path).unwrap_or_else(|e| panic!("Cannot open file {}: {}", path.display(), e));
     let mut reader = ReaderBuilder::new()
         .has_headers(false)
         .from_reader(BufReader::new(file));
@@ -28,12 +28,22 @@ pub fn load_matrix_from_csv(path: &Path) -> DMatrix<f64> {
         if ncols == 0 {
             ncols = record.len();
         } else if ncols != record.len() {
-            panic!("CSV row {} has inconsistent number of columns: expected {}, got {}", nrows + 1, ncols, record.len());
+            panic!(
+                "CSV row {} has inconsistent number of columns: expected {}, got {}",
+                nrows + 1,
+                ncols,
+                record.len()
+            );
         }
 
         for field in record.iter() {
             let value: f64 = field.parse().unwrap_or_else(|e| {
-                panic!("Failed to parse '{}' as f64 on row {}: {}", field, nrows + 1, e)
+                panic!(
+                    "Failed to parse '{}' as f64 on row {}: {}",
+                    field,
+                    nrows + 1,
+                    e
+                )
             });
             data.push(value);
         }
@@ -126,7 +136,6 @@ pub mod source_testing_util {
             println!("Test data {ref_path:?} not found. Download from https://github.com/p-sira/magba/tree/main/tests/test-data.");
             return;
         }
-
 
         let expected = matrix_to_vector_vec(&load_matrix_from_csv(ref_path));
         let points = matrix_to_point_vec(&load_matrix_from_csv(points_path));
