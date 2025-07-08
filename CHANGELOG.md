@@ -13,7 +13,7 @@
 
 ### 0.1.0
 **New Features**
-- Cylindrical magnet B field
-- `CylinderMagnet`
-- `SourceCollection`
-- `MultiSourceCollection`
+- `fields::field_cylinder`: Compute magnetic field for cylindrical magnets
+- `CylinderMagnet`: Struct for cylindrical magnet
+- `SourceCollection`: Struct for homogeneous source collection
+- `MultiSourceCollection`: Struct for heterogeneous source collection
