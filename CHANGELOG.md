@@ -2,6 +2,7 @@
 ## 0.1
 ### 0.1.1
 **Improvements**
+- Complete the documentation.
 - Reduce crate size.
 
 **Minor Changes**
