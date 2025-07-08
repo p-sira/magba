@@ -64,10 +64,6 @@ See `/tests/test-data` and the accuracy report for details.
 - [API Docs (docs.rs)](https://docs.rs/magba)
 - [GitHub Repository](https://github.com/p-sira/magba)
 
-## License
-
-BSD-3-Clause
-
 ---
 
 Learn more at [docs.rs/magba](https://docs.rs/magba).
