@@ -84,7 +84,7 @@ macro_rules! impl_transform_collection {
         fn translate(&mut self, translation: &Translation3<f64>) {
             self.children
                 .iter_mut()
-                .for_each(|source| source.translate(&translation));
+                .for_each(|source| source.translate(translation));
 
             self.position = translation.transform_point(&self.position);
         }
