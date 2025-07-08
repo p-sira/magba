@@ -8,6 +8,7 @@
 **Minor Changes**
 - Add `util` module for library testing.
 - Change doctests to relative error instead of exact equality.
+- Use csv instead of sparse mtx for test data to reduce test data size and test time.
 - Updated dependencies.
 
 ### 0.1.0
