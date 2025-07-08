@@ -38,7 +38,6 @@ pub trait Field {
 /// Trait shared by magnetic sources.
 ///
 /// Requires [`Transform`] and [`Field`].
-
 pub trait Source: Transform + Field + Debug + Send + Sync + Display {}
 
 macro_rules! impl_default {
