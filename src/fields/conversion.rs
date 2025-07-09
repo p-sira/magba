@@ -14,10 +14,10 @@ use crate::constants::MU0;
 /// Convert B-field to H-field.
 ///
 /// # Arguments
-/// * `B_vector` - Magnetic flux density vector (B)
+/// * `B_vector` - Magnetic flux density vector (B) in T
 ///
 /// # Returns
-/// * `Vector3<f64>` - Magnetic field strength vector (H)
+/// * `Vector3<f64>` - Magnetic field strength vector (H) in A/m
 #[allow(non_snake_case)]
 pub fn B_to_H(B_vector: &Vector3<f64>) -> Vector3<f64> {
     B_vector.scale(MU0)
@@ -36,12 +36,12 @@ pub fn Bs_to_Hs(B_vectors: &[Vector3<f64>]) -> Vec<Vector3<f64>> {
 }
 
 /// Convert magnetization (**M**) to polarization (**J**).
-///
+/// 
 /// # Arguments
-/// * `mag_vector` - Magnetization vector (M)
+/// * `mag_vector` - Magnetization vector (M) in A/m
 ///
 /// # Returns
-/// * `Vector3<f64>` - Polarization vector (J)
+/// * `Vector3<f64>` - Polarization vector (J) in T
 pub fn mag_to_pol(mag_vector: &Vector3<f64>) -> Vector3<f64> {
     mag_vector.scale(1.0 / MU0)
 }
@@ -49,10 +49,10 @@ pub fn mag_to_pol(mag_vector: &Vector3<f64>) -> Vector3<f64> {
 /// Convert magnetizations (**M**) to polarizations (**J**).
 ///
 /// # Arguments
-/// * `mag_vectors` - Slice of magnetization vectors (M)
+/// * `mag_vectors` - Slice of magnetization vectors (M) in A/m
 ///
 /// # Returns
-/// * `Vec<Vector3<f64>>` - Polarization vectors (J)
+/// * `Vec<Vector3<f64>>` - Polarization vectors (J) in T
 pub fn mags_to_pols(mag_vectors: &[Vector3<f64>]) -> Vec<Vector3<f64>> {
     mag_vectors
         .iter()
