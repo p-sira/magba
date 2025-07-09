@@ -324,7 +324,7 @@ pub fn cyl_B(
     ))
 }
 
-/// Compute B-field at points in global frame for multiple cylindrical magnets.
+/// Compute net B-field at each given point in global frame for multiple cylindrical magnets.
 ///
 /// # Arguments
 /// * `points` - 3D points in global frame
@@ -335,7 +335,7 @@ pub fn cyl_B(
 /// * `pols` - Polarization vectors
 ///
 /// # Returns
-/// * `Ok(Vec<Vector3<f64>>)` - B-field vectors
+/// * `Ok(Vec<Vector3<f64>>)` - Net B-field vectors at each point
 /// * `Err(&'static str)` - If computation fails
 #[allow(non_snake_case)]
 pub fn sum_multiple_cyl_B(
@@ -355,31 +355,44 @@ pub fn sum_multiple_cyl_B(
     }
 
     #[cfg(feature = "parallel")]
-    let vectors = positions
-        .par_iter()
-        .zip(orientations)
-        .zip(radii)
-        .zip(heights)
-        .zip(pols)
-        .map(|((((position, orientation), radius), height), pol)| {
-            cyl_B(points, position, orientation, *radius, *height, pol)
-        })
-        .collect::<Result<Vec<Vec<_>>, _>>()?;
+    {
+        let vectors = positions
+            .par_iter()
+            .zip(orientations)
+            .zip(radii)
+            .zip(heights)
+            .zip(pols)
+            .map(|((((position, orientation), radius), height), pol)| {
+                cyl_B(points, position, orientation, *radius, *height, pol)
+            })
+            .collect::<Result<Vec<Vec<_>>, _>>()?;
+
+        let net_vector: Vec<Vector3<f64>> = (0..points.len())
+            .map(|i| vectors.iter().map(|v| v[i]).sum())
+            .collect();
+        return Ok(net_vector);
+    }
 
     #[cfg(not(feature = "parallel"))]
-    let vectors = positions
-        .iter()
-        .zip(orientations)
-        .zip(radii)
-        .zip(heights)
-        .zip(pols)
-        .map(|((((position, orientation), radius), height), pol)| {
-            cyl_B(points, position, orientation, *radius, *height, pol)
-        })
-        .collect::<Result<Vec<Vec<_>>, _>>()?;
+    {
+        let mut net_vectors: Vec<Vector3<_>> = Vec::with_capacity(points.len());
 
-    let net_vector: Vec<Vector3<f64>> = (0..points.len())
-        .map(|i| vectors.iter().map(|v| v[i]).sum())
-        .collect();
-    Ok(net_vector)
+        positions
+            .iter()
+            .zip(orientations)
+            .zip(radii)
+            .zip(heights)
+            .zip(pols)
+            .map(|((((position, orientation), radius), height), pol)| {
+                cyl_B(points, position, orientation, *radius, *height, pol).unwrap()
+            })
+            .for_each(|field_vectors| {
+                net_vectors
+                    .iter_mut()
+                    .zip(field_vectors)
+                    .for_each(|(net_vector, field_vector)| *net_vector += field_vector)
+            });
+
+        return Ok(net_vectors);
+    }
 }
