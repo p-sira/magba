@@ -209,9 +209,12 @@ impl<S: Source> Display for SourceCollection<S> {
             "SourceCollection at {}, {}",
             self.position, self.orientation
         )?;
-        if let Some((last, sources)) = self.children.split_last() {
-            for source in sources {
+        let len = self.children.len();
+        for (i, source) in self.children.iter().enumerate() {
+            if i + 1 != len {
                 writeln!(f, "├── {}", source)?;
+            } else {
+                writeln!(f, "└── {}", source)?;
             }
             writeln!(f, "└── {}", last)?;
         }
@@ -287,10 +290,12 @@ impl Display for MultiSourceCollection {
             "MultiSourceCollection at {}, {}",
             self.position, self.orientation
         )?;
-
-        if let Some((last, sources)) = self.children.split_last() {
-            for source in sources {
+        let len = self.children.len();
+        for (i, source) in self.children.iter().enumerate() {
+            if i + 1 != len {
                 writeln!(f, "├── {}", source)?;
+            } else {
+                writeln!(f, "└── {}", source)?;
             }
             writeln!(f, "└── {}", last)?;
         }
