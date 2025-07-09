@@ -61,14 +61,14 @@ impl CylinderMagnet {
     /// Create a new [`CylinderMagnet`].
     ///
     /// # Arguments
-    /// * `position` - Center of the cylinder (m)
-    /// * `orientation` - Orientation as a unit quaternion
-    /// * `polarization` - Polarization vector (T)
-    /// * `radius` - Cylinder radius (m)
-    /// * `height` - Cylinder height (m)
+    /// - `position`: Center of the cylinder (m)
+    /// - `orientation`: Orientation as a unit quaternion
+    /// - `polarization`: Polarization vector (T)
+    /// - `radius`: Cylinder radius (m)
+    /// - `height`: Cylinder height (m)
     ///
     /// # Returns
-    /// * `CylinderMagnet` instance
+    /// - `CylinderMagnet` instance
     ///
     /// # Example
     /// ```

@@ -3,8 +3,6 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-//! # Field Conversion
-//!
 //! Conversion tools for magnetic field-related quantities.
 
 use nalgebra::Vector3;
@@ -36,7 +34,7 @@ pub fn Bs_to_Hs(B_vectors: &[Vector3<f64>]) -> Vec<Vector3<f64>> {
 }
 
 /// Convert magnetization (**M**) to polarization (**J**).
-/// 
+///
 /// # Arguments
 /// * `mag_vector` - Magnetization vector (M) in A/m
 ///

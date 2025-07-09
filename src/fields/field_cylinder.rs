@@ -3,9 +3,7 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-//! # Cylindrical Magnet Field Computation
-//!
-//! Analytical B-field computation for cylindrical magnets, supporting both axial and diametric polarization or combined.
+//! Analytical B-field computation for cylindrical magnets.
 //!
 //! Based on Derby & Olbert (2010), Caciagli et al. (2018), and MagpyLib.
 
@@ -22,13 +20,12 @@ use rayon::prelude::*;
 /// at point *(r, z)* in cylindrical CS.
 ///
 /// # Arguments
-/// * `r` - Radial coordinate (normalized by radius)
-/// * `z` - Axial coordinate (normalized by radius)
-/// * `z0` - Half the height over radius
+/// - `r`, `z`: Cylindrical coordinates, normalized by radius
+/// - `z0`: Half the height over radius
 ///
 /// # Returns
-/// * `Ok(Vector3<f64>)` - B-field vector
-/// * `Err(&'static str)` - If computation fails
+/// - `Ok(Vector3<f64>)`: B-field vector
+/// - `Err(&'static str)`: If computation fails
 ///
 /// # References
 /// - Derby, Norman, and Stanislaw Olbert. “Cylindrical Magnets and Ideal Solenoids.” American Journal of Physics 78, no. 3 (March 1, 2010): 229–35. https://doi.org/10.1119/1.3256157.
@@ -62,14 +59,12 @@ pub fn unit_axial_cyl_B_cyl(r: f64, z: f64, z0: f64) -> Result<Vector3<f64>, &'s
 /// at point *(r, phi, z)* in cylindrical CS.
 ///
 /// # Arguments
-/// * `r` - Radial coordinate (normalized by radius)
-/// * `phi` - Azimuthal angle
-/// * `z` - Axial coordinate (normalized by radius)
-/// * `z0` - Half the height over radius
+/// - `r`, `phi`, `z`: Cylindrical coordinates, normalized by radius
+/// - `z0`: Half the height over radius
 ///
 /// # Returns
-/// * `Ok(Vector3<f64>)` - B-field vector
-/// * `Err(&'static str)` - If computation fails
+/// - `Ok(Vector3<f64>)`: B-field vector
+/// - `Err(&'static str)`: If computation fails
 ///
 /// # References
 /// - Caciagli, Alessio, Roel J. Baars, Albert P. Philipse, and Bonny W. M. Kuipers. “Exact Expression for the Magnetic Field of a Finite Cylinder with Arbitrary Uniform Magnetization.” Journal of Magnetism and Magnetic Materials 456 (June 15, 2018): 423–32. https://doi.org/10.1016/j.jmmm.2018.02.003.
@@ -166,15 +161,15 @@ pub fn unit_diametric_cyl_B_cyl(
 /// Compute B-field of a cylindrical magnet at point *(r, phi, z)* in cylindrical CS.
 ///
 /// # Arguments
-/// * `r`, `phi`, `z` - Cylindrical coordinates
-/// * `radius` - Cylinder radius (m)
-/// * `height` - Cylinder height (m)
-/// * `pol_r` - Radial polarization (T)
-/// * `pol_z` - Axial polarization (T)
+/// - `r`, `phi`, `z`: Cylindrical coordinates
+/// - `radius`: Cylinder radius (m)
+/// - `height`: Cylinder height (m)
+/// - `pol_r`: Radial polarization (T)
+/// - `pol_z`: Axial polarization (T)
 ///
 /// # Returns
-/// * `Ok(Vector3<f64>)` - B-field vector (T)
-/// * `Err(&'static str)` - If computation fails
+/// - `Ok(Vector3<f64>)`: B-field vector (T)
+/// - `Err(&'static str)`: If computation fails
 ///
 /// # Notes
 /// - Zero vector is returned if the point is close to the cylindrical magnet's edge (rim).
@@ -223,14 +218,14 @@ pub fn cyl_B_cyl(
 /// Compute B-field at point *(x, y, z)* of a cylindrical magnet in local frame.
 ///
 /// # Arguments
-/// * `point` - Point in local frame (m)
-/// * `radius` - Cylinder radius (m)
-/// * `height` - Cylinder height (m)
-/// * `pol` - Polarization vector (T)
+/// - `point`: Point in local frame (m)
+/// - `radius`: Cylinder radius (m)
+/// - `height`: Cylinder height (m)
+/// - `pol`: Polarization vector (T)
 ///
 /// # Returns
-/// * `Ok(Vector3<f64>)` - B-field vector (T)
-/// * `Err(&'static str)` - If computation fails
+/// - `Ok(Vector3<f64>)`: B-field vector (T)
+/// - `Err(&'static str)`: If computation fails
 ///
 /// # References
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. https://doi.org/10.1016/j.softx.2020.100466.
@@ -259,14 +254,14 @@ pub fn local_cyl_B(
 /// Compute B-field at multiple points in local frame.
 ///
 /// # Arguments
-/// * `points` - Points in local frame (m)
-/// * `radius` - Cylinder radius (m)
-/// * `height` - Cylinder height (m)
-/// * `pol` - Polarization vector (T)
+/// - `points`: Points in local frame (m)
+/// - `radius`: Cylinder radius (m)
+/// - `height`: Cylinder height (m)
+/// - `pol`: Polarization vector (T)
 ///
 /// # Returns
-/// * `Ok(Vec<Vector3<f64>>)` - B-field vectors (T)
-/// * `Err(&'static str)` - If computation fails
+/// - `Ok(Vec<Vector3<f64>>)`: B-field vectors (T)
+/// - `Err(&'static str)`: If computation fails
 ///
 /// Serialized approach is used if the number of points is small.
 /// Otherwise, the calculation is parallel (need `parallel` feature).
@@ -296,16 +291,16 @@ pub fn local_cyl_B_vec(
 /// Compute B-field at points in global frame for a single cylindrical magnet.
 ///
 /// # Arguments
-/// * `points` - Points in global frame (m)
-/// * `position` - Magnet position (m)
-/// * `orientation` - Magnet orientation
-/// * `radius` - Cylinder radius (m)
-/// * `height` - Cylinder height (m)
-/// * `pol` - Polarization vector (T)
+/// - `points`: Points in global frame (m)
+/// - `position`: Magnet position (m)
+/// - `orientation`: Magnet orientation
+/// - `radius`: Cylinder radius (m)
+/// - `height`: Cylinder height (m)
+/// - `pol`: Polarization vector (T)
 ///
 /// # Returns
-/// * `Ok(Vec<Vector3<f64>>)` - B-field vectors (T)
-/// * `Err(&'static str)` - If computation fails
+/// - `Ok(Vec<Vector3<f64>>)`: B-field vectors (T)
+/// - `Err(&'static str)`: If computation fails
 #[allow(non_snake_case)]
 pub fn cyl_B(
     points: &[Point3<f64>],
@@ -327,16 +322,16 @@ pub fn cyl_B(
 /// Compute net B-field at each given point in global frame for multiple cylindrical magnets.
 ///
 /// # Arguments
-/// * `points` - Points in global frame (m)
-/// * `positions` - Magnet positions (m)
-/// * `orientations` - Magnet orientations
-/// * `radii` - Cylinder radii (m)
-/// * `heights` - Cylinder heights (m)
-/// * `pols` - Polarization vectors (T)
+/// - `points`: Points in global frame (m)
+/// - `positions`: Magnet positions (m)
+/// - `orientations`: Magnet orientations
+/// - `radii`: Cylinder radii (m)
+/// - `heights`: Cylinder heights (m)
+/// - `pols`: Polarization vectors (T)
 ///
 /// # Returns
-/// * `Ok(Vec<Vector3<f64>>)` - Net B-field vectors at each point (T)
-/// * `Err(&'static str)` - If computation fails
+/// - `Ok(Vec<Vector3<f64>>)`: Net B-field vectors at each point (T)
+/// - `Err(&'static str)`: If computation fails
 #[allow(non_snake_case)]
 pub fn sum_multiple_cyl_B(
     points: &[Point3<f64>],

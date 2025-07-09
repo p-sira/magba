@@ -3,9 +3,7 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-//! # Transform
-//!
-//! Provides the [`Transform`] trait for 3D position/orientation and macros for implementing it.
+//! Provides the [`Transform`] trait and macros for implementing it.
 
 use nalgebra::{Point3, Translation3, UnitQuaternion};
 

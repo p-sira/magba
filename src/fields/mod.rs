@@ -3,8 +3,6 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-//! # Fields
-//!
 //! Analytical computation of magnetic fields for various source geometries.
 //!
 //! - [`field_cylinder`]: Analytical B-field for cylindrical magnets.

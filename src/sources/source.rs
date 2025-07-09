@@ -3,9 +3,7 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-//! # Sources
-//!
-//! Defines the core traits and types for magnetic field sources, including collections of sources.
+//! Core traits and types for magnetic sources and collections of sources.
 //!
 //! - [`Field`] trait: For objects that can compute the magnetic field at given points.
 //! - [`Source`] trait: For magnetic sources, requiring both [`Field`] and [`Transform`].
@@ -24,11 +22,11 @@ pub trait Field {
     /// Compute the magnetic field (B) at the given points.
     ///
     /// # Arguments
-    /// * `points` - Slice of 3D points where the field is evaluated.
+    /// - `points`: Slice of points where the field is evaluated.
     ///
     /// # Returns
-    /// * `Ok(Vec<Vector3<f64>>)` - B-field vectors at each point.
-    /// * `Err(&'static str)` - If computation fails.
+    /// - `Ok(Vec<Vector3<f64>>)`: B-field vectors at each point.
+    /// - `Err(&'static str)`: If computation fails.
     fn get_B(&self, points: &[Point3<f64>]) -> Result<Vec<Vector3<f64>>, &'static str>;
 }
 
@@ -151,6 +149,11 @@ macro_rules! impl_field_collection {
 
 /// Stack-allocated collection of a single source type.
 ///
+/// # Fields
+/// - `position`: Center of the collection (m), where the children reference
+/// - `orientation`: Orientation of the collection, where the children reference
+/// - `children`: An ordered-vec of homogeneous magnetic sources
+///
 /// # Example
 /// ```
 /// use magba::sources::{SourceCollection, CylinderMagnet};
@@ -161,9 +164,12 @@ macro_rules! impl_field_collection {
 /// ```
 #[derive(Debug)]
 pub struct SourceCollection<S: Source> {
+    /// Center of the collection (m), where the children reference
     position: Point3<f64>,
+    /// Orientation of the collection, where the children reference
     orientation: UnitQuaternion<f64>,
 
+    /// An ordered-vec of homogeneous magnetic sources
     children: Vec<S>,
 }
 
@@ -237,6 +243,11 @@ impl<S: Source> Field for SourceCollection<S> {
 
 /// Heap-allocated collection of multiple source types.
 ///
+/// # Fields
+/// - `position`: Center of the collection (m), where the children reference
+/// - `orientation`: Orientation of the collection, where the children reference
+/// - `children`: An ordered-vec of heterogeneous magnetic sources
+///
 /// # Example
 /// ```
 /// use magba::sources::{MultiSourceCollection, CylinderMagnet, Source};
@@ -247,9 +258,12 @@ impl<S: Source> Field for SourceCollection<S> {
 /// ```
 #[derive(Debug)]
 pub struct MultiSourceCollection {
+    /// Center of the collection (m), where the children reference
     position: Point3<f64>,
+    /// Orientation of the collection, where the children reference
     orientation: UnitQuaternion<f64>,
 
+    /// An ordered-vec of heterogeneous magnetic sources
     children: Vec<Box<dyn Source>>,
 }
 
