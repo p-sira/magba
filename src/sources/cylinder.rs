@@ -10,8 +10,9 @@
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
 use super::{Field, Source};
+use crate::crate_util;
 use crate::geometry::Transform;
-use crate::{fields::cyl_B, impl_transform};
+use crate::{fields, impl_transform};
 
 use std::fmt::Display;
 
@@ -97,7 +98,7 @@ impl_transform!(CylinderMagnet);
 
 impl Field for CylinderMagnet {
     fn get_B(&self, points: &[Point3<f64>]) -> Result<Vec<Vector3<f64>>, &'static str> {
-        cyl_B(
+        fields::cyl_B(
             points,
             &self.position,
             &self.orientation,
@@ -112,8 +113,12 @@ impl Display for CylinderMagnet {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "CylinderMagnet (r={}, h={}, pol={:?}) at ({}, {})",
-            self.radius, self.height, self.polarization, self.position, self.orientation
+            "CylinderMagnet (r={}, h={}, pol={}) at pos={}, q={}",
+            self.radius,
+            self.height,
+            crate_util::format_vector3!(self.polarization),
+            crate_util::format_point3!(self.position),
+            crate_util::format_quat!(self.orientation)
         )
     }
 }
@@ -215,5 +220,18 @@ mod tests {
             "./tests/test-data/cylinder-rotate-translate-result.csv",
             1e-6,
         )
+    }
+
+    #[test]
+    fn test_cylinder_display() {
+        let magnet = CylinderMagnet::default();
+        assert_eq!(
+            "CylinderMagnet (r=0, h=0, pol=[0, 0, 0]) at pos=[0, 0, 0], q=[0, 0, 0, 1]",
+            format!("{}", magnet)
+        );
+        assert_eq!(
+            "CylinderMagnet { position: [0.0, 0.0, 0.0], orientation: [0.0, 0.0, 0.0, 1.0], polarization: [[0.0, 0.0, 0.0]], radius: 0.0, height: 0.0 }",
+            format!("{:?}", magnet)
+        );
     }
 }

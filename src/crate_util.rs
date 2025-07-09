@@ -64,3 +64,24 @@ pub fn assert_close_vector_elem(vec1: &Vector3<f64>, vec2: &Vector3<f64>, rtol: 
         panic!("Failed. Mismatched {n_fail}/3 elements.")
     }
 }
+
+macro_rules! format_vector3 {
+    ($v: expr) => {
+        format!("[{}, {}, {}]", $v[0], $v[1], $v[2])
+    };
+}
+pub(crate) use format_vector3;
+
+macro_rules! format_point3 {
+    ($p: expr) => {
+        format!("[{}, {}, {}]", $p[0], $p[1], $p[2])
+    };
+}
+pub(crate) use format_point3;
+
+macro_rules! format_quat {
+    ($q: expr) => {
+        format!("[{}, {}, {}, {}]", $q[0], $q[1], $q[2], $q[3])
+    };
+}
+pub(crate) use format_quat;
