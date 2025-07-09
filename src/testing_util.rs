@@ -77,7 +77,29 @@ pub fn assert_close_vec_vector(vecs1: &Vec<Vector3<f64>>, vecs2: &Vec<Vector3<f6
     if len != vecs2.len() {
         panic!("assert_close_vector fails. Two vecs of Vector3 must be the same length.")
     }
-
+    // Use parallel comparison for large vectors
+    #[cfg(feature = "parallel")]
+    if len > 1000 {
+        use rayon::prelude::*;
+        let failures: Vec<_> = vecs1.par_iter().zip(vecs2).enumerate().filter_map(|(n, (vec1, vec2))| {
+            let rdist = relative_vec_distance(*vec1, *vec2);
+            if rdist > rtol {
+                Some((n, *vec1, *vec2, rdist))
+            } else {
+                None
+            }
+        }).collect();
+        if !failures.is_empty() {
+            let (worst_n, worst_v1, worst_v2, worst_rdist) = failures.iter().max_by(|a, b| a.3.partial_cmp(&b.3).unwrap()).unwrap();
+            let percent_fail = failures.len() as f64 / len as f64 * 100.0;
+            eprintln!("Failed {}/{} vectors ({}%).", failures.len(), len, percent_fail);
+            eprintln!("Worst on vector {}: actual={:?}, expected={:?}, rdist={:e}, rtol={:e}.", worst_n, worst_v1, worst_v2, worst_rdist, rtol);
+            panic!("assert_close_vec_vector");
+        }
+        return;
+    }
+    
+    // Serial fallback for small vectors or no parallel feature
     let mut n_fail: usize = 0;
     let mut worst_rdist = 0.0;
     let mut worst_params: (usize, Vector3<f64>, Vector3<f64>, f64) =
