@@ -210,9 +210,9 @@ checksum = "48c757948c5ede0e46177b7add2e67155f70e33c07fea8284df6576da70b3719"
 
 [[package]]
 name = "ellip"
-version = "0.3.1"
+version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b37e9c569fab3507e77857b5d206a354776fde071341e34ea9d28880242121be"
+checksum = "28833241703e8efd6b7421a28ab05e21adeeca03f26a725fa74bd352b653ab5a"
 dependencies = [
  "num-lazy",
  "num-traits",
