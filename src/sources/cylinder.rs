@@ -7,6 +7,7 @@
 //!
 //! Defines the [`CylinderMagnet`] struct, representing a uniformly magnetized cylindrical magnet in 3D space.
 
+use getset::{Getters, Setters};
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
 use super::{Field, Source};
@@ -19,9 +20,9 @@ use std::fmt::Display;
 /// Uniformly magnetized cylindrical magnet in 3D space.
 ///
 /// # Fields
-/// - `position`: Center of the cylinder (global coordinates)
+/// - `position`: Center of the cylinder (m)
 /// - `orientation`: Orientation as a unit quaternion
-/// - `polarization`: Magnetization vector (A/m)
+/// - `polarization`: Polarization vector (T)
 /// - `radius`: Cylinder radius (m)
 /// - `height`: Cylinder height (m)
 ///
@@ -38,14 +39,21 @@ use std::fmt::Display;
 ///     0.02,
 /// );
 /// ```
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq, Default, Getters, Setters)]
 pub struct CylinderMagnet {
+    /// Center of the cylinder (m)
     position: Point3<f64>,
+    /// Orientation as a unit quaternion
     orientation: UnitQuaternion<f64>,
+    /// Polarization vector (T)
+    #[getset(get = "pub", set = "pub")]
     polarization: Vector3<f64>,
 
-    // Dimension
+    /// Cylinder radius (m)
+    #[getset(get = "pub", set = "pub")]
     radius: f64,
+    /// Cylinder height (m)
+    #[getset(get = "pub", set = "pub")]
     height: f64,
 }
 
@@ -53,9 +61,9 @@ impl CylinderMagnet {
     /// Create a new [`CylinderMagnet`].
     ///
     /// # Arguments
-    /// * `position` - Center of the cylinder (global coordinates)
+    /// * `position` - Center of the cylinder (m)
     /// * `orientation` - Orientation as a unit quaternion
-    /// * `polarization` - Magnetization vector (A/m)
+    /// * `polarization` - Polarization vector (T)
     /// * `radius` - Cylinder radius (m)
     /// * `height` - Cylinder height (m)
     ///
