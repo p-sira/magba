@@ -39,36 +39,43 @@ macro_rules! impl_transform {
     ($type:ty) => {
         impl Transform for $type {
             /// Get the object position.
+            #[inline]
             fn position(&self) -> Point3<f64> {
                 self.position
             }
 
             /// Get the object orientation.
+            #[inline]
             fn orientation(&self) -> UnitQuaternion<f64> {
                 self.orientation
             }
 
             /// Set the object position.
+            #[inline]
             fn set_position(&mut self, position: Point3<f64>) {
                 self.position = position;
             }
 
             /// Set the object orientation.
+            #[inline]
             fn set_orientation(&mut self, orientation: UnitQuaternion<f64>) {
                 self.orientation = orientation;
             }
 
             /// Translate the object.
+            #[inline]
             fn translate(&mut self, translation: &Translation3<f64>) {
                 self.position = translation.transform_point(&self.position);
             }
 
             /// Rotate the object.
+            #[inline]
             fn rotate(&mut self, rotation: &UnitQuaternion<f64>) {
                 self.orientation = rotation * &self.orientation;
             }
 
             /// Rotate the object using the anchor point as the center of rotation.
+            #[inline]
             fn rotate_anchor(&mut self, rotation: &UnitQuaternion<f64>, anchor: &Point3<f64>) {
                 let local_position = self.position - anchor;
                 self.position =
