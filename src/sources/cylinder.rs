@@ -273,7 +273,7 @@ mod tests {
             1e-6,
         )
     }
-  
+
     #[test]
     fn test_cylinder_display() {
         let magnet = CylinderMagnet::default();
