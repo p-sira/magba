@@ -274,7 +274,7 @@ pub fn local_cyl_B_vec(
     pol: &Vector3<f64>,
 ) -> Result<Vec<Vector3<f64>>, &'static str> {
     #[cfg(feature = "parallel")]
-    if points.len() > 20 {
+    if points.len() > 60 {
         return Ok(points
             .par_iter()
             .map(|p| local_cyl_B(p, radius, height, pol).unwrap())

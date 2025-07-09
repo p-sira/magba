@@ -23,10 +23,10 @@ fn generate_local_cyl_b_test_data(size: usize) -> (Vec<Point3<f64>>, f64, f64, V
     (points, 1.0, 2.0, Vector3::new(1.0, 1.0, 1.0))
 }
 
-/// Found that parallel is better after 20
+/// Found that parallel is better slightly above 50
 fn bench_b_cyl_parallel_vs_serial(c: &mut Criterion) {
     let mut group = c.benchmark_group("parallel_overhead");
-    for size in [10, 20, 50, 100, 1000].iter() {
+    for size in [10, 20, 50, 60, 100].iter() {
         let (points, radius, height, pol) = generate_local_cyl_b_test_data(*size);
 
         group.bench_with_input(BenchmarkId::new("b_cyl_serial", size), &size, |b, _| {
@@ -62,6 +62,8 @@ fn get_points(n: usize) -> Vec<Point3<f64>> {
 }
 
 /// Serial is always faster
+/// Disabled due to consistent results
+#[allow(dead_code)]
 fn bench_translate_parallel_vs_serial(c: &mut Criterion) {
     let mut group = c.benchmark_group("parallel_overhead");
 
@@ -112,7 +114,7 @@ fn bench_rotate_parallel_vs_serial(c: &mut Criterion) {
         (new_position, new_orientation)
     }
 
-    for size in [10, 100, 100000].iter() {
+    for size in [10, 100, 10000].iter() {
         let points = get_points(*size);
         let current_orientation = UnitQuaternion::identity();
         let rotation = UnitQuaternion::from_scaled_axis(Vector3::new(1.0, 2.0, 3.0));
@@ -165,6 +167,8 @@ fn get_cylinder_collection(n: usize) -> Vec<CylinderMagnet> {
 
 /// Parallel is always faster, except with 1 source.
 /// However, I don't think it is worth branching.
+/// Disabled due to consistent results
+#[allow(dead_code)]
 fn bench_collection_b_parallel_vs_serial(c: &mut Criterion) {
     let mut group = c.benchmark_group("parallel_overhead");
 
@@ -206,8 +210,8 @@ fn bench_collection_b_parallel_vs_serial(c: &mut Criterion) {
 criterion_group!(
     benches,
     bench_b_cyl_parallel_vs_serial,
-    bench_translate_parallel_vs_serial,
+    // bench_translate_parallel_vs_serial,
     bench_rotate_parallel_vs_serial,
-    bench_collection_b_parallel_vs_serial,
+    // bench_collection_b_parallel_vs_serial,
 );
 criterion_main!(benches);
