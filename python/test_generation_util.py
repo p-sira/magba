@@ -13,3 +13,6 @@ def generate_grid(bounds: NDArray, N: Iterable) -> NDArray:
     mesh = np.meshgrid(*linsp)
     return np.column_stack([m.flatten() for m in mesh])
 
+def save_array_to_file(file: str | Path, a: NDArray) -> None:
+    np.savetxt(file, a, delimiter=",")
+    

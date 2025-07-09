@@ -3,29 +3,86 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-//! [CylinderMagnet] struct
+//! # Cylinder Magnet
+//!
+//! Defines the [`CylinderMagnet`] struct, representing a uniformly magnetized cylindrical magnet in 3D space.
 
+use getset::{Getters, Setters};
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
 use super::{Field, Source};
+use crate::crate_util;
 use crate::geometry::Transform;
-use crate::{fields::cyl_B, impl_transform};
+use crate::{fields, impl_transform};
 
 use std::fmt::Display;
 
-/// Cylindrical magnet object.
-#[derive(Debug, Clone, PartialEq, Default)]
+/// Uniformly magnetized cylindrical magnet in 3D space.
+///
+/// # Fields
+/// - `position`: Center of the cylinder (m)
+/// - `orientation`: Orientation as a unit quaternion
+/// - `polarization`: Polarization vector (T)
+/// - `radius`: Cylinder radius (m)
+/// - `height`: Cylinder height (m)
+///
+/// # Example
+/// ```
+/// use magba::sources::CylinderMagnet;
+/// use nalgebra::{Point3, UnitQuaternion, Vector3};
+///
+/// let magnet = CylinderMagnet::new(
+///     Point3::origin(),
+///     UnitQuaternion::identity(),
+///     Vector3::z(),
+///     0.005,
+///     0.02,
+/// );
+/// ```
+#[derive(Debug, Clone, PartialEq, Default, Getters, Setters)]
 pub struct CylinderMagnet {
+    /// Center of the cylinder (m)
     position: Point3<f64>,
+    /// Orientation as a unit quaternion
     orientation: UnitQuaternion<f64>,
+    /// Polarization vector (T)
+    #[getset(get = "pub", set = "pub")]
     polarization: Vector3<f64>,
 
-    // Dimension
+    /// Cylinder radius (m)
+    #[getset(get = "pub", set = "pub")]
     radius: f64,
+    /// Cylinder height (m)
+    #[getset(get = "pub", set = "pub")]
     height: f64,
 }
 
 impl CylinderMagnet {
+    /// Create a new [`CylinderMagnet`].
+    ///
+    /// # Arguments
+    /// - `position`: Center of the cylinder (m)
+    /// - `orientation`: Orientation as a unit quaternion
+    /// - `polarization`: Polarization vector (T)
+    /// - `radius`: Cylinder radius (m)
+    /// - `height`: Cylinder height (m)
+    ///
+    /// # Returns
+    /// - `CylinderMagnet` instance
+    ///
+    /// # Example
+    /// ```
+    /// use magba::sources::CylinderMagnet;
+    /// use nalgebra::{Point3, UnitQuaternion, Vector3};
+    ///
+    /// let magnet = CylinderMagnet::new(
+    ///     Point3::origin(),
+    ///     UnitQuaternion::identity(),
+    ///     Vector3::z(),
+    ///     0.005,
+    ///     0.02,
+    /// );
+    /// ```
     pub fn new(
         position: Point3<f64>,
         orientation: UnitQuaternion<f64>,
@@ -49,7 +106,7 @@ impl_transform!(CylinderMagnet);
 
 impl Field for CylinderMagnet {
     fn get_B(&self, points: &[Point3<f64>]) -> Result<Vec<Vector3<f64>>, &'static str> {
-        cyl_B(
+        fields::cyl_B(
             points,
             &self.position,
             &self.orientation,
@@ -64,8 +121,12 @@ impl Display for CylinderMagnet {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "CylinderMagnet (r={}, h={}, pol={:?}) at ({}, {})",
-            self.radius, self.height, self.polarization, self.position, self.orientation
+            "CylinderMagnet (r={}, h={}, pol={}) at pos={}, q={}",
+            self.radius,
+            self.height,
+            crate_util::format_vector3!(self.polarization),
+            crate_util::format_point3!(self.position),
+            crate_util::format_quat!(self.orientation)
         )
     }
 }
@@ -85,7 +146,7 @@ mod tests {
     fn compare_with_file(magnet: &CylinderMagnet, ref_path_str: &str, rtol: f64) {
         compare_B_with_file(
             magnet,
-            "./tests/test-data/cylinder-points.mtx",
+            "./tests/test-data/cylinder-points.csv",
             ref_path_str,
             rtol,
         );
@@ -100,7 +161,7 @@ mod tests {
             0.5,
             2.0,
         );
-        compare_with_file(&magnet, "./tests/test-data/cylinder-result.mtx", 1e-6)
+        compare_with_file(&magnet, "./tests/test-data/cylinder-result.csv", 1e-6)
     }
 
     #[test]
@@ -113,7 +174,7 @@ mod tests {
             10e-3,
         );
         // Small magnet at far distances have less numerical stability
-        compare_with_file(&magnet, "./tests/test-data/cylinder-small-result.mtx", 1e-3)
+        compare_with_file(&magnet, "./tests/test-data/cylinder-small-result.csv", 1e-3)
     }
 
     #[test]
@@ -128,7 +189,7 @@ mod tests {
         magnet.translate(&Translation3::new(-0.1, -0.2, -0.3));
         compare_with_file(
             &magnet,
-            "./tests/test-data/cylinder-translate-result.mtx",
+            "./tests/test-data/cylinder-translate-result.csv",
             1e-6,
         )
     }
@@ -146,7 +207,7 @@ mod tests {
         magnet.rotate(&rotation.inverse());
         compare_with_file(
             &magnet,
-            "./tests/test-data/cylinder-rotate-result.mtx",
+            "./tests/test-data/cylinder-rotate-result.csv",
             1e-6,
         )
     }
@@ -164,7 +225,7 @@ mod tests {
         magnet.rotate(&quat_from_rotvec(PI / 3.0, PI / 2.0, PI));
         compare_with_file(
             &magnet,
-            "./tests/test-data/cylinder-rotate-translate-result.mtx",
+            "./tests/test-data/cylinder-rotate-translate-result.csv",
             1e-6,
         )
     }
@@ -211,5 +272,14 @@ mod tests {
             "./tests/test-data/cylinder-diametric-result-2.mtx",
             1e-6,
         )
+    }
+
+    #[test]
+    fn test_cylinder_display() {
+        let magnet = CylinderMagnet::default();
+        assert_eq!(
+            "CylinderMagnet (r=0, h=0, pol=[0, 0, 0]) at pos=[0, 0, 0], q=[0, 0, 0, 1]",
+            format!("{}", magnet)
+        );
     }
 }

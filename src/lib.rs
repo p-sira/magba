@@ -111,6 +111,7 @@ simply: `cargo add magba`.
 #![cfg_attr(feature = "sources", doc = "```")]
 //! use magba::{CylinderMagnet, Field};
 //! use magba::geometry::Transform;
+//! use magba::util::*;
 //! use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 //!
 //! // Don't forget to make the object mutable if you need to move it.
@@ -124,31 +125,43 @@ simply: `cargo add magba`.
 //!
 //! // Here, we try various ways to move the magnet closer to the observer.
 //! let points = [Point3::new(0.0, 0.0, 0.05)];
-//! assert_eq! (magnet.get_B(&points).unwrap(), [Vector3::new(0.0, 0.0, 0.0019205466890453442)]);
+//! let b = magnet.get_B(&points).unwrap()[0];
+//! let expected = Vector3::new(0.0, 0.0, 0.0019205466890453442);
+//! assert_close_vector_elem (&b, &expected, 1e-12);
 //!
 //! magnet.translate(&Translation3::new(0.0, 0.0, 0.01));
-//! assert_eq! (magnet.get_B(&points).unwrap(), [Vector3::new(0.0, 0.0, 0.0038894698700304275)]);
+//! let b = magnet.get_B(&points).unwrap()[0];
+//! let expected = Vector3::new(0.0, 0.0, 0.0038894698700304275);
+//! assert_close_vector_elem (&b, &expected, 1e-12);
 //!
 //! magnet.set_position(Point3::new(0.0, 0.0, 0.02));
-//! assert_eq! (magnet.get_B(&points).unwrap(), [Vector3::new(0.0, 0.0, 0.00996091945575112)]);
+//! let b = magnet.get_B(&points).unwrap()[0];
+//! let expected = Vector3::new(0.0, 0.0, 0.00996091945575112);
+//! assert_close_vector_elem (&b, &expected, 1e-12);
 //!
 //! // Let's try rotating the magnet next.
 //! use std::f64::consts::PI;
 //! magnet.rotate(&UnitQuaternion::from_scaled_axis(Vector3::new(PI / 4.0, 0.0, 0.0)));
-//! assert_eq! (magnet.get_B(&points).unwrap(), [Vector3::new(3.940750052717413e-19, 0.0035238379945531466, 0.005577663229074168)]);
+//! let b = magnet.get_B(&points).unwrap()[0];
+//! let expected = Vector3::new(3.9407500527173422e-19, 0.0035238379945531874, 0.005577663229073966);
+//! assert_close_vector_elem (&b, &expected, 1e-12);
 //!
 //! magnet.set_orientation(UnitQuaternion::from_scaled_axis(Vector3::new(PI / 2.0, 0.0, 0.0)));
-//! assert_eq! (magnet.get_B(&points).unwrap(), [Vector3::new(6.086025172136602e-35, 0.003642460886175623, 0.0)]);
+//! let b = magnet.get_B(&points).unwrap()[0];
+//! let expected = Vector3::new(6.086025172136602e-35, 0.003642460886175623, 0.0);
+//! assert_close_vector_elem (&b, &expected, 1e-12);
 //! ```
 //!
 //! ### Directly calculate fields
 //! If you just need to access the field functions, you can use [fields].
 //! ```
 //! use magba::fields::field_cylinder;
+//! use magba::util::*;
 //! use nalgebra::{Point3, Vector3};
 //!
 //! let b = field_cylinder::local_cyl_B(&Point3::new(1.0, -1.0, 0.0), 1.0, 2.0, &Vector3::new(1.0, 2.0, 3.0)).expect("Invalid b calculation");
-//! assert_eq! (b, Vector3::new(-0.36846056628423773, -0.10171405289381394, -0.3300649209932216));
+//! let expected = Vector3::new(-0.3684605662842379, -0.10171405289381347, -0.330064920993222);
+//! assert_close_vector_elem (&b, &expected, 1e-12);
 //! ```
 /*!
 ## Feature Flags
@@ -161,8 +174,8 @@ Most of the field computation used in Magba is based on [MagpyLib](https://githu
 We would like to thank MagpyLib contributors their hard work and contributions to the scientific community.
 */
 
-mod special;
-mod util;
+mod crate_util;
+pub mod util;
 
 pub mod constants;
 pub mod fields;

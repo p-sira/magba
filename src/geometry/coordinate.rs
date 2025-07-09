@@ -3,7 +3,7 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-//! Coordinate conversion and calculation.
+//! Coordinate conversion and calculation utilities for 3D geometry.
 
 use nalgebra::{Point3, UnitQuaternion, Vector3};
 
@@ -15,8 +15,7 @@ pub fn cart2cyl(x: f64, y: f64) -> (f64, f64) {
 }
 
 /// Convert vector with component *(r, phi)* in cylindrical to Cartesian CS.
-///
-/// *theta*: angle of the vector on XY plane
+/// - `theta`: Angle of the vector on XY plane
 pub fn vec_cyl2cart(r: f64, phi: f64, theta: f64) -> (f64, f64) {
     let x = r * theta.cos() - phi * theta.sin();
     let y = r * theta.sin() + phi * theta.cos();
@@ -41,7 +40,7 @@ pub fn local_point(
     orientation.inverse() * Point3::from(point.coords - position.coords)
 }
 
-/// Transfrom multiple points in global frame to the local frame of the object.
+/// Transform multiple points in global frame to the local frame of the object.
 pub fn local_points(
     points: &[Point3<f64>],
     position: &Point3<f64>,

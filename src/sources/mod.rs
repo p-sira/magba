@@ -3,7 +3,7 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-//! Magnetic source structs.
+//! Magnetic source traits and structs.
 //!
 //! Permanent magnets:
 //! - [CylinderMagnet]

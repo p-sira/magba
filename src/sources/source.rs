@@ -3,28 +3,36 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-//! Provide definitions for [Source], [SourceCollection], and [MultiSourceCollection].
+//! Core traits and types for magnetic sources and collections of sources.
+//!
+//! - [`Field`] trait: For objects that can compute the magnetic field at given points.
+//! - [`Source`] trait: For magnetic sources, requiring both [`Field`] and [`Transform`].
+//! - [`SourceCollection<S>`]: Stack-allocated collection of a single source type, supports adding sources and computing net field.
+//! - [`MultiSourceCollection`]: Collection of heterogeneous sources (`Box<dyn Source>`), supports adding sources and computing net field.
 
 use std::{fmt::Debug, fmt::Display};
 
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
-#[cfg(feature = "parallel")]
-use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
-
-use crate::geometry::Transform;
+use crate::{crate_util, geometry::Transform};
 
 /// Trait shared by objects that generate magnetic field.
 #[allow(non_snake_case)]
 pub trait Field {
+    /// Compute the magnetic field (B) at the given points.
+    ///
+    /// # Arguments
+    /// - `points`: Slice of points where the field is evaluated.
+    ///
+    /// # Returns
+    /// - `Ok(Vec<Vector3<f64>>)`: B-field vectors at each point.
+    /// - `Err(&'static str)`: If computation fails.
     fn get_B(&self, points: &[Point3<f64>]) -> Result<Vec<Vector3<f64>>, &'static str>;
 }
 
 /// Trait shared by magnetic sources.
 ///
-/// Primarily implements:
-/// - [`Transform`]
-/// - [`Field`]
+/// Requires [`Transform`] and [`Field`].
 pub trait Source: Transform + Field + Debug + Send + Sync + Display {}
 
 macro_rules! impl_default {
@@ -42,14 +50,17 @@ macro_rules! impl_default {
 /// Implement deep Transform for objects with children.
 macro_rules! impl_transform_collection {
     () => {
+        #[inline]
         fn position(&self) -> Point3<f64> {
             self.position
         }
 
+        #[inline]
         fn orientation(&self) -> UnitQuaternion<f64> {
             self.orientation
         }
 
+        #[inline]
         fn set_position(&mut self, position: Point3<f64>) {
             let translation = Translation3::from(position - &self.position);
             self.children
@@ -59,6 +70,7 @@ macro_rules! impl_transform_collection {
             self.position = position
         }
 
+        #[inline]
         fn set_orientation(&mut self, orientation: UnitQuaternion<f64>) {
             let rotation = orientation * &self.orientation.inverse();
             self.children
@@ -68,14 +80,16 @@ macro_rules! impl_transform_collection {
             self.orientation = orientation;
         }
 
+        #[inline]
         fn translate(&mut self, translation: &Translation3<f64>) {
             self.children
                 .iter_mut()
-                .for_each(|source| source.translate(&translation));
+                .for_each(|source| source.translate(translation));
 
             self.position = translation.transform_point(&self.position);
         }
 
+        #[inline]
         fn rotate(&mut self, rotation: &UnitQuaternion<f64>) {
             self.children
                 .iter_mut()
@@ -84,6 +98,7 @@ macro_rules! impl_transform_collection {
             self.orientation = rotation * self.orientation;
         }
 
+        #[inline]
         fn rotate_anchor(&mut self, rotation: &UnitQuaternion<f64>, anchor: &Point3<f64>) {
             self.children
                 .iter_mut()
@@ -99,47 +114,62 @@ macro_rules! impl_transform_collection {
 /// Implement Field for source collection-like structs.
 macro_rules! impl_field_collection {
     () => {
+        #[inline]
         fn get_B(&self, points: &[Point3<f64>]) -> Result<Vec<Vector3<f64>>, &'static str> {
-            let net_field;
+            let mut net_field = vec![Vector3::zeros(); points.len()];
             #[cfg(feature = "parallel")]
             {
-                let b_fields = self
+                use rayon::prelude::*;
+                let results: Result<Vec<_>, _> = self
                     .children
                     .par_iter()
                     .map(|source| source.get_B(points))
-                    .collect::<Result<Vec<_>, _>>()?;
-
-                net_field = (0..points.len())
-                    .into_par_iter()
-                    .map(|i| b_fields.iter().map(|vector| vector[i]).sum())
-                    .collect::<Vec<Vector3<_>>>();
+                    .collect();
+                for b_fields in results? {
+                    net_field
+                        .iter_mut()
+                        .zip(b_fields)
+                        .for_each(|(sum, b)| *sum += b);
+                }
             }
-
             #[cfg(not(feature = "parallel"))]
             {
-                let b_fields = self
-                    .children
-                    .iter()
-                    .map(|source| source.get_B(points))
-                    .collect::<Result<Vec<_>, _>>()?;
-
-                net_field = (0..points.len())
-                    .into_iter()
-                    .map(|i| b_fields.iter().map(|vector| vector[i]).sum())
-                    .collect::<Vec<Vector3<_>>>();
+                for source in &self.children {
+                    let b_fields = source.get_B(points)?;
+                    net_field
+                        .iter_mut()
+                        .zip(b_fields)
+                        .for_each(|(sum, b)| *sum += b);
+                }
             }
-
             Ok(net_field)
         }
     };
 }
 
-/// Stack-allocated collection of single source type.
+/// Stack-allocated collection of a single source type.
+///
+/// # Fields
+/// - `position`: Center of the collection (m), where the children reference
+/// - `orientation`: Orientation of the collection, where the children reference
+/// - `children`: An ordered-vec of homogeneous magnetic sources
+///
+/// # Example
+/// ```
+/// use magba::sources::{SourceCollection, CylinderMagnet};
+/// use nalgebra::{Point3, UnitQuaternion, Vector3};
+///
+/// let magnet = CylinderMagnet::new(Point3::origin(), UnitQuaternion::identity(), Vector3::z(), 0.005, 0.02);
+/// let mut collection = SourceCollection::new(Point3::origin(), UnitQuaternion::identity(), vec![magnet]);
+/// ```
 #[derive(Debug)]
 pub struct SourceCollection<S: Source> {
+    /// Center of the collection (m), where the children reference
     position: Point3<f64>,
+    /// Orientation of the collection, where the children reference
     orientation: UnitQuaternion<f64>,
 
+    /// An ordered-vec of homogeneous magnetic sources
     children: Vec<S>,
 }
 
@@ -184,14 +214,17 @@ impl<S: Source> Display for SourceCollection<S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(
             f,
-            "SourceCollection at {}, {}",
-            self.position, self.orientation
+            "SourceCollection at pos={}, q={}",
+            crate_util::format_point3!(self.position),
+            crate_util::format_quat!(self.orientation)
         )?;
-        if let Some((last, sources)) = self.children.split_last() {
-            for source in sources {
+        let len = self.children.len();
+        for (i, source) in self.children.iter().enumerate() {
+            if i + 1 != len {
                 writeln!(f, "├── {}", source)?;
+            } else {
+                writeln!(f, "└── {}", source)?;
             }
-            writeln!(f, "└── {}", last)?;
         }
         Ok(())
     }
@@ -210,11 +243,28 @@ impl<S: Source> Field for SourceCollection<S> {
 }
 
 /// Heap-allocated collection of multiple source types.
+///
+/// # Fields
+/// - `position`: Center of the collection (m), where the children reference
+/// - `orientation`: Orientation of the collection, where the children reference
+/// - `children`: An ordered-vec of heterogeneous magnetic sources
+///
+/// # Example
+/// ```
+/// use magba::sources::{MultiSourceCollection, CylinderMagnet, Source};
+/// use nalgebra::{Point3, UnitQuaternion, Vector3};
+///
+/// let cylinder_magnet: Box<dyn Source> = Box::new(CylinderMagnet::new(Point3::origin(), UnitQuaternion::identity(), Vector3::z(), 0.005, 0.02));
+/// let mut collection = MultiSourceCollection::new(Point3::origin(), UnitQuaternion::identity(), vec![cylinder_magnet]);
+/// ```
 #[derive(Debug)]
 pub struct MultiSourceCollection {
+    /// Center of the collection (m), where the children reference
     position: Point3<f64>,
+    /// Orientation of the collection, where the children reference
     orientation: UnitQuaternion<f64>,
 
+    /// An ordered-vec of heterogeneous magnetic sources
     children: Vec<Box<dyn Source>>,
 }
 
@@ -253,15 +303,17 @@ impl Display for MultiSourceCollection {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(
             f,
-            "MultiSourceCollection at {}, {}",
-            self.position, self.orientation
+            "MultiSourceCollection at pos={}, q={}",
+            crate_util::format_point3!(self.position),
+            crate_util::format_quat!(self.orientation)
         )?;
-
-        if let Some((last, sources)) = self.children.split_last() {
-            for source in sources {
+        let len = self.children.len();
+        for (i, source) in self.children.iter().enumerate() {
+            if i + 1 != len {
                 writeln!(f, "├── {}", source)?;
+            } else {
+                writeln!(f, "└── {}", source)?;
             }
-            writeln!(f, "└── {}", last)?;
         }
         Ok(())
     }
@@ -289,7 +341,7 @@ mod single_source_collection_tests {
     ) {
         compare_B_with_file(
             collection,
-            "./tests/test-data/single-collection-points.mtx",
+            "./tests/test-data/single-collection-points.csv",
             ref_path_str,
             rtol,
         );
@@ -326,8 +378,8 @@ mod single_source_collection_tests {
         let collection = get_cylinder_collection();
         compare_with_file(
             &collection,
-            "./tests/test-data/cylinder-collection-result.mtx",
-            1e-6,
+            "./tests/test-data/cylinder-collection-result.csv",
+            5e-9,
         );
     }
 
@@ -338,16 +390,16 @@ mod single_source_collection_tests {
         collection.translate(&translation);
         compare_with_file(
             &collection,
-            "./tests/test-data/cylinder-collection-translate-result.mtx",
-            1e-6,
+            "./tests/test-data/cylinder-collection-translate-result.csv",
+            1e-8,
         );
 
         collection.translate(&translation.inverse());
         collection.set_position(Point3::new(0.01, 0.015, 0.02));
         compare_with_file(
             &collection,
-            "./tests/test-data/cylinder-collection-translate-result.mtx",
-            1e-6,
+            "./tests/test-data/cylinder-collection-translate-result.csv",
+            1e-8,
         );
     }
 
@@ -358,16 +410,47 @@ mod single_source_collection_tests {
         collection.rotate(&rotation);
         compare_with_file(
             &collection,
-            "./tests/test-data/cylinder-collection-rotate-result.mtx",
-            1e-6,
+            "./tests/test-data/cylinder-collection-rotate-result.csv",
+            5e-8,
         );
 
         collection.rotate(&rotation.inverse());
         collection.set_orientation(rotation);
         compare_with_file(
             &collection,
-            "./tests/test-data/cylinder-collection-rotate-result.mtx",
-            1e-6,
+            "./tests/test-data/cylinder-collection-rotate-result.csv",
+            5e-8,
         );
+    }
+
+    #[test]
+    fn test_collection_display() {
+        use nalgebra::UnitVector3;
+
+        let magnet1 = CylinderMagnet::new(
+            Point3::new(4.0, 5.0, 6.0),
+            UnitQuaternion::identity(),
+            Vector3::new(1.0, 2.0, 3.0),
+            0.1,
+            0.3,
+        );
+        let magnet2 = CylinderMagnet::new(
+            Point3::new(10.0, 11.0, 12.0),
+            UnitQuaternion::from_axis_angle(
+                &UnitVector3::new_normalize(Vector3::new(1.0, 1.0, 0.0)),
+                PI,
+            ),
+            Vector3::new(7.0, 8.0, 9.0),
+            0.1,
+            0.3,
+        );
+
+        let collection = SourceCollection::new(
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            vec![magnet1, magnet2],
+        );
+
+        println!("{}", collection);
     }
 }

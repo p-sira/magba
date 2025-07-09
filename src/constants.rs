@@ -3,9 +3,7 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-//! Magnetic constants and Magba computation constants, such as tolerances and thresholds.
+//! Physical constants used in magnetic field calculations.
 
-use std::f64::consts::PI;
-
-pub const ERRTOL: f64 = 0.000001;
-pub const MU0: f64 = 4e-7 * PI;
+/// Permeability of free space (μ₀) = 4π × 10⁻⁷ H/m.
+pub const MU0: f64 = 4e-7 * std::f64::consts::PI;
