@@ -14,7 +14,7 @@ use std::{fmt::Debug, fmt::Display};
 
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
-use crate::geometry::Transform;
+use crate::{crate_util, geometry::Transform};
 
 /// Trait shared by objects that generate magnetic field.
 #[allow(non_snake_case)]
@@ -214,8 +214,9 @@ impl<S: Source> Display for SourceCollection<S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(
             f,
-            "SourceCollection at {}, {}",
-            self.position, self.orientation
+            "SourceCollection at pos={}, q={}",
+            crate_util::format_point3!(self.position),
+            crate_util::format_quat!(self.orientation)
         )?;
         let len = self.children.len();
         for (i, source) in self.children.iter().enumerate() {
@@ -302,8 +303,9 @@ impl Display for MultiSourceCollection {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(
             f,
-            "MultiSourceCollection at {}, {}",
-            self.position, self.orientation
+            "MultiSourceCollection at pos={}, q={}",
+            crate_util::format_point3!(self.position),
+            crate_util::format_quat!(self.orientation)
         )?;
         let len = self.children.len();
         for (i, source) in self.children.iter().enumerate() {
@@ -449,7 +451,6 @@ mod single_source_collection_tests {
             vec![magnet1, magnet2],
         );
 
-        println!("{:?}", collection);
         println!("{}", collection);
     }
 }
