@@ -16,9 +16,6 @@ use std::{fmt::Debug, fmt::Display};
 
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
-#[cfg(feature = "parallel")]
-use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
-
 use crate::geometry::Transform;
 
 /// Trait shared by objects that generate magnetic field.
@@ -121,35 +118,32 @@ macro_rules! impl_field_collection {
     () => {
         #[inline]
         fn get_B(&self, points: &[Point3<f64>]) -> Result<Vec<Vector3<f64>>, &'static str> {
-            let net_field;
+            let mut net_field = vec![Vector3::zeros(); points.len()];
             #[cfg(feature = "parallel")]
             {
-                let b_fields = self
+                use rayon::prelude::*;
+                let results: Result<Vec<_>, _> = self
                     .children
                     .par_iter()
                     .map(|source| source.get_B(points))
-                    .collect::<Result<Vec<_>, _>>()?;
-
-                net_field = (0..points.len())
-                    .into_par_iter()
-                    .map(|i| b_fields.iter().map(|vector| vector[i]).sum())
-                    .collect::<Vec<Vector3<_>>>();
+                    .collect();
+                for b_fields in results? {
+                    net_field
+                        .iter_mut()
+                        .zip(b_fields)
+                        .for_each(|(sum, b)| *sum += b);
+                }
             }
-
             #[cfg(not(feature = "parallel"))]
             {
-                let b_fields = self
-                    .children
-                    .iter()
-                    .map(|source| source.get_B(points))
-                    .collect::<Result<Vec<_>, _>>()?;
-
-                net_field = (0..points.len())
-                    .into_iter()
-                    .map(|i| b_fields.iter().map(|vector| vector[i]).sum())
-                    .collect::<Vec<Vector3<_>>>();
+                for source in &self.children {
+                    let b_fields = source.get_B(points)?;
+                    net_field
+                        .iter_mut()
+                        .zip(b_fields)
+                        .for_each(|(sum, b)| *sum += b);
+                }
             }
-
             Ok(net_field)
         }
     };
