@@ -39,13 +39,13 @@ use std::fmt::Display;
 /// ```
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct CylinderMagnet {
-    position: Point3<f64>,
-    orientation: UnitQuaternion<f64>,
-    polarization: Vector3<f64>,
+    pub position: Point3<f64>,
+    pub orientation: UnitQuaternion<f64>,
+    pub polarization: Vector3<f64>,
 
     // Dimension
-    radius: f64,
-    height: f64,
+    pub radius: f64,
+    pub height: f64,
 }
 
 impl CylinderMagnet {
