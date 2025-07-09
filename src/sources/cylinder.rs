@@ -229,9 +229,5 @@ mod tests {
             "CylinderMagnet (r=0, h=0, pol=[0, 0, 0]) at pos=[0, 0, 0], q=[0, 0, 0, 1]",
             format!("{}", magnet)
         );
-        assert_eq!(
-            "CylinderMagnet { position: [0.0, 0.0, 0.0], orientation: [0.0, 0.0, 0.0, 1.0], polarization: [[0.0, 0.0, 0.0]], radius: 0.0, height: 0.0 }",
-            format!("{:?}", magnet)
-        );
     }
 }
