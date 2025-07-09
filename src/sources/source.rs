@@ -401,4 +401,36 @@ mod single_source_collection_tests {
             5e-8,
         );
     }
+
+    #[test]
+    fn test_collection_display() {
+        use nalgebra::UnitVector3;
+
+        let magnet1 = CylinderMagnet::new(
+            Point3::new(4.0, 5.0, 6.0),
+            UnitQuaternion::identity(),
+            Vector3::new(1.0, 2.0, 3.0),
+            0.1,
+            0.3,
+        );
+        let magnet2 = CylinderMagnet::new(
+            Point3::new(10.0, 11.0, 12.0),
+            UnitQuaternion::from_axis_angle(
+                &UnitVector3::new_normalize(Vector3::new(1.0, 1.0, 0.0)),
+                PI,
+            ),
+            Vector3::new(7.0, 8.0, 9.0),
+            0.1,
+            0.3,
+        );
+        
+        let collection = SourceCollection::new(
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            vec![magnet1, magnet2],
+        );
+
+        println!("{:?}", collection);
+        println!("{}", collection);
+    }
 }
