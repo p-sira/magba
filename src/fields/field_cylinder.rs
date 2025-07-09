@@ -367,15 +367,15 @@ pub fn sum_multiple_cyl_B(
             })
             .collect::<Result<Vec<Vec<_>>, _>>()?;
 
-        let net_vector: Vec<Vector3<f64>> = (0..points.len())
+        let net_vectors: Vec<Vector3<f64>> = (0..points.len())
             .map(|i| vectors.iter().map(|v| v[i]).sum())
             .collect();
-        return Ok(net_vector);
+        Ok(net_vectors)
     }
 
     #[cfg(not(feature = "parallel"))]
     {
-        let mut net_vectors: Vec<Vector3<_>> = Vec::with_capacity(points.len());
+        let mut net_vectors: Vec<Vector3<_>> = vec![Vector3::zeros(); points.len()];
 
         positions
             .iter()
@@ -393,6 +393,6 @@ pub fn sum_multiple_cyl_B(
                     .for_each(|(net_vector, field_vector)| *net_vector += field_vector)
             });
 
-        return Ok(net_vectors);
+        Ok(net_vectors)
     }
 }
