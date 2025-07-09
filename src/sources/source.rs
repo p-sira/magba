@@ -55,14 +55,17 @@ macro_rules! impl_default {
 /// Implement deep Transform for objects with children.
 macro_rules! impl_transform_collection {
     () => {
+        #[inline]
         fn position(&self) -> Point3<f64> {
             self.position
         }
 
+        #[inline]
         fn orientation(&self) -> UnitQuaternion<f64> {
             self.orientation
         }
 
+        #[inline]
         fn set_position(&mut self, position: Point3<f64>) {
             let translation = Translation3::from(position - &self.position);
             self.children
@@ -72,6 +75,7 @@ macro_rules! impl_transform_collection {
             self.position = position
         }
 
+        #[inline]
         fn set_orientation(&mut self, orientation: UnitQuaternion<f64>) {
             let rotation = orientation * &self.orientation.inverse();
             self.children
@@ -81,6 +85,7 @@ macro_rules! impl_transform_collection {
             self.orientation = orientation;
         }
 
+        #[inline]
         fn translate(&mut self, translation: &Translation3<f64>) {
             self.children
                 .iter_mut()
@@ -89,6 +94,7 @@ macro_rules! impl_transform_collection {
             self.position = translation.transform_point(&self.position);
         }
 
+        #[inline]
         fn rotate(&mut self, rotation: &UnitQuaternion<f64>) {
             self.children
                 .iter_mut()
@@ -97,6 +103,7 @@ macro_rules! impl_transform_collection {
             self.orientation = rotation * self.orientation;
         }
 
+        #[inline]
         fn rotate_anchor(&mut self, rotation: &UnitQuaternion<f64>, anchor: &Point3<f64>) {
             self.children
                 .iter_mut()
@@ -112,6 +119,7 @@ macro_rules! impl_transform_collection {
 /// Implement Field for source collection-like structs.
 macro_rules! impl_field_collection {
     () => {
+        #[inline]
         fn get_B(&self, points: &[Point3<f64>]) -> Result<Vec<Vector3<f64>>, &'static str> {
             let net_field;
             #[cfg(feature = "parallel")]
@@ -216,7 +224,6 @@ impl<S: Source> Display for SourceCollection<S> {
             } else {
                 writeln!(f, "└── {}", source)?;
             }
-            writeln!(f, "└── {}", last)?;
         }
         Ok(())
     }
@@ -297,7 +304,6 @@ impl Display for MultiSourceCollection {
             } else {
                 writeln!(f, "└── {}", source)?;
             }
-            writeln!(f, "└── {}", last)?;
         }
         Ok(())
     }
@@ -428,7 +434,7 @@ mod single_source_collection_tests {
             0.1,
             0.3,
         );
-        
+
         let collection = SourceCollection::new(
             Point3::origin(),
             UnitQuaternion::identity(),
