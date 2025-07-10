@@ -14,8 +14,8 @@ from test_generation_util import generate_grid, TEST_DATA_DIR, save_array_to_fil
 
 
 def get_points():
-    bounds = np.array([[-5, 5]] * 3)
-    N = [20] * 3
+    bounds = np.array([[-3, 3]] * 3)
+    N = [15] * 3
     points = generate_grid(bounds, N)
     return points
 
@@ -89,7 +89,7 @@ def test_axial_cylinder(points):
     )
 
     field = magnet.getB(points)
-    mmwrite(TEST_DATA_DIR / "cylinder-axial-result.mtx", coo_array(field))
+    save_array_to_file(TEST_DATA_DIR / "cylinder-axial-result.csv", field)
 
 
 def test_diametric_cylinder(points):
@@ -101,7 +101,7 @@ def test_diametric_cylinder(points):
     )
 
     field = magnet.getB(points)
-    mmwrite(TEST_DATA_DIR / "cylinder-diametric-result.mtx", coo_array(field))
+    save_array_to_file(TEST_DATA_DIR / "cylinder-diametric-result.csv", field)
 
 
 def test_diametric_cylinder_2(points):
@@ -113,7 +113,7 @@ def test_diametric_cylinder_2(points):
     )
 
     field = magnet.getB(points)
-    mmwrite(TEST_DATA_DIR / "cylinder-diametric-result-2.mtx", coo_array(field))
+    save_array_to_file(TEST_DATA_DIR / "cylinder-diametric-result-2.csv", field)
 
 
 if __name__ == "__main__":
