@@ -1,30 +1,17 @@
 # Magba is licensed under The 3-Clause BSD, see LICENSE.
 # Copyright 2025 Sira Pornsiriprasert <code@psira.me>
 
-from magpylib.magnet import Cylinder
-import numpy as np
-from pathlib import Path
 import sys
+from pathlib import Path
 
+import numpy as np
+from magpylib.magnet import Cylinder
 from scipy.spatial.transform import Rotation
 
 sys.path.append(str(Path(__file__).parent.parent))
 
-from test_generation_util import generate_grid, TEST_DATA_DIR, save_array_to_file
-
-
-def get_points():
-    bounds = np.array([[-3, 3]] * 3)
-    N = [15] * 3
-    points = generate_grid(bounds, N)
-    return points
-
-
-def get_points_small():
-    bounds = np.array([[-1, 1]] * 3)
-    N = [15] * 3
-    points = generate_grid(bounds, N)
-    return points
+from test_generation_util import (TEST_DATA_DIR, get_points, get_points_small,
+                                  save_array_to_file)
 
 
 def test_cylinder(points):
@@ -35,7 +22,7 @@ def test_cylinder(points):
         (1, 2, 3),
     )
     field = magnet.getB(points)
-    save_array_to_file(TEST_DATA_DIR / "cylinder-result.csv", field)
+    save_array_to_file(TEST_DATA_DIR / "cylinder.csv", field)
 
 
 def test_small_cylinder(points):
@@ -46,7 +33,7 @@ def test_small_cylinder(points):
         (0.15, 0.15, 0.3),
     )
     field = magnet.getB(points)
-    save_array_to_file(TEST_DATA_DIR / "cylinder-small-result.csv", field)
+    save_array_to_file(TEST_DATA_DIR / "cylinder-small.csv", field)
 
 
 def test_translate_cylinder(points):
@@ -58,7 +45,7 @@ def test_translate_cylinder(points):
     )
     magnet.move((-0.1, -0.2, -0.3))
     field = magnet.getB(points)
-    save_array_to_file(TEST_DATA_DIR / "cylinder-translate-result.csv", field)
+    save_array_to_file(TEST_DATA_DIR / "cylinder-translate.csv", field)
 
 
 def test_rotate_cylinder(points):
@@ -71,7 +58,7 @@ def test_rotate_cylinder(points):
     )
     magnet.rotate(rotation.inv())
     field = magnet.getB(points)
-    save_array_to_file(TEST_DATA_DIR / "cylinder-rotate-result.csv", field)
+    save_array_to_file(TEST_DATA_DIR / "cylinder-rotate.csv", field)
 
 
 def test_rotate_translate_cylinder(points):
@@ -84,7 +71,7 @@ def test_rotate_translate_cylinder(points):
     magnet.move((3, 2, 1))
     magnet.rotate(Rotation.from_rotvec((np.pi / 3, np.pi / 2, np.pi)))
     field = magnet.getB(points)
-    save_array_to_file(TEST_DATA_DIR / "cylinder-rotate-translate-result.csv", field)
+    save_array_to_file(TEST_DATA_DIR / "cylinder-rotate-translate.csv", field)
 
 
 def test_axial_cylinder(points):
@@ -96,7 +83,7 @@ def test_axial_cylinder(points):
     )
 
     field = magnet.getB(points)
-    save_array_to_file(TEST_DATA_DIR / "cylinder-axial-result.csv", field)
+    save_array_to_file(TEST_DATA_DIR / "cylinder-axial.csv", field)
 
 
 def test_diametric_cylinder(points):
@@ -108,7 +95,7 @@ def test_diametric_cylinder(points):
     )
 
     field = magnet.getB(points)
-    save_array_to_file(TEST_DATA_DIR / "cylinder-diametric-result.csv", field)
+    save_array_to_file(TEST_DATA_DIR / "cylinder-diametric.csv", field)
 
 
 def test_diametric_cylinder_2(points):
@@ -120,15 +107,10 @@ def test_diametric_cylinder_2(points):
     )
 
     field = magnet.getB(points)
-    save_array_to_file(TEST_DATA_DIR / "cylinder-diametric-result-2.csv", field)
+    save_array_to_file(TEST_DATA_DIR / "cylinder-diametric-2.csv", field)
 
 
-if __name__ == "__main__":
-    points = get_points()
-    save_array_to_file(TEST_DATA_DIR / "cylinder-points.csv", points)
-    points_small = get_points_small()
-    save_array_to_file(TEST_DATA_DIR / "cylinder-points-small.csv", points_small)
-
+def generate_tests(points, points_small):
     test_cylinder(points)
     test_small_cylinder(points_small)
     test_translate_cylinder(points)
@@ -136,4 +118,13 @@ if __name__ == "__main__":
     test_rotate_translate_cylinder(points)
     test_axial_cylinder(points)
     test_diametric_cylinder(points)
-    test_diametric_cylinder_2(points)
+    test_diametric_cylinder_2(points)    
+
+def main():
+    points = get_points()
+    points_small = get_points_small()
+
+    generate_tests(points, points_small)
+
+if __name__ == "__main__":
+    main()

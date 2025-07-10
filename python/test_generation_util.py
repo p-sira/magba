@@ -8,11 +8,43 @@ from numpy.typing import NDArray
 
 TEST_DATA_DIR = Path(__file__).parent.parent / "tests" / "test-data"
 
+
 def generate_grid(bounds: NDArray, N: Iterable) -> NDArray:
     linsp = [np.linspace(bounds[i, 0], bounds[i, 1], n) for i, n in enumerate(N)]
     mesh = np.meshgrid(*linsp)
     return np.column_stack([m.flatten() for m in mesh])
 
+
 def save_array_to_file(file: str | Path, a: NDArray) -> None:
     np.savetxt(file, a, delimiter=",")
-    
+
+
+def get_points():
+    bounds = np.array([[-3, 3]] * 3)
+    N = [15] * 3
+    points = generate_grid(bounds, N)
+    return points
+
+
+def get_points_small():
+    bounds = np.array([[-1, 1]] * 3)
+    N = [15] * 3
+    points = generate_grid(bounds, N)
+    return points
+
+
+def generate_points():
+    points = get_points()
+    save_array_to_file(TEST_DATA_DIR / "points.csv", points)
+    points_small = get_points_small()
+    save_array_to_file(TEST_DATA_DIR / "points-small.csv", points_small)
+
+    return points, points_small
+
+
+def main():
+    generate_points()
+
+
+if __name__ == "__main__":
+    main()

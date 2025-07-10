@@ -7,19 +7,11 @@ from pathlib import Path
 import numpy as np
 from magpylib import Collection
 from magpylib.magnet import Cylinder
-from scipy.sparse import coo_array
 from scipy.spatial.transform import Rotation
 
 sys.path.append(str(Path(__file__).parent.parent))
 
-from test_generation_util import TEST_DATA_DIR, generate_grid, save_array_to_file
-
-
-def get_points():
-    bounds = np.array([[-0.1, 0.1]] * 3)
-    N = [10] * 3
-    points = generate_grid(bounds, N)
-    return points
+from test_generation_util import TEST_DATA_DIR, get_points_small, save_array_to_file
 
 
 def test_cylinder_collection(points):
@@ -51,29 +43,35 @@ def test_cylinder_collection(points):
     )
 
     field = magnets.getB(points)
-    save_array_to_file(TEST_DATA_DIR / "cylinder-collection-result.csv", field)
+    save_array_to_file(TEST_DATA_DIR / "cylinder-collection.csv", field)
 
     magnets.position = (0.01, 0.015, 0.02)
     field = magnets.getB(points)
     save_array_to_file(
-        TEST_DATA_DIR / "cylinder-collection-translate-result.csv", field
+        TEST_DATA_DIR / "cylinder-collection-translate.csv", field
     )
 
     magnets.position = (0, 0, 0)
     magnets.orientation = Rotation.from_rotvec((np.pi / 3, np.pi / 4, np.pi / 5))
     field = magnets.getB(points)
-    save_array_to_file(TEST_DATA_DIR / "cylinder-collection-rotate-result.csv", field)
+    save_array_to_file(TEST_DATA_DIR / "cylinder-collection-rotate.csv", field)
 
     magnets.position = (0.01, 0.015, 0.02)
     field = magnets.getB(points)
     save_array_to_file(
-        TEST_DATA_DIR / "cylinder-collection-translate-rotate-result.csv",
+        TEST_DATA_DIR / "cylinder-collection-translate-rotate.csv",
         field,
     )
 
 
-if __name__ == "__main__":
-    points = get_points()
-    save_array_to_file(TEST_DATA_DIR / "single-collection-points.csv", points)
+def generate_tests(points_small):
+    test_cylinder_collection(points_small)
 
-    test_cylinder_collection(points)
+
+def main():
+    points_small = get_points_small()
+    generate_tests(points_small)
+
+
+if __name__ == "__main__":
+    main()
