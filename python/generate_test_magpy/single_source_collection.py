@@ -11,7 +11,12 @@ from scipy.spatial.transform import Rotation
 
 sys.path.append(str(Path(__file__).parent.parent))
 
-from test_generation_util import TEST_DATA_DIR, get_points_small, save_array_to_file
+from test_generation_util import (
+    TEST_DATA_DIR,
+    get_points_small,
+    save_array_to_file,
+    save_test_array,
+)
 
 
 def test_cylinder_collection(points):
@@ -43,25 +48,20 @@ def test_cylinder_collection(points):
     )
 
     field = magnets.getB(points)
-    save_array_to_file(TEST_DATA_DIR / "cylinder-collection.csv", field)
+    save_test_array("cylinder-collection.csv", field)
 
     magnets.position = (0.01, 0.015, 0.02)
     field = magnets.getB(points)
-    save_array_to_file(
-        TEST_DATA_DIR / "cylinder-collection-translate.csv", field
-    )
+    save_test_array("cylinder-collection-translate.csv", field)
 
     magnets.position = (0, 0, 0)
     magnets.orientation = Rotation.from_rotvec((np.pi / 3, np.pi / 4, np.pi / 5))
     field = magnets.getB(points)
-    save_array_to_file(TEST_DATA_DIR / "cylinder-collection-rotate.csv", field)
+    save_test_array("cylinder-collection-rotate.csv", field)
 
     magnets.position = (0.01, 0.015, 0.02)
     field = magnets.getB(points)
-    save_array_to_file(
-        TEST_DATA_DIR / "cylinder-collection-translate-rotate.csv",
-        field,
-    )
+    save_test_array("cylinder-collection-translate-rotate.csv", field)
 
 
 def generate_tests(points_small):

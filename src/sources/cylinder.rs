@@ -143,15 +143,6 @@ mod tests {
 
     use super::*;
 
-    fn compare_with_file(magnet: &CylinderMagnet, ref_path_str: &str, rtol: f64) {
-        compare_B_with_file(
-            magnet,
-            "./tests/test-data/cylinder-points.csv",
-            ref_path_str,
-            rtol,
-        );
-    }
-
     #[test]
     fn test_cylinder() {
         let magnet = CylinderMagnet::new(
@@ -161,7 +152,7 @@ mod tests {
             0.5,
             2.0,
         );
-        compare_with_file(&magnet, "./tests/test-data/cylinder.csv", 2e-10)
+        test_B_magnet!(@large, &magnet, "cylinder.csv", 2e-10);
     }
 
     #[test]
@@ -174,12 +165,7 @@ mod tests {
             10e-3,
         );
         // Small magnet at far distances have less numerical stability
-        compare_B_with_file(
-            &magnet,
-            "./tests/test-data/cylinder-points-small.csv",
-            "./tests/test-data/cylinder-small.csv",
-            2e-8,
-        );
+        test_B_magnet!(&magnet, "cylinder-points-small.csv", 2e-8);
     }
 
     #[test]
@@ -192,11 +178,7 @@ mod tests {
             2.0,
         );
         magnet.translate(&Translation3::new(-0.1, -0.2, -0.3));
-        compare_with_file(
-            &magnet,
-            "./tests/test-data/cylinder-translate.csv",
-            1e-6,
-        )
+        test_B_magnet!(@large, &magnet, "cylinder-translate.csv", 1e-6);
     }
 
     #[test]
@@ -210,11 +192,7 @@ mod tests {
             2.0,
         );
         magnet.rotate(&rotation.inverse());
-        compare_with_file(
-            &magnet,
-            "./tests/test-data/cylinder-rotate.csv",
-            1e-6,
-        )
+        test_B_magnet!(@large, &magnet, "cylinder-rotate.csv", 1e-6);
     }
 
     #[test]
@@ -228,11 +206,7 @@ mod tests {
         );
         magnet.translate(&Translation3::new(3.0, 2.0, 1.0));
         magnet.rotate(&quat_from_rotvec(PI / 3.0, PI / 2.0, PI));
-        compare_with_file(
-            &magnet,
-            "./tests/test-data/cylinder-rotate-translate.csv",
-            1e-6,
-        )
+        test_B_magnet!(@large, &magnet, "cylinder-rotate-translate.csv", 1e-6);
     }
 
     #[test]
@@ -244,7 +218,7 @@ mod tests {
             0.5,
             2.0,
         );
-        compare_with_file(&magnet, "./tests/test-data/cylinder-axial.csv", 1e-6)
+        test_B_magnet!(@large, &magnet, "cylinder-axial.csv", 1e-6);
     }
 
     #[test]
@@ -256,11 +230,7 @@ mod tests {
             0.5,
             2.0,
         );
-        compare_with_file(
-            &magnet,
-            "./tests/test-data/cylinder-diametric.csv",
-            1e-6,
-        )
+        test_B_magnet!(@large, &magnet, "cylinder-diametric.csv", 1e-6);
     }
 
     #[test]
@@ -272,11 +242,7 @@ mod tests {
             0.5,
             2.0,
         );
-        compare_with_file(
-            &magnet,
-            "./tests/test-data/cylinder-diametric-2.csv",
-            1e-6,
-        )
+        test_B_magnet!(@large, &magnet, "cylinder-diametric-2.csv", 1e-6);
     }
 
     #[test]

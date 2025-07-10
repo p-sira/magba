@@ -10,8 +10,9 @@ from scipy.spatial.transform import Rotation
 
 sys.path.append(str(Path(__file__).parent.parent))
 
-from test_generation_util import (TEST_DATA_DIR, get_points, get_points_small,
-                                  save_array_to_file)
+from test_generation_util import (TEST_DATA_DIR, get_points, get_points_large,
+                                  get_points_small, save_array_to_file,
+                                  save_test_array)
 
 
 def test_cylinder(points):
@@ -22,7 +23,7 @@ def test_cylinder(points):
         (1, 2, 3),
     )
     field = magnet.getB(points)
-    save_array_to_file(TEST_DATA_DIR / "cylinder.csv", field)
+    save_test_array(TEST_DATA_DIR / "cylinder.csv", field)
 
 
 def test_small_cylinder(points):
@@ -33,7 +34,7 @@ def test_small_cylinder(points):
         (0.15, 0.15, 0.3),
     )
     field = magnet.getB(points)
-    save_array_to_file(TEST_DATA_DIR / "cylinder-small.csv", field)
+    save_array_to_file( "cylinder-small.csv", field)
 
 
 def test_translate_cylinder(points):
@@ -45,7 +46,7 @@ def test_translate_cylinder(points):
     )
     magnet.move((-0.1, -0.2, -0.3))
     field = magnet.getB(points)
-    save_array_to_file(TEST_DATA_DIR / "cylinder-translate.csv", field)
+    save_test_array("cylinder-translate.csv", field)
 
 
 def test_rotate_cylinder(points):
@@ -58,7 +59,7 @@ def test_rotate_cylinder(points):
     )
     magnet.rotate(rotation.inv())
     field = magnet.getB(points)
-    save_array_to_file(TEST_DATA_DIR / "cylinder-rotate.csv", field)
+    save_test_array("cylinder-rotate.csv", field)
 
 
 def test_rotate_translate_cylinder(points):
@@ -71,7 +72,7 @@ def test_rotate_translate_cylinder(points):
     magnet.move((3, 2, 1))
     magnet.rotate(Rotation.from_rotvec((np.pi / 3, np.pi / 2, np.pi)))
     field = magnet.getB(points)
-    save_array_to_file(TEST_DATA_DIR / "cylinder-rotate-translate.csv", field)
+    save_test_array("cylinder-rotate-translate.csv", field)
 
 
 def test_axial_cylinder(points):
@@ -83,7 +84,7 @@ def test_axial_cylinder(points):
     )
 
     field = magnet.getB(points)
-    save_array_to_file(TEST_DATA_DIR / "cylinder-axial.csv", field)
+    save_test_array("cylinder-axial.csv", field)
 
 
 def test_diametric_cylinder(points):
@@ -95,7 +96,7 @@ def test_diametric_cylinder(points):
     )
 
     field = magnet.getB(points)
-    save_array_to_file(TEST_DATA_DIR / "cylinder-diametric.csv", field)
+    save_test_array("cylinder-diametric.csv", field)
 
 
 def test_diametric_cylinder_2(points):
@@ -107,24 +108,26 @@ def test_diametric_cylinder_2(points):
     )
 
     field = magnet.getB(points)
-    save_array_to_file(TEST_DATA_DIR / "cylinder-diametric-2.csv", field)
+    save_test_array("cylinder-diametric-2.csv", field)
 
 
-def generate_tests(points, points_small):
-    test_cylinder(points)
-    test_small_cylinder(points_small)
-    test_translate_cylinder(points)
-    test_rotate_cylinder(points)
-    test_rotate_translate_cylinder(points)
-    test_axial_cylinder(points)
-    test_diametric_cylinder(points)
-    test_diametric_cylinder_2(points)    
+def generate_tests(points, points_large):
+    test_cylinder(points=points_large)
+    test_small_cylinder(points)
+    test_translate_cylinder(points_large)
+    test_rotate_cylinder(points_large)
+    test_rotate_translate_cylinder(points_large)
+    test_axial_cylinder(points_large)
+    test_diametric_cylinder(points_large)
+    test_diametric_cylinder_2(points_large)
+
 
 def main():
     points = get_points()
-    points_small = get_points_small()
+    points_large = get_points_large()
 
-    generate_tests(points, points_small)
+    generate_tests(points, points_large)
+
 
 if __name__ == "__main__":
     main()

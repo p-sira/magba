@@ -158,8 +158,8 @@ pub mod source_testing_util {
     use crate::sources::*;
 
     #[allow(non_snake_case)]
-    pub fn compare_B_with_file<T: Source>(
-        source: &T,
+    pub fn compare_B_with_file<S: Source>(
+        source: &S,
         points_path_str: &str,
         ref_path_str: &str,
         rtol: f64,
@@ -182,4 +182,33 @@ pub mod source_testing_util {
 
         assert_close_vec_vector(&b_fields, &expected, rtol);
     }
+
+    #[allow(non_snake_case)]
+    macro_rules! test_B_magnet {
+        (@small, $magnet: expr, $ref_path_str: expr, $rtol: expr) => {
+            compare_B_with_file(
+                $magnet,
+                "./tests/test-data/points-small.csv",
+                concat!("./tests/test-data/", $ref_path_str),
+                $rtol,
+            );
+        };
+        (@large, $magnet: expr, $ref_path_str: expr, $rtol: expr) => {
+            compare_B_with_file(
+                $magnet,
+                "./tests/test-data/points-large.csv",
+                concat!("./tests/test-data/", $ref_path_str),
+                $rtol,
+            );
+        };
+        ($magnet: expr, $ref_path_str: expr, $rtol: expr) => {
+            compare_B_with_file(
+                $magnet,
+                "./tests/test-data/points.csv",
+                concat!("./tests/test-data/", $ref_path_str),
+                $rtol,
+            );
+        };
+    }
+    pub(crate) use test_B_magnet;
 }

@@ -334,19 +334,6 @@ mod single_source_collection_tests {
     use super::*;
     use crate::{sources::*, testing_util::*};
 
-    fn compare_with_file(
-        collection: &SourceCollection<CylinderMagnet>,
-        ref_path_str: &str,
-        rtol: f64,
-    ) {
-        compare_B_with_file(
-            collection,
-            "./tests/test-data/single-collection-points.csv",
-            ref_path_str,
-            rtol,
-        );
-    }
-
     fn get_cylinder_collection() -> SourceCollection<CylinderMagnet> {
         let mut collection = SourceCollection::default();
         collection.add(CylinderMagnet::new(
@@ -376,11 +363,7 @@ mod single_source_collection_tests {
     #[test]
     fn test_cylinder_collection() {
         let collection = get_cylinder_collection();
-        compare_with_file(
-            &collection,
-            "./tests/test-data/cylinder-collection.csv",
-            5e-9,
-        );
+        test_B_magnet!(@small, &collection, "cylinder-collection.csv", 5e-9);
     }
 
     #[test]
@@ -388,19 +371,11 @@ mod single_source_collection_tests {
         let mut collection = get_cylinder_collection();
         let translation = Translation3::new(0.01, 0.015, 0.02);
         collection.translate(&translation);
-        compare_with_file(
-            &collection,
-            "./tests/test-data/cylinder-collection-translate.csv",
-            1e-8,
-        );
+        test_B_magnet!(@small, &collection, "cylinder-collection-translate.csv", 1e-8);
 
         collection.translate(&translation.inverse());
         collection.set_position(Point3::new(0.01, 0.015, 0.02));
-        compare_with_file(
-            &collection,
-            "./tests/test-data/cylinder-collection-translate.csv",
-            1e-8,
-        );
+        test_B_magnet!(@small, &collection, "cylinder-collection-translate.csv", 1e-8);
     }
 
     #[test]
@@ -408,19 +383,11 @@ mod single_source_collection_tests {
         let mut collection = get_cylinder_collection();
         let rotation = quat_from_rotvec(PI / 3.0, PI / 4.0, PI / 5.0);
         collection.rotate(&rotation);
-        compare_with_file(
-            &collection,
-            "./tests/test-data/cylinder-collection-rotate.csv",
-            5e-8,
-        );
+        test_B_magnet!(@small, &collection, "cylinder-collection-rotate.csv", 5e-8);
 
         collection.rotate(&rotation.inverse());
         collection.set_orientation(rotation);
-        compare_with_file(
-            &collection,
-            "./tests/test-data/cylinder-collection-rotate.csv",
-            5e-8,
-        );
+        test_B_magnet!(@small, &collection, "cylinder-collection-rotate.csv", 5e-8);
     }
 
     #[test]
