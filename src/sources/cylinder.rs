@@ -161,7 +161,7 @@ mod tests {
             0.5,
             2.0,
         );
-        compare_with_file(&magnet, "./tests/test-data/cylinder-result.csv", 1e-6)
+        compare_with_file(&magnet, "./tests/test-data/cylinder.csv", 2e-10)
     }
 
     #[test]
@@ -177,7 +177,7 @@ mod tests {
         compare_B_with_file(
             &magnet,
             "./tests/test-data/cylinder-points-small.csv",
-            "./tests/test-data/cylinder-small-result.csv",
+            "./tests/test-data/cylinder-small.csv",
             2e-8,
         );
     }
@@ -194,7 +194,7 @@ mod tests {
         magnet.translate(&Translation3::new(-0.1, -0.2, -0.3));
         compare_with_file(
             &magnet,
-            "./tests/test-data/cylinder-translate-result.csv",
+            "./tests/test-data/cylinder-translate.csv",
             1e-6,
         )
     }
@@ -212,7 +212,7 @@ mod tests {
         magnet.rotate(&rotation.inverse());
         compare_with_file(
             &magnet,
-            "./tests/test-data/cylinder-rotate-result.csv",
+            "./tests/test-data/cylinder-rotate.csv",
             1e-6,
         )
     }
@@ -230,7 +230,7 @@ mod tests {
         magnet.rotate(&quat_from_rotvec(PI / 3.0, PI / 2.0, PI));
         compare_with_file(
             &magnet,
-            "./tests/test-data/cylinder-rotate-translate-result.csv",
+            "./tests/test-data/cylinder-rotate-translate.csv",
             1e-6,
         )
     }
@@ -244,7 +244,7 @@ mod tests {
             0.5,
             2.0,
         );
-        compare_with_file(&magnet, "./tests/test-data/cylinder-axial-result.mtx", 1e-6)
+        compare_with_file(&magnet, "./tests/test-data/cylinder-axial.csv", 1e-6)
     }
 
     #[test]
@@ -258,7 +258,7 @@ mod tests {
         );
         compare_with_file(
             &magnet,
-            "./tests/test-data/cylinder-diametric-result.mtx",
+            "./tests/test-data/cylinder-diametric.csv",
             1e-6,
         )
     }
@@ -274,7 +274,7 @@ mod tests {
         );
         compare_with_file(
             &magnet,
-            "./tests/test-data/cylinder-diametric-result-2.mtx",
+            "./tests/test-data/cylinder-diametric-2.csv",
             1e-6,
         )
     }

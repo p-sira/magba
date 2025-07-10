@@ -378,7 +378,7 @@ mod single_source_collection_tests {
         let collection = get_cylinder_collection();
         compare_with_file(
             &collection,
-            "./tests/test-data/cylinder-collection-result.csv",
+            "./tests/test-data/cylinder-collection.csv",
             5e-9,
         );
     }
@@ -390,7 +390,7 @@ mod single_source_collection_tests {
         collection.translate(&translation);
         compare_with_file(
             &collection,
-            "./tests/test-data/cylinder-collection-translate-result.csv",
+            "./tests/test-data/cylinder-collection-translate.csv",
             1e-8,
         );
 
@@ -398,7 +398,7 @@ mod single_source_collection_tests {
         collection.set_position(Point3::new(0.01, 0.015, 0.02));
         compare_with_file(
             &collection,
-            "./tests/test-data/cylinder-collection-translate-result.csv",
+            "./tests/test-data/cylinder-collection-translate.csv",
             1e-8,
         );
     }
@@ -410,7 +410,7 @@ mod single_source_collection_tests {
         collection.rotate(&rotation);
         compare_with_file(
             &collection,
-            "./tests/test-data/cylinder-collection-rotate-result.csv",
+            "./tests/test-data/cylinder-collection-rotate.csv",
             5e-8,
         );
 
@@ -418,7 +418,7 @@ mod single_source_collection_tests {
         collection.set_orientation(rotation);
         compare_with_file(
             &collection,
-            "./tests/test-data/cylinder-collection-rotate-result.csv",
+            "./tests/test-data/cylinder-collection-rotate.csv",
             5e-8,
         );
     }
