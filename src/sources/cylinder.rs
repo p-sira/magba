@@ -174,7 +174,12 @@ mod tests {
             10e-3,
         );
         // Small magnet at far distances have less numerical stability
-        compare_with_file(&magnet, "./tests/test-data/cylinder-small-result.csv", 1e-3)
+        compare_B_with_file(
+            &magnet,
+            "./tests/test-data/cylinder-points-small.csv",
+            "./tests/test-data/cylinder-small-result.csv",
+            2e-8,
+        );
     }
 
     #[test]

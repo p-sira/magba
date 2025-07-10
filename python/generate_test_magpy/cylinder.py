@@ -20,6 +20,13 @@ def get_points():
     return points
 
 
+def get_points_small():
+    bounds = np.array([[-1, 1]] * 3)
+    N = [15] * 3
+    points = generate_grid(bounds, N)
+    return points
+
+
 def test_cylinder(points):
     magnet = Cylinder(
         (0.1, 0.2, 0.3),
@@ -119,9 +126,11 @@ def test_diametric_cylinder_2(points):
 if __name__ == "__main__":
     points = get_points()
     save_array_to_file(TEST_DATA_DIR / "cylinder-points.csv", points)
+    points_small = get_points_small()
+    save_array_to_file(TEST_DATA_DIR / "cylinder-points-small.csv", points_small)
 
     test_cylinder(points)
-    test_small_cylinder(points)
+    test_small_cylinder(points_small)
     test_translate_cylinder(points)
     test_rotate_cylinder(points)
     test_rotate_translate_cylinder(points)
