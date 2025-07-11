@@ -211,18 +211,19 @@ impl<S: Source> SourceCollection<S> {
 
 impl<S: Source> Display for SourceCollection<S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let len = self.children.len();
         writeln!(
             f,
-            "SourceCollection at pos={}, q={}",
+            "SourceCollection ({} children) at pos={}, q={}",
+            len,
             crate_util::format_point3!(self.position),
             crate_util::format_quat!(self.orientation)
         )?;
-        let len = self.children.len();
         for (i, source) in self.children.iter().enumerate() {
             if i + 1 != len {
-                writeln!(f, "├── {}", source)?;
+                writeln!(f, "├── {}: {}", i, source)?;
             } else {
-                writeln!(f, "└── {}", source)?;
+                write!(f, "└── {}: {}", i, source)?;
             }
         }
         Ok(())
@@ -300,18 +301,19 @@ impl Default for MultiSourceCollection {
 
 impl Display for MultiSourceCollection {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let len = self.children.len();
         writeln!(
             f,
-            "MultiSourceCollection at pos={}, q={}",
+            "MultiSourceCollection ({} children) at pos={}, q={}",
+            len,
             crate_util::format_point3!(self.position),
             crate_util::format_quat!(self.orientation)
         )?;
-        let len = self.children.len();
         for (i, source) in self.children.iter().enumerate() {
             if i + 1 != len {
-                writeln!(f, "├── {}", source)?;
+                writeln!(f, "├── {}: {}", i, source)?;
             } else {
-                writeln!(f, "└── {}", source)?;
+                write!(f, "└── {}: {}", i, source)?;
             }
         }
         Ok(())
@@ -356,10 +358,9 @@ mod base_source_collection_tests {
             vec![magnet1, magnet2],
         );
 
-        assert_eq!("SourceCollection at pos=[0, 0, 0], q=[0, 0, 0, 1]
-├── CylinderMagnet (r=0.1, h=0.3, pol=[1, 2, 3]) at pos=[4, 5, 6], q=[0, 0, 0, 1]
-└── CylinderMagnet (r=0.1, h=0.3, pol=[7, 8, 9]) at pos=[10, 11, 12], q=[0.7071067811865475, 0, 0, 0.7071067811865476]
-", format!("{}", collection))
+        assert_eq!("SourceCollection (2 children) at pos=[0, 0, 0], q=[0, 0, 0, 1]
+├── 0: CylinderMagnet (r=0.1, h=0.3, pol=[1, 2, 3]) at pos=[4, 5, 6], q=[0, 0, 0, 1]
+└── 1: CylinderMagnet (r=0.1, h=0.3, pol=[7, 8, 9]) at pos=[10, 11, 12], q=[0.7071067811865475, 0, 0, 0.7071067811865476]", format!("{}", collection))
     }
 }
 
@@ -491,5 +492,41 @@ mod cuboid_collection_tests {
 
         collection.set_position(Point3::new(0.01, 0.015, 0.02));
         test_B_magnet!(@small, &collection, "cuboid-collection-translate-rotate.csv", 2e-13);
+    }
+}
+
+#[cfg(test)]
+mod multi_source_collection_tests {
+    use std::f64::consts::FRAC_PI_2;
+
+    use super::*;
+    use crate::{sources::*, testing_util::quat_from_rotvec};
+
+    #[test]
+    fn test_collection_display() {
+        let magnet1 = CylinderMagnet::new(
+            Point3::new(4.0, 5.0, 6.0),
+            UnitQuaternion::identity(),
+            Vector3::new(1.0, 2.0, 3.0),
+            0.1,
+            0.2,
+        );
+        let magnet2 = CuboidMagnet::new(
+            Point3::new(10.0, 11.0, 12.0),
+            quat_from_rotvec(FRAC_PI_2, 0.0, 0.0),
+            Vector3::new(7.0, 8.0, 9.0),
+            Vector3::new(0.1, 0.2, 0.3),
+        );
+
+        let collection = MultiSourceCollection::new(
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            vec![Box::new(magnet1), Box::new(magnet2)],
+        );
+
+        println!("{}", collection);
+        assert_eq!("MultiSourceCollection (2 children) at pos=[0, 0, 0], q=[0, 0, 0, 1]
+├── 0: CylinderMagnet (r=0.1, h=0.2, pol=[1, 2, 3]) at pos=[4, 5, 6], q=[0, 0, 0, 1]
+└── 1: CuboidMagnet (dim=[0.1, 0.2, 0.3], pol=[7, 8, 9]) at pos=[10, 11, 12], q=[0.7071067811865475, 0, 0, 0.7071067811865476]", format!("{}", collection))
     }
 }
