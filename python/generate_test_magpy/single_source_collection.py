@@ -6,17 +6,12 @@ from pathlib import Path
 
 import numpy as np
 from magpylib import Collection
-from magpylib.magnet import Cylinder
+from magpylib.magnet import Cuboid, Cylinder
 from scipy.spatial.transform import Rotation
 
 sys.path.append(str(Path(__file__).parent.parent))
 
-from test_generation_util import (
-    TEST_DATA_DIR,
-    get_points_small,
-    save_array_to_file,
-    save_test_array,
-)
+from test_generation_util import get_points_small, save_test_array
 
 
 def test_cylinder_collection(points):
@@ -64,8 +59,52 @@ def test_cylinder_collection(points):
     save_test_array("cylinder-collection-translate-rotate.csv", field)
 
 
+def test_cuboid_collection(points):
+    rot1 = Rotation.identity()
+    rot2 = Rotation.from_rotvec([0, np.pi / 3, 0])
+    rot3 = Rotation.from_rotvec([0, 0, np.pi / 3])
+
+    magnets = Collection(
+        Cuboid(
+            (0.005, 0.01, 0.015),
+            rot1,
+            (0.02, 0.02, 0.03),
+            (0.1, 0.2, 0.3),
+        ),
+        Cuboid(
+            (0.0015, 0.005, 0.01),
+            rot2,
+            (0.02, 0.02, 0.03),
+            (0.1, 0.2, 0.3),
+        ),
+        Cuboid(
+            (0.01, 0.015, 0.005),
+            rot3,
+            (0.02, 0.02, 0.03),
+            (0.1, 0.2, 0.3),
+        ),
+    )
+
+    field = magnets.getB(points)
+    save_test_array("cuboid-collection.csv", field)
+
+    magnets.position = (0.01, 0.015, 0.02)
+    field = magnets.getB(points)
+    save_test_array("cuboid-collection-translate.csv", field)
+
+    magnets.position = (0, 0, 0)
+    magnets.orientation = Rotation.from_rotvec((np.pi / 3, np.pi / 4, np.pi / 5))
+    field = magnets.getB(points)
+    save_test_array("cuboid-collection-rotate.csv", field)
+
+    magnets.position = (0.01, 0.015, 0.02)
+    field = magnets.getB(points)
+    save_test_array("cuboid-collection-translate-rotate.csv", field)
+
+
 def generate_tests(points_small):
     test_cylinder_collection(points_small)
+    test_cuboid_collection(points_small)
 
 
 def main():
