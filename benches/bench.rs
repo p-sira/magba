@@ -33,7 +33,7 @@ fn bench_b_cyl_parallel_vs_serial(c: &mut Criterion) {
             b.iter(|| {
                 let field = points
                     .iter()
-                    .map(|p| local_cyl_B(p, radius, height, &pol).unwrap())
+                    .map(|p| local_cyl_B(p, radius, height, &pol))
                     .collect::<Vec<_>>();
                 assert!(!field.is_empty())
             });
@@ -43,7 +43,7 @@ fn bench_b_cyl_parallel_vs_serial(c: &mut Criterion) {
             b.iter(|| {
                 let field = points
                     .par_iter()
-                    .map(|p| local_cyl_B(p, radius, height, &pol).unwrap())
+                    .map(|p| local_cyl_B(p, radius, height, &pol))
                     .collect::<Vec<_>>();
                 assert!(!field.is_empty())
             });

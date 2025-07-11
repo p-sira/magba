@@ -40,7 +40,7 @@ let magnet = CylinderMagnet::new(
     0.020, // height
 );
 
-let b = magnet.get_B(&[Point3::new(0.01, 0.0, 0.0)]).unwrap();
+let b = magnet.get_B(&[Point3::new(0.01, 0.0, 0.0)]);
 println!("B-field: {:?}", b[0]);
 ```
 

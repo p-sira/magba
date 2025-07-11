@@ -32,7 +32,7 @@ pub fn local_cuboid_B(
     point: &Point3<f64>,
     dimensions: &Vector3<f64>,
     polarization: &Vector3<f64>,
-) -> Result<Vector3<f64>, &'static str> {
+) -> Vector3<f64> {
     let (mut x, mut y, mut z) = (point.x, point.y, point.z);
     let abc = dimensions / 2.0;
     let (a, b, c) = (abc.x, abc.y, abc.z);
@@ -56,7 +56,7 @@ pub fn local_cuboid_B(
     let is_on_edge_z = is_on_surf[0] && is_on_surf[1] && is_inside[2];
 
     if is_on_edge_x || is_on_edge_y || is_on_edge_z {
-        return Ok(Vector3::zeros());
+        return Vector3::zeros();
     }
 
     let mut qsign = Matrix3::from_element(1.0);
@@ -160,8 +160,7 @@ pub fn local_cuboid_B(
     let by_tot = by_pol_x + by_pol_y + by_pol_z;
     let bz_tot = bz_pol_x + bz_pol_y + bz_pol_z;
 
-    let b = Vector3::new(bx_tot, by_tot, bz_tot) / (4.0 * PI);
-    Ok(b)
+    Vector3::new(bx_tot, by_tot, bz_tot) / (4.0 * PI)
 }
 
 #[allow(non_snake_case)]
@@ -170,20 +169,20 @@ pub fn local_cuboid_B_vec(
     points: &[Point3<f64>],
     dimensions: &Vector3<f64>,
     polarization: &Vector3<f64>,
-) -> Result<Vec<Vector3<f64>>, &'static str> {
+) -> Vec<Vector3<f64>> {
     #[cfg(feature = "parallel")]
     if points.len() > 60 {
-        return Ok(points
+        return points
             .par_iter()
-            .map(|p| local_cuboid_B(p, dimensions, polarization).unwrap())
-            .collect());
+            .map(|p| local_cuboid_B(p, dimensions, polarization))
+            .collect();
     }
 
     // If small number of points or not using parallel feature
-    Ok(points
+    points
         .iter()
-        .map(|p| local_cuboid_B(p, dimensions, polarization).unwrap())
-        .collect())
+        .map(|p| local_cuboid_B(p, dimensions, polarization))
+        .collect()
 }
 
 /// Compute B-field at points in global frame for a single cuboid magnet.
@@ -205,12 +204,12 @@ pub fn cuboid_B(
     orientation: &UnitQuaternion<f64>,
     dimensions: &Vector3<f64>,
     polarization: &Vector3<f64>,
-) -> Result<Vec<Vector3<f64>>, &'static str> {
-    Ok(compute_in_local!(
+) -> Vec<Vector3<f64>> {
+    compute_in_local!(
         local_cuboid_B_vec,
         &points,
         (&dimensions, &polarization),
         &position,
         &orientation
-    ))
+    )
 }

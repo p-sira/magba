@@ -27,7 +27,7 @@ pub trait Field {
     /// # Returns
     /// - `Ok(Vec<Vector3<f64>>)`: B-field vectors at each point.
     /// - `Err(&'static str)`: If computation fails.
-    fn get_B(&self, points: &[Point3<f64>]) -> Result<Vec<Vector3<f64>>, &'static str>;
+    fn get_B(&self, points: &[Point3<f64>]) -> Vec<Vector3<f64>>;
 }
 
 /// Trait shared by magnetic sources.
@@ -115,22 +115,22 @@ macro_rules! impl_transform_collection {
 macro_rules! impl_field_collection {
     () => {
         #[inline]
-        fn get_B(&self, points: &[Point3<f64>]) -> Result<Vec<Vector3<f64>>, &'static str> {
+        fn get_B(&self, points: &[Point3<f64>]) -> Vec<Vector3<f64>> {
             let mut net_field = vec![Vector3::zeros(); points.len()];
             #[cfg(feature = "parallel")]
             {
                 use rayon::prelude::*;
-                let results: Result<Vec<_>, _> = self
+                let b_fields: Vec<_> = self
                     .children
                     .par_iter()
                     .map(|source| source.get_B(points))
                     .collect();
-                for b_fields in results? {
+                b_fields.iter().for_each(|child_b_field| {
                     net_field
                         .iter_mut()
-                        .zip(b_fields)
-                        .for_each(|(sum, b)| *sum += b);
-                }
+                        .zip(child_b_field)
+                        .for_each(|(sum, b)| *sum += b)
+                });
             }
             #[cfg(not(feature = "parallel"))]
             {
@@ -142,7 +142,7 @@ macro_rules! impl_field_collection {
                         .for_each(|(sum, b)| *sum += b);
                 }
             }
-            Ok(net_field)
+            net_field
         }
     };
 }

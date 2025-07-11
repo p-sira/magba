@@ -32,7 +32,7 @@ use rayon::prelude::*;
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. https://doi.org/10.1016/j.softx.2020.100466.
 #[allow(non_snake_case)]
 #[inline]
-pub fn unit_axial_cyl_B_cyl(r: f64, z: f64, z0: f64) -> Result<Vector3<f64>, &'static str> {
+pub fn unit_axial_cyl_B_cyl(r: f64, z: f64, z0: f64) -> Vector3<f64> {
     let (zp, zm) = (z + z0, z - z0);
     let (rp, rm) = (1.0 + r, 1.0 - r);
 
@@ -48,11 +48,12 @@ pub fn unit_axial_cyl_B_cyl(r: f64, z: f64, z0: f64) -> Result<Vector3<f64>, &'s
     let gamma = rm / rp;
     let gamma2 = gamma * gamma;
 
-    let br = (cel(kp, 1.0, 1.0, -1.0)? / sq1 - cel(km, 1.0, 1.0, -1.0)? / sq0) / PI;
-    let bz = (zp * cel(kp, gamma2, 1.0, gamma)? / sq1 - zm * cel(km, gamma2, 1.0, gamma)? / sq0)
+    let br = (cel(kp, 1.0, 1.0, -1.0).unwrap() / sq1 - cel(km, 1.0, 1.0, -1.0).unwrap() / sq0) / PI;
+    let bz = (zp * cel(kp, gamma2, 1.0, gamma).unwrap() / sq1
+        - zm * cel(km, gamma2, 1.0, gamma).unwrap() / sq0)
         / (rp * PI);
     // bphi = 0
-    Ok(Vector3::new(br, 0.0, bz))
+    Vector3::new(br, 0.0, bz)
 }
 
 /// Compute B-field of a cylindrical magnet with unit diametrial (r-axis) polarization
@@ -71,12 +72,7 @@ pub fn unit_axial_cyl_B_cyl(r: f64, z: f64, z0: f64) -> Result<Vector3<f64>, &'s
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. https://doi.org/10.1016/j.softx.2020.100466.
 #[allow(non_snake_case)]
 #[inline]
-pub fn unit_diametric_cyl_B_cyl(
-    r: f64,
-    phi: f64,
-    z: f64,
-    z0: f64,
-) -> Result<Vector3<f64>, &'static str> {
+pub fn unit_diametric_cyl_B_cyl(r: f64, phi: f64, z: f64, z0: f64) -> Vector3<f64> {
     let (zp, zm) = (z + z0, z - z0);
     let (zp2, zm2) = (zp * zp, zm * zm);
     let r2 = r * r;
@@ -112,7 +108,7 @@ pub fn unit_diametric_cyl_B_cyl(
                     * r5
                     * ((1.0 - 12.0 * zp2 + 8.0 * zp4) / zpp5 / sqrt_p
                         - (1.0 - 12.0 * zm2 + 8.0 * zm4) / zmm5 / sqrt_m));
-        return Ok(Vector3::new(br, bphi, bz));
+        return Vector3::new(br, bphi, bz);
     }
 
     // General case
@@ -132,11 +128,11 @@ pub fn unit_diametric_cyl_B_cyl(
     };
 
     // Compute elliptics
-    let (ellk_p, ellk_m) = (ellipk(argp)?, ellipk(argm)?);
-    let (elle_p, elle_m) = (ellipe(argp)?, ellipe(argm)?);
+    let (ellk_p, ellk_m) = (ellipk(argp).unwrap(), ellipk(argm).unwrap());
+    let (elle_p, elle_m) = (ellipe(argp).unwrap(), ellipe(argm).unwrap());
     let (ellpi_p, ellpi_m) = (
-        cel((1.0 - argp).sqrt(), 1.0 - argc, 1.0, 1.0)?,
-        cel((1.0 - argm).sqrt(), 1.0 - argc, 1.0, 1.0)?,
+        cel((1.0 - argp).sqrt(), 1.0 - argc, 1.0, 1.0).unwrap(),
+        cel((1.0 - argm).sqrt(), 1.0 - argc, 1.0, 1.0).unwrap(),
     );
 
     // Compute the fields
@@ -155,7 +151,7 @@ pub fn unit_diametric_cyl_B_cyl(
         * (am * elle_m - ap * elle_p - (1.0 + zm2 + r2) / am * ellk_m
             + (1.0 + zp2 + r2) / ap * ellk_p);
 
-    Ok(Vector3::new(br, bphi, bz))
+    Vector3::new(br, bphi, bz)
 }
 
 /// Compute B-field of a cylindrical magnet at point *(r, phi, z)* in cylindrical CS.
@@ -186,7 +182,7 @@ pub fn cyl_B_cyl(
     height: f64,
     pol_r: f64,
     pol_z: f64,
-) -> Result<Vector3<f64>, &'static str> {
+) -> Vector3<f64> {
     // Scale invariance
     let r = r / radius;
     let z = z / radius;
@@ -194,25 +190,22 @@ pub fn cyl_B_cyl(
 
     // Check if point is on Cylinder edge
     if crate_util::is_close(r, 1.0, 1e-15) && crate_util::is_close(z.abs(), z0, 1e-15) {
-        return Ok(Vector3::zeros());
+        return Vector3::zeros();
     }
 
     // M = Mz + Mr (Caciagli et al., 2018)
     let mut b = Vector3::zeros();
     if pol_z != 0.0 {
-        let b_axial_cyl =
-            pol_z * unit_axial_cyl_B_cyl(r, z, z0).expect("fn cyl_b_cyl: cannot compute axial B.");
+        let b_axial_cyl = pol_z * unit_axial_cyl_B_cyl(r, z, z0);
         b += b_axial_cyl;
     }
 
     if pol_r != 0.0 {
-        let b_diametric_cyl = pol_r
-            * unit_diametric_cyl_B_cyl(r, phi, z, z0)
-                .expect("fn cyl_b_cyl: cannot compute diametric B.");
+        let b_diametric_cyl = pol_r * unit_diametric_cyl_B_cyl(r, phi, z, z0);
         b += b_diametric_cyl;
     }
 
-    Ok(b)
+    b
 }
 
 /// Compute B-field at point *(x, y, z)* of a cylindrical magnet in local frame.
@@ -236,19 +229,19 @@ pub fn local_cyl_B(
     radius: f64,
     height: f64,
     pol: &Vector3<f64>,
-) -> Result<Vector3<f64>, &'static str> {
+) -> Vector3<f64> {
     let (r, phi) = cart2cyl(point.x, point.y);
     let (pol_r, theta) = cart2cyl(pol.x, pol.y);
 
-    let b_cyl = cyl_B_cyl(r, phi - theta, point.z, radius, height, pol_r, pol.z)?;
+    let b_cyl = cyl_B_cyl(r, phi - theta, point.z, radius, height, pol_r, pol.z);
 
     let (bx, by) = vec_cyl2cart(b_cyl.x, b_cyl.y, phi);
     // Check if point is in the magnet
     if r <= radius && point.z.abs() <= height / 2.0 {
-        return Ok(Vector3::new(bx + pol.x, by + pol.y, b_cyl.z));
+        return Vector3::new(bx + pol.x, by + pol.y, b_cyl.z);
     }
 
-    Ok(Vector3::new(bx, by, b_cyl.z))
+    Vector3::new(bx, by, b_cyl.z)
 }
 
 /// Compute B-field at multiple points in local frame.
@@ -272,20 +265,20 @@ pub fn local_cyl_B_vec(
     radius: f64,
     height: f64,
     pol: &Vector3<f64>,
-) -> Result<Vec<Vector3<f64>>, &'static str> {
+) -> Vec<Vector3<f64>> {
     #[cfg(feature = "parallel")]
     if points.len() > 60 {
-        return Ok(points
+        return points
             .par_iter()
-            .map(|p| local_cyl_B(p, radius, height, pol).unwrap())
-            .collect());
+            .map(|p| local_cyl_B(p, radius, height, pol))
+            .collect();
     }
 
     // If small number of points or not using parallel feature
-    Ok(points
+    points
         .iter()
-        .map(|p| local_cyl_B(p, radius, height, pol).unwrap())
-        .collect())
+        .map(|p| local_cyl_B(p, radius, height, pol))
+        .collect()
 }
 
 /// Compute B-field at points in global frame for a single cylindrical magnet.
@@ -309,14 +302,14 @@ pub fn cyl_B(
     radius: f64,
     height: f64,
     pol: &Vector3<f64>,
-) -> Result<Vec<Vector3<f64>>, &'static str> {
-    Ok(compute_in_local!(
+) -> Vec<Vector3<f64>> {
+    compute_in_local!(
         local_cyl_B_vec,
         &points,
         (radius, height, &pol),
         &position,
         &orientation
-    ))
+    )
 }
 
 /// Compute net B-field at each given point in global frame for multiple cylindrical magnets.
@@ -340,13 +333,13 @@ pub fn sum_multiple_cyl_B(
     radii: &[f64],
     heights: &[f64],
     pols: &[Vector3<f64>],
-) -> Result<Vec<Vector3<f64>>, &'static str> {
+) -> Vec<Vector3<f64>> {
     if positions.len() != orientations.len()
         || positions.len() != radii.len()
         || positions.len() != heights.len()
         || positions.len() != pols.len()
     {
-        return Err("fn sum_multiple_cyl_b: Length of input vectors must be equal.");
+        panic!("fn sum_multiple_cyl_b: Length of input vectors must be equal.");
     }
 
     #[cfg(feature = "parallel")]
@@ -360,12 +353,12 @@ pub fn sum_multiple_cyl_B(
             .map(|((((position, orientation), radius), height), pol)| {
                 cyl_B(points, position, orientation, *radius, *height, pol)
             })
-            .collect::<Result<Vec<Vec<_>>, _>>()?;
+            .collect::<Vec<Vec<_>>>();
 
         let net_vectors: Vec<Vector3<f64>> = (0..points.len())
             .map(|i| vectors.iter().map(|v| v[i]).sum())
             .collect();
-        Ok(net_vectors)
+        net_vectors
     }
 
     #[cfg(not(feature = "parallel"))]

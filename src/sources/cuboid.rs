@@ -99,7 +99,7 @@ impl Source for CuboidMagnet {}
 impl_transform!(CuboidMagnet);
 
 impl Field for CuboidMagnet {
-    fn get_B(&self, points: &[Point3<f64>]) -> Result<Vec<Vector3<f64>>, &'static str> {
+    fn get_B(&self, points: &[Point3<f64>]) -> Vec<Vector3<f64>> {
         fields::cuboid_B(
             points,
             &self.position,

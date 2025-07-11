@@ -78,7 +78,7 @@ simply: `cargo add magba`.
 //!     Point3::new(0.0, 0.0, 0.030),
 //! ];
 //!
-//! let b_field = magnet.get_B(&points).expect("Fail to compute field"); // Don't forget to extract the Result
+//! let b_field = magnet.get_B(&points);
 //! assert_eq!(
 //!     b_field,
 //!     [
@@ -125,29 +125,29 @@ simply: `cargo add magba`.
 //!
 //! // Here, we try various ways to move the magnet closer to the observer.
 //! let points = [Point3::new(0.0, 0.0, 0.05)];
-//! let b = magnet.get_B(&points).unwrap()[0];
+//! let b = magnet.get_B(&points)[0];
 //! let expected = Vector3::new(0.0, 0.0, 0.0019205466890453442);
 //! assert_close_vector_elem (&b, &expected, 1e-12);
 //!
 //! magnet.translate(&Translation3::new(0.0, 0.0, 0.01));
-//! let b = magnet.get_B(&points).unwrap()[0];
+//! let b = magnet.get_B(&points)[0];
 //! let expected = Vector3::new(0.0, 0.0, 0.0038894698700304275);
 //! assert_close_vector_elem (&b, &expected, 1e-12);
 //!
 //! magnet.set_position(Point3::new(0.0, 0.0, 0.02));
-//! let b = magnet.get_B(&points).unwrap()[0];
+//! let b = magnet.get_B(&points)[0];
 //! let expected = Vector3::new(0.0, 0.0, 0.00996091945575112);
 //! assert_close_vector_elem (&b, &expected, 1e-12);
 //!
 //! // Let's try rotating the magnet next.
 //! use std::f64::consts::PI;
 //! magnet.rotate(&UnitQuaternion::from_scaled_axis(Vector3::new(PI / 4.0, 0.0, 0.0)));
-//! let b = magnet.get_B(&points).unwrap()[0];
+//! let b = magnet.get_B(&points)[0];
 //! let expected = Vector3::new(3.9407500527173422e-19, 0.0035238379945531874, 0.005577663229073966);
 //! assert_close_vector_elem (&b, &expected, 1e-12);
 //!
 //! magnet.set_orientation(UnitQuaternion::from_scaled_axis(Vector3::new(PI / 2.0, 0.0, 0.0)));
-//! let b = magnet.get_B(&points).unwrap()[0];
+//! let b = magnet.get_B(&points)[0];
 //! let expected = Vector3::new(6.086025172136602e-35, 0.003642460886175623, 0.0);
 //! assert_close_vector_elem (&b, &expected, 1e-12);
 //! ```
@@ -159,7 +159,7 @@ simply: `cargo add magba`.
 //! use magba::util::*;
 //! use nalgebra::{Point3, Vector3};
 //!
-//! let b = field_cylinder::local_cyl_B(&Point3::new(1.0, -1.0, 0.0), 1.0, 2.0, &Vector3::new(1.0, 2.0, 3.0)).expect("Invalid b calculation");
+//! let b = field_cylinder::local_cyl_B(&Point3::new(1.0, -1.0, 0.0), 1.0, 2.0, &Vector3::new(1.0, 2.0, 3.0));
 //! let expected = Vector3::new(-0.3684605662842379, -0.10171405289381347, -0.330064920993222);
 //! assert_close_vector_elem (&b, &expected, 1e-12);
 //! ```

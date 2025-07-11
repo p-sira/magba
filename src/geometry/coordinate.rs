@@ -27,7 +27,7 @@ pub fn vec_cyl2cart(r: f64, phi: f64, theta: f64) -> (f64, f64) {
 #[macro_export]
 macro_rules! compute_in_local {
     ($func: ident, $points: expr, ($($func_args:expr),*), $position: expr, $orientation: expr) => {
-        global_vectors(&$func(&local_points($points, $position, $orientation), $($func_args),*)?, $orientation)
+        global_vectors(&$func(&local_points($points, $position, $orientation), $($func_args),*), $orientation)
     };
 }
 
