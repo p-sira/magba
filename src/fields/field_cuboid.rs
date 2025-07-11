@@ -10,22 +10,18 @@ use crate::geometry::{global_vectors, local_points};
 #[cfg(feature = "parallel")]
 use rayon::prelude::*;
 
-/// Compute B-field of a homogeneously magnetized cuboid at multiple points in the local frame.
+/// Compute B-field of a homogeneous cuboid magnet at point (x, y, z) in the local frame.
 ///
 /// # Arguments
-/// - `points`: Observer positions (x, y, z) in local Cartesian coordinates (m)
-/// - `dimensions`: Cuboid side lengths (a, b, c) (m)
-/// - `polarizations`: Polarization vectors (T)
+/// - `point`: Observer position (m)
+/// - `dimensions`: Cuboid side lengths (m)
+/// - `polarization`: Polarization vector (T)
 ///
 /// # Returns
-/// - `Ok(Vec<Vector3<f64>>)` - B-field vectors at each observer point (T)
-/// - `Err(&'static str)` - If computation fails
+/// - B-field vector (T) at point (x, y, z)
 ///
 /// # References
-/// - Yang: Superconductor Science and Technology 3(12):591 (1990)
-/// - Engel-Herbert: J. Appl. Phys. 97(7):074504 (2005)
-/// - Camacho: Rev. Mex. Fis. E 59 (2013) 8-17
-/// - Cichon: IEEE Sensors Journal, vol. 19, no. 7, April 1, 2019, p.2509
+/// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. https://doi.org/10.1016/j.softx.2020.100466.
 #[allow(non_snake_case)]
 #[inline]
 pub fn local_cuboid_B(
@@ -163,6 +159,19 @@ pub fn local_cuboid_B(
     Vector3::new(bx_tot, by_tot, bz_tot) / (4.0 * PI)
 }
 
+/// Compute B-field of a homogeneous cuboid magnet at multiple points in the local frame.
+///
+/// # Arguments
+/// - `points`: Observer positions (m)
+/// - `dimensions`: Cuboid side lengths (m)
+/// - `polarization`: Polarization vector (T)
+///
+/// # Returns
+/// - B-field vector (T) at point (x, y, z)
+///
+/// # References
+/// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. https://doi.org/10.1016/j.softx.2020.100466.
+
 #[allow(non_snake_case)]
 #[inline]
 pub fn local_cuboid_B_vec(
@@ -188,15 +197,14 @@ pub fn local_cuboid_B_vec(
 /// Compute B-field at points in global frame for a single cuboid magnet.
 ///
 /// # Arguments
-/// - `points`: Points in global frame (m)
+/// - `points`: Observer positions (m)
 /// - `position`: Magnet position (m)
-/// - `orientation`: Magnet orientation
-/// - `dimensions`: Cuboid side lengths (a, b, c) (m)
+/// - `orientation`: Magnet orientation in unit quaternion
+/// - `dimensions`: Cuboid side lengths (m)
 /// - `polarization`: Polarization vector (T)
 ///
 /// # Returns
-/// - `Ok(Vec<Vector3<f64>>)` - B-field vectors (T)
-/// - `Err(&'static str)` - If computation fails
+/// - B-field vectors at each observer (T)
 #[allow(non_snake_case)]
 pub fn cuboid_B(
     points: &[Point3<f64>],

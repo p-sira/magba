@@ -19,7 +19,7 @@ use std::fmt::Display;
 ///
 /// # Fields
 /// - `position`: Center of the cylinder (m)
-/// - `orientation`: Orientation as a unit quaternion
+/// - `orientation`: Orientation as unit quaternion
 /// - `polarization`: Polarization vector (T)
 /// - `radius`: Cylinder radius (m)
 /// - `height`: Cylinder height (m)

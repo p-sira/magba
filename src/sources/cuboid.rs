@@ -19,9 +19,9 @@ use std::fmt::Display;
 ///
 /// # Fields
 /// - `position`: Center of the cuboid (m)
-/// - `orientation`: Orientation as a unit quaternion
+/// - `orientation`: Orientation as unit quaternion
 /// - `polarization`: Polarization vector (T)
-/// - `dimensions`: Cuboid dimensions (m)
+/// - `dimensions`: Cuboid side lengths (m)
 ///
 /// # Example
 /// ```
@@ -55,9 +55,9 @@ impl CuboidMagnet {
     ///
     /// # Arguments
     /// - `position`: Center of the cuboid (m)
-    /// - `orientation`: Orientation as a unit quaternion
+    /// - `orientation`: Orientation as unit quaternion
     /// - `polarization`: Polarization vector (T)
-    /// - `dimensions`: Cuboid dimensions (m)
+    /// - `dimensions`: Cuboid side lengths (m)
     ///
     /// # Returns
     /// - `CuboidMagnet` instance

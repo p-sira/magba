@@ -22,11 +22,10 @@ pub trait Field {
     /// Compute the magnetic field (B) at the given points.
     ///
     /// # Arguments
-    /// - `points`: Slice of points where the field is evaluated.
+    /// - `points`: Slice of observer positions.
     ///
     /// # Returns
-    /// - `Ok(Vec<Vector3<f64>>)`: B-field vectors at each point.
-    /// - `Err(&'static str)`: If computation fails.
+    /// - B-field vectors at each observer.
     fn get_B(&self, points: &[Point3<f64>]) -> Vec<Vector3<f64>>;
 }
 
@@ -150,9 +149,9 @@ macro_rules! impl_field_collection {
 /// Stack-allocated collection of a single source type.
 ///
 /// # Fields
-/// - `position`: Center of the collection (m), where the children reference
-/// - `orientation`: Orientation of the collection, where the children reference
-/// - `children`: An ordered-vec of homogeneous magnetic sources
+/// - `position`: Center of the collection (m), where the children reference.
+/// - `orientation`: Orientation of the collection, where the children reference.
+/// - `children`: An ordered-vec of homogeneous magnetic sources.
 ///
 /// # Example
 /// ```
@@ -245,9 +244,9 @@ impl<S: Source> Field for SourceCollection<S> {
 /// Heap-allocated collection of multiple source types.
 ///
 /// # Fields
-/// - `position`: Center of the collection (m), where the children reference
-/// - `orientation`: Orientation of the collection, where the children reference
-/// - `children`: An ordered-vec of heterogeneous magnetic sources
+/// - `position`: Center of the collection (m), where the children reference.
+/// - `orientation`: Orientation of the collection, where the children reference.
+/// - `children`: An ordered-vec of heterogeneous magnetic sources.
 ///
 /// # Example
 /// ```
