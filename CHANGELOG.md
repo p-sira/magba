@@ -5,8 +5,8 @@
 - Functions will return bare values instead of `Result`.
 
 **New Features**
-- `fields::field_cuboid`: Compute magnetic field for cuboid magnets
-- `CuboidMagnet`: Struct for cuboid magnet
+- `fields::field_cuboid`: Compute magnetic field for cuboid magnets.
+- `CuboidMagnet`: Struct for cuboid magnet.
 
 **Improvements**
 - Update tests to use parameters that better reflect real-world scales (e.g, 1-cm magnet instead of 10-m magnet).
@@ -31,7 +31,7 @@
 
 ### 0.1.0
 **New Features**
-- `fields::field_cylinder`: Compute magnetic field for cylindrical magnets
-- `CylinderMagnet`: Struct for cylindrical magnet
-- `SourceCollection`: Struct for homogeneous source collection
-- `MultiSourceCollection`: Struct for heterogeneous source collection
+- `fields::field_cylinder`: Compute magnetic field for cylindrical magnets.
+- `CylinderMagnet`: Struct for cylindrical magnet.
+- `SourceCollection`: Struct for homogeneous source collection.
+- `MultiSourceCollection`: Struct for heterogeneous source collection.
