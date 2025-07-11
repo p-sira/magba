@@ -19,24 +19,24 @@ def save_array_to_file(file: str | Path, a: NDArray) -> None:
     np.savetxt(file, a, delimiter=",")
 
 
-# Generate a 5x5x5-m workspace
 def get_points_large():
+    """Generate a 5x5x5-m workspace"""
     bounds = np.array([[-2.5, 2.5]] * 3)
     N = [15] * 3
     points = generate_grid(bounds, N)
     return points
 
 
-# Generate a 2x2x2-m workspace
 def get_points():
+    """Generate a 2x2x2-m workspace"""
     bounds = np.array([[-1, 1]] * 3)
     N = [15] * 3
     points = generate_grid(bounds, N)
     return points
 
 
-# Generate a 10x10x10-cm workspace
 def get_points_small():
+    """Generate a 10x10x10-cm workspace"""
     bounds = np.array([[-0.05, 0.05]] * 3)
     N = [15] * 3
     points = generate_grid(bounds, N)
