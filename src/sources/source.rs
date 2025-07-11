@@ -134,7 +134,7 @@ macro_rules! impl_field_collection {
             #[cfg(not(feature = "parallel"))]
             {
                 for source in &self.children {
-                    let b_fields = source.get_B(points)?;
+                    let b_fields = source.get_B(points);
                     net_field
                         .iter_mut()
                         .zip(b_fields)

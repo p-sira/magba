@@ -365,7 +365,7 @@ pub fn sum_multiple_cyl_B(
             .zip(heights)
             .zip(pols)
             .map(|((((position, orientation), radius), height), pol)| {
-                cyl_B(points, position, orientation, *radius, *height, pol).unwrap()
+                cyl_B(points, position, orientation, *radius, *height, pol)
             })
             .for_each(|field_vectors| {
                 net_vectors
@@ -374,6 +374,6 @@ pub fn sum_multiple_cyl_B(
                     .for_each(|(net_vector, field_vector)| *net_vector += field_vector)
             });
 
-        Ok(net_vectors)
+        net_vectors
     }
 }
