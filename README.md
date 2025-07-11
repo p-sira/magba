@@ -22,7 +22,7 @@
 
 **Magba** is a performant analytical magnetic computation library for Rust.
 
-# Quick Start
+## Quick Start
 
 To install, simply: `cargo add magba`.
 
@@ -47,22 +47,18 @@ println!("B-field: {:?}", b[0]);
 ## Features
 
 - Analytical magnetic field computation for:
-  - Cylindrical magnets (axial and diametric)
-  - Source collections (grouping magnets)
-- Transformations: Move and rotate sources in 3D space
-- Parallel computation (optional, via Rayon)
-- Tested against MagpyLib and reference data
+    - Cuboid magnets
+    - Cylindrical magnets
+- Group magnetic sources with `SourceCollection`.
+- Transformations: Move and rotate sources in 3D space.
+- Parallel computation (optional, via Rayon).
+- Tested against MagpyLib and reference data.
 - Python bindings available via [Pymagba](https://github.com/p-sira/pymagba)
 
 ## Testing
 
 Results are validated against MagpyLib and reference data.
 See `/tests/test-data` and the accuracy report for details.
-
-## Documentation
-
-- [API Docs (docs.rs)](https://docs.rs/magba)
-- [GitHub Repository](https://github.com/p-sira/magba)
 
 ---
 
