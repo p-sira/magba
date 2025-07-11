@@ -195,4 +195,13 @@ mod tests {
         magnet.rotate(&quat_from_rotvec(PI / 3.0, PI / 2.0, PI));
         test_B_magnet!(&magnet, "cuboid-rotate-translate.csv", 2e-12);
     }
+
+    #[test]
+    fn test_cuboid_display() {
+        let magnet = CuboidMagnet::default();
+        assert_eq!(
+            "CuboidMagnet (dim=[0, 0, 0], pol=[0, 0, 0]) at pos=[0, 0, 0], q=[0, 0, 0, 1]",
+            format!("{}", magnet)
+        );
+    }
 }
