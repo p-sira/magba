@@ -155,11 +155,12 @@ macro_rules! impl_field_collection {
 ///
 /// # Example
 /// ```
-/// use magba::sources::{SourceCollection, CylinderMagnet};
+/// use magba::sources::*;
 /// use nalgebra::{Point3, UnitQuaternion, Vector3};
 ///
-/// let magnet = CylinderMagnet::new(Point3::origin(), UnitQuaternion::identity(), Vector3::z(), 0.005, 0.02);
-/// let mut collection = SourceCollection::new(Point3::origin(), UnitQuaternion::identity(), vec![magnet]);
+/// let magnet = CylinderMagnet::default();
+/// let mut collection = SourceCollection::default();
+/// collection.add(magnet);
 /// ```
 #[derive(Debug)]
 pub struct SourceCollection<S: Source> {
@@ -251,11 +252,12 @@ impl<S: Source> Field for SourceCollection<S> {
 ///
 /// # Example
 /// ```
-/// use magba::sources::{MultiSourceCollection, CylinderMagnet, Source};
+/// use magba::sources::*;
 /// use nalgebra::{Point3, UnitQuaternion, Vector3};
 ///
-/// let cylinder_magnet: Box<dyn Source> = Box::new(CylinderMagnet::new(Point3::origin(), UnitQuaternion::identity(), Vector3::z(), 0.005, 0.02));
-/// let mut collection = MultiSourceCollection::new(Point3::origin(), UnitQuaternion::identity(), vec![cylinder_magnet]);
+/// let mut collection = MultiSourceCollection::default();
+/// collection.add(Box::new(CylinderMagnet::default()));
+/// collection.add(Box::new(CuboidMagnet::default()));
 /// ```
 #[derive(Debug)]
 pub struct MultiSourceCollection {
