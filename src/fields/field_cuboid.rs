@@ -171,7 +171,6 @@ pub fn local_cuboid_B(
 ///
 /// # References
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. https://doi.org/10.1016/j.softx.2020.100466.
-
 #[allow(non_snake_case)]
 #[inline]
 pub fn local_cuboid_B_vec(
