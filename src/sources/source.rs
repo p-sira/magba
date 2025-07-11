@@ -499,36 +499,69 @@ mod cuboid_collection_tests {
 
 #[cfg(test)]
 mod multi_source_collection_tests {
-    use std::f64::consts::FRAC_PI_2;
+    use std::f64::consts::{FRAC_PI_3, PI};
 
     use super::*;
-    use crate::{sources::*, testing_util::quat_from_rotvec};
+    use crate::{sources::*, testing_util::*};
+
+    fn get_collection() -> MultiSourceCollection {
+        let mut collection = MultiSourceCollection::default();
+        collection.add(Box::new(CylinderMagnet::new(
+            Point3::new(0.005, 0.01, 0.015),
+            UnitQuaternion::identity(),
+            Vector3::new(0.1, 0.2, 0.3),
+            0.02,
+            0.05,
+        )));
+        collection.add(Box::new(CuboidMagnet::new(
+            Point3::new(0.015, 0.005, 0.01),
+            quat_from_rotvec(0.0, FRAC_PI_3, 0.0),
+            Vector3::new(0.1, 0.2, 0.3),
+            Vector3::new(0.02, 0.02, 0.03),
+        )));
+        collection
+    }
+
+    #[test]
+    fn test_collection() {
+        let collection = get_collection();
+        test_B_magnet!(@small, &collection, "multi-collection.csv", 5e-11);
+    }
+
+    #[test]
+    fn test_collection_translate() {
+        let mut collection = get_collection();
+        let translation = Translation3::new(0.01, 0.015, 0.02);
+        collection.translate(&translation);
+        test_B_magnet!(@small, &collection, "multi-collection-translate.csv", 5e-11);
+
+        collection.translate(&translation.inverse());
+        collection.set_position(Point3::new(0.01, 0.015, 0.02));
+        test_B_magnet!(@small, &collection, "multi-collection-translate.csv", 5e-11);
+    }
+
+    #[test]
+    fn test_collection_rotate() {
+        let mut collection = get_collection();
+        let rotation = quat_from_rotvec(PI / 3.0, PI / 4.0, PI / 5.0);
+        collection.rotate(&rotation);
+        test_B_magnet!(@small, &collection, "multi-collection-rotate.csv", 5e-11);
+
+        collection.rotate(&rotation.inverse());
+        collection.set_orientation(rotation);
+        test_B_magnet!(@small, &collection, "multi-collection-rotate.csv", 5e-11);
+
+        collection.set_position(Point3::new(0.01, 0.015, 0.02));
+        test_B_magnet!(@small, &collection, "multi-collection-translate-rotate.csv", 5e-11);
+    }
 
     #[test]
     fn test_collection_display() {
-        let magnet1 = CylinderMagnet::new(
-            Point3::new(4.0, 5.0, 6.0),
-            UnitQuaternion::identity(),
-            Vector3::new(1.0, 2.0, 3.0),
-            0.1,
-            0.2,
-        );
-        let magnet2 = CuboidMagnet::new(
-            Point3::new(10.0, 11.0, 12.0),
-            quat_from_rotvec(FRAC_PI_2, 0.0, 0.0),
-            Vector3::new(7.0, 8.0, 9.0),
-            Vector3::new(0.1, 0.2, 0.3),
-        );
-
-        let collection = MultiSourceCollection::new(
-            Point3::origin(),
-            UnitQuaternion::identity(),
-            vec![Box::new(magnet1), Box::new(magnet2)],
-        );
+        let collection = get_collection();
 
         println!("{}", collection);
         assert_eq!("MultiSourceCollection (2 children) at pos=[0, 0, 0], q=[0, 0, 0, 1]
-├── 0: CylinderMagnet (r=0.1, h=0.2, pol=[1, 2, 3]) at pos=[4, 5, 6], q=[0, 0, 0, 1]
-└── 1: CuboidMagnet (dim=[0.1, 0.2, 0.3], pol=[7, 8, 9]) at pos=[10, 11, 12], q=[0.7071067811865475, 0, 0, 0.7071067811865476]", format!("{}", collection))
+├── 0: CylinderMagnet (r=0.02, h=0.05, pol=[0.1, 0.2, 0.3]) at pos=[0.005, 0.01, 0.015], q=[0, 0, 0, 1]
+└── 1: CuboidMagnet (dim=[0.02, 0.02, 0.03], pol=[0.1, 0.2, 0.3]) at pos=[0.015, 0.005, 0.01], q=[0, 0.5, 0, 0.8660254037844386]", format!("{}", collection))
     }
 }
