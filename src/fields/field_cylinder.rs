@@ -332,7 +332,7 @@ pub fn sum_multiple_cyl_B(
         || positions.len() != heights.len()
         || positions.len() != pols.len()
     {
-        panic!("fn sum_multiple_cyl_b: Length of input vectors must be equal.");
+        panic!("sum_multiple_cyl_b: Length of input vectors must be equal.");
     }
 
     #[cfg(feature = "parallel")]
