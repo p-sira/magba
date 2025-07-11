@@ -220,3 +220,70 @@ pub fn cuboid_B(
         &orientation
     )
 }
+
+/// Compute net B-field at each given point in global frame for multiple cuboid magnets.
+///
+/// # Arguments
+/// - `points`: Observer positions in global frame (m)
+/// - `positions`: Magnet positions (m)
+/// - `orientations`: Magnet orientations as unit quaternions
+/// - `dimensions`: Cuboid side lengths (m)
+/// - `polarizations`: Polarization vectors (T)
+///
+/// # Returns
+/// - Net B-field vectors at each observer (T)
+#[allow(non_snake_case)]
+pub fn sum_multiple_cuboid_B(
+    points: &[Point3<f64>],
+    positions: &[Point3<f64>],
+    orientations: &[UnitQuaternion<f64>],
+    dimensions: &[Vector3<f64>],
+    polarizations: &[Vector3<f64>],
+) -> Vec<Vector3<f64>> {
+    if positions.len() != orientations.len()
+        || positions.len() != dimensions.len()
+        || positions.len() != polarizations.len()
+    {
+        panic!("sum_multiple_cuboid_B: Length of input vectors must be equal.");
+    }
+
+    #[cfg(feature = "parallel")]
+    {
+        let vectors = positions
+            .par_iter()
+            .zip(orientations)
+            .zip(dimensions)
+            .zip(polarizations)
+            .map(|(((position, orientation), dim), pol)| {
+                cuboid_B(points, position, orientation, dim, pol)
+            })
+            .collect::<Vec<Vec<_>>>();
+
+        let net_vectors: Vec<Vector3<f64>> = (0..points.len())
+            .map(|i| vectors.iter().map(|v| v[i]).sum())
+            .collect();
+        net_vectors
+    }
+
+    #[cfg(not(feature = "parallel"))]
+    {
+        let mut net_vectors = vec![Vector3::zeros(); points.len()];
+
+        positions
+            .iter()
+            .zip(orientations)
+            .zip(dimensions)
+            .zip(polarizations)
+            .map(|(((position, orientation), dim), pol)| {
+                cuboid_B(points, position, orientation, dim, pol)
+            })
+            .for_each(|field_vectors| {
+                net_vectors
+                    .iter_mut()
+                    .zip(field_vectors)
+                    .for_each(|(net_vector, field_vector)| *net_vector += field_vector)
+            });
+
+        net_vectors
+    }
+}
