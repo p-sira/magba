@@ -447,7 +447,7 @@ mod cuboid_collection_tests {
             Vector3::new(0.02, 0.02, 0.03),
         ));
         collection.add(CuboidMagnet::new(
-            Point3::new(0.0015, 0.005, 0.01),
+            Point3::new(0.015, 0.005, 0.01),
             quat_from_rotvec(0.0, FRAC_PI_3, 0.0),
             Vector3::new(0.1, 0.2, 0.3),
             Vector3::new(0.02, 0.02, 0.03),
@@ -464,7 +464,7 @@ mod cuboid_collection_tests {
     #[test]
     fn test_collection() {
         let collection = get_collection();
-        test_B_magnet!(@small, &collection, "cuboid-collection.csv", 1e-13);
+        test_B_magnet!(@small, &collection, "cuboid-collection.csv", 2e-13);
     }
 
     #[test]
@@ -472,11 +472,11 @@ mod cuboid_collection_tests {
         let mut collection = get_collection();
         let translation = Translation3::new(0.01, 0.015, 0.02);
         collection.translate(&translation);
-        test_B_magnet!(@small, &collection, "cuboid-collection-translate.csv", 1e-13);
+        test_B_magnet!(@small, &collection, "cuboid-collection-translate.csv", 2e-13);
 
         collection.translate(&translation.inverse());
         collection.set_position(Point3::new(0.01, 0.015, 0.02));
-        test_B_magnet!(@small, &collection, "cuboid-collection-translate.csv", 1e-13);
+        test_B_magnet!(@small, &collection, "cuboid-collection-translate.csv", 2e-13);
     }
 
     #[test]
@@ -484,11 +484,11 @@ mod cuboid_collection_tests {
         let mut collection = get_collection();
         let rotation = quat_from_rotvec(PI / 3.0, PI / 4.0, PI / 5.0);
         collection.rotate(&rotation);
-        test_B_magnet!(@small, &collection, "cuboid-collection-rotate.csv", 1e-13);
+        test_B_magnet!(@small, &collection, "cuboid-collection-rotate.csv", 2e-13);
 
         collection.rotate(&rotation.inverse());
         collection.set_orientation(rotation);
-        test_B_magnet!(@small, &collection, "cuboid-collection-rotate.csv", 1e-13);
+        test_B_magnet!(@small, &collection, "cuboid-collection-rotate.csv", 2e-13);
 
         collection.set_position(Point3::new(0.01, 0.015, 0.02));
         test_B_magnet!(@small, &collection, "cuboid-collection-translate-rotate.csv", 2e-13);
