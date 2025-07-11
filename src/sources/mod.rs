@@ -7,13 +7,16 @@
 //!
 //! Permanent magnets:
 //! - [CylinderMagnet]
+//! - [CuboidMagnet]
 //!
 //! Magnetic source collection:
 //! - [SourceCollection]
 //! - [MultiSourceCollection]
 
+mod cuboid;
 mod cylinder;
 mod source;
 
+pub use cuboid::*;
 pub use cylinder::*;
 pub use source::*;

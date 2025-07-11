@@ -383,7 +383,7 @@ mod single_source_collection_tests {
         let mut collection = get_cylinder_collection();
         let rotation = quat_from_rotvec(PI / 3.0, PI / 4.0, PI / 5.0);
         collection.rotate(&rotation);
-        test_B_magnet!(@small, &collection, "cylinder-collection-rotate.csv", 5e-8);
+        test_B_magnet!(@small, &collection, "cylinder-collection-rotate.csv", 1e-9);
 
         collection.rotate(&rotation.inverse());
         collection.set_orientation(rotation);
