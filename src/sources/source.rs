@@ -93,18 +93,44 @@ macro_rules! impl_transform_collection {
 
         #[inline]
         fn rotate(&mut self, rotation: &UnitQuaternion<T>) {
+            #[cfg(feature = "parallel")]
+            if self.children.len() > 5000 {
+                use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
+
+                self.children
+                    .par_iter_mut()
+                    .for_each(|source| source.rotate_anchor(rotation, &self.position));
+
+                self.orientation = rotation * self.orientation;
+                return;
+            }
+
             self.children
                 .iter_mut()
                 .for_each(|source| source.rotate_anchor(rotation, &self.position));
-
             self.orientation = rotation * self.orientation;
         }
 
         #[inline]
         fn rotate_anchor(&mut self, rotation: &UnitQuaternion<T>, anchor: &Point3<T>) {
-            self.children
-                .iter_mut()
-                .for_each(|source| source.rotate_anchor(rotation, anchor));
+            #[cfg(feature = "parallel")]
+            if self.children.len() > 5000 {
+                use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
+                self.children
+                    .par_iter_mut()
+                    .for_each(|source| source.rotate_anchor(rotation, anchor));
+            } else {
+                self.children
+                    .iter_mut()
+                    .for_each(|source| source.rotate_anchor(rotation, anchor));
+            }
+            
+            #[cfg(not(feature = "parallel"))]
+            {
+                self.children
+                    .iter_mut()
+                    .for_each(|source| source.rotate_anchor(rotation, anchor));
+            }
 
             let local_position = self.position - anchor;
             self.position = Point3::from(rotation * local_position + Vector3::from(anchor.coords));
