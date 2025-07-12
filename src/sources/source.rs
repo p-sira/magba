@@ -161,7 +161,7 @@ macro_rules! impl_field_collection {
 /// use magba::sources::*;
 /// use nalgebra::{Point3, UnitQuaternion, Vector3};
 ///
-/// let magnet = CylinderMagnet::default();
+/// let magnet = CylinderMagnet::<f64>::default();
 /// let mut collection = SourceCollection::default();
 /// collection.add(magnet);
 /// ```
@@ -258,7 +258,7 @@ impl<S: Source<T>, T: Float> Field<T> for SourceCollection<S, T> {
 /// use magba::sources::*;
 /// use nalgebra::{Point3, UnitQuaternion, Vector3};
 ///
-/// let mut collection = MultiSourceCollection::default();
+/// let mut collection = MultiSourceCollection::<f64>::default();
 /// collection.add(Box::new(CylinderMagnet::default()));
 /// collection.add(Box::new(CuboidMagnet::default()));
 /// ```
