@@ -43,7 +43,7 @@ pub fn load_matrix_from_csv<T: RealField + FromStr + Debug>(path: &Path) -> DMat
         }
 
         for field in record.iter() {
-            let value: T = field.parse().unwrap_or_else(|e| {
+            let value: T = field.parse().unwrap_or_else(|_| {
                 panic!("Failed to parse '{}' as f64 on row {}", field, nrows + 1)
             });
             data.push(value);
