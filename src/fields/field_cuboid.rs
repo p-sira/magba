@@ -7,7 +7,7 @@ use std::iter::Sum;
 use nalgebra::{Matrix3, Point3, RealField, UnitQuaternion, Vector3};
 use numeric_literals::replace_float_literals;
 
-use crate::{compute_in_local, crate_util::impl_parallel};
+use crate::{geometry::compute_in_local, crate_util::impl_parallel};
 
 /// Compute B-field of a homogeneous cuboid magnet at point (x, y, z) in the local frame.
 ///

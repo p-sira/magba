@@ -16,7 +16,7 @@ use numeric_literals::replace_float_literals;
 
 use crate::crate_util::impl_parallel;
 use crate::geometry::{cart2cyl, vec_cyl2cart};
-use crate::{compute_in_local, Float};
+use crate::{geometry::compute_in_local, Float};
 use num_traits::Float as NumFloat;
 
 /// Compute B-field of a cylindrical magnet with unit axial (z-axis) polarization

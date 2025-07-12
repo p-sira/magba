@@ -24,7 +24,6 @@ pub fn vec_cyl2cart<T: RealField + Copy>(r: T, phi: T, theta: T) -> (T, T) {
 
 /// Convenience macro for transforming function arguments to local frame
 /// and convert back the result to global frame.
-#[macro_export]
 macro_rules! compute_in_local {
     ($func: ident, $point: expr, $position: expr, $orientation: expr, ($($func_args:expr),*),) => {
         {
@@ -34,6 +33,7 @@ macro_rules! compute_in_local {
         }
     };
 }
+pub(crate) use compute_in_local;
 
 /// Transform global point to the local frame of the object.
 pub fn local_point<T: RealField + Copy>(
