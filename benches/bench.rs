@@ -5,7 +5,7 @@
 
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use magba::{
-    field_cylinder::global_cyl_B,
+    field_cylinder::global_cylinder_B,
     sources::{CylinderMagnet, Field},
 };
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
@@ -53,7 +53,7 @@ fn bench_cylinder_B_parallel_vs_serial(c: &mut Criterion) {
                     .points
                     .iter()
                     .map(|p| {
-                        global_cyl_B(
+                        global_cylinder_B(
                             p,
                             &test_data.position,
                             &test_data.orientation,
@@ -73,7 +73,7 @@ fn bench_cylinder_B_parallel_vs_serial(c: &mut Criterion) {
                     .points
                     .par_iter()
                     .map(|p| {
-                        global_cyl_B(
+                        global_cylinder_B(
                             p,
                             &test_data.position,
                             &test_data.orientation,

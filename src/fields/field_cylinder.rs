@@ -232,7 +232,7 @@ pub fn cylinder_B_cyl<T: RealField + Copy + Float + BulirschConst>(
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. https://doi.org/10.1016/j.softx.2020.100466.
 #[allow(non_snake_case)]
 #[inline]
-pub fn local_cyl_B<T: RealField + Copy + Float + BulirschConst>(
+pub fn local_cylinder_B<T: RealField + Copy + Float + BulirschConst>(
     point: &Point3<T>,
     radius: T,
     height: T,
@@ -277,7 +277,7 @@ pub fn global_cylinder_B<T: RealField + Copy + Float + BulirschConst>(
     polarization: &Vector3<T>,
 ) -> Vector3<T> {
     compute_in_local!(
-        local_cyl_B,
+        local_cylinder_B,
         &point,
         &position,
         &orientation,
