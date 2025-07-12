@@ -2,6 +2,8 @@
 //!
 //! Based on Yang (1990), Engel-Herbert (2005), Camacho (2013), Cichon (2019), and MagpyLib.
 
+use std::iter::Sum;
+
 use nalgebra::{Matrix3, Point3, RealField, UnitQuaternion, Vector3};
 use numeric_literals::replace_float_literals;
 
@@ -237,13 +239,13 @@ pub fn cuboid_B<T: RealField + Copy>(
 /// # Returns
 /// - Net B-field vectors at each observer (T)
 #[allow(non_snake_case)]
-pub fn sum_multiple_cuboid_B(
-    points: &[Point3<f64>],
-    positions: &[Point3<f64>],
-    orientations: &[UnitQuaternion<f64>],
-    dimensions: &[Vector3<f64>],
-    polarizations: &[Vector3<f64>],
-) -> Vec<Vector3<f64>> {
+pub fn sum_multiple_cuboid_B<T: RealField + Copy + Sum>(
+    points: &[Point3<T>],
+    positions: &[Point3<T>],
+    orientations: &[UnitQuaternion<T>],
+    dimensions: &[Vector3<T>],
+    polarizations: &[Vector3<T>],
+) -> Vec<Vector3<T>> {
     if positions.len() != orientations.len()
         || positions.len() != dimensions.len()
         || positions.len() != polarizations.len()
@@ -263,7 +265,7 @@ pub fn sum_multiple_cuboid_B(
             })
             .collect::<Vec<Vec<_>>>();
 
-        let net_vectors: Vec<Vector3<f64>> = (0..points.len())
+        let net_vectors: Vec<Vector3<_>> = (0..points.len())
             .map(|i| vectors.iter().map(|v| v[i]).sum())
             .collect();
         net_vectors
