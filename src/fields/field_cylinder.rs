@@ -12,11 +12,11 @@ use std::iter::Sum;
 use ellip::bulirsch::BulirschConst;
 use ellip::{cel, ellipe, ellipk};
 use nalgebra::{Point3, RealField, UnitQuaternion, Vector3};
-use num_traits::Float;
 use numeric_literals::replace_float_literals;
 
-use crate::compute_in_local;
 use crate::geometry::{cart2cyl, global_vectors, local_points, vec_cyl2cart};
+use crate::{compute_in_local, Float};
+use num_traits::Float as NumFloat;
 #[cfg(feature = "parallel")]
 use rayon::prelude::*;
 
@@ -36,21 +36,18 @@ use rayon::prelude::*;
 #[allow(non_snake_case)]
 #[inline]
 #[replace_float_literals(T::from_f64(literal).unwrap())]
-pub fn unit_axial_cyl_B_cyl<T>(r: T, z: T, z0: T) -> Vector3<T>
-where
-    T: RealField + Copy + Float + BulirschConst,
-{
+pub fn unit_axial_cyl_B_cyl<T: Float + Copy>(r: T, z: T, z0: T) -> Vector3<T> {
     let (zp, zm) = (z + z0, z - z0);
     let (rp, rm) = (1.0 + r, 1.0 - r);
 
     let (zp2, zm2) = (zp * zp, zm * zm);
     let (rp2, rm2) = (rp * rp, rm * rm);
 
-    let sq0 = Float::sqrt(zm2 + rp2);
-    let sq1 = Float::sqrt(zp2 + rp2);
+    let sq0 = NumFloat::sqrt(zm2 + rp2);
+    let sq1 = NumFloat::sqrt(zp2 + rp2);
 
-    let kp = Float::sqrt((zp2 + rm2) / (zp2 + rp2));
-    let km = Float::sqrt((zm2 + rm2) / (zm2 + rp2));
+    let kp = NumFloat::sqrt((zp2 + rm2) / (zp2 + rp2));
+    let km = NumFloat::sqrt((zm2 + rm2) / (zm2 + rp2));
 
     let gamma = rm / rp;
     let gamma2 = gamma * gamma;
@@ -96,7 +93,7 @@ where
         let (zpp3, zmm3) = (zpp2 * zpp, zmm2 * zmm);
         let (zpp4, zmm4) = (zpp3 * zpp, zmm3 * zmm);
         let (zpp5, zmm5) = (zpp4 * zpp, zmm4 * zmm);
-        let (sqrt_p, sqrt_m) = (Float::sqrt(zpp), Float::sqrt(zmm));
+        let (sqrt_p, sqrt_m) = (NumFloat::sqrt(zpp), NumFloat::sqrt(zmm));
         let (frac1, frac2) = (zp / sqrt_p, zm / sqrt_m);
 
         let r3 = r2 * r;
@@ -108,9 +105,9 @@ where
         let term3 =
             ((3.0 - 4.0 * zp2) * frac1 / zpp4 - (3.0 - 4.0 * zm2) * frac2 / zmm4) / 64.0 * r4;
 
-        let br = -Float::cos(phi) / 4.0 * (term1 + 9.0 * term2 + 25.0 * term3);
-        let bphi = Float::sin(phi) / 4.0 * (term1 + 3.0 * term2 + 5.0 * term3);
-        let bz = -Float::cos(phi) / 4.0
+        let br = -NumFloat::cos(phi) / 4.0 * (term1 + 9.0 * term2 + 25.0 * term3);
+        let bphi = NumFloat::sin(phi) / 4.0 * (term1 + 3.0 * term2 + 5.0 * term3);
+        let bz = -NumFloat::cos(phi) / 4.0
             * (r * (1.0 / zpp / sqrt_p - 1.0 / zmm / sqrt_m)
                 + 3.0 / 8.0
                     * r3
@@ -127,7 +124,7 @@ where
     let (rp2, rm2) = (rp * rp, rm * rm);
 
     let (ap2, am2) = (zp2 + rm2, zm2 + rm2);
-    let (ap, am) = (Float::sqrt(ap2), Float::sqrt(am2));
+    let (ap, am) = (NumFloat::sqrt(ap2), NumFloat::sqrt(am2));
 
     let (argp, argm) = (-4.0 * r / ap2, -4.0 * r / am2);
 
@@ -142,23 +139,23 @@ where
     let (ellk_p, ellk_m) = (ellipk(argp).unwrap(), ellipk(argm).unwrap());
     let (elle_p, elle_m) = (ellipe(argp).unwrap(), ellipe(argm).unwrap());
     let (ellpi_p, ellpi_m) = (
-        cel(Float::sqrt(1.0 - argp), 1.0 - argc, 1.0, 1.0).unwrap(),
-        cel(Float::sqrt(1.0 - argm), 1.0 - argc, 1.0, 1.0).unwrap(),
+        cel(NumFloat::sqrt(1.0 - argp), 1.0 - argc, 1.0, 1.0).unwrap(),
+        cel(NumFloat::sqrt(1.0 - argm), 1.0 - argc, 1.0, 1.0).unwrap(),
     );
 
     // Compute the fields
-    let br = -Float::cos(phi) / (4.0 * T::pi() * r2)
+    let br = -NumFloat::cos(phi) / (4.0 * T::pi() * r2)
         * (-zm * am * elle_m + zp * ap * elle_p + zm / am * (2.0 + zm2) * ellk_m
             - zp / ap * (2.0 + zp2) * ellk_p
             + (zm / am * ellpi_m - zp / ap * ellpi_p) * rp * (r2 + 1.0) * one_over_rm);
 
-    let bphi = Float::sin(phi) / (4.0 * T::pi() * r2)
+    let bphi = NumFloat::sin(phi) / (4.0 * T::pi() * r2)
         * (zm * am * elle_m - zp * ap * elle_p - zm / am * (2.0 + zm2 + 2.0 * r2) * ellk_m
             + zp / ap * (2.0 + zp2 + 2.0 * r2) * ellk_p
             + zm / am * rp2 * ellpi_m
             - zp / ap * rp2 * ellpi_p);
 
-    let bz = -Float::cos(phi) / (2.0 * T::pi() * r)
+    let bz = -NumFloat::cos(phi) / (2.0 * T::pi() * r)
         * (am * elle_m - ap * elle_p - (1.0 + zm2 + r2) / am * ellk_m
             + (1.0 + zp2 + r2) / ap * ellk_p);
 
@@ -200,8 +197,8 @@ pub fn cyl_B_cyl<T: RealField + Copy + Float + BulirschConst>(
     let z0 = (height / 2.0) / radius;
 
     // Check if point is on Cylinder edge
-    let is_close = |a, b, rtol| Float::abs(a - b) < rtol * Float::abs(b);
-    if is_close(r, 1.0, 1e-15) && is_close(Float::abs(z), z0, 1e-15) {
+    let is_close = |a, b, rtol| NumFloat::abs(a - b) < rtol * NumFloat::abs(b);
+    if is_close(r, 1.0, 1e-15) && is_close(NumFloat::abs(z), z0, 1e-15) {
         return Vector3::zeros();
     }
 
@@ -248,7 +245,7 @@ pub fn local_cyl_B<T: RealField + Copy + Float + BulirschConst>(
 
     let (bx, by) = vec_cyl2cart(b_cyl.x, b_cyl.y, phi);
     // Check if point is in the magnet
-    if r <= radius && Float::abs(point.z) <= height / T::from(2.0).unwrap() {
+    if r <= radius && NumFloat::abs(point.z) <= height / T::from(2.0).unwrap() {
         return Vector3::new(bx + pol.x, by + pol.y, b_cyl.z);
     }
 
