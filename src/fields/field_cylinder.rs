@@ -347,7 +347,7 @@ pub fn sum_multiple_cylinder_B<T: RealField + Copy + Float + BulirschConst + Sum
         || positions.len() != heights.len()
         || positions.len() != polarizations.len()
     {
-        panic!("sum_multiple_cyl_b: Length of input vectors must be equal.");
+        panic!("Lengths of input vectors must be equal.");
     }
 
     #[cfg(feature = "parallel")]

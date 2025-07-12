@@ -82,7 +82,7 @@ impl<T: Float> CuboidMagnet<T> {
     ) -> Self {
         dimensions.iter().for_each(|&elem| {
             if elem < T::zero() {
-                panic!("CuboidMagnet: Dimensions must be non-negative.")
+                panic!("Dimensions must be non-negative.")
             }
         });
         CuboidMagnet {

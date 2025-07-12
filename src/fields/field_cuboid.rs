@@ -250,7 +250,7 @@ pub fn sum_multiple_cuboid_B<T: RealField + Copy + Sum>(
         || positions.len() != dimensions.len()
         || positions.len() != polarizations.len()
     {
-        panic!("sum_multiple_cuboid_B: Length of input vectors must be equal.");
+        panic!("Lengths of input vectors must be equal.");
     }
 
     #[cfg(feature = "parallel")]
