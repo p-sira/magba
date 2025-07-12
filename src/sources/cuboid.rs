@@ -11,7 +11,7 @@ use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 use super::{Field, Source};
 use crate::crate_util;
 use crate::geometry::Transform;
-use crate::{fields, impl_transform};
+use crate::{fields, impl_transform, Float};
 
 use std::fmt::Display;
 
@@ -36,21 +36,21 @@ use std::fmt::Display;
 /// );
 /// ```
 #[derive(Debug, Clone, PartialEq, Default, Getters, Setters)]
-pub struct CuboidMagnet {
+pub struct CuboidMagnet<T: Float> {
     /// Center of the cuboid (m)
-    position: Point3<f64>,
+    position: Point3<T>,
     /// Orientation as a unit quaternion
-    orientation: UnitQuaternion<f64>,
+    orientation: UnitQuaternion<T>,
     /// Polarization vector (T)
     #[getset(get = "pub", set = "pub")]
-    polarization: Vector3<f64>,
+    polarization: Vector3<T>,
 
     /// Cuboid dimensions (m)
     #[getset(get = "pub", set = "pub")]
-    dimensions: Vector3<f64>,
+    dimensions: Vector3<T>,
 }
 
-impl CuboidMagnet {
+impl<T: Float> CuboidMagnet<T> {
     /// Create a new [`CuboidMagnet`].
     ///
     /// # Arguments
@@ -75,13 +75,13 @@ impl CuboidMagnet {
     /// );
     /// ```
     pub fn new(
-        position: Point3<f64>,
-        orientation: UnitQuaternion<f64>,
-        polarization: Vector3<f64>,
-        dimensions: Vector3<f64>,
+        position: Point3<T>,
+        orientation: UnitQuaternion<T>,
+        polarization: Vector3<T>,
+        dimensions: Vector3<T>,
     ) -> Self {
         dimensions.iter().for_each(|&elem| {
-            if elem < 0.0 {
+            if elem < T::zero() {
                 panic!("CuboidMagnet: Dimensions must be non-negative.")
             }
         });
@@ -94,12 +94,14 @@ impl CuboidMagnet {
     }
 }
 
-impl Source for CuboidMagnet {}
+impl<T: Float> Source<T> for CuboidMagnet<T> {}
 
-impl_transform!(CuboidMagnet);
+impl<T: Float> Transform<T> for CuboidMagnet<T> {
+    impl_transform!();
+}
 
-impl Field for CuboidMagnet {
-    fn get_B(&self, points: &[Point3<f64>]) -> Vec<Vector3<f64>> {
+impl<T: Float> Field<T> for CuboidMagnet<T> {
+    fn get_B(&self, points: &[Point3<T>]) -> Vec<Vector3<T>> {
         fields::cuboid_B(
             points,
             &self.position,
@@ -110,7 +112,7 @@ impl Field for CuboidMagnet {
     }
 }
 
-impl Display for CuboidMagnet {
+impl<T: Float> Display for CuboidMagnet<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -198,7 +200,7 @@ mod tests {
 
     #[test]
     fn test_cuboid_display() {
-        let magnet = CuboidMagnet::default();
+        let magnet = CuboidMagnet::<f64>::default();
         assert_eq!(
             "CuboidMagnet (dim=[0, 0, 0], pol=[0, 0, 0]) at pos=[0, 0, 0], q=[0, 0, 0, 1]",
             format!("{}", magnet)

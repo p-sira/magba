@@ -7,13 +7,9 @@
 
 use getset::{Getters, Setters};
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
-
-use super::{Field, Source};
-use crate::crate_util;
-use crate::geometry::Transform;
-use crate::{fields, impl_transform};
-
 use std::fmt::Display;
+
+use crate::{crate_util, fields, geometry::Transform, impl_transform, Field, Float, Source};
 
 /// Uniformly magnetized cylindrical magnet in 3D space.
 ///
@@ -38,24 +34,24 @@ use std::fmt::Display;
 /// );
 /// ```
 #[derive(Debug, Clone, PartialEq, Default, Getters, Setters)]
-pub struct CylinderMagnet {
+pub struct CylinderMagnet<T: Float> {
     /// Center of the cylinder (m)
-    position: Point3<f64>,
+    position: Point3<T>,
     /// Orientation as a unit quaternion
-    orientation: UnitQuaternion<f64>,
+    orientation: UnitQuaternion<T>,
     /// Polarization vector (T)
     #[getset(get = "pub", set = "pub")]
-    polarization: Vector3<f64>,
+    polarization: Vector3<T>,
 
     /// Cylinder radius (m)
     #[getset(get = "pub", set = "pub")]
-    radius: f64,
+    radius: T,
     /// Cylinder height (m)
     #[getset(get = "pub", set = "pub")]
-    height: f64,
+    height: T,
 }
 
-impl CylinderMagnet {
+impl<T: Float> CylinderMagnet<T> {
     /// Create a new [`CylinderMagnet`].
     ///
     /// # Arguments
@@ -82,11 +78,11 @@ impl CylinderMagnet {
     /// );
     /// ```
     pub fn new(
-        position: Point3<f64>,
-        orientation: UnitQuaternion<f64>,
-        polarization: Vector3<f64>,
-        radius: f64,
-        height: f64,
+        position: Point3<T>,
+        orientation: UnitQuaternion<T>,
+        polarization: Vector3<T>,
+        radius: T,
+        height: T,
     ) -> Self {
         CylinderMagnet {
             position,
@@ -98,12 +94,14 @@ impl CylinderMagnet {
     }
 }
 
-impl Source for CylinderMagnet {}
+impl<T: Float> Source<T> for CylinderMagnet<T> {}
 
-impl_transform!(CylinderMagnet);
+impl<T: Float> Transform<T> for CylinderMagnet<T> {
+    impl_transform!();
+}
 
-impl Field for CylinderMagnet {
-    fn get_B(&self, points: &[Point3<f64>]) -> Vec<Vector3<f64>> {
+impl<T: Float> Field<T> for CylinderMagnet<T> {
+    fn get_B(&self, points: &[Point3<T>]) -> Vec<Vector3<T>> {
         fields::cyl_B(
             points,
             &self.position,
@@ -115,7 +113,7 @@ impl Field for CylinderMagnet {
     }
 }
 
-impl Display for CylinderMagnet {
+impl<T: Float> Display for CylinderMagnet<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -245,7 +243,7 @@ mod tests {
 
     #[test]
     fn test_cylinder_display() {
-        let magnet = CylinderMagnet::default();
+        let magnet = CylinderMagnet::<f64>::default();
         assert_eq!(
             "CylinderMagnet (r=0, h=0, pol=[0, 0, 0]) at pos=[0, 0, 0], q=[0, 0, 0, 1]",
             format!("{}", magnet)

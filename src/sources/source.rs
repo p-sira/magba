@@ -10,15 +10,15 @@
 //! - [`SourceCollection<S>`]: Stack-allocated collection of a single source type, supports adding sources and computing net field.
 //! - [`MultiSourceCollection`]: Collection of heterogeneous sources (`Box<dyn Source>`), supports adding sources and computing net field.
 
-use std::{fmt::Debug, fmt::Display};
+use std::fmt::{Debug, Display};
 
-use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
+use nalgebra::{Point3, RealField, Translation3, UnitQuaternion, Vector3};
 
-use crate::{crate_util, geometry::Transform};
+use crate::{crate_util, geometry::Transform, Float};
 
 /// Trait shared by objects that generate magnetic field.
 #[allow(non_snake_case)]
-pub trait Field {
+pub trait Field<T: RealField + Copy> {
     /// Compute the magnetic field (B) at the given points.
     ///
     /// # Arguments
@@ -26,13 +26,16 @@ pub trait Field {
     ///
     /// # Returns
     /// - B-field vectors at each observer.
-    fn get_B(&self, points: &[Point3<f64>]) -> Vec<Vector3<f64>>;
+    fn get_B(&self, points: &[Point3<T>]) -> Vec<Vector3<T>>;
 }
 
 /// Trait shared by magnetic sources.
 ///
 /// Requires [`Transform`] and [`Field`].
-pub trait Source: Transform + Field + Debug + Send + Sync + Display {}
+pub trait Source<T: RealField + Copy>:
+    Transform<T> + Field<T> + Debug + Send + Sync + Display
+{
+}
 
 macro_rules! impl_default {
     () => {
@@ -50,17 +53,17 @@ macro_rules! impl_default {
 macro_rules! impl_transform_collection {
     () => {
         #[inline]
-        fn position(&self) -> Point3<f64> {
+        fn position(&self) -> Point3<T> {
             self.position
         }
 
         #[inline]
-        fn orientation(&self) -> UnitQuaternion<f64> {
+        fn orientation(&self) -> UnitQuaternion<T> {
             self.orientation
         }
 
         #[inline]
-        fn set_position(&mut self, position: Point3<f64>) {
+        fn set_position(&mut self, position: Point3<T>) {
             let translation = Translation3::from(position - &self.position);
             self.children
                 .iter_mut()
@@ -70,7 +73,7 @@ macro_rules! impl_transform_collection {
         }
 
         #[inline]
-        fn set_orientation(&mut self, orientation: UnitQuaternion<f64>) {
+        fn set_orientation(&mut self, orientation: UnitQuaternion<T>) {
             let rotation = orientation * &self.orientation.inverse();
             self.children
                 .iter_mut()
@@ -80,7 +83,7 @@ macro_rules! impl_transform_collection {
         }
 
         #[inline]
-        fn translate(&mut self, translation: &Translation3<f64>) {
+        fn translate(&mut self, translation: &Translation3<T>) {
             self.children
                 .iter_mut()
                 .for_each(|source| source.translate(translation));
@@ -89,7 +92,7 @@ macro_rules! impl_transform_collection {
         }
 
         #[inline]
-        fn rotate(&mut self, rotation: &UnitQuaternion<f64>) {
+        fn rotate(&mut self, rotation: &UnitQuaternion<T>) {
             self.children
                 .iter_mut()
                 .for_each(|source| source.rotate_anchor(rotation, &self.position));
@@ -98,7 +101,7 @@ macro_rules! impl_transform_collection {
         }
 
         #[inline]
-        fn rotate_anchor(&mut self, rotation: &UnitQuaternion<f64>, anchor: &Point3<f64>) {
+        fn rotate_anchor(&mut self, rotation: &UnitQuaternion<T>, anchor: &Point3<T>) {
             self.children
                 .iter_mut()
                 .for_each(|source| source.rotate_anchor(rotation, anchor));
@@ -114,7 +117,7 @@ macro_rules! impl_transform_collection {
 macro_rules! impl_field_collection {
     () => {
         #[inline]
-        fn get_B(&self, points: &[Point3<f64>]) -> Vec<Vector3<f64>> {
+        fn get_B(&self, points: &[Point3<T>]) -> Vec<Vector3<T>> {
             let mut net_field = vec![Vector3::zeros(); points.len()];
             #[cfg(feature = "parallel")]
             {
@@ -163,17 +166,17 @@ macro_rules! impl_field_collection {
 /// collection.add(magnet);
 /// ```
 #[derive(Debug)]
-pub struct SourceCollection<S: Source> {
+pub struct SourceCollection<S: Source<T>, T: Float> {
     /// Center of the collection (m), where the children reference
-    position: Point3<f64>,
+    position: Point3<T>,
     /// Orientation of the collection, where the children reference
-    orientation: UnitQuaternion<f64>,
+    orientation: UnitQuaternion<T>,
 
     /// An ordered-vec of homogeneous magnetic sources
     children: Vec<S>,
 }
 
-impl<S: Source + PartialEq> PartialEq for SourceCollection<S> {
+impl<S: Source<T> + PartialEq, T: Float> PartialEq for SourceCollection<S, T> {
     fn eq(&self, other: &Self) -> bool {
         self.position == other.position
             && self.orientation == other.orientation
@@ -187,11 +190,11 @@ impl<S: Source + PartialEq> PartialEq for SourceCollection<S> {
     }
 }
 
-impl<S: Source> Source for SourceCollection<S> {}
+impl<S: Source<T>, T: Float> Source<T> for SourceCollection<S, T> {}
 
-impl<S: Source> SourceCollection<S> {
+impl<S: Source<T>, T: Float> SourceCollection<S, T> {
     /// Initialize [`SourceCollection`].
-    pub fn new(position: Point3<f64>, orientation: UnitQuaternion<f64>, sources: Vec<S>) -> Self {
+    pub fn new(position: Point3<T>, orientation: UnitQuaternion<T>, sources: Vec<S>) -> Self {
         Self {
             position,
             orientation,
@@ -210,7 +213,7 @@ impl<S: Source> SourceCollection<S> {
     }
 }
 
-impl<S: Source> Display for SourceCollection<S> {
+impl<S: Source<T>, T: Float> Display for SourceCollection<S, T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let len = self.children.len();
         writeln!(
@@ -231,15 +234,15 @@ impl<S: Source> Display for SourceCollection<S> {
     }
 }
 
-impl<S: Source> Default for SourceCollection<S> {
+impl<S: Source<T>, T: Float> Default for SourceCollection<S, T> {
     impl_default!();
 }
 
-impl<S: Source> Transform for SourceCollection<S> {
+impl<S: Source<T>, T: Float> Transform<T> for SourceCollection<S, T> {
     impl_transform_collection!();
 }
 
-impl<S: Source> Field for SourceCollection<S> {
+impl<S: Source<T>, T: Float> Field<T> for SourceCollection<S, T> {
     impl_field_collection!();
 }
 
@@ -260,24 +263,24 @@ impl<S: Source> Field for SourceCollection<S> {
 /// collection.add(Box::new(CuboidMagnet::default()));
 /// ```
 #[derive(Debug)]
-pub struct MultiSourceCollection {
+pub struct MultiSourceCollection<T: Float> {
     /// Center of the collection (m), where the children reference
-    position: Point3<f64>,
+    position: Point3<T>,
     /// Orientation of the collection, where the children reference
-    orientation: UnitQuaternion<f64>,
+    orientation: UnitQuaternion<T>,
 
     /// An ordered-vec of heterogeneous magnetic sources
-    children: Vec<Box<dyn Source>>,
+    children: Vec<Box<dyn Source<T>>>,
 }
 
-impl Source for MultiSourceCollection {}
+impl<T: Float> Source<T> for MultiSourceCollection<T> {}
 
-impl MultiSourceCollection {
+impl<T: Float> MultiSourceCollection<T> {
     /// Initialize [`MultiSourceCollection`].
     pub fn new(
-        position: Point3<f64>,
-        orientation: UnitQuaternion<f64>,
-        sources: Vec<Box<dyn Source>>,
+        position: Point3<T>,
+        orientation: UnitQuaternion<T>,
+        sources: Vec<Box<dyn Source<T>>>,
     ) -> Self {
         Self {
             position,
@@ -287,21 +290,21 @@ impl MultiSourceCollection {
     }
 
     /// Add [`Source`] to the collection.
-    pub fn add(&mut self, source: Box<dyn Source>) {
+    pub fn add(&mut self, source: Box<dyn Source<T>>) {
         self.children.push(source);
     }
 
     /// Add multiple [`Source`] to the collection.
-    pub fn add_sources(&mut self, source: &mut Vec<Box<dyn Source>>) {
+    pub fn add_sources(&mut self, source: &mut Vec<Box<dyn Source<T>>>) {
         self.children.append(source);
     }
 }
 
-impl Default for MultiSourceCollection {
+impl<T: Float> Default for MultiSourceCollection<T> {
     impl_default!();
 }
 
-impl Display for MultiSourceCollection {
+impl<T: Float> Display for MultiSourceCollection<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let len = self.children.len();
         writeln!(
@@ -322,11 +325,11 @@ impl Display for MultiSourceCollection {
     }
 }
 
-impl Transform for MultiSourceCollection {
+impl<T: Float> Transform<T> for MultiSourceCollection<T> {
     impl_transform_collection!();
 }
 
-impl Field for MultiSourceCollection {
+impl<T: Float> Field<T> for MultiSourceCollection<T> {
     impl_field_collection!();
 }
 
@@ -373,7 +376,7 @@ mod cylinder_collection_tests {
     use super::*;
     use crate::{sources::*, testing_util::*};
 
-    fn get_collection() -> SourceCollection<CylinderMagnet> {
+    fn get_collection() -> SourceCollection<CylinderMagnet<f64>, f64> {
         let mut collection = SourceCollection::default();
         collection.add(CylinderMagnet::new(
             Point3::new(0.009389999999999999, 0.0, -0.006),
@@ -440,7 +443,7 @@ mod cuboid_collection_tests {
     use super::*;
     use crate::{sources::*, testing_util::*};
 
-    fn get_collection() -> SourceCollection<CuboidMagnet> {
+    fn get_collection() -> SourceCollection<CuboidMagnet<f64>, f64> {
         let mut collection = SourceCollection::default();
         collection.add(CuboidMagnet::new(
             Point3::new(0.005, 0.01, 0.015),
@@ -504,7 +507,7 @@ mod multi_source_collection_tests {
     use super::*;
     use crate::{sources::*, testing_util::*};
 
-    fn get_collection() -> MultiSourceCollection {
+    fn get_collection() -> MultiSourceCollection<f64> {
         let mut collection = MultiSourceCollection::default();
         collection.add(Box::new(CylinderMagnet::new(
             Point3::new(0.005, 0.01, 0.015),

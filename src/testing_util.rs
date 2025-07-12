@@ -5,14 +5,20 @@
 
 //! Testing utilities.
 
-use std::{fs::File, io::BufReader, path::Path};
+use std::{
+    fmt::{Debug, LowerExp},
+    fs::File,
+    io::BufReader,
+    path::Path,
+    str::FromStr,
+};
 
 use csv::ReaderBuilder;
-use nalgebra::{DMatrix, Point3, UnitQuaternion, Vector3};
+use nalgebra::{DMatrix, Point3, RealField, UnitQuaternion, Vector3};
 
 use crate::crate_util::relative_vec_distance;
 
-pub fn load_matrix_from_csv(path: &Path) -> DMatrix<f64> {
+pub fn load_matrix_from_csv<T: RealField + FromStr + Debug>(path: &Path) -> DMatrix<T> {
     let file =
         File::open(path).unwrap_or_else(|e| panic!("Cannot open file {}: {}", path.display(), e));
     let mut reader = ReaderBuilder::new()
@@ -37,13 +43,8 @@ pub fn load_matrix_from_csv(path: &Path) -> DMatrix<f64> {
         }
 
         for field in record.iter() {
-            let value: f64 = field.parse().unwrap_or_else(|e| {
-                panic!(
-                    "Failed to parse '{}' as f64 on row {}: {}",
-                    field,
-                    nrows + 1,
-                    e
-                )
+            let value: T = field.parse().unwrap_or_else(|e| {
+                panic!("Failed to parse '{}' as f64 on row {}", field, nrows + 1)
             });
             data.push(value);
         }
@@ -54,25 +55,29 @@ pub fn load_matrix_from_csv(path: &Path) -> DMatrix<f64> {
     DMatrix::from_row_slice(nrows, ncols, &data)
 }
 
-pub fn matrix_to_point_vec(matrix: &DMatrix<f64>) -> Vec<Point3<f64>> {
+pub fn matrix_to_point_vec<T: RealField + Copy>(matrix: &DMatrix<T>) -> Vec<Point3<T>> {
     matrix
         .row_iter()
         .map(|row| Point3::new(row[0], row[1], row[2]))
         .collect()
 }
 
-pub fn matrix_to_vector_vec(matrix: &DMatrix<f64>) -> Vec<Vector3<f64>> {
+pub fn matrix_to_vector_vec<T: RealField + Copy>(matrix: &DMatrix<T>) -> Vec<Vector3<T>> {
     matrix
         .row_iter()
         .map(|row| Vector3::new(row[0], row[1], row[2]))
         .collect()
 }
 
-pub fn quat_from_rotvec(x: f64, y: f64, z: f64) -> UnitQuaternion<f64> {
+pub fn quat_from_rotvec<T: RealField + Copy>(x: T, y: T, z: T) -> UnitQuaternion<T> {
     UnitQuaternion::from_scaled_axis(Vector3::new(x, y, z))
 }
 
-pub fn assert_close_vec_vector(vecs1: &Vec<Vector3<f64>>, vecs2: &Vec<Vector3<f64>>, rtol: f64) {
+pub fn assert_close_vec_vector<T: RealField + Copy + LowerExp>(
+    vecs1: &Vec<Vector3<T>>,
+    vecs2: &Vec<Vector3<T>>,
+    rtol: T,
+) {
     let len = vecs1.len();
     if len != vecs2.len() {
         panic!("assert_close_vector fails. Two vecs of Vector3 must be the same length.")
@@ -117,9 +122,9 @@ pub fn assert_close_vec_vector(vecs1: &Vec<Vector3<f64>>, vecs2: &Vec<Vector3<f6
 
     // Serial fallback for small vectors or no parallel feature
     let mut n_fail: usize = 0;
-    let mut worst_rdist = 0.0;
-    let mut worst_params: (usize, Vector3<f64>, Vector3<f64>, f64) =
-        (0, Vector3::default(), Vector3::default(), 0.0);
+    let mut worst_rdist = T::zero();
+    let mut worst_params: (usize, Vector3<T>, Vector3<T>, T) =
+        (0, Vector3::zeros(), Vector3::zeros(), T::zero());
     vecs1
         .iter()
         .zip(vecs2)
@@ -158,11 +163,11 @@ pub mod source_testing_util {
     use crate::sources::*;
 
     #[allow(non_snake_case)]
-    pub fn compare_B_with_file<S: Source>(
+    pub fn compare_B_with_file<S: Source<T>, T: RealField + Copy + LowerExp + FromStr>(
         source: &S,
         points_path_str: &str,
         ref_path_str: &str,
-        rtol: f64,
+        rtol: T,
     ) {
         let points_path = Path::new(points_path_str);
         let ref_path = Path::new(ref_path_str);
@@ -210,5 +215,6 @@ pub mod source_testing_util {
             );
         };
     }
+    use nalgebra::RealField;
     pub(crate) use test_B_magnet;
 }

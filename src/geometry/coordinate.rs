@@ -5,10 +5,10 @@
 
 //! Coordinate conversion and calculation utilities for 3D geometry.
 
-use nalgebra::{Point3, UnitQuaternion, Vector3};
+use nalgebra::{Point3, RealField, UnitQuaternion, Vector3};
 
 /// Convert Cartesian coordinates *(x, y)* to cylindrical coordinates *(r, phi)*.
-pub fn cart2cyl(x: f64, y: f64) -> (f64, f64) {
+pub fn cart2cyl<T: RealField + Copy>(x: T, y: T) -> (T, T) {
     let r = (x * x + y * y).sqrt();
     let phi = y.atan2(x);
     (r, phi)
@@ -16,7 +16,7 @@ pub fn cart2cyl(x: f64, y: f64) -> (f64, f64) {
 
 /// Convert vector with component *(r, phi)* in cylindrical to Cartesian CS.
 /// - `theta`: Angle of the vector on XY plane
-pub fn vec_cyl2cart(r: f64, phi: f64, theta: f64) -> (f64, f64) {
+pub fn vec_cyl2cart<T: RealField + Copy>(r: T, phi: T, theta: T) -> (T, T) {
     let x = r * theta.cos() - phi * theta.sin();
     let y = r * theta.sin() + phi * theta.cos();
     (x, y)
@@ -32,20 +32,20 @@ macro_rules! compute_in_local {
 }
 
 /// Transform global point to the local frame of the object.
-pub fn local_point(
-    point: &Point3<f64>,
-    position: &Point3<f64>,
-    orientation: &UnitQuaternion<f64>,
-) -> Point3<f64> {
+pub fn local_point<T: RealField + Copy>(
+    point: &Point3<T>,
+    position: &Point3<T>,
+    orientation: &UnitQuaternion<T>,
+) -> Point3<T> {
     orientation.inverse() * Point3::from(point.coords - position.coords)
 }
 
 /// Transform multiple points in global frame to the local frame of the object.
-pub fn local_points(
-    points: &[Point3<f64>],
-    position: &Point3<f64>,
-    orientation: &UnitQuaternion<f64>,
-) -> Vec<Point3<f64>> {
+pub fn local_points<T: RealField + Copy>(
+    points: &[Point3<T>],
+    position: &Point3<T>,
+    orientation: &UnitQuaternion<T>,
+) -> Vec<Point3<T>> {
     points
         .iter()
         .map(|point| local_point(point, position, orientation))
@@ -53,15 +53,18 @@ pub fn local_points(
 }
 
 /// Transform local vector to the global frame.
-pub fn global_vector(vector: &Vector3<f64>, orientation: &UnitQuaternion<f64>) -> Vector3<f64> {
+pub fn global_vector<T: RealField + Copy>(
+    vector: &Vector3<T>,
+    orientation: &UnitQuaternion<T>,
+) -> Vector3<T> {
     orientation * vector
 }
 
 /// Transform local vectors to the global frame.
-pub fn global_vectors(
-    local_vectors: &[Vector3<f64>],
-    orientation: &UnitQuaternion<f64>,
-) -> Vec<Vector3<f64>> {
+pub fn global_vectors<T: RealField + Copy>(
+    local_vectors: &[Vector3<T>],
+    orientation: &UnitQuaternion<T>,
+) -> Vec<Vector3<T>> {
     local_vectors
         .iter()
         .map(|local_vector| global_vector(local_vector, orientation))

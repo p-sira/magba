@@ -2,8 +2,8 @@
 //!
 //! Based on Yang (1990), Engel-Herbert (2005), Camacho (2013), Cichon (2019), and MagpyLib.
 
-use nalgebra::{Matrix3, Point3, UnitQuaternion, Vector3};
-use std::f64::consts::PI;
+use nalgebra::{Matrix3, Point3, RealField, UnitQuaternion, Vector3};
+use numeric_literals::replace_float_literals;
 
 use crate::compute_in_local;
 use crate::geometry::{global_vectors, local_points};
@@ -24,11 +24,12 @@ use rayon::prelude::*;
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. https://doi.org/10.1016/j.softx.2020.100466.
 #[allow(non_snake_case)]
 #[inline]
-pub fn local_cuboid_B(
-    point: &Point3<f64>,
-    dimensions: &Vector3<f64>,
-    polarization: &Vector3<f64>,
-) -> Vector3<f64> {
+#[replace_float_literals(T::from_f64(literal).unwrap())]
+pub fn local_cuboid_B<T: RealField + Copy>(
+    point: &Point3<T>,
+    dimensions: &Vector3<T>,
+    polarization: &Vector3<T>,
+) -> Vector3<T> {
     let (mut x, mut y, mut z) = (point.x, point.y, point.z);
     let abc = dimensions / 2.0;
     let (a, b, c) = (abc.x, abc.y, abc.z);
@@ -156,7 +157,7 @@ pub fn local_cuboid_B(
     let by_tot = by_pol_x + by_pol_y + by_pol_z;
     let bz_tot = bz_pol_x + bz_pol_y + bz_pol_z;
 
-    Vector3::new(bx_tot, by_tot, bz_tot) / (4.0 * PI)
+    Vector3::new(bx_tot, by_tot, bz_tot) / (4.0 * T::pi())
 }
 
 /// Compute B-field of a homogeneous cuboid magnet at multiple points in the local frame.
@@ -173,11 +174,11 @@ pub fn local_cuboid_B(
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. https://doi.org/10.1016/j.softx.2020.100466.
 #[allow(non_snake_case)]
 #[inline]
-pub fn local_cuboid_B_vec(
-    points: &[Point3<f64>],
-    dimensions: &Vector3<f64>,
-    polarization: &Vector3<f64>,
-) -> Vec<Vector3<f64>> {
+pub fn local_cuboid_B_vec<T: RealField + Copy>(
+    points: &[Point3<T>],
+    dimensions: &Vector3<T>,
+    polarization: &Vector3<T>,
+) -> Vec<Vector3<T>> {
     #[cfg(feature = "parallel")]
     if points.len() > 60 {
         return points
@@ -205,13 +206,13 @@ pub fn local_cuboid_B_vec(
 /// # Returns
 /// - B-field vectors at each observer (T)
 #[allow(non_snake_case)]
-pub fn cuboid_B(
-    points: &[Point3<f64>],
-    position: &Point3<f64>,
-    orientation: &UnitQuaternion<f64>,
-    dimensions: &Vector3<f64>,
-    polarization: &Vector3<f64>,
-) -> Vec<Vector3<f64>> {
+pub fn cuboid_B<T: RealField + Copy>(
+    points: &[Point3<T>],
+    position: &Point3<T>,
+    orientation: &UnitQuaternion<T>,
+    dimensions: &Vector3<T>,
+    polarization: &Vector3<T>,
+) -> Vec<Vector3<T>> {
     compute_in_local!(
         local_cuboid_B_vec,
         &points,

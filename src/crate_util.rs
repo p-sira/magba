@@ -5,7 +5,7 @@
 
 //! Internal utilities for Magba
 
-use nalgebra::{distance, Point3, Vector3};
+use nalgebra::{distance, Point3, RealField, Vector3};
 
 /// Calculate the symmetric relative error
 pub fn relative_error(a: f64, b: f64) -> f64 {
@@ -33,7 +33,7 @@ pub fn is_close(a: f64, b: f64, rtol: f64) -> bool {
 }
 
 /// Calculate the relative Euclidean distance
-pub fn relative_vec_distance(a: Vector3<f64>, b: Vector3<f64>) -> f64 {
+pub fn relative_vec_distance<T: RealField + Copy>(a: Vector3<T>, b: Vector3<T>) -> T {
     let dist = distance(&Point3::from(a), &Point3::from(b));
     (dist / a.magnitude()).max(dist / b.magnitude())
 }

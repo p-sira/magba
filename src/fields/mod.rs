@@ -14,4 +14,7 @@ pub use field_cylinder::{cyl_B, sum_multiple_cyl_B};
 pub mod field_cuboid;
 pub use field_cuboid::{cuboid_B, sum_multiple_cuboid_B};
 
+pub mod field_dipole;
+// pub use field_dipole::{dipole_B};
+
 pub mod conversion;

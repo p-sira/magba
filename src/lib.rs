@@ -183,6 +183,13 @@ pub mod geometry;
 
 pub use fields::*;
 
+pub trait Float:
+    nalgebra::RealField + Copy + num_traits::Float + ellip::bulirsch::BulirschConst
+{
+}
+impl Float for f32 {}
+impl Float for f64 {}
+
 #[cfg(feature = "sources")]
 pub mod sources;
 #[cfg(feature = "sources")]

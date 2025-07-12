@@ -147,7 +147,7 @@ fn bench_rotate_parallel_vs_serial(c: &mut Criterion) {
     group.finish();
 }
 
-fn get_cylinder_collection(n: usize) -> Vec<CylinderMagnet> {
+fn get_cylinder_collection(n: usize) -> Vec<CylinderMagnet<f64>> {
     (0..n)
         .map(|_| {
             CylinderMagnet::new(

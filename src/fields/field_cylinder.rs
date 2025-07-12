@@ -7,12 +7,16 @@
 //!
 //! Based on Derby & Olbert (2010), Caciagli et al. (2018), and MagpyLib.
 
-use ellip::{cel, ellipe, ellipk};
-use nalgebra::{Point3, UnitQuaternion, Vector3};
-use std::f64::consts::PI;
+use std::iter::Sum;
 
+use ellip::bulirsch::BulirschConst;
+use ellip::{cel, ellipe, ellipk};
+use nalgebra::{Point3, RealField, UnitQuaternion, Vector3};
+use num_traits::Float;
+use numeric_literals::replace_float_literals;
+
+use crate::compute_in_local;
 use crate::geometry::{cart2cyl, global_vectors, local_points, vec_cyl2cart};
-use crate::{compute_in_local, crate_util};
 #[cfg(feature = "parallel")]
 use rayon::prelude::*;
 
@@ -31,26 +35,31 @@ use rayon::prelude::*;
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. https://doi.org/10.1016/j.softx.2020.100466.
 #[allow(non_snake_case)]
 #[inline]
-pub fn unit_axial_cyl_B_cyl(r: f64, z: f64, z0: f64) -> Vector3<f64> {
+#[replace_float_literals(T::from_f64(literal).unwrap())]
+pub fn unit_axial_cyl_B_cyl<T>(r: T, z: T, z0: T) -> Vector3<T>
+where
+    T: RealField + Copy + Float + BulirschConst,
+{
     let (zp, zm) = (z + z0, z - z0);
     let (rp, rm) = (1.0 + r, 1.0 - r);
 
     let (zp2, zm2) = (zp * zp, zm * zm);
     let (rp2, rm2) = (rp * rp, rm * rm);
 
-    let sq0 = (zm2 + rp2).sqrt();
-    let sq1 = (zp2 + rp2).sqrt();
+    let sq0 = Float::sqrt(zm2 + rp2);
+    let sq1 = Float::sqrt(zp2 + rp2);
 
-    let kp = ((zp2 + rm2) / (zp2 + rp2)).sqrt();
-    let km = ((zm2 + rm2) / (zm2 + rp2)).sqrt();
+    let kp = Float::sqrt((zp2 + rm2) / (zp2 + rp2));
+    let km = Float::sqrt((zm2 + rm2) / (zm2 + rp2));
 
     let gamma = rm / rp;
     let gamma2 = gamma * gamma;
 
-    let br = (cel(kp, 1.0, 1.0, -1.0).unwrap() / sq1 - cel(km, 1.0, 1.0, -1.0).unwrap() / sq0) / PI;
+    let br =
+        (cel(kp, 1.0, 1.0, -1.0).unwrap() / sq1 - cel(km, 1.0, 1.0, -1.0).unwrap() / sq0) / T::pi();
     let bz = (zp * cel(kp, gamma2, 1.0, gamma).unwrap() / sq1
         - zm * cel(km, gamma2, 1.0, gamma).unwrap() / sq0)
-        / (rp * PI);
+        / (rp * T::pi());
     // bphi = 0
     Vector3::new(br, 0.0, bz)
 }
@@ -70,7 +79,11 @@ pub fn unit_axial_cyl_B_cyl(r: f64, z: f64, z0: f64) -> Vector3<f64> {
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. https://doi.org/10.1016/j.softx.2020.100466.
 #[allow(non_snake_case)]
 #[inline]
-pub fn unit_diametric_cyl_B_cyl(r: f64, phi: f64, z: f64, z0: f64) -> Vector3<f64> {
+#[replace_float_literals(T::from_f64(literal).unwrap())]
+pub fn unit_diametric_cyl_B_cyl<T>(r: T, phi: T, z: T, z0: T) -> Vector3<T>
+where
+    T: RealField + Copy + Float + BulirschConst,
+{
     let (zp, zm) = (z + z0, z - z0);
     let (zp2, zm2) = (zp * zp, zm * zm);
     let r2 = r * r;
@@ -83,7 +96,7 @@ pub fn unit_diametric_cyl_B_cyl(r: f64, phi: f64, z: f64, z0: f64) -> Vector3<f6
         let (zpp3, zmm3) = (zpp2 * zpp, zmm2 * zmm);
         let (zpp4, zmm4) = (zpp3 * zpp, zmm3 * zmm);
         let (zpp5, zmm5) = (zpp4 * zpp, zmm4 * zmm);
-        let (sqrt_p, sqrt_m) = (zpp.sqrt(), zmm.sqrt());
+        let (sqrt_p, sqrt_m) = (Float::sqrt(zpp), Float::sqrt(zmm));
         let (frac1, frac2) = (zp / sqrt_p, zm / sqrt_m);
 
         let r3 = r2 * r;
@@ -95,9 +108,9 @@ pub fn unit_diametric_cyl_B_cyl(r: f64, phi: f64, z: f64, z0: f64) -> Vector3<f6
         let term3 =
             ((3.0 - 4.0 * zp2) * frac1 / zpp4 - (3.0 - 4.0 * zm2) * frac2 / zmm4) / 64.0 * r4;
 
-        let br = -phi.cos() / 4.0 * (term1 + 9.0 * term2 + 25.0 * term3);
-        let bphi = phi.sin() / 4.0 * (term1 + 3.0 * term2 + 5.0 * term3);
-        let bz = -phi.cos() / 4.0
+        let br = -Float::cos(phi) / 4.0 * (term1 + 9.0 * term2 + 25.0 * term3);
+        let bphi = Float::sin(phi) / 4.0 * (term1 + 3.0 * term2 + 5.0 * term3);
+        let bz = -Float::cos(phi) / 4.0
             * (r * (1.0 / zpp / sqrt_p - 1.0 / zmm / sqrt_m)
                 + 3.0 / 8.0
                     * r3
@@ -114,7 +127,7 @@ pub fn unit_diametric_cyl_B_cyl(r: f64, phi: f64, z: f64, z0: f64) -> Vector3<f6
     let (rp2, rm2) = (rp * rp, rm * rm);
 
     let (ap2, am2) = (zp2 + rm2, zm2 + rm2);
-    let (ap, am) = (ap2.sqrt(), am2.sqrt());
+    let (ap, am) = (Float::sqrt(ap2), Float::sqrt(am2));
 
     let (argp, argm) = (-4.0 * r / ap2, -4.0 * r / am2);
 
@@ -129,23 +142,23 @@ pub fn unit_diametric_cyl_B_cyl(r: f64, phi: f64, z: f64, z0: f64) -> Vector3<f6
     let (ellk_p, ellk_m) = (ellipk(argp).unwrap(), ellipk(argm).unwrap());
     let (elle_p, elle_m) = (ellipe(argp).unwrap(), ellipe(argm).unwrap());
     let (ellpi_p, ellpi_m) = (
-        cel((1.0 - argp).sqrt(), 1.0 - argc, 1.0, 1.0).unwrap(),
-        cel((1.0 - argm).sqrt(), 1.0 - argc, 1.0, 1.0).unwrap(),
+        cel(Float::sqrt(1.0 - argp), 1.0 - argc, 1.0, 1.0).unwrap(),
+        cel(Float::sqrt(1.0 - argm), 1.0 - argc, 1.0, 1.0).unwrap(),
     );
 
     // Compute the fields
-    let br = -phi.cos() / (4.0 * PI * r2)
+    let br = -Float::cos(phi) / (4.0 * T::pi() * r2)
         * (-zm * am * elle_m + zp * ap * elle_p + zm / am * (2.0 + zm2) * ellk_m
             - zp / ap * (2.0 + zp2) * ellk_p
             + (zm / am * ellpi_m - zp / ap * ellpi_p) * rp * (r2 + 1.0) * one_over_rm);
 
-    let bphi = phi.sin() / (4.0 * PI * r2)
+    let bphi = Float::sin(phi) / (4.0 * T::pi() * r2)
         * (zm * am * elle_m - zp * ap * elle_p - zm / am * (2.0 + zm2 + 2.0 * r2) * ellk_m
             + zp / ap * (2.0 + zp2 + 2.0 * r2) * ellk_p
             + zm / am * rp2 * ellpi_m
             - zp / ap * rp2 * ellpi_p);
 
-    let bz = -phi.cos() / (2.0 * PI * r)
+    let bz = -Float::cos(phi) / (2.0 * T::pi() * r)
         * (am * elle_m - ap * elle_p - (1.0 + zm2 + r2) / am * ellk_m
             + (1.0 + zp2 + r2) / ap * ellk_p);
 
@@ -171,34 +184,36 @@ pub fn unit_diametric_cyl_B_cyl(r: f64, phi: f64, z: f64, z0: f64) -> Vector3<f6
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. https://doi.org/10.1016/j.softx.2020.100466.
 #[allow(non_snake_case)]
 #[inline]
-pub fn cyl_B_cyl(
-    r: f64,
-    phi: f64,
-    z: f64,
-    radius: f64,
-    height: f64,
-    pol_r: f64,
-    pol_z: f64,
-) -> Vector3<f64> {
+#[replace_float_literals(T::from_f64(literal).unwrap())]
+pub fn cyl_B_cyl<T: RealField + Copy + Float + BulirschConst>(
+    r: T,
+    phi: T,
+    z: T,
+    radius: T,
+    height: T,
+    pol_r: T,
+    pol_z: T,
+) -> Vector3<T> {
     // Scale invariance
     let r = r / radius;
     let z = z / radius;
     let z0 = (height / 2.0) / radius;
 
     // Check if point is on Cylinder edge
-    if crate_util::is_close(r, 1.0, 1e-15) && crate_util::is_close(z.abs(), z0, 1e-15) {
+    let is_close = |a, b, rtol| Float::abs(a - b) < rtol * Float::abs(b);
+    if is_close(r, 1.0, 1e-15) && is_close(Float::abs(z), z0, 1e-15) {
         return Vector3::zeros();
     }
 
     // M = Mz + Mr (Caciagli et al., 2018)
     let mut b = Vector3::zeros();
     if pol_z != 0.0 {
-        let b_axial_cyl = pol_z * unit_axial_cyl_B_cyl(r, z, z0);
+        let b_axial_cyl = unit_axial_cyl_B_cyl(r, z, z0) * pol_z;
         b += b_axial_cyl;
     }
 
     if pol_r != 0.0 {
-        let b_diametric_cyl = pol_r * unit_diametric_cyl_B_cyl(r, phi, z, z0);
+        let b_diametric_cyl = unit_diametric_cyl_B_cyl(r, phi, z, z0) * pol_r;
         b += b_diametric_cyl;
     }
 
@@ -220,12 +235,12 @@ pub fn cyl_B_cyl(
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. https://doi.org/10.1016/j.softx.2020.100466.
 #[allow(non_snake_case)]
 #[inline]
-pub fn local_cyl_B(
-    point: &Point3<f64>,
-    radius: f64,
-    height: f64,
-    pol: &Vector3<f64>,
-) -> Vector3<f64> {
+pub fn local_cyl_B<T: RealField + Copy + Float + BulirschConst>(
+    point: &Point3<T>,
+    radius: T,
+    height: T,
+    pol: &Vector3<T>,
+) -> Vector3<T> {
     let (r, phi) = cart2cyl(point.x, point.y);
     let (pol_r, theta) = cart2cyl(pol.x, pol.y);
 
@@ -233,7 +248,7 @@ pub fn local_cyl_B(
 
     let (bx, by) = vec_cyl2cart(b_cyl.x, b_cyl.y, phi);
     // Check if point is in the magnet
-    if r <= radius && point.z.abs() <= height / 2.0 {
+    if r <= radius && Float::abs(point.z) <= height / T::from(2.0).unwrap() {
         return Vector3::new(bx + pol.x, by + pol.y, b_cyl.z);
     }
 
@@ -255,12 +270,12 @@ pub fn local_cyl_B(
 /// Otherwise, the calculation is parallel (need `parallel` feature).
 #[allow(non_snake_case)]
 #[inline]
-pub fn local_cyl_B_vec(
-    points: &[Point3<f64>],
-    radius: f64,
-    height: f64,
-    pol: &Vector3<f64>,
-) -> Vec<Vector3<f64>> {
+pub fn local_cyl_B_vec<T: RealField + Copy + Float + BulirschConst>(
+    points: &[Point3<T>],
+    radius: T,
+    height: T,
+    pol: &Vector3<T>,
+) -> Vec<Vector3<T>> {
     #[cfg(feature = "parallel")]
     if points.len() > 60 {
         return points
@@ -289,14 +304,14 @@ pub fn local_cyl_B_vec(
 /// # Returns
 /// - B-field vectors at each observer (T)
 #[allow(non_snake_case)]
-pub fn cyl_B(
-    points: &[Point3<f64>],
-    position: &Point3<f64>,
-    orientation: &UnitQuaternion<f64>,
-    radius: f64,
-    height: f64,
-    pol: &Vector3<f64>,
-) -> Vec<Vector3<f64>> {
+pub fn cyl_B<T: RealField + Copy + Float + BulirschConst>(
+    points: &[Point3<T>],
+    position: &Point3<T>,
+    orientation: &UnitQuaternion<T>,
+    radius: T,
+    height: T,
+    pol: &Vector3<T>,
+) -> Vec<Vector3<T>> {
     compute_in_local!(
         local_cyl_B_vec,
         &points,
@@ -319,14 +334,14 @@ pub fn cyl_B(
 /// # Returns
 /// - Net B-field vectors at each observer (T)
 #[allow(non_snake_case)]
-pub fn sum_multiple_cyl_B(
-    points: &[Point3<f64>],
-    positions: &[Point3<f64>],
-    orientations: &[UnitQuaternion<f64>],
-    radii: &[f64],
-    heights: &[f64],
-    pols: &[Vector3<f64>],
-) -> Vec<Vector3<f64>> {
+pub fn sum_multiple_cyl_B<T: RealField + Copy + Float + BulirschConst + Sum>(
+    points: &[Point3<T>],
+    positions: &[Point3<T>],
+    orientations: &[UnitQuaternion<T>],
+    radii: &[T],
+    heights: &[T],
+    pols: &[Vector3<T>],
+) -> Vec<Vector3<T>> {
     if positions.len() != orientations.len()
         || positions.len() != radii.len()
         || positions.len() != heights.len()
@@ -348,7 +363,7 @@ pub fn sum_multiple_cyl_B(
             })
             .collect::<Vec<Vec<_>>>();
 
-        let net_vectors: Vec<Vector3<f64>> = (0..points.len())
+        let net_vectors: Vec<Vector3<_>> = (0..points.len())
             .map(|i| vectors.iter().map(|v| v[i]).sum())
             .collect();
         net_vectors
