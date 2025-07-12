@@ -6,7 +6,6 @@ use nalgebra::{Matrix3, Point3, RealField, UnitQuaternion, Vector3};
 use numeric_literals::replace_float_literals;
 
 use crate::compute_in_local;
-use crate::geometry::{global_vectors, local_points};
 #[cfg(feature = "parallel")]
 use rayon::prelude::*;
 
@@ -160,10 +159,12 @@ pub fn local_cuboid_B<T: RealField + Copy>(
     Vector3::new(bx_tot, by_tot, bz_tot) / (4.0 * T::pi())
 }
 
-/// Compute B-field of a homogeneous cuboid magnet at multiple points in the local frame.
+/// Compute B-field of a homogeneous cuboid magnet at point (x, y, z).
 ///
 /// # Arguments
-/// - `points`: Observer positions (m)
+/// - `point`: Observer positions (m)
+/// - `position`: Magnet position (m)
+/// - `orientation`: Magnet orientation in unit quaternion
 /// - `dimensions`: Cuboid side lengths (m)
 /// - `polarization`: Polarization vector (T)
 ///
@@ -174,24 +175,20 @@ pub fn local_cuboid_B<T: RealField + Copy>(
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. https://doi.org/10.1016/j.softx.2020.100466.
 #[allow(non_snake_case)]
 #[inline]
-pub fn local_cuboid_B_vec<T: RealField + Copy>(
-    points: &[Point3<T>],
+pub fn global_cuboid_B<T: RealField + Copy>(
+    point: &Point3<T>,
+    position: &Point3<T>,
+    orientation: &UnitQuaternion<T>,
     dimensions: &Vector3<T>,
     polarization: &Vector3<T>,
-) -> Vec<Vector3<T>> {
-    #[cfg(feature = "parallel")]
-    if points.len() > 60 {
-        return points
-            .par_iter()
-            .map(|p| local_cuboid_B(p, dimensions, polarization))
-            .collect();
-    }
-
-    // If small number of points or not using parallel feature
-    points
-        .iter()
-        .map(|p| local_cuboid_B(p, dimensions, polarization))
-        .collect()
+) -> Vector3<T> {
+    compute_in_local!(
+        local_cuboid_B,
+        point,
+        position,
+        orientation,
+        (dimensions, polarization),
+    )
 }
 
 /// Compute B-field at points in global frame for a single cuboid magnet.
@@ -213,13 +210,19 @@ pub fn cuboid_B<T: RealField + Copy>(
     dimensions: &Vector3<T>,
     polarization: &Vector3<T>,
 ) -> Vec<Vector3<T>> {
-    compute_in_local!(
-        local_cuboid_B_vec,
-        &points,
-        (&dimensions, &polarization),
-        &position,
-        &orientation
-    )
+    #[cfg(feature = "parallel")]
+    if points.len() > 60 {
+        return points
+            .par_iter()
+            .map(|p| global_cuboid_B(p, position, orientation, dimensions, polarization))
+            .collect();
+    }
+
+    // If small number of points or not using parallel feature
+    points
+        .iter()
+        .map(|p| global_cuboid_B(p, position, orientation, dimensions, polarization))
+        .collect()
 }
 
 /// Compute net B-field at each given point in global frame for multiple cuboid magnets.

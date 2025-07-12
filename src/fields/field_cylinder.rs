@@ -14,7 +14,7 @@ use ellip::{cel, ellipe, ellipk};
 use nalgebra::{Point3, RealField, UnitQuaternion, Vector3};
 use numeric_literals::replace_float_literals;
 
-use crate::geometry::{cart2cyl, global_vectors, local_points, vec_cyl2cart};
+use crate::geometry::{cart2cyl, vec_cyl2cart};
 use crate::{compute_in_local, Float};
 use num_traits::Float as NumFloat;
 #[cfg(feature = "parallel")]
@@ -252,40 +252,37 @@ pub fn local_cyl_B<T: RealField + Copy + Float + BulirschConst>(
     Vector3::new(bx, by, b_cyl.z)
 }
 
-/// Compute B-field at multiple points in local frame.
+/// Compute B-field at point (x, y, z) of a cylindrical magnet.
 ///
 /// # Arguments
-/// - `points`: Observer positions in local frame (m)
+/// - `point`: Observer position in local frame (m)
+/// - `position`: Magnet position (m)
+/// - `orientation`: Magnet orientation in unit quaternion
 /// - `radius`: Cylinder radius (m)
 /// - `height`: Cylinder height (m)
 /// - `pol`: Polarization vector (T)
 ///
 /// # Returns
-/// - B-field vectors at each observer (T)
+/// - B-field vector at the observer (T)
 ///
-/// Serialized approach is used if the number of points is small.
-/// Otherwise, the calculation is parallel (need `parallel` feature).
+/// # References
+/// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. https://doi.org/10.1016/j.softx.2020.100466.
 #[allow(non_snake_case)]
-#[inline]
-pub fn local_cyl_B_vec<T: RealField + Copy + Float + BulirschConst>(
-    points: &[Point3<T>],
+pub fn global_cyl_B<T: RealField + Copy + Float + BulirschConst>(
+    point: &Point3<T>,
+    position: &Point3<T>,
+    orientation: &UnitQuaternion<T>,
     radius: T,
     height: T,
     pol: &Vector3<T>,
-) -> Vec<Vector3<T>> {
-    #[cfg(feature = "parallel")]
-    if points.len() > 60 {
-        return points
-            .par_iter()
-            .map(|p| local_cyl_B(p, radius, height, pol))
-            .collect();
-    }
-
-    // If small number of points or not using parallel feature
-    points
-        .iter()
-        .map(|p| local_cyl_B(p, radius, height, pol))
-        .collect()
+) -> Vector3<T> {
+    compute_in_local!(
+        local_cyl_B,
+        &point,
+        &position,
+        &orientation,
+        (radius, height, &pol),
+    )
 }
 
 /// Compute B-field at points in global frame for a single cylindrical magnet.
@@ -309,13 +306,19 @@ pub fn cyl_B<T: RealField + Copy + Float + BulirschConst>(
     height: T,
     pol: &Vector3<T>,
 ) -> Vec<Vector3<T>> {
-    compute_in_local!(
-        local_cyl_B_vec,
-        &points,
-        (radius, height, &pol),
-        &position,
-        &orientation
-    )
+    #[cfg(feature = "parallel")]
+    if points.len() > 60 {
+        return points
+            .par_iter()
+            .map(|p| global_cyl_B(p, position, orientation, radius, height, pol))
+            .collect();
+    }
+
+    // If small number of points or not using parallel feature
+    points
+        .iter()
+        .map(|p| global_cyl_B(p, position, orientation, radius, height, pol))
+        .collect()
 }
 
 /// Compute net B-field at each given point in global frame for multiple cylindrical magnets.
