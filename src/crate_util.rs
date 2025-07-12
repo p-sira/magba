@@ -85,3 +85,24 @@ macro_rules! format_quat {
     };
 }
 pub(crate) use format_quat;
+
+macro_rules! impl_parallel {
+    ($func: ident, $threshold: expr, $items: expr, $($func_args:expr),*) => {
+        {
+            #[cfg(feature = "parallel")]
+            if $items.len() > $threshold {
+                use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+                return $items
+                    .par_iter()
+                    .map(|p| $func(p, $($func_args),*))
+                    .collect();
+            }
+
+            $items
+                .iter()
+                .map(|p| $func(p, $($func_args),*))
+                .collect()
+        }
+    };
+}
+pub(crate) use impl_parallel;

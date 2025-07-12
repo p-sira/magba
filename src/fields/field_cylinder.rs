@@ -14,11 +14,10 @@ use ellip::{cel, ellipe, ellipk};
 use nalgebra::{Point3, RealField, UnitQuaternion, Vector3};
 use numeric_literals::replace_float_literals;
 
+use crate::crate_util::impl_parallel;
 use crate::geometry::{cart2cyl, vec_cyl2cart};
 use crate::{compute_in_local, Float};
 use num_traits::Float as NumFloat;
-#[cfg(feature = "parallel")]
-use rayon::prelude::*;
 
 /// Compute B-field of a cylindrical magnet with unit axial (z-axis) polarization
 /// at point (r, z) in cylindrical CS.
@@ -241,7 +240,15 @@ pub fn local_cylinder_B<T: RealField + Copy + Float + BulirschConst>(
     let (r, phi) = cart2cyl(point.x, point.y);
     let (pol_r, theta) = cart2cyl(polarization.x, polarization.y);
 
-    let b_cyl = cylinder_B_cyl(r, phi - theta, point.z, radius, height, pol_r, polarization.z);
+    let b_cyl = cylinder_B_cyl(
+        r,
+        phi - theta,
+        point.z,
+        radius,
+        height,
+        pol_r,
+        polarization.z,
+    );
 
     let (bx, by) = vec_cyl2cart(b_cyl.x, b_cyl.y, phi);
     // Check if point is in the magnet
@@ -306,19 +313,16 @@ pub fn cylinder_B<T: RealField + Copy + Float + BulirschConst>(
     height: T,
     polarization: &Vector3<T>,
 ) -> Vec<Vector3<T>> {
-    #[cfg(feature = "parallel")]
-    if points.len() > 60 {
-        return points
-            .par_iter()
-            .map(|p| global_cylinder_B(p, position, orientation, radius, height, polarization))
-            .collect();
-    }
-
-    // If small number of points or not using parallel feature
-    points
-        .iter()
-        .map(|p| global_cylinder_B(p, position, orientation, radius, height, polarization))
-        .collect()
+    impl_parallel!(
+        global_cylinder_B,
+        60,
+        points,
+        position,
+        orientation,
+        radius,
+        height,
+        polarization
+    )
 }
 
 /// Compute net B-field at each given point in global frame for multiple cylindrical magnets.
@@ -352,6 +356,8 @@ pub fn sum_multiple_cylinder_B<T: RealField + Copy + Float + BulirschConst + Sum
 
     #[cfg(feature = "parallel")]
     {
+        use rayon::iter::{IndexedParallelIterator, IntoParallelRefIterator, ParallelIterator};
+
         let vectors = positions
             .par_iter()
             .zip(orientations)

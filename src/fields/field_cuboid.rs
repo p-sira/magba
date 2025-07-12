@@ -7,9 +7,7 @@ use std::iter::Sum;
 use nalgebra::{Matrix3, Point3, RealField, UnitQuaternion, Vector3};
 use numeric_literals::replace_float_literals;
 
-use crate::compute_in_local;
-#[cfg(feature = "parallel")]
-use rayon::prelude::*;
+use crate::{compute_in_local, crate_util::impl_parallel};
 
 /// Compute B-field of a homogeneous cuboid magnet at point (x, y, z) in the local frame.
 ///
@@ -212,19 +210,15 @@ pub fn cuboid_B<T: RealField + Copy>(
     dimensions: &Vector3<T>,
     polarization: &Vector3<T>,
 ) -> Vec<Vector3<T>> {
-    #[cfg(feature = "parallel")]
-    if points.len() > 60 {
-        return points
-            .par_iter()
-            .map(|p| global_cuboid_B(p, position, orientation, dimensions, polarization))
-            .collect();
-    }
-
-    // If small number of points or not using parallel feature
-    points
-        .iter()
-        .map(|p| global_cuboid_B(p, position, orientation, dimensions, polarization))
-        .collect()
+    impl_parallel!(
+        global_cuboid_B,
+        60,
+        points,
+        position,
+        orientation,
+        dimensions,
+        polarization
+    )
 }
 
 /// Compute net B-field at each given point in global frame for multiple cuboid magnets.
@@ -255,6 +249,7 @@ pub fn sum_multiple_cuboid_B<T: RealField + Copy + Sum>(
 
     #[cfg(feature = "parallel")]
     {
+        use rayon::iter::{IndexedParallelIterator, IntoParallelRefIterator, ParallelIterator};
         let vectors = positions
             .par_iter()
             .zip(orientations)
