@@ -9,7 +9,7 @@
 //! - [`conversion`]: Utilities for converting between B-field, H-field, magnetization, and polarization.
 
 pub mod field_cylinder;
-pub use field_cylinder::{cyl_B, sum_multiple_cyl_B};
+pub use field_cylinder::{cylinder_B, sum_multiple_cylinder_B};
 
 pub mod field_cuboid;
 pub use field_cuboid::{cuboid_B, sum_multiple_cuboid_B};

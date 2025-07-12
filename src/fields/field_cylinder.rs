@@ -36,7 +36,7 @@ use rayon::prelude::*;
 #[allow(non_snake_case)]
 #[inline]
 #[replace_float_literals(T::from_f64(literal).unwrap())]
-pub fn unit_axial_cyl_B_cyl<T: Float + Copy>(r: T, z: T, z0: T) -> Vector3<T> {
+pub fn unit_axial_cylinder_B_cyl<T: Float + Copy>(r: T, z: T, z0: T) -> Vector3<T> {
     let (zp, zm) = (z + z0, z - z0);
     let (rp, rm) = (1.0 + r, 1.0 - r);
 
@@ -77,7 +77,7 @@ pub fn unit_axial_cyl_B_cyl<T: Float + Copy>(r: T, z: T, z0: T) -> Vector3<T> {
 #[allow(non_snake_case)]
 #[inline]
 #[replace_float_literals(T::from_f64(literal).unwrap())]
-pub fn unit_diametric_cyl_B_cyl<T>(r: T, phi: T, z: T, z0: T) -> Vector3<T>
+pub fn unit_diametric_cylinder_B_cyl<T>(r: T, phi: T, z: T, z0: T) -> Vector3<T>
 where
     T: RealField + Copy + Float + BulirschConst,
 {
@@ -182,7 +182,7 @@ where
 #[allow(non_snake_case)]
 #[inline]
 #[replace_float_literals(T::from_f64(literal).unwrap())]
-pub fn cyl_B_cyl<T: RealField + Copy + Float + BulirschConst>(
+pub fn cylinder_B_cyl<T: RealField + Copy + Float + BulirschConst>(
     r: T,
     phi: T,
     z: T,
@@ -205,12 +205,12 @@ pub fn cyl_B_cyl<T: RealField + Copy + Float + BulirschConst>(
     // M = Mz + Mr (Caciagli et al., 2018)
     let mut b = Vector3::zeros();
     if pol_z != 0.0 {
-        let b_axial_cyl = unit_axial_cyl_B_cyl(r, z, z0) * pol_z;
+        let b_axial_cyl = unit_axial_cylinder_B_cyl(r, z, z0) * pol_z;
         b += b_axial_cyl;
     }
 
     if pol_r != 0.0 {
-        let b_diametric_cyl = unit_diametric_cyl_B_cyl(r, phi, z, z0) * pol_r;
+        let b_diametric_cyl = unit_diametric_cylinder_B_cyl(r, phi, z, z0) * pol_r;
         b += b_diametric_cyl;
     }
 
@@ -236,17 +236,17 @@ pub fn local_cyl_B<T: RealField + Copy + Float + BulirschConst>(
     point: &Point3<T>,
     radius: T,
     height: T,
-    pol: &Vector3<T>,
+    polarization: &Vector3<T>,
 ) -> Vector3<T> {
     let (r, phi) = cart2cyl(point.x, point.y);
-    let (pol_r, theta) = cart2cyl(pol.x, pol.y);
+    let (pol_r, theta) = cart2cyl(polarization.x, polarization.y);
 
-    let b_cyl = cyl_B_cyl(r, phi - theta, point.z, radius, height, pol_r, pol.z);
+    let b_cyl = cylinder_B_cyl(r, phi - theta, point.z, radius, height, pol_r, polarization.z);
 
     let (bx, by) = vec_cyl2cart(b_cyl.x, b_cyl.y, phi);
     // Check if point is in the magnet
     if r <= radius && NumFloat::abs(point.z) <= height / T::from(2.0).unwrap() {
-        return Vector3::new(bx + pol.x, by + pol.y, b_cyl.z);
+        return Vector3::new(bx + polarization.x, by + polarization.y, b_cyl.z);
     }
 
     Vector3::new(bx, by, b_cyl.z)
@@ -260,7 +260,7 @@ pub fn local_cyl_B<T: RealField + Copy + Float + BulirschConst>(
 /// - `orientation`: Magnet orientation in unit quaternion
 /// - `radius`: Cylinder radius (m)
 /// - `height`: Cylinder height (m)
-/// - `pol`: Polarization vector (T)
+/// - `polarization`: Polarization vector (T)
 ///
 /// # Returns
 /// - B-field vector at the observer (T)
@@ -268,20 +268,20 @@ pub fn local_cyl_B<T: RealField + Copy + Float + BulirschConst>(
 /// # References
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. https://doi.org/10.1016/j.softx.2020.100466.
 #[allow(non_snake_case)]
-pub fn global_cyl_B<T: RealField + Copy + Float + BulirschConst>(
+pub fn global_cylinder_B<T: RealField + Copy + Float + BulirschConst>(
     point: &Point3<T>,
     position: &Point3<T>,
     orientation: &UnitQuaternion<T>,
     radius: T,
     height: T,
-    pol: &Vector3<T>,
+    polarization: &Vector3<T>,
 ) -> Vector3<T> {
     compute_in_local!(
         local_cyl_B,
         &point,
         &position,
         &orientation,
-        (radius, height, &pol),
+        (radius, height, &polarization),
     )
 }
 
@@ -293,31 +293,31 @@ pub fn global_cyl_B<T: RealField + Copy + Float + BulirschConst>(
 /// - `orientation`: Magnet orientation as unit quaternion
 /// - `radius`: Cylinder radius (m)
 /// - `height`: Cylinder height (m)
-/// - `pol`: Polarization vector (T)
+/// - `polarization`: Polarization vector (T)
 ///
 /// # Returns
 /// - B-field vectors at each observer (T)
 #[allow(non_snake_case)]
-pub fn cyl_B<T: RealField + Copy + Float + BulirschConst>(
+pub fn cylinder_B<T: RealField + Copy + Float + BulirschConst>(
     points: &[Point3<T>],
     position: &Point3<T>,
     orientation: &UnitQuaternion<T>,
     radius: T,
     height: T,
-    pol: &Vector3<T>,
+    polarization: &Vector3<T>,
 ) -> Vec<Vector3<T>> {
     #[cfg(feature = "parallel")]
     if points.len() > 60 {
         return points
             .par_iter()
-            .map(|p| global_cyl_B(p, position, orientation, radius, height, pol))
+            .map(|p| global_cylinder_B(p, position, orientation, radius, height, polarization))
             .collect();
     }
 
     // If small number of points or not using parallel feature
     points
         .iter()
-        .map(|p| global_cyl_B(p, position, orientation, radius, height, pol))
+        .map(|p| global_cylinder_B(p, position, orientation, radius, height, polarization))
         .collect()
 }
 
@@ -329,23 +329,23 @@ pub fn cyl_B<T: RealField + Copy + Float + BulirschConst>(
 /// - `orientations`: Magnet orientations as unit quaternions
 /// - `radii`: Cylinder radii (m)
 /// - `heights`: Cylinder heights (m)
-/// - `pols`: Polarization vectors (T)
+/// - `polarizations`: Polarization vectors (T)
 ///
 /// # Returns
 /// - Net B-field vectors at each observer (T)
 #[allow(non_snake_case)]
-pub fn sum_multiple_cyl_B<T: RealField + Copy + Float + BulirschConst + Sum>(
+pub fn sum_multiple_cylinder_B<T: RealField + Copy + Float + BulirschConst + Sum>(
     points: &[Point3<T>],
     positions: &[Point3<T>],
     orientations: &[UnitQuaternion<T>],
     radii: &[T],
     heights: &[T],
-    pols: &[Vector3<T>],
+    polarizations: &[Vector3<T>],
 ) -> Vec<Vector3<T>> {
     if positions.len() != orientations.len()
         || positions.len() != radii.len()
         || positions.len() != heights.len()
-        || positions.len() != pols.len()
+        || positions.len() != polarizations.len()
     {
         panic!("sum_multiple_cyl_b: Length of input vectors must be equal.");
     }
@@ -357,9 +357,9 @@ pub fn sum_multiple_cyl_B<T: RealField + Copy + Float + BulirschConst + Sum>(
             .zip(orientations)
             .zip(radii)
             .zip(heights)
-            .zip(pols)
+            .zip(polarizations)
             .map(|((((position, orientation), radius), height), pol)| {
-                cyl_B(points, position, orientation, *radius, *height, pol)
+                cylinder_B(points, position, orientation, *radius, *height, pol)
             })
             .collect::<Vec<Vec<_>>>();
 
@@ -378,9 +378,9 @@ pub fn sum_multiple_cyl_B<T: RealField + Copy + Float + BulirschConst + Sum>(
             .zip(orientations)
             .zip(radii)
             .zip(heights)
-            .zip(pols)
+            .zip(polarizations)
             .map(|((((position, orientation), radius), height), pol)| {
-                cyl_B(points, position, orientation, *radius, *height, pol)
+                cylinder_B(points, position, orientation, *radius, *height, pol)
             })
             .for_each(|field_vectors| {
                 net_vectors

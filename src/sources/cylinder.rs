@@ -102,7 +102,7 @@ impl<T: Float> Transform<T> for CylinderMagnet<T> {
 
 impl<T: Float> Field<T> for CylinderMagnet<T> {
     fn get_B(&self, points: &[Point3<T>]) -> Vec<Vector3<T>> {
-        fields::cyl_B(
+        fields::cylinder_B(
             points,
             &self.position,
             &self.orientation,
