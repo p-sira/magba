@@ -5,11 +5,15 @@
 - Functions will return bare values instead of `Result`.
 
 **New Features**
+- Support both `f32` and `f64`.
 - `fields::field_cuboid`: Compute magnetic field for cuboid magnets.
 - `CuboidMagnet`: Struct for cuboid magnet.
 
 **Improvements**
 - Update tests to use parameters that better reflect real-world scales (e.g, 1-cm magnet instead of 10-m magnet).
+
+**Dependencies**
+- Add `num-traits` and `numeric_literals` to support generic floats.
 
 ## 0.1
 ### 0.1.1
