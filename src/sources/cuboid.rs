@@ -7,13 +7,13 @@
 
 use getset::{Getters, Setters};
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
-
-use super::{Field, Source};
-use crate::crate_util;
-use crate::geometry::Transform;
-use crate::{fields, impl_transform, Float};
-
 use std::fmt::Display;
+
+use crate::{
+    crate_util, fields,
+    geometry::{impl_transform, Transform},
+    Field, Float, Source,
+};
 
 /// Uniformly magnetized cylindrical magnet in 3D space.
 ///

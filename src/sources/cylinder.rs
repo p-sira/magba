@@ -9,7 +9,11 @@ use getset::{Getters, Setters};
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 use std::fmt::Display;
 
-use crate::{crate_util, fields, geometry::Transform, impl_transform, Field, Float, Source};
+use crate::{
+    crate_util, fields,
+    geometry::{impl_transform, Transform},
+    Field, Float, Source,
+};
 
 /// Uniformly magnetized cylindrical magnet in 3D space.
 ///
@@ -23,7 +27,7 @@ use crate::{crate_util, fields, geometry::Transform, impl_transform, Field, Floa
 /// # Example
 /// ```
 /// use magba::sources::CylinderMagnet;
-/// use nalgebra::{Point3, UnitQuaternion, Vector3};
+/// use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 ///
 /// let magnet = CylinderMagnet::new(
 ///     Point3::origin(),

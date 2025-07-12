@@ -26,7 +26,6 @@ pub trait Transform<T: RealField + Copy> {
 }
 
 /// Macro to implement shallow [`Transform`] for types with no children.
-#[macro_export]
 macro_rules! impl_transform {
     () => {
         #[inline]
@@ -67,3 +66,4 @@ macro_rules! impl_transform {
         }
     };
 }
+pub(crate) use impl_transform;
