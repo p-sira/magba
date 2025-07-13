@@ -15,7 +15,6 @@
 //! - [SourceCollection]
 //! - [MultiSourceCollection]
 
-
 mod magnets;
 
 mod cuboid;
