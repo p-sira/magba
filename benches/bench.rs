@@ -47,45 +47,53 @@ fn bench_cylinder_B_parallel_vs_serial(c: &mut Criterion) {
     for size in [10, 20, 50, 60, 100].iter() {
         let test_data = generate_global_cylinder_B_test_data(*size);
 
-        group.bench_with_input(BenchmarkId::new("cylinder_B_serial", size), &size, |b, _| {
-            b.iter(|| {
-                let field = test_data
-                    .points
-                    .iter()
-                    .map(|p| {
-                        global_cylinder_B(
-                            p,
-                            &test_data.position,
-                            &test_data.orientation,
-                            test_data.radius,
-                            test_data.height,
-                            &test_data.polarization,
-                        )
-                    })
-                    .collect::<Vec<_>>();
-                assert!(!field.is_empty())
-            });
-        });
+        group.bench_with_input(
+            BenchmarkId::new("cylinder_B_serial", size),
+            &size,
+            |b, _| {
+                b.iter(|| {
+                    let field = test_data
+                        .points
+                        .iter()
+                        .map(|p| {
+                            global_cylinder_B(
+                                p,
+                                &test_data.position,
+                                &test_data.orientation,
+                                test_data.radius,
+                                test_data.height,
+                                &test_data.polarization,
+                            )
+                        })
+                        .collect::<Vec<_>>();
+                    assert!(!field.is_empty())
+                });
+            },
+        );
 
-        group.bench_with_input(BenchmarkId::new("cylinder_B_parallel", size), &size, |b, _| {
-            b.iter(|| {
-                let field = test_data
-                    .points
-                    .par_iter()
-                    .map(|p| {
-                        global_cylinder_B(
-                            p,
-                            &test_data.position,
-                            &test_data.orientation,
-                            test_data.radius,
-                            test_data.height,
-                            &test_data.polarization,
-                        )
-                    })
-                    .collect::<Vec<_>>();
-                assert!(!field.is_empty())
-            });
-        });
+        group.bench_with_input(
+            BenchmarkId::new("cylinder_B_parallel", size),
+            &size,
+            |b, _| {
+                b.iter(|| {
+                    let field = test_data
+                        .points
+                        .par_iter()
+                        .map(|p| {
+                            global_cylinder_B(
+                                p,
+                                &test_data.position,
+                                &test_data.orientation,
+                                test_data.radius,
+                                test_data.height,
+                                &test_data.polarization,
+                            )
+                        })
+                        .collect::<Vec<_>>();
+                    assert!(!field.is_empty())
+                });
+            },
+        );
     }
     group.finish();
 }
