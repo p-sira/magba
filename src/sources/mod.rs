@@ -22,7 +22,7 @@ mod cylinder;
 mod dipole;
 mod source;
 
-pub use cuboid::*;
-pub use cylinder::*;
-pub use dipole::*;
-pub use source::*;
+pub use cuboid::CuboidMagnet;
+pub use cylinder::CylinderMagnet;
+pub use dipole::Dipole;
+pub use source::{Field, MultiSourceCollection, Source, SourceCollection};
