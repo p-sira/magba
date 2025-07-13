@@ -65,6 +65,13 @@ pub fn assert_close_vector_elem(vec1: &Vector3<f64>, vec2: &Vector3<f64>, rtol: 
     }
 }
 
+macro_rules! format_float {
+    ($v: expr) => {
+        $v.to_string()
+    };
+}
+pub(crate) use format_float;
+
 macro_rules! format_vector3 {
     ($v: expr) => {
         format!("[{}, {}, {}]", $v[0], $v[1], $v[2])
@@ -101,7 +108,7 @@ macro_rules! assert_eq_lens {
 pub(crate) use assert_eq_lens;
 
 macro_rules! impl_parallel {
-    ($func: ident, $threshold: expr, $items: expr, $($func_args: expr),*) => {
+    ($func: ident, $threshold: expr, $items: expr, $($func_args: expr),* $(,)?) => {
         {
             #[cfg(feature = "parallel")]
             if $items.len() > $threshold {

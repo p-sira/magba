@@ -3,64 +3,17 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-//! Defines the [`CuboidMagnet`] struct, representing a uniformly magnetized cylindrical magnet in 3D space.
+use crate::sources::magnets::define_magnet;
+use nalgebra::Vector3;
 
-use getset::{Getters, Setters};
-use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
-use std::fmt::Display;
-
-use crate::{
-    crate_util, fields,
-    geometry::{impl_transform, Transform},
-    Field, Float, Source,
-};
-
-/// Uniformly magnetized cylindrical magnet in 3D space.
-///
-/// # Fields
-/// - `position`: Center of the cuboid (m)
-/// - `orientation`: Orientation as unit quaternion
-/// - `polarization`: Polarization vector (T)
-/// - `dimensions`: Cuboid side lengths (m)
-///
-/// # Example
-/// ```
-/// use magba::sources::CuboidMagnet;
-/// use nalgebra::{Point3, UnitQuaternion, Vector3};
-///
-/// let magnet = CuboidMagnet::new(
-///     Point3::origin(),
-///     UnitQuaternion::identity(),
-///     Vector3::z(),
-///     Vector3::new(0.01, 0.01, 0.02)
-/// );
-/// ```
-#[derive(Debug, Clone, PartialEq, Default, Getters, Setters)]
-pub struct CuboidMagnet<T: Float> {
-    /// Center of the cuboid (m)
-    position: Point3<T>,
-    /// Orientation as a unit quaternion
-    orientation: UnitQuaternion<T>,
-    /// Polarization vector (T)
-    #[getset(get = "pub", set = "pub")]
-    polarization: Vector3<T>,
-
-    /// Cuboid dimensions (m)
-    #[getset(get = "pub", set = "pub")]
-    dimensions: Vector3<T>,
-}
-
-impl<T: Float> CuboidMagnet<T> {
-    /// Create a new [`CuboidMagnet`].
+define_magnet! {
+    /// Uniformly magnetized cylindrical magnet in 3D space.
     ///
-    /// # Arguments
+    /// # Fields
     /// - `position`: Center of the cuboid (m)
     /// - `orientation`: Orientation as unit quaternion
     /// - `polarization`: Polarization vector (T)
     /// - `dimensions`: Cuboid side lengths (m)
-    ///
-    /// # Returns
-    /// - `CuboidMagnet` instance
     ///
     /// # Example
     /// ```
@@ -74,62 +27,25 @@ impl<T: Float> CuboidMagnet<T> {
     ///     Vector3::new(0.01, 0.01, 0.02)
     /// );
     /// ```
-    pub fn new(
-        position: Point3<T>,
-        orientation: UnitQuaternion<T>,
-        polarization: Vector3<T>,
-        dimensions: Vector3<T>,
-    ) -> Self {
+    CuboidMagnet
+    field_fn: cuboid_B
+    args: {polarization:Vector3<T>, dimensions:Vector3<T>}
+    arg_display: "pol={}, dim={}";
+    arg_fmt: [format_vector3, format_vector3]
+    on_new: [
         dimensions.iter().for_each(|&elem| {
             if elem < T::zero() {
                 panic!("Dimensions must be non-negative.")
             }
         });
-        CuboidMagnet {
-            position,
-            orientation,
-            polarization,
-            dimensions,
-        }
-    }
-}
-
-impl<T: Float> Source<T> for CuboidMagnet<T> {}
-
-impl<T: Float> Transform<T> for CuboidMagnet<T> {
-    impl_transform!();
-}
-
-impl<T: Float> Field<T> for CuboidMagnet<T> {
-    fn get_B(&self, points: &[Point3<T>]) -> Vec<Vector3<T>> {
-        fields::cuboid_B(
-            points,
-            &self.position,
-            &self.orientation,
-            &self.dimensions,
-            &self.polarization,
-        )
-    }
-}
-
-impl<T: Float> Display for CuboidMagnet<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "CuboidMagnet (dim={}, pol={}) at pos={}, q={}",
-            crate_util::format_vector3!(self.dimensions),
-            crate_util::format_vector3!(self.polarization),
-            crate_util::format_point3!(self.position),
-            crate_util::format_quat!(self.orientation)
-        )
-    }
+    ]
 }
 
 #[cfg(test)]
 mod tests {
     use std::f64::consts::PI;
 
-    use nalgebra::Translation3;
+    use nalgebra::{Point3, Translation3};
 
     use crate::geometry::Transform;
     use crate::sources::CuboidMagnet;
@@ -202,7 +118,7 @@ mod tests {
     fn test_cuboid_display() {
         let magnet = CuboidMagnet::<f64>::default();
         assert_eq!(
-            "CuboidMagnet (dim=[0, 0, 0], pol=[0, 0, 0]) at pos=[0, 0, 0], q=[0, 0, 0, 1]",
+            "CuboidMagnet (pol=[0, 0, 0], dim=[0, 0, 0]) at pos=[0, 0, 0], q=[0, 0, 0, 1]",
             format!("{}", magnet)
         );
     }

@@ -29,39 +29,45 @@ pub trait Transform<T: RealField + Copy> {
 macro_rules! impl_transform {
     () => {
         #[inline]
-        fn position(&self) -> Point3<T> {
+        fn position(&self) -> nalgebra::Point3<T> {
             self.position
         }
 
         #[inline]
-        fn orientation(&self) -> UnitQuaternion<T> {
+        fn orientation(&self) -> nalgebra::UnitQuaternion<T> {
             self.orientation
         }
 
         #[inline]
-        fn set_position(&mut self, position: Point3<T>) {
+        fn set_position(&mut self, position: nalgebra::Point3<T>) {
             self.position = position;
         }
 
         #[inline]
-        fn set_orientation(&mut self, orientation: UnitQuaternion<T>) {
+        fn set_orientation(&mut self, orientation: nalgebra::UnitQuaternion<T>) {
             self.orientation = orientation;
         }
 
         #[inline]
-        fn translate(&mut self, translation: &Translation3<T>) {
+        fn translate(&mut self, translation: &nalgebra::Translation3<T>) {
             self.position = translation.transform_point(&self.position);
         }
 
         #[inline]
-        fn rotate(&mut self, rotation: &UnitQuaternion<T>) {
+        fn rotate(&mut self, rotation: &nalgebra::UnitQuaternion<T>) {
             self.orientation = rotation * &self.orientation;
         }
 
         #[inline]
-        fn rotate_anchor(&mut self, rotation: &UnitQuaternion<T>, anchor: &Point3<T>) {
+        fn rotate_anchor(
+            &mut self,
+            rotation: &nalgebra::UnitQuaternion<T>,
+            anchor: &nalgebra::Point3<T>,
+        ) {
             let local_position = self.position - anchor;
-            self.position = Point3::from(rotation * local_position + Vector3::from(anchor.coords));
+            self.position = nalgebra::Point3::from(
+                rotation * local_position + nalgebra::Vector3::from(anchor.coords),
+            );
             self.orientation = rotation * &self.orientation;
         }
     };

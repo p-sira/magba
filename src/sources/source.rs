@@ -7,7 +7,7 @@
 //!
 //! - [`Field`] trait: For objects that can compute the magnetic field at given points.
 //! - [`Source`] trait: For magnetic sources, requiring both [`Field`] and [`Transform`].
-//! - [`SourceCollection<S>`]: Stack-allocated collection of a single source type, supports adding sources and computing net field.
+//! - [`SourceCollection`]: Stack-allocated collection of a single source type, supports adding sources and computing net field.
 //! - [`MultiSourceCollection`]: Collection of heterogeneous sources (`Box<dyn Source>`), supports adding sources and computing net field.
 
 use std::fmt::{Debug, Display};
@@ -124,7 +124,7 @@ macro_rules! impl_transform_collection {
                     .iter_mut()
                     .for_each(|source| source.rotate_anchor(rotation, anchor));
             }
-            
+
             #[cfg(not(feature = "parallel"))]
             {
                 self.children
@@ -390,8 +390,8 @@ mod base_source_collection_tests {
         );
 
         assert_eq!("SourceCollection (2 children) at pos=[0, 0, 0], q=[0, 0, 0, 1]
-├── 0: CylinderMagnet (r=0.1, h=0.3, pol=[1, 2, 3]) at pos=[4, 5, 6], q=[0, 0, 0, 1]
-└── 1: CylinderMagnet (r=0.1, h=0.3, pol=[7, 8, 9]) at pos=[10, 11, 12], q=[0.7071067811865475, 0, 0, 0.7071067811865476]", format!("{}", collection))
+├── 0: CylinderMagnet (pol=[1, 2, 3], r=0.1, h=0.3) at pos=[4, 5, 6], q=[0, 0, 0, 1]
+└── 1: CylinderMagnet (pol=[7, 8, 9], r=0.1, h=0.3) at pos=[10, 11, 12], q=[0.7071067811865475, 0, 0, 0.7071067811865476]", format!("{}", collection))
     }
 }
 
@@ -590,7 +590,8 @@ mod multi_source_collection_tests {
 
         println!("{}", collection);
         assert_eq!("MultiSourceCollection (2 children) at pos=[0, 0, 0], q=[0, 0, 0, 1]
-├── 0: CylinderMagnet (r=0.02, h=0.05, pol=[0.1, 0.2, 0.3]) at pos=[0.005, 0.01, 0.015], q=[0, 0, 0, 1]
-└── 1: CuboidMagnet (dim=[0.02, 0.02, 0.03], pol=[0.1, 0.2, 0.3]) at pos=[0.015, 0.005, 0.01], q=[0, 0.5, 0, 0.8660254037844386]", format!("{}", collection))
+├── 0: CylinderMagnet (pol=[0.1, 0.2, 0.3], r=0.02, h=0.05) at pos=[0.005, 0.01, 0.015], q=[0, 0, 0, 1]
+└── 1: CuboidMagnet (pol=[0.1, 0.2, 0.3], dim=[0.02, 0.02, 0.03]) at pos=[0.015, 0.005, 0.01], q=[0, 0.5, 0, 0.8660254037844386]",
+         format!("{}", collection))
     }
 }

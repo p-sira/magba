@@ -155,11 +155,18 @@ simply: `cargo add magba`.
 //! ### Directly calculate fields
 //! If you just need to access the field functions, you can use [fields].
 //! ```
-//! use magba::fields::field_cylinder;
+//! use magba::fields;
 //! use magba::util::*;
-//! use nalgebra::{Point3, Vector3};
+//! use nalgebra::*;
 //!
-//! let b = field_cylinder::local_cylinder_B(&Point3::new(1.0, -1.0, 0.0), 1.0, 2.0, &Vector3::new(1.0, 2.0, 3.0));
+//! let b = fields::cylinder_B(
+//!     &[Point3::new(1.0, -1.0, 0.0)],
+//!     &Point::origin(),
+//!     &UnitQuaternion::identity(),
+//!     &Vector3::new(1.0, 2.0, 3.0),
+//!     1.0,
+//!     2.0
+//! )[0];
 //! let expected = Vector3::new(-0.3684605662842379, -0.10171405289381347, -0.330064920993222);
 //! assert_close_vector_elem (&b, &expected, 1e-12);
 //! ```

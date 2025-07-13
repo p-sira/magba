@@ -220,9 +220,9 @@ pub fn cylinder_B_cyl<T: RealField + Copy + Float + BulirschConst>(
 ///
 /// # Arguments
 /// - `point`: Observer position in local frame (m)
+/// - `polarization`: Polarization vector (T)
 /// - `radius`: Cylinder radius (m)
 /// - `height`: Cylinder height (m)
-/// - `pol`: Polarization vector (T)
 ///
 /// # Returns
 /// - B-field vector at the observer (T)
@@ -233,9 +233,9 @@ pub fn cylinder_B_cyl<T: RealField + Copy + Float + BulirschConst>(
 #[inline]
 pub fn local_cylinder_B<T: RealField + Copy + Float + BulirschConst>(
     point: &Point3<T>,
+    polarization: &Vector3<T>,
     radius: T,
     height: T,
-    polarization: &Vector3<T>,
 ) -> Vector3<T> {
     let (r, phi) = cart2cyl(point.x, point.y);
     let (pol_r, theta) = cart2cyl(polarization.x, polarization.y);
@@ -265,9 +265,9 @@ pub fn local_cylinder_B<T: RealField + Copy + Float + BulirschConst>(
 /// - `point`: Observer position in local frame (m)
 /// - `position`: Magnet position (m)
 /// - `orientation`: Magnet orientation in unit quaternion
+/// - `polarization`: Polarization vector (T)
 /// - `radius`: Cylinder radius (m)
 /// - `height`: Cylinder height (m)
-/// - `polarization`: Polarization vector (T)
 ///
 /// # Returns
 /// - B-field vector at the observer (T)
@@ -279,16 +279,16 @@ pub fn global_cylinder_B<T: RealField + Copy + Float + BulirschConst>(
     point: &Point3<T>,
     position: &Point3<T>,
     orientation: &UnitQuaternion<T>,
+    polarization: &Vector3<T>,
     radius: T,
     height: T,
-    polarization: &Vector3<T>,
 ) -> Vector3<T> {
     compute_in_local!(
         local_cylinder_B,
         &point,
         &position,
         &orientation,
-        (radius, height, &polarization),
+        (&polarization, radius, height),
     )
 }
 
@@ -298,9 +298,9 @@ pub fn global_cylinder_B<T: RealField + Copy + Float + BulirschConst>(
 /// - `points`: Observer positions in global frame (m)
 /// - `position`: Magnet position (m)
 /// - `orientation`: Magnet orientation as unit quaternion
+/// - `polarization`: Polarization vector (T)
 /// - `radius`: Cylinder radius (m)
 /// - `height`: Cylinder height (m)
-/// - `polarization`: Polarization vector (T)
 ///
 /// # Returns
 /// - B-field vectors at each observer (T)
@@ -309,9 +309,9 @@ pub fn cylinder_B<T: RealField + Copy + Float + BulirschConst>(
     points: &[Point3<T>],
     position: &Point3<T>,
     orientation: &UnitQuaternion<T>,
+    polarization: &Vector3<T>,
     radius: T,
     height: T,
-    polarization: &Vector3<T>,
 ) -> Vec<Vector3<T>> {
     impl_parallel!(
         global_cylinder_B,
@@ -319,9 +319,9 @@ pub fn cylinder_B<T: RealField + Copy + Float + BulirschConst>(
         points,
         position,
         orientation,
+        polarization,
         radius,
         height,
-        polarization
     )
 }
 
@@ -331,9 +331,9 @@ pub fn cylinder_B<T: RealField + Copy + Float + BulirschConst>(
 /// - `points`: Observer positions in global frame (m)
 /// - `positions`: Magnet positions (m)
 /// - `orientations`: Magnet orientations as unit quaternions
+/// - `polarizations`: Polarization vectors (T)
 /// - `radii`: Cylinder radii (m)
 /// - `heights`: Cylinder heights (m)
-/// - `polarizations`: Polarization vectors (T)
 ///
 /// # Returns
 /// - Net B-field vectors at each observer (T)
@@ -342,13 +342,13 @@ pub fn sum_multiple_cylinder_B<T: RealField + Copy + Float + BulirschConst + Sum
     points: &[Point3<T>],
     positions: &[Point3<T>],
     orientations: &[UnitQuaternion<T>],
+    polarizations: &[Vector3<T>],
     radii: &[T],
     heights: &[T],
-    polarizations: &[Vector3<T>],
 ) -> Vec<Vector3<T>> {
     impl_parallel_sum!(
         points,
-        [positions, orientations, radii, heights, polarizations],
-        |pos, orien, r, h, pol| cylinder_B(points, pos, orien, *r, *h, pol)
+        [positions, orientations, polarizations, radii, heights],
+        |pos, orien, pol, r, h| cylinder_B(points, pos, orien, pol, *r, *h)
     )
 }

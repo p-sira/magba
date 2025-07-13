@@ -29,8 +29,8 @@ use crate::{
 #[replace_float_literals(T::from_f64(literal).unwrap())]
 pub fn local_cuboid_B<T: RealField + Copy>(
     point: &Point3<T>,
-    dimensions: &Vector3<T>,
     polarization: &Vector3<T>,
+    dimensions: &Vector3<T>,
 ) -> Vector3<T> {
     let (mut x, mut y, mut z) = (point.x, point.y, point.z);
     let abc = dimensions / 2.0;
@@ -182,15 +182,15 @@ pub fn global_cuboid_B<T: RealField + Copy>(
     point: &Point3<T>,
     position: &Point3<T>,
     orientation: &UnitQuaternion<T>,
-    dimensions: &Vector3<T>,
     polarization: &Vector3<T>,
+    dimensions: &Vector3<T>,
 ) -> Vector3<T> {
     compute_in_local!(
         local_cuboid_B,
         point,
         position,
         orientation,
-        (dimensions, polarization),
+        (polarization, dimensions),
     )
 }
 
@@ -200,8 +200,8 @@ pub fn global_cuboid_B<T: RealField + Copy>(
 /// - `points`: Observer positions (m)
 /// - `position`: Magnet position (m)
 /// - `orientation`: Magnet orientation in unit quaternion
-/// - `dimensions`: Cuboid side lengths (m)
 /// - `polarization`: Polarization vector (T)
+/// - `dimensions`: Cuboid side lengths (m)
 ///
 /// # Returns
 /// - B-field vectors at each observer (T)
@@ -210,8 +210,8 @@ pub fn cuboid_B<T: RealField + Copy>(
     points: &[Point3<T>],
     position: &Point3<T>,
     orientation: &UnitQuaternion<T>,
-    dimensions: &Vector3<T>,
     polarization: &Vector3<T>,
+    dimensions: &Vector3<T>,
 ) -> Vec<Vector3<T>> {
     impl_parallel!(
         global_cuboid_B,
@@ -219,8 +219,8 @@ pub fn cuboid_B<T: RealField + Copy>(
         points,
         position,
         orientation,
+        polarization,
         dimensions,
-        polarization
     )
 }
 
@@ -230,8 +230,8 @@ pub fn cuboid_B<T: RealField + Copy>(
 /// - `points`: Observer positions in global frame (m)
 /// - `positions`: Magnet positions (m)
 /// - `orientations`: Magnet orientations as unit quaternions
-/// - `dimensions`: Cuboid side lengths (m)
 /// - `polarizations`: Polarization vectors (T)
+/// - `dimensions`: Cuboid side lengths (m)
 ///
 /// # Returns
 /// - Net B-field vectors at each observer (T)
@@ -240,12 +240,12 @@ pub fn sum_multiple_cuboid_B<T: RealField + Copy + Sum>(
     points: &[Point3<T>],
     positions: &[Point3<T>],
     orientations: &[UnitQuaternion<T>],
-    dimensions: &[Vector3<T>],
     polarizations: &[Vector3<T>],
+    dimensions: &[Vector3<T>],
 ) -> Vec<Vector3<T>> {
     impl_parallel_sum!(
         points,
-        [positions, orientations, dimensions, polarizations],
-        |pos, orien, dim, pol| cuboid_B(points, pos, orien, dim, pol)
+        [positions, orientations, polarizations, dimensions],
+        |pos, orien, pol, dim| cuboid_B(points, pos, orien, pol, dim)
     )
 }

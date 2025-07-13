@@ -60,9 +60,9 @@ fn bench_cylinder_B_parallel_vs_serial(c: &mut Criterion) {
                                 p,
                                 &test_data.position,
                                 &test_data.orientation,
+                                &test_data.polarization,
                                 test_data.radius,
                                 test_data.height,
-                                &test_data.polarization,
                             )
                         })
                         .collect::<Vec<_>>();
@@ -84,9 +84,9 @@ fn bench_cylinder_B_parallel_vs_serial(c: &mut Criterion) {
                                 p,
                                 &test_data.position,
                                 &test_data.orientation,
+                                &test_data.polarization,
                                 test_data.radius,
                                 test_data.height,
-                                &test_data.polarization,
                             )
                         })
                         .collect::<Vec<_>>();

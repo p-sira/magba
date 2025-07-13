@@ -3,75 +3,24 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-//! Defines the [`CylinderMagnet`] struct, representing a uniformly magnetized cylindrical magnet in 3D space.
+use nalgebra::Vector3;
 
-use getset::{Getters, Setters};
-use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
-use std::fmt::Display;
+use crate::sources::magnets::define_magnet;
 
-use crate::{
-    crate_util, fields,
-    geometry::{impl_transform, Transform},
-    Field, Float, Source,
-};
-
-/// Uniformly magnetized cylindrical magnet in 3D space.
-///
-/// # Fields
-/// - `position`: Center of the cylinder (m)
-/// - `orientation`: Orientation as unit quaternion
-/// - `polarization`: Polarization vector (T)
-/// - `radius`: Cylinder radius (m)
-/// - `height`: Cylinder height (m)
-///
-/// # Example
-/// ```
-/// use magba::sources::CylinderMagnet;
-/// use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
-///
-/// let magnet = CylinderMagnet::new(
-///     Point3::origin(),
-///     UnitQuaternion::identity(),
-///     Vector3::z(),
-///     0.005,
-///     0.02,
-/// );
-/// ```
-#[derive(Debug, Clone, PartialEq, Default, Getters, Setters)]
-pub struct CylinderMagnet<T: Float> {
-    /// Center of the cylinder (m)
-    position: Point3<T>,
-    /// Orientation as a unit quaternion
-    orientation: UnitQuaternion<T>,
-    /// Polarization vector (T)
-    #[getset(get = "pub", set = "pub")]
-    polarization: Vector3<T>,
-
-    /// Cylinder radius (m)
-    #[getset(get = "pub", set = "pub")]
-    radius: T,
-    /// Cylinder height (m)
-    #[getset(get = "pub", set = "pub")]
-    height: T,
-}
-
-impl<T: Float> CylinderMagnet<T> {
-    /// Create a new [`CylinderMagnet`].
+define_magnet! {
+    /// Uniformly magnetized cylindrical magnet in 3D space.
     ///
-    /// # Arguments
+    /// # Fields
     /// - `position`: Center of the cylinder (m)
-    /// - `orientation`: Orientation as a unit quaternion
+    /// - `orientation`: Orientation as unit quaternion
     /// - `polarization`: Polarization vector (T)
     /// - `radius`: Cylinder radius (m)
     /// - `height`: Cylinder height (m)
     ///
-    /// # Returns
-    /// - `CylinderMagnet` instance
-    ///
     /// # Example
     /// ```
     /// use magba::sources::CylinderMagnet;
-    /// use nalgebra::{Point3, UnitQuaternion, Vector3};
+    /// use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
     ///
     /// let magnet = CylinderMagnet::new(
     ///     Point3::origin(),
@@ -81,61 +30,23 @@ impl<T: Float> CylinderMagnet<T> {
     ///     0.02,
     /// );
     /// ```
-    pub fn new(
-        position: Point3<T>,
-        orientation: UnitQuaternion<T>,
-        polarization: Vector3<T>,
-        radius: T,
-        height: T,
-    ) -> Self {
-        CylinderMagnet {
-            position,
-            orientation,
-            polarization,
-            radius,
-            height,
+    CylinderMagnet
+    field_fn: cylinder_B
+    args: {polarization:Vector3<T>, radius v:T, height v:T}
+    arg_display: "pol={}, r={}, h={}";
+    arg_fmt: [format_vector3, format_float, format_float]
+    on_new: [
+        if radius < T::zero() || height < T::zero() {
+            panic!("Radius and height cannot be negative.")
         }
-    }
-}
-
-impl<T: Float> Source<T> for CylinderMagnet<T> {}
-
-impl<T: Float> Transform<T> for CylinderMagnet<T> {
-    impl_transform!();
-}
-
-impl<T: Float> Field<T> for CylinderMagnet<T> {
-    fn get_B(&self, points: &[Point3<T>]) -> Vec<Vector3<T>> {
-        fields::cylinder_B(
-            points,
-            &self.position,
-            &self.orientation,
-            self.radius,
-            self.height,
-            &self.polarization,
-        )
-    }
-}
-
-impl<T: Float> Display for CylinderMagnet<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "CylinderMagnet (r={}, h={}, pol={}) at pos={}, q={}",
-            self.radius,
-            self.height,
-            crate_util::format_vector3!(self.polarization),
-            crate_util::format_point3!(self.position),
-            crate_util::format_quat!(self.orientation)
-        )
-    }
+    ]
 }
 
 #[cfg(test)]
 mod tests {
     use std::f64::consts::PI;
 
-    use nalgebra::Translation3;
+    use nalgebra::{Point3, Translation3, UnitQuaternion};
 
     use crate::geometry::Transform;
     use crate::sources::CylinderMagnet;
@@ -249,7 +160,7 @@ mod tests {
     fn test_cylinder_display() {
         let magnet = CylinderMagnet::<f64>::default();
         assert_eq!(
-            "CylinderMagnet (r=0, h=0, pol=[0, 0, 0]) at pos=[0, 0, 0], q=[0, 0, 0, 1]",
+            "CylinderMagnet (pol=[0, 0, 0], r=0, h=0) at pos=[0, 0, 0], q=[0, 0, 0, 1]",
             format!("{}", magnet)
         );
     }
