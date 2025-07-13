@@ -190,8 +190,12 @@ pub mod geometry;
 
 pub use fields::*;
 
+/// Generic trait for floating point numbers compatible with all [Magba](crate) implementations.
+/// 
+/// Supports [f32] and [f64]. This trait is stricter as it combines [nalgebra::RealField],
+/// [num_traits::Float], and [ellip::bulirsch::BulirschConst].
 pub trait Float:
-    nalgebra::RealField + Copy + num_traits::Float + ellip::bulirsch::BulirschConst
+    nalgebra::RealField + num_traits::Float + ellip::bulirsch::BulirschConst + Copy
 {
 }
 impl Float for f32 {}
