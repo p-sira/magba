@@ -18,7 +18,7 @@ define_magnet! {
     /// # Example
     /// ```
     /// use magba::sources::CuboidMagnet;
-    /// use nalgebra::{Point3, UnitQuaternion, Vector3};
+    /// use nalgebra::*;
     ///
     /// let magnet = CuboidMagnet::new(
     ///     Point3::origin(),

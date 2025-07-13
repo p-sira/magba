@@ -27,7 +27,7 @@ simply: `cargo add magba`.
 #![cfg_attr(not(feature = "sources"), doc = "```ignore")]
 #![cfg_attr(feature = "sources", doc = "```")]
 //! use magba::{CylinderMagnet, SourceCollection};
-//! use nalgebra::{Point3, UnitQuaternion, Vector3};
+//! use nalgebra::*;
 //!
 //! let magnet1 = CylinderMagnet::new(
 //!     Point3::origin(),
@@ -62,7 +62,7 @@ simply: `cargo add magba`.
 #![cfg_attr(not(feature = "sources"), doc = "```ignore")]
 #![cfg_attr(feature = "sources", doc = "```")]
 //! use magba::sources::{CylinderMagnet, Field};
-//! use nalgebra::{Point3, UnitQuaternion, Vector3};
+//! use nalgebra::*;
 //!
 //! let magnet = CylinderMagnet::new(
 //!     Point3::origin(),
@@ -112,7 +112,7 @@ simply: `cargo add magba`.
 //! use magba::{CylinderMagnet, Field};
 //! use magba::geometry::Transform;
 //! use magba::util::*;
-//! use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
+//! use nalgebra::*;
 //!
 //! // Don't forget to make the object mutable if you need to move it.
 //! let mut magnet = CylinderMagnet::new(

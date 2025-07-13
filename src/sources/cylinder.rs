@@ -20,7 +20,7 @@ define_magnet! {
     /// # Example
     /// ```
     /// use magba::sources::CylinderMagnet;
-    /// use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
+    /// use nalgebra::*;
     ///
     /// let magnet = CylinderMagnet::new(
     ///     Point3::origin(),
