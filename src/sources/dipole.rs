@@ -3,58 +3,33 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-use getset::{Getters, Setters};
-use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
+use nalgebra::Vector3;
 
-use crate::{
-    crate_util,
-    geometry::{impl_transform, Transform},
-    Field, Float, Source,
-};
+use crate::sources::magnets::define_magnet;
 
-use std::fmt::Display;
-
-#[derive(Debug, Clone, PartialEq, Default, Getters, Setters)]
-pub struct Dipole<T: Float> {
-    /// Center of the cylinder (m)
-    position: Point3<T>,
-    /// Orientation as a unit quaternion
-    orientation: UnitQuaternion<T>,
-    /// Magnetic dipole moment vector (A·m²)
-    #[getset(get = "pub", set = "pub")]
-    moment: Vector3<T>,
-}
-
-impl<T: Float> Dipole<T> {
-    pub fn new(position: Point3<T>, orientation: UnitQuaternion<T>, moment: Vector3<T>) -> Self {
-        Dipole {
-            position,
-            orientation,
-            moment,
-        }
-    }
-}
-
-impl<T: Float> Source<T> for Dipole<T> {}
-
-impl<T: Float> Transform<T> for Dipole<T> {
-    impl_transform!();
-}
-
-impl<T: Float> Field<T> for Dipole<T> {
-    fn get_B(&self, points: &[Point3<T>]) -> Vec<Vector3<T>> {
-        todo!()
-    }
-}
-
-impl<T: Float> Display for Dipole<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "Dipole (m={}) at pos={}, q={}",
-            crate_util::format_vector3!(self.moment),
-            crate_util::format_point3!(self.position),
-            crate_util::format_quat!(self.orientation),
-        )
-    }
+define_magnet! {
+    /// Magnetic dipole in 3D space.
+    ///
+    /// # Fields
+    /// - `position`: Position of the dipole (m)
+    /// - `orientation`: Orientation as unit quaternion
+    /// - `moment`: Magnetic dipole moment vector (A·m²)
+    ///
+    /// # Example
+    /// ```
+    /// use magba::sources::Dipole;
+    /// use nalgebra::*;
+    ///
+    /// let dipole = Dipole::<f64>::new(
+    ///     Point3::origin(),
+    ///     UnitQuaternion::identity(),
+    ///     Vector3::z(),
+    /// );
+    /// ```
+    Dipole
+    field_fn: dipole_B
+    args: {moment:Vector3<T>}
+    arg_display: "m={}";
+    arg_fmt: [format_vector3]
+    on_new: []
 }
