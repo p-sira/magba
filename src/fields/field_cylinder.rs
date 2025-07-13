@@ -14,9 +14,9 @@ use ellip::{cel, ellipe, ellipk};
 use nalgebra::{Point3, RealField, UnitQuaternion, Vector3};
 use numeric_literals::replace_float_literals;
 
-use crate::crate_util::impl_parallel;
-use crate::geometry::{cart2cyl, vec_cyl2cart};
-use crate::{geometry::compute_in_local, Float};
+use crate::crate_util::{impl_parallel, impl_parallel_sum};
+use crate::geometry::{cart2cyl, compute_in_local, vec_cyl2cart};
+use crate::Float;
 use num_traits::Float as NumFloat;
 
 /// Compute B-field of a cylindrical magnet with unit axial (z-axis) polarization
@@ -346,55 +346,9 @@ pub fn sum_multiple_cylinder_B<T: RealField + Copy + Float + BulirschConst + Sum
     heights: &[T],
     polarizations: &[Vector3<T>],
 ) -> Vec<Vector3<T>> {
-    if positions.len() != orientations.len()
-        || positions.len() != radii.len()
-        || positions.len() != heights.len()
-        || positions.len() != polarizations.len()
-    {
-        panic!("Lengths of input vectors must be equal.");
-    }
-
-    #[cfg(feature = "parallel")]
-    {
-        use rayon::iter::{IndexedParallelIterator, IntoParallelRefIterator, ParallelIterator};
-
-        let vectors = positions
-            .par_iter()
-            .zip(orientations)
-            .zip(radii)
-            .zip(heights)
-            .zip(polarizations)
-            .map(|((((position, orientation), radius), height), pol)| {
-                cylinder_B(points, position, orientation, *radius, *height, pol)
-            })
-            .collect::<Vec<Vec<_>>>();
-
-        let net_vectors: Vec<Vector3<_>> = (0..points.len())
-            .map(|i| vectors.iter().map(|v| v[i]).sum())
-            .collect();
-        net_vectors
-    }
-
-    #[cfg(not(feature = "parallel"))]
-    {
-        let mut net_vectors: Vec<Vector3<_>> = vec![Vector3::zeros(); points.len()];
-
-        positions
-            .iter()
-            .zip(orientations)
-            .zip(radii)
-            .zip(heights)
-            .zip(polarizations)
-            .map(|((((position, orientation), radius), height), pol)| {
-                cylinder_B(points, position, orientation, *radius, *height, pol)
-            })
-            .for_each(|field_vectors| {
-                net_vectors
-                    .iter_mut()
-                    .zip(field_vectors)
-                    .for_each(|(net_vector, field_vector)| *net_vector += field_vector)
-            });
-
-        net_vectors
-    }
+    impl_parallel_sum!(
+        points,
+        [positions, orientations, radii, heights, polarizations],
+        |pos, orien, r, h, pol| cylinder_B(points, pos, orien, *r, *h, pol)
+    )
 }

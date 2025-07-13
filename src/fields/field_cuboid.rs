@@ -7,7 +7,10 @@ use std::iter::Sum;
 use nalgebra::{Matrix3, Point3, RealField, UnitQuaternion, Vector3};
 use numeric_literals::replace_float_literals;
 
-use crate::{geometry::compute_in_local, crate_util::impl_parallel};
+use crate::{
+    crate_util::{impl_parallel, impl_parallel_sum},
+    geometry::compute_in_local,
+};
 
 /// Compute B-field of a homogeneous cuboid magnet at point (x, y, z) in the local frame.
 ///
@@ -240,51 +243,9 @@ pub fn sum_multiple_cuboid_B<T: RealField + Copy + Sum>(
     dimensions: &[Vector3<T>],
     polarizations: &[Vector3<T>],
 ) -> Vec<Vector3<T>> {
-    if positions.len() != orientations.len()
-        || positions.len() != dimensions.len()
-        || positions.len() != polarizations.len()
-    {
-        panic!("Lengths of input vectors must be equal.");
-    }
-
-    #[cfg(feature = "parallel")]
-    {
-        use rayon::iter::{IndexedParallelIterator, IntoParallelRefIterator, ParallelIterator};
-        let vectors = positions
-            .par_iter()
-            .zip(orientations)
-            .zip(dimensions)
-            .zip(polarizations)
-            .map(|(((position, orientation), dim), pol)| {
-                cuboid_B(points, position, orientation, dim, pol)
-            })
-            .collect::<Vec<Vec<_>>>();
-
-        let net_vectors: Vec<Vector3<_>> = (0..points.len())
-            .map(|i| vectors.iter().map(|v| v[i]).sum())
-            .collect();
-        net_vectors
-    }
-
-    #[cfg(not(feature = "parallel"))]
-    {
-        let mut net_vectors = vec![Vector3::zeros(); points.len()];
-
-        positions
-            .iter()
-            .zip(orientations)
-            .zip(dimensions)
-            .zip(polarizations)
-            .map(|(((position, orientation), dim), pol)| {
-                cuboid_B(points, position, orientation, dim, pol)
-            })
-            .for_each(|field_vectors| {
-                net_vectors
-                    .iter_mut()
-                    .zip(field_vectors)
-                    .for_each(|(net_vector, field_vector)| *net_vector += field_vector)
-            });
-
-        net_vectors
-    }
+    impl_parallel_sum!(
+        points,
+        [positions, orientations, dimensions, polarizations],
+        |pos, orien, dim, pol| cuboid_B(points, pos, orien, dim, pol)
+    )
 }

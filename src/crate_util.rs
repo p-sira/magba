@@ -86,8 +86,22 @@ macro_rules! format_quat {
 }
 pub(crate) use format_quat;
 
+macro_rules! assert_eq_lens {
+    ($str_err:expr, [$ref_vec:expr $(, $vec:expr)+]) => {
+        {
+            let len = $ref_vec.len();
+            $(
+                if $vec.len() != len {
+                    panic!($str_err)
+                }
+            )+
+        }
+    };
+}
+pub(crate) use assert_eq_lens;
+
 macro_rules! impl_parallel {
-    ($func: ident, $threshold: expr, $items: expr, $($func_args:expr),*) => {
+    ($func: ident, $threshold: expr, $items: expr, $($func_args: expr),*) => {
         {
             #[cfg(feature = "parallel")]
             if $items.len() > $threshold {
@@ -106,3 +120,46 @@ macro_rules! impl_parallel {
     };
 }
 pub(crate) use impl_parallel;
+
+macro_rules! impl_parallel_sum {
+    ($items:expr, [$($vecs:expr),+], |$($args:ident),*| $call:expr) => {{
+        use crate::crate_util::assert_eq_lens;
+        assert_eq_lens!(
+            "Lengths of input vectors must be equal.",
+            [$($vecs),+]
+        );
+
+        let combinations = itertools::izip!($($vecs),+);
+
+        #[cfg(feature = "parallel")]
+        {
+            use rayon::iter::{ParallelBridge, ParallelIterator};
+
+            let vectors = combinations
+                .par_bridge()
+                .map(|($($args),*)| $call)
+                .collect::<Vec<Vec<_>>>();
+
+            (0..$items.len())
+                .map(|i| vectors.iter().map(|v| v[i]).sum())
+                .collect()
+        }
+
+        #[cfg(not(feature = "parallel"))]
+        {
+            let mut net_vectors: Vec<Vector3<_>> = vec![Vector3::zeros(); $items.len()];
+
+            combinations
+                .map(|($($args),*)| $call)
+                .for_each(|field_vectors| {
+                    net_vectors
+                        .iter_mut()
+                        .zip(field_vectors)
+                        .for_each(|(net_vector, field_vector)| *net_vector += field_vector)
+                });
+
+            net_vectors
+        }
+    }};
+}
+pub(crate) use impl_parallel_sum;
