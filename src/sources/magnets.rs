@@ -1,3 +1,5 @@
+///! Function and macros shared by all magnetic sources
+
 /// Define magnet struct
 /// ```text
 /// define_magnet!{
