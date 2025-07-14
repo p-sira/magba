@@ -9,25 +9,25 @@ use nalgebra::{RealField, Vector3};
 
 use crate::constants::MagneticConstants;
 
-/// Convert B-field to H-field.
+/// Convert B-field vector to H-field vector.
 ///
 /// # Arguments
-/// * `B_vector` - Magnetic flux density vector (B) in T
+/// - `B_vector`: Magnetic flux density vector (T)
 ///
 /// # Returns
-/// * `Vector3<f64>` - Magnetic field strength vector (H) in A/m
+/// - Magnetic field strength vector (A/m)
 #[allow(non_snake_case)]
 pub fn B_to_H<T: RealField + MagneticConstants>(B_vector: &Vector3<T>) -> Vector3<T> {
     B_vector.scale(T::mu0())
 }
 
-/// Convert vector of B-fields to vector of H-fields.
+/// Convert B-field vectors to H-field vectors.
 ///
 /// # Arguments
-/// * `B_vectors` - Slice of B-field vectors
+/// - `B_vectors`: Magnetic flux density vectors (T)
 ///
 /// # Returns
-/// * `Vec<Vector3<f64>>` - H-field vectors
+/// - Magnetic field strength vectors (A/m)
 #[allow(non_snake_case)]
 pub fn Bs_to_Hs<T: RealField + MagneticConstants>(B_vectors: &[Vector3<T>]) -> Vec<Vector3<T>> {
     B_vectors
@@ -39,21 +39,21 @@ pub fn Bs_to_Hs<T: RealField + MagneticConstants>(B_vectors: &[Vector3<T>]) -> V
 /// Convert magnetization (**M**) to polarization (**J**).
 ///
 /// # Arguments
-/// * `mag_vector` - Magnetization vector (M) in A/m
+/// - `mag_vector`: Magnetization vector (A/m)
 ///
 /// # Returns
-/// * `Vector3<f64>` - Polarization vector (J) in T
+/// - Polarization vector (T)
 pub fn mag_to_pol<T: RealField + MagneticConstants>(mag_vector: &Vector3<T>) -> Vector3<T> {
     mag_vector.scale(T::one() / T::mu0())
 }
 
-/// Convert magnetizations (**M**) to polarizations (**J**).
+/// Convert magnetization vectors (**M**) to polarization vectors (**J**).
 ///
 /// # Arguments
-/// * `mag_vectors` - Slice of magnetization vectors (M) in A/m
+/// - `mag_vectors`: Magnetization vectors (A/m)
 ///
 /// # Returns
-/// * `Vec<Vector3<f64>>` - Polarization vectors (J) in T
+/// - Polarization vectors (T)
 pub fn mags_to_pols<T: RealField + MagneticConstants>(
     mag_vectors: &[Vector3<T>],
 ) -> Vec<Vector3<T>> {
