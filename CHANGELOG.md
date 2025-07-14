@@ -9,7 +9,9 @@
 **New Features**
 - Support both `f32` and `f64`.
 - `fields::field_cuboid`: Compute magnetic field for cuboid magnets.
+- `fields::field_dipole`: Compute magnetic field for magnetic dipole moments.
 - `CuboidMagnet`: Struct for cuboid magnet.
+- `Dipole`: Struct for magnetic dipole moment.
 
 **Improvements**
 - Update tests to use parameters that better reflect real-world scales (e.g, 1-cm magnet instead of 10-m magnet).
@@ -18,7 +20,7 @@
 **Dependencies**
 - Add `num-traits` and `numeric_literals` to support generic floats.
 - Add `itertools` to assist development.
-- Updated dependencies.
+- Update dependencies.
 
 ## 0.1
 ### 0.1.1
@@ -36,7 +38,7 @@
 
 **Dependencies**
 - Use `getset` crate.
-- Updated dependencies.
+- Update dependencies.
 
 ### 0.1.0
 **New Features**
