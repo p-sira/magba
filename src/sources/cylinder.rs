@@ -43,118 +43,21 @@ define_magnet! {
 }
 
 #[cfg(test)]
-mod tests {
-    use std::f64::consts::PI;
+crate::testing_util::generate_tests! {
+    CylinderMagnet
+    filename: cylinder
+    params: { polarization: Vector3::new(1.0, 2.0, 3.0), r: 0.05, h: 0.2}
+    rtols: {
+        static: 5e-10,
+        static_small: 5e-10,
+        translate: 2e-10,
+        rotate: 2e-10,
+    }
+}
 
-    use nalgebra::{Point3, Translation3, UnitQuaternion};
-
-    use crate::geometry::Transform;
-    use crate::sources::CylinderMagnet;
-    use crate::testing_util::*;
-
+#[cfg(test)]
+mod extra_tests {
     use super::*;
-
-    #[test]
-    fn test_cylinder() {
-        let magnet = CylinderMagnet::new(
-            Point3::new(0.1, 0.2, 0.3),
-            quat_from_rotvec(PI / 7.0, PI / 6.0, PI / 5.0),
-            Vector3::new(1.0, 2.0, 3.0),
-            0.5,
-            2.0,
-        );
-        test_B_magnet!(@large, &magnet, "cylinder.csv", 6e-11);
-    }
-
-    #[test]
-    fn test_cylinder_small() {
-        let magnet = CylinderMagnet::new(
-            Point3::new(0.03, 0.02, 0.01),
-            quat_from_rotvec(PI / 8.0, PI / 7.0, PI / 6.0),
-            Vector3::new(0.15, 0.15, 0.3),
-            14e-3,
-            10e-3,
-        );
-        // Small magnet at far distances have less numerical stability
-        test_B_magnet!(&magnet, "cylinder-small.csv", 2e-8);
-    }
-
-    #[test]
-    fn test_translate_cylinder() {
-        let mut magnet = CylinderMagnet::new(
-            Point3::new(0.1, 0.2, 0.3),
-            quat_from_rotvec(PI / 7.0, PI / 6.0, PI / 5.0),
-            Vector3::new(1.0, 2.0, 3.0),
-            0.5,
-            2.0,
-        );
-        magnet.translate(&Translation3::new(-0.1, -0.2, -0.3));
-        test_B_magnet!(@large, &magnet, "cylinder-translate.csv", 6e-11);
-    }
-
-    #[test]
-    fn test_rotate_cylinder() {
-        let rotation = quat_from_rotvec(PI / 7.0, PI / 6.0, PI / 5.0);
-        let mut magnet = CylinderMagnet::new(
-            Point3::new(0.1, 0.2, 0.3),
-            rotation,
-            Vector3::new(1.0, 2.0, 3.0),
-            0.5,
-            2.0,
-        );
-        magnet.rotate(&rotation.inverse());
-        test_B_magnet!(@large, &magnet, "cylinder-rotate.csv", 6e-11);
-    }
-
-    #[test]
-    fn test_rotate_translate_cylinder() {
-        let mut magnet = CylinderMagnet::new(
-            Point3::new(0.1, 0.2, 0.3),
-            quat_from_rotvec(PI / 7.0, PI / 6.0, PI / 5.0),
-            Vector3::new(1.0, 2.0, 3.0),
-            0.5,
-            2.0,
-        );
-        magnet.translate(&Translation3::new(3.0, 2.0, 1.0));
-        magnet.rotate(&quat_from_rotvec(PI / 3.0, PI / 2.0, PI));
-        test_B_magnet!(@large, &magnet, "cylinder-rotate-translate.csv", 6e-11);
-    }
-
-    #[test]
-    fn test_axial_cylinder() {
-        let magnet = CylinderMagnet::new(
-            Point3::origin(),
-            UnitQuaternion::identity(),
-            Vector3::new(0.0, 0.0, 3.0),
-            0.5,
-            2.0,
-        );
-        test_B_magnet!(@large, &magnet, "cylinder-axial.csv", 1e-12);
-    }
-
-    #[test]
-    fn test_diametric_cylinder() {
-        let magnet = CylinderMagnet::new(
-            Point3::origin(),
-            UnitQuaternion::identity(),
-            Vector3::new(0.0, 1.0, 0.0),
-            0.5,
-            2.0,
-        );
-        test_B_magnet!(@large, &magnet, "cylinder-diametric.csv", 2e-12);
-    }
-
-    #[test]
-    fn test_diametric_cylinder_2() {
-        let magnet = CylinderMagnet::new(
-            Point3::origin(),
-            UnitQuaternion::identity(),
-            Vector3::new(2.0, 1.0, 0.0),
-            0.5,
-            2.0,
-        );
-        test_B_magnet!(@large, &magnet, "cylinder-diametric-2.csv", 5e-12);
-    }
 
     #[test]
     fn test_cylinder_display() {

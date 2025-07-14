@@ -19,18 +19,10 @@ def save_array_to_file(file: str | Path, a: NDArray) -> None:
     np.savetxt(file, a, delimiter=",")
 
 
-def get_points_large():
-    """Generate a 5x5x5-m workspace"""
-    bounds = np.array([[-2.5, 2.5]] * 3)
-    N = [15] * 3
-    points = generate_grid(bounds, N)
-    return points
-
-
 def get_points():
-    """Generate a 2x2x2-m workspace"""
-    bounds = np.array([[-1, 1]] * 3)
-    N = [15] * 3
+    """Generate a 1x1x1-m workspace"""
+    bounds = np.array([[-0.5, 0.5]] * 3)
+    N = [10] * 3
     points = generate_grid(bounds, N)
     return points
 
@@ -38,7 +30,7 @@ def get_points():
 def get_points_small():
     """Generate a 10x10x10-cm workspace"""
     bounds = np.array([[-0.05, 0.05]] * 3)
-    N = [15] * 3
+    N = [10] * 3
     points = generate_grid(bounds, N)
     return points
 
@@ -52,15 +44,5 @@ def generate_points():
     save_test_array("points.csv", points)
     points_small = get_points_small()
     save_test_array("points-small.csv", points_small)
-    points_large = get_points_large()
-    save_test_array("points-large.csv", points_large)
 
-    return points, points_small, points_large
-
-
-def main():
-    generate_points()
-
-
-if __name__ == "__main__":
-    main()
+    return points, points_small

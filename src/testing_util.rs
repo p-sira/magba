@@ -194,27 +194,90 @@ pub mod source_testing_util {
             compare_B_with_file(
                 $magnet,
                 "./tests/test-data/points-small.csv",
-                concat!("./tests/test-data/", $ref_path_str),
+                &format!("./tests/test-data/{}", $ref_path_str),
                 $rtol,
-            );
+            )
         };
         (@large, $magnet: expr, $ref_path_str: expr, $rtol: expr) => {
             compare_B_with_file(
                 $magnet,
                 "./tests/test-data/points-large.csv",
-                concat!("./tests/test-data/", $ref_path_str),
+                &format!("./tests/test-data/{}", $ref_path_str),
                 $rtol,
-            );
+            )
         };
         ($magnet: expr, $ref_path_str: expr, $rtol: expr) => {
             compare_B_with_file(
                 $magnet,
                 "./tests/test-data/points.csv",
-                concat!("./tests/test-data/", $ref_path_str),
+                &format!("./tests/test-data/{}", $ref_path_str),
                 $rtol,
-            );
+            )
         };
     }
     use nalgebra::RealField;
     pub(crate) use test_B_magnet;
+
+    macro_rules! generate_tests {
+        {
+            $source_type: ident
+            filename: $filename: ident
+            params: { $($pname:ident : $params: expr),* $(,)? }
+            rtols: {
+                static: $rtol_static:expr,
+                static_small: $rtol_static_small:expr,
+                translate: $rtol_translate:expr,
+                rotate: $rtol_rotate:expr $(,)?
+            }
+        } => {
+            mod tests {
+                use std::f64::consts::PI;
+
+                use nalgebra::{Point3, Translation3};
+
+                use crate::geometry::Transform;
+                use crate::testing_util::*;
+                use super::*;
+
+                fn magnet() -> $source_type<f64> {
+                    $source_type::new(
+                        Point3::new(0.1, 0.2, 0.3),
+                        quat_from_rotvec(PI / 7.0, PI / 6.0, PI / 5.0),
+                        $($params),*
+                    )
+                }
+
+                #[test]
+                fn test_static() {
+                    test_B_magnet!(&magnet(), &format!("{}.csv", stringify!($filename)), $rtol_static)
+                }
+
+                #[test]
+                fn test_static_small() {
+                    let magnet = $source_type::new(
+                        Point3::new(0.03, 0.02, 0.01),
+                        quat_from_rotvec(PI / 7.0, PI / 6.0, PI / 5.0),
+                        $(($params) / 10.0),*
+                    );
+                    test_B_magnet!(@small, &magnet, &format!("{}-small.csv", stringify!($filename)), $rtol_static_small)
+                }
+
+                #[test]
+                fn test_translate() {
+                    let mut magnet = magnet();
+                    magnet.translate(&Translation3::new(-0.1, -0.2, -0.3));
+                    test_B_magnet!(&magnet, &format!("{}-translate.csv", stringify!($filename)), $rtol_translate)
+
+                }
+
+                #[test]
+                fn test_rotate() {
+                    let mut magnet = magnet();
+                    magnet.rotate(&quat_from_rotvec(PI / 7.0, PI / 6.0, PI / 5.0).inverse());
+                    test_B_magnet!(&magnet, &format!("{}-rotate.csv", stringify!($filename)), $rtol_rotate)
+                }
+            }
+        };
+    }
+    pub(crate) use generate_tests;
 }

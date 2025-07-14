@@ -210,12 +210,13 @@ checksum = "48c757948c5ede0e46177b7add2e67155f70e33c07fea8284df6576da70b3719"
 
 [[package]]
 name = "ellip"
-version = "0.3.2"
+version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "28833241703e8efd6b7421a28ab05e21adeeca03f26a725fa74bd352b653ab5a"
+checksum = "44d179dae1c8e83cc77a450bb975ef7bc11d533887d738f88b312a8ce58ecac6"
 dependencies = [
  "num-lazy",
  "num-traits",
+ "numeric_literals",
 ]
 
 [[package]]
@@ -392,9 +393,9 @@ dependencies = [
 
 [[package]]
 name = "num-lazy"
-version = "0.1.1"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9b0f392eb505dd839f58a97aa23256e446f9dcbc9ae901c36d4588f2de4f8f1d"
+checksum = "5b8d2525f2f80ed755ab12528ba733e89276e6b9807b3c8379b9e6948783394b"
 
 [[package]]
 name = "num-rational"

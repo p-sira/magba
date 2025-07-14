@@ -17,6 +17,8 @@
 
 **Dependencies**
 - Add `num-traits` and `numeric_literals` to support generic floats.
+- Add `itertools` to assist development.
+- Updated dependencies.
 
 ## 0.1
 ### 0.1.1
