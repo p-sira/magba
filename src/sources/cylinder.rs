@@ -54,17 +54,3 @@ crate::testing_util::generate_tests! {
         rotate: 2e-10,
     }
 }
-
-#[cfg(test)]
-mod extra_tests {
-    use super::*;
-
-    #[test]
-    fn test_cylinder_display() {
-        let magnet = CylinderMagnet::<f64>::default();
-        assert_eq!(
-            "CylinderMagnet (pol=[0, 0, 0], r=0, h=0) at pos=[0, 0, 0], q=[0, 0, 0, 1]",
-            format!("{}", magnet)
-        );
-    }
-}

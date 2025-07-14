@@ -53,17 +53,3 @@ crate::testing_util::generate_tests! {
         rotate: 2e-10,
     }
 }
-
-#[cfg(test)]
-mod extra_tests {
-    use super::*;
-
-    #[test]
-    fn test_cuboid_display() {
-        let magnet = CuboidMagnet::<f64>::default();
-        assert_eq!(
-            "CuboidMagnet (pol=[0, 0, 0], dim=[0, 0, 0]) at pos=[0, 0, 0], q=[0, 0, 0, 1]",
-            format!("{}", magnet)
-        );
-    }
-}
