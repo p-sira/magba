@@ -12,6 +12,7 @@
 - `fields::field_dipole`: Compute magnetic field for magnetic dipole moments.
 - `CuboidMagnet`: Struct for cuboid magnet.
 - `Dipole`: Struct for magnetic dipole moment.
+- Add `from_sources` method for `SourceCollection` and `MultiSourceCollection`.
 
 **Improvements**
 - Update tests to use parameters that better reflect real-world scales (e.g, 1-cm magnet instead of 10-m magnet).
