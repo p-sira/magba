@@ -219,7 +219,7 @@ impl<S: Source<T> + PartialEq, T: Float> PartialEq for SourceCollection<S, T> {
 impl<S: Source<T>, T: Float> Source<T> for SourceCollection<S, T> {}
 
 impl<S: Source<T>, T: Float> SourceCollection<S, T> {
-    /// Initialize [`SourceCollection`].
+    /// Initialize [SourceCollection].
     pub fn new(position: Point3<T>, orientation: UnitQuaternion<T>, sources: Vec<S>) -> Self {
         Self {
             position,
@@ -228,12 +228,21 @@ impl<S: Source<T>, T: Float> SourceCollection<S, T> {
         }
     }
 
-    /// Add [`Source`] to the collection.
+    /// Initialize [SourceCollection] from a vec of homogeneous [Source].
+    pub fn from_sources(sources: Vec<S>) -> Self {
+        Self {
+            position: Point3::origin(),
+            orientation: UnitQuaternion::identity(),
+            children: sources,
+        }
+    }
+
+    /// Add [Source] to the collection.
     pub fn add(&mut self, source: S) {
         self.children.push(source);
     }
 
-    /// Add multiple [`Source`] to the collection.
+    /// Add multiple [Source] to the collection.
     pub fn add_sources(&mut self, source: &mut Vec<S>) {
         self.children.append(source);
     }
@@ -315,12 +324,21 @@ impl<T: Float> MultiSourceCollection<T> {
         }
     }
 
-    /// Add [`Source`] to the collection.
+    /// Initialize [MultiSourceCollection] from a vec of [Source].
+    pub fn from_sources(sources: Vec<Box<dyn Source<T>>>) -> Self {
+        Self {
+            position: Point3::origin(),
+            orientation: UnitQuaternion::identity(),
+            children: sources,
+        }
+    }
+
+    /// Add [Source] to the collection.
     pub fn add(&mut self, source: Box<dyn Source<T>>) {
         self.children.push(source);
     }
 
-    /// Add multiple [`Source`] to the collection.
+    /// Add multiple [Source] to the collection.
     pub fn add_sources(&mut self, source: &mut Vec<Box<dyn Source<T>>>) {
         self.children.append(source);
     }
