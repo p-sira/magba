@@ -23,6 +23,7 @@ The source code is available on [GitHub](https://github.com/p-sira/magba).
 - Create magnetic [sources](Source) and group them as [source collections](SourceCollection).
 - Move and rotate objects in 3D space.
 - Increase performance using parallelization with [Rayon](https://docs.rs/crate/rayon/latest).
+- Support calculation with [f32] and [f64].
 
 ## Installation
 To install Magba using `cargo`, simply run in your command line:
@@ -50,7 +51,9 @@ The available feature flags are:
     doc = "<div class=\"warning\">This functionality need `sources` feature flag.</div>"
 )]
 //!
-//! The magnetic sources are located in the [sources] submodule.
+//! The magnetic sources are located in the [sources] submodule. The parameters of the sources
+//! can be accessed and modified using *getters* and *setters*, such as `position()` and `set_position()`.
+//! 
 //! The sources can be grouped as "source collections". For performance, there are two types
 //! of source collections, the [SourceCollection] and [MultiSourceCollection]. [SourceCollection]
 //! is faster, as it is stack-allocated. However, [SourceCollection] can only hold the same type
@@ -138,7 +141,12 @@ The available feature flags are:
 //! ```
 //!
 //! ## Move and Rotate Objects
-//! The transformation functionalities are available for all [Source] and types that implement [Transform].
+//! The transformation functionalities are implemented for all [Source] and types with [Transform] trait.
+//! The available methods are:
+//! - [Transform::position] and [Transform::set_position]
+//! - [Transform::orientation] and [Transform::set_orientation]
+//! - [Transform::translate]
+//! - [Transform::rotate] and [Transform::rotate_anchor]
 //!
 #![cfg_attr(
     not(feature = "sources"),
