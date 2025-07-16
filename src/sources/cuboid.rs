@@ -29,7 +29,7 @@ define_magnet! {
     /// ```
     CuboidMagnet
     field_fn: cuboid_B
-    args: {polarization:Vector3<T>, dimensions:Vector3<T>}
+    args: {polarization:Vector3<T> = Vector3::z(), dimensions:Vector3<T> = Vector3::from_element(T::one())}
     arg_display: "pol={}, dim={}";
     arg_fmt: [format_vector3, format_vector3]
     on_new: [

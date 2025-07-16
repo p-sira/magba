@@ -32,7 +32,7 @@ define_magnet! {
     /// ```
     CylinderMagnet
     field_fn: cylinder_B
-    args: {polarization:Vector3<T>, radius v:T, height v:T}
+    args: {polarization:Vector3<T> = Vector3::z(), radius v:T = T::one(), height v:T = T::one()}
     arg_display: "pol={}, r={}, h={}";
     arg_fmt: [format_vector3, format_float, format_float]
     on_new: [

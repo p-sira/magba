@@ -18,7 +18,7 @@
 /// $(#[$meta:meta])*
 /// $name:ident
 /// field_fn: $field_fn:ident
-/// args: { $($arg:ident $($pass_arg_by:ident)?: $arg_type:ty),* $(,)? }
+/// args: { $($arg:ident $($pass_arg_by:ident)?: $arg_type:ty = $arg_default:expr),* $(,)? }
 /// arg_display: $arg_display:expr;
 /// arg_fmt: [ $($arg_fmt:ident),* $(,)? ]
 /// on_new: [ $($on_new:tt)* ]
@@ -28,6 +28,7 @@
 /// - $arg: Arguments of the field function, excluding position and orientation, which are also the field of the struct
 /// - $pass_arg_by: Use v to pass by value, leave out to pass by reference
 /// - $arg_type: Type of the argument
+/// - $arg_default: Default value of the argument.
 /// - $arg_display: String for displaying $args
 /// - $arg_fmt: Macros to use to format for each $arg
 /// - $on_new: Checks to do in new() method before returning the instance
@@ -38,13 +39,13 @@ macro_rules! define_magnet {
         $(#[$meta:meta])*
         $name:ident
         field_fn: $field_fn:ident
-        args: { $($arg:ident $($pass_arg_by:ident)?: $arg_type:ty),* $(,)? }
+        args: { $($arg:ident $($pass_arg_by:ident)?: $arg_type:ty = $arg_default:expr),* $(,)? }
         arg_display: $arg_display:expr;
         arg_fmt: [ $($arg_fmt:ident),* $(,)? ]
         on_new: [ $($on_new:tt)* ]
     } => {
         $(#[$meta])*
-        #[derive(Debug, Clone, PartialEq, Default, getset::Getters, getset::Setters)]
+        #[derive(Debug, Clone, PartialEq, getset::Getters, getset::Setters)]
         pub struct $name<T: crate::Float> {
             position: nalgebra::Point3<T>,
             orientation: nalgebra::UnitQuaternion<T>,
@@ -68,7 +69,15 @@ macro_rules! define_magnet {
                 }
             }
         }
-
+        impl<T: crate::Float> Default for $name<T> {
+            fn default() -> Self {
+                Self {
+                    position: Default::default(),
+                    orientation: Default::default(),
+                    $($arg: $arg_default),*
+                }
+            }
+        }
         impl<T: crate::Float> crate::Source<T> for $name<T> {}
         impl<T: crate::Float> crate::geometry::Transform<T> for $name<T> {
             crate::geometry::impl_transform!();
