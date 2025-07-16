@@ -17,7 +17,7 @@ pub trait Field<T: RealField + Copy> {
     /// Compute the magnetic field (B) at the given points.
     ///
     /// # Arguments
-    /// - `points`: Slice of observer positions. (m)
+    /// - `points`: Slice of observer positions (m)
     ///
     /// # Returns
     /// - B-field vectors at each observer.

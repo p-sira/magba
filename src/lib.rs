@@ -8,8 +8,8 @@
 **Magba** is a performant analytical magnetic computation library for Rust.
 
 In Magba, the **[sources]** submodule provides structs such as [CylinderMagnet] and
-[Dipole]. These objects can **move and rotate** and **compute magnetic fields**. The
-sources can be grouped together into [collections](#sources-and-collections).
+[Dipole]. These objects can [compute magnetic fields](#field-computation) and [transform](#move-and-rotate-objects).
+The sources can be grouped into [**source collections**](#sources-and-collections).
 This is the recommended way to interact with the API.
 
 The submodule **[fields]** can be accessed to directly compute the fields. All physical
@@ -20,7 +20,7 @@ The source code is available on [GitHub](https://github.com/p-sira/magba).
 
 ## Features
 - Compute magnetic [fields] analytically.
-- Create magnetic [Source] and group them as [SourceCollection].
+- Create magnetic [sources](Source) and group them as [source collections](SourceCollection).
 - Move and rotate objects in 3D space.
 - Increase performance using parallelization with [Rayon](https://docs.rs/crate/rayon/latest).
 
@@ -63,7 +63,7 @@ The available feature flags are:
 //! use magba::*;
 //! use nalgebra::*;
 //!
-//! let cylinder = Box::new(CylinderMagnet::default()); // A unit cylinder magnet (pol=(0,0,1), r=1, h=1) at (0,0,0), q=(0,0,0,1)
+//! let cylinder = Box::new(CylinderMagnet::default());
 //! let cuboid = Box::new(CuboidMagnet::new(
 //!     Point3::new(1.0, 0.0, 0.0),  // position (m)
 //!     UnitQuaternion::identity(),  // orientation
@@ -113,8 +113,8 @@ The available feature flags are:
 //! use magba::util::*;
 //! use nalgebra::*;
 //!
+//! // A unit cylinder magnet (pol=(0,0,1), r=1, h=1) at (0,0,0), q=(0,0,0,1)
 //! let mut magnet = CylinderMagnet::default();
-//! magnet.set_polarization(Vector3::z());
 //!
 //! // Observer positions
 //! let points = [
@@ -203,7 +203,7 @@ The available feature flags are:
 //!     &Vector3::new(1.0, 2.0, 3.0),   // polarization (T)
 //!     1.0,                            // radius (m)
 //!     2.0,                            // height (m)
-//! )[0]; // Extract the element since the field function returns a vec of Vector3s.
+//! )[0]; // Extract the element since the field function returns a vec of Vector3.
 //! let expected = Vector3::new(-0.3684605662842379, -0.10171405289381347, -0.330064920993222);
 //! assert_close_vector_elem!(&b, &expected, 1e-12);
 //! ```
