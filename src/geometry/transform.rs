@@ -7,7 +7,8 @@
 
 use nalgebra::{Point3, RealField, Translation3, UnitQuaternion};
 
-/// Trait for transforming objects in 3D Cartesian CS.
+/// Trait for transforming objects in 3D Cartesian CS with methods
+/// for translation, rotation, and rotation with anchor.
 pub trait Transform<T: RealField + Copy> {
     /// Get the object position.
     fn position(&self) -> Point3<T>;

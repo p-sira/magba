@@ -8,6 +8,7 @@
 /// Permeability of free space (μ₀) = 4π × 10⁻⁷ H/m.
 pub const MU0: f64 = 4e-7 * std::f64::consts::PI;
 
+/// Trait for magnetic constants.
 pub trait MagneticConstants {
     /// Permeability of free space (μ₀) = 4π × 10⁻⁷ H/m.
     fn mu0() -> Self;

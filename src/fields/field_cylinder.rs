@@ -4,8 +4,6 @@
  */
 
 //! Analytical B-field computation for cylindrical magnets.
-//!
-//! Based on Derby & Olbert (2010), Caciagli et al. (2018), and MagpyLib.
 
 use std::iter::Sum;
 

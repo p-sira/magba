@@ -21,9 +21,9 @@ define_magnet! {
     /// use nalgebra::*;
     ///
     /// let dipole = Dipole::<f64>::new(
-    ///     Point3::origin(),
-    ///     UnitQuaternion::identity(),
-    ///     Vector3::z(),
+    ///     Point3::origin(),           // position (m)
+    ///     UnitQuaternion::identity(), // orientation
+    ///     Vector3::z(),               // moment (A·m²)
     /// );
     /// ```
     Dipole

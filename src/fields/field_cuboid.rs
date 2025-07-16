@@ -1,6 +1,9 @@
-//! Analytical B-field computation for cuboid (rectangular prism) magnets.
-//!
-//! Based on Yang (1990), Engel-Herbert (2005), Camacho (2013), Cichon (2019), and MagpyLib.
+/*
+ * Magba is licensed under The 3-Clause BSD, see LICENSE.
+ * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
+ */
+
+//! Analytical B-field computation for cuboid magnets.
 
 use std::iter::Sum;
 

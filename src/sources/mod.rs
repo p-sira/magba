@@ -4,16 +4,6 @@
  */
 
 //! Magnetic source traits and structs.
-//!
-//! ## Permanent magnets:
-//! - [CylinderMagnet]
-//! - [CuboidMagnet]
-//!
-//! ## [Dipole]
-//!
-//! ## Magnetic source collection:
-//! - [SourceCollection]
-//! - [MultiSourceCollection]
 
 mod magnets;
 

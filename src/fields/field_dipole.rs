@@ -3,6 +3,8 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
+//! Analytical B-field computation for magnet dipole moment.
+
 use nalgebra::{Point3, RealField, UnitQuaternion, Vector3};
 use numeric_literals::replace_float_literals;
 

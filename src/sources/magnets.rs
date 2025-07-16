@@ -1,4 +1,9 @@
-///! Function and macros shared by all magnetic sources
+/*
+ * Magba is licensed under The 3-Clause BSD, see LICENSE.
+ * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
+ */
+
+//! Function and macros shared by all magnetic sources
 
 /// Define magnet struct
 /// ```text

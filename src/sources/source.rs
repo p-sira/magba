@@ -4,11 +4,6 @@
  */
 
 //! Core traits and types for magnetic sources and collections of sources.
-//!
-//! - [`Field`] trait: For objects that can compute the magnetic field at given points.
-//! - [`Source`] trait: For magnetic sources, requiring both [`Field`] and [`Transform`].
-//! - [`SourceCollection`]: Stack-allocated collection of a single source type, supports adding sources and computing net field.
-//! - [`MultiSourceCollection`]: Collection of heterogeneous sources (`Box<dyn Source>`), supports adding sources and computing net field.
 
 use std::fmt::{Debug, Display};
 
@@ -22,7 +17,7 @@ pub trait Field<T: RealField + Copy> {
     /// Compute the magnetic field (B) at the given points.
     ///
     /// # Arguments
-    /// - `points`: Slice of observer positions.
+    /// - `points`: Slice of observer positions. (m)
     ///
     /// # Returns
     /// - B-field vectors at each observer.

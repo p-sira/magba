@@ -21,10 +21,10 @@ define_magnet! {
     /// use nalgebra::*;
     ///
     /// let magnet = CuboidMagnet::new(
-    ///     Point3::origin(),
-    ///     UnitQuaternion::identity(),
-    ///     Vector3::z(),
-    ///     Vector3::new(0.01, 0.01, 0.02)
+    ///     Point3::origin(),              // position (m)
+    ///     UnitQuaternion::identity(),    // orientation
+    ///     Vector3::z(),                  // polarization (T)
+    ///     Vector3::new(0.01, 0.01, 0.02) // dimensions (m)
     /// );
     /// ```
     CuboidMagnet

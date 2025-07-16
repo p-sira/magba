@@ -44,8 +44,8 @@ pub fn is_vec_close(a: Vector3<f64>, b: Vector3<f64>, rtol: f64) -> bool {
     relative_vec_distance(a, b) <= rtol
 }
 
-/// Panics if two vectors are not close element by element
-pub fn assert_close_vector_elem(vec1: &Vector3<f64>, vec2: &Vector3<f64>, rtol: f64) {
+/// Return the number of failed elements if the elements of two vectors are not close.
+pub fn is_elem_close(vec1: &Vector3<f64>, vec2: &Vector3<f64>, rtol: f64) -> Option<usize> {
     let mut n_fail: usize = 0;
     vec1.iter().zip(vec2).enumerate().for_each(|(n, (&a, &b))| {
         if !is_close(a, b, rtol) {
@@ -61,7 +61,9 @@ pub fn assert_close_vector_elem(vec1: &Vector3<f64>, vec2: &Vector3<f64>, rtol: 
         }
     });
     if n_fail > 0 {
-        panic!("Failed. Mismatched {n_fail}/3 elements.")
+        Some(n_fail)
+    } else {
+        None
     }
 }
 

@@ -23,11 +23,11 @@ define_magnet! {
     /// use nalgebra::*;
     ///
     /// let magnet = CylinderMagnet::new(
-    ///     Point3::origin(),
-    ///     UnitQuaternion::identity(),
-    ///     Vector3::z(),
-    ///     0.005,
-    ///     0.02,
+    ///     Point3::origin(),           // position (m)
+    ///     UnitQuaternion::identity(), // orientation
+    ///     Vector3::z(),               // polarization (T)
+    ///     0.005,                      // radius (m)
+    ///     0.02,                       // height (m)
     /// );
     /// ```
     CylinderMagnet

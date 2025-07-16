@@ -5,13 +5,10 @@
 
 //! Geometric utilities for 3D transformations and coordinate conversions.
 //!
-//! - [`Transform`] trait: For objects with position/orientation in 3D, with methods for translation, rotation, and rotation with anchor.
-//! - Coordinate conversion utilities: [`cart2cyl`], [`vec_cyl2cart`], [`local_point`], [`global_vector`], etc.
-
 mod coordinate;
 pub use coordinate::*;
 
 #[cfg(feature = "transform")]
-mod transform;
+pub(crate) mod transform;
 #[cfg(feature = "transform")]
 pub use transform::*;

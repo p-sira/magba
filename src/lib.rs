@@ -6,54 +6,102 @@
 /*!
 # Magba
 **Magba** is a performant analytical magnetic computation library for Rust.
-Source available on [GitHub](https://github.com/p-sira/magba).
+
+In Magba, the **[sources]** submodule provides structs such as [CylinderMagnet] and
+[Dipole]. These objects can **move and rotate** and **compute magnetic fields**. The
+sources can be grouped together into [collections](#sources-and-collections).
+This is the recommended way to interact with the API.
+
+The submodule **[fields]** can be accessed to directly compute the fields. All physical
+quantities are assumed to be in SI units. The submodule **[conversion]** provides functions
+to conveniently convert between physical quantities.
+
+The source code is available on [GitHub](https://github.com/p-sira/magba).
 
 ## Features
-- Compute magnetic fields
-- Create magnetic sources and group them as collections
-- Move and rotate objects
+- Compute magnetic [fields] analytically.
+- Create magnetic [Source] and group them as [SourceCollection].
+- Move and rotate objects in 3D space.
+- Increase performance using parallelization with [Rayon](https://docs.rs/crate/rayon/latest).
 
-## Quick Start
-In this section, you will learn Magba in 5 minutes. To install,
-simply: `cargo add magba`.
+## Installation
+To install Magba using `cargo`, simply run in your command line:
+```bash
+>> cargo add magba
+```
 
-### Create sources and group as a collection
+By default, Magba installs with all feature flags enabled. To install only the specified
+feature flags, use:
+```bash
+>> cargo add magba --no-default-features --features sources,parallel
+```
+The available feature flags are:
+- `default`: Enable `sources` and `parallel`.
+- `transform`: Enable spatial transformation functionalities.
+- `sources`: Magnetic source structs and collections. Also enable `transform`.
+- `parallel`: Enable parallelization with Rayon for performance.
+
 */
+
+//! ## Sources and Collections
 //!
 #![cfg_attr(
     not(feature = "sources"),
-    doc = "This functionality need `sources` feature flag."
+    doc = "<div class=\"warning\">This functionality need `sources` feature flag.</div>"
 )]
+//!
+//! The magnetic sources are located in the [sources] submodule.
+//! The sources can be grouped as "source collections". For performance, there are two types
+//! of source collections, the [SourceCollection] and [MultiSourceCollection]. [SourceCollection]
+//! is faster, as it is stack-allocated. However, [SourceCollection] can only hold the same type
+//! of [Source]. Meanwhile, [MultiSourceCollection] is slower due to heap allocation but can hold
+//! heterogenous source types encapsulated in [Box].
+//!
+//! ### Defining Sources and Grouping as MultiSourceCollection
 #![cfg_attr(not(feature = "sources"), doc = "```ignore")]
 #![cfg_attr(feature = "sources", doc = "```")]
-//! use magba::{CylinderMagnet, SourceCollection};
+//! use magba::*;
 //! use nalgebra::*;
+//!
+//! let cylinder = Box::new(CylinderMagnet::default()); // A unit cylinder magnet (pol=(0,0,1), r=1, h=1) at (0,0,0), q=(0,0,0,1)
+//! let cuboid = Box::new(CuboidMagnet::new(
+//!     Point3::new(1.0, 0.0, 0.0),  // position (m)
+//!     UnitQuaternion::identity(),  // orientation
+//!     Vector3::z(),                // polarization (T)
+//!     Vector3::new(0.1, 0.2, 0.3), // dimensions (m)
+//! ));
+//!
+//! let mut collection = MultiSourceCollection::from_sources(vec![cylinder, cuboid]);
+//! collection.add(Box::new(Dipole::default()));
+//! ```
+//!
+//! ### Stack-allocated Collection
+#![cfg_attr(not(feature = "sources"), doc = "```ignore")]
+#![cfg_attr(feature = "sources", doc = "```")]
+//! use magba::*;
+//! use nalgebra::*;
+//! use std::f64::consts::PI;
 //!
 //! let magnet1 = CylinderMagnet::new(
-//!     Point3::origin(),
-//!     UnitQuaternion::identity(),
-//!     Vector3::new(0.0, 0.0, 0.9),
-//!     0.005,
-//!     0.020,
+//!     Point3::new(0.0, 0.0, 1.0), // position (m)
+//!     UnitQuaternion::identity(), // orientation
+//!     Vector3::z(),               // polarization (T)
+//!     0.1,                        // radius (m)
+//!     0.2,                        // height (m)
 //! );
 //!
-//! let magnet2 = CylinderMagnet::new(
-//!     Point3::new(0.1, 0.0, 0.0),
-//!     UnitQuaternion::identity(),
-//!     Vector3::new(0.7, 0.5, 0.0),
-//!     0.01,
-//!     0.03,
+//! let mut magnet2 = magnet1.clone();
+//! magnet2.rotate_anchor(
+//!     &UnitQuaternion::from_scaled_axis(Vector3::new(PI, 0.0, 0.0)),
+//!     &Point3::origin(),
 //! );
 //!
-//! let mut collection = SourceCollection::default();
-//! collection.add(magnet1);
-//! collection.add(magnet2);
+//! let collection = SourceCollection::from_sources(vec![magnet1, magnet2]);
 //! ```
-//! Note that [SourceCollection] only holds single type of [Source].
-//! If you need multiple types of Source, use [MultiSourceCollection] instead.
 //!
-//! ### Compute the field
-//! The methods like [Field::get_B] are available for all [Source] and types that implement [Field].
+//! ## Field Computation
+//! The methods like [Field::get_B] are available for all [Source] and types that implement [Field],
+//! including [SourceCollection] and [MultiSourceCollection].
 //!
 #![cfg_attr(
     not(feature = "sources"),
@@ -61,47 +109,36 @@ simply: `cargo add magba`.
 )]
 #![cfg_attr(not(feature = "sources"), doc = "```ignore")]
 #![cfg_attr(feature = "sources", doc = "```")]
-//! use magba::sources::{CylinderMagnet, Field};
+//! use magba::*;
+//! use magba::util::*;
 //! use nalgebra::*;
 //!
-//! let magnet = CylinderMagnet::new(
-//!     Point3::origin(),
-//!     UnitQuaternion::identity(),
-//!     Vector3::new(0.0, 0.0, 0.9),
-//!     0.005,
-//!     0.020,
-//! );
+//! let mut magnet = CylinderMagnet::default();
+//! magnet.set_polarization(Vector3::z());
 //!
+//! // Observer positions
 //! let points = [
 //!     Point3::new(0.0, 0.0, 0.020),
 //!     Point3::new(0.0, 0.0, 0.025),
 //!     Point3::new(0.0, 0.0, 0.030),
 //! ];
 //!
-//! let b_field = magnet.get_B(&points);
-//! assert_eq!(
-//!     b_field,
-//!     [
-//!         Vector3::new(0.0, 0.0, 0.041385029774502556),
-//!         Vector3::new(0.0, 0.0, 0.018569788024793737),
-//!         Vector3::new(0.0, 0.0, 0.00996091945575112),
-//!     ]
-//! );
+//! // Compute the magnetic field
+//! let b_fields = magnet.get_B(&points);
+//! let expected = [
+//!         Vector3::new(0.0, 0.0, 0.4470419021133804),
+//!         Vector3::new(0.0, 0.0, 0.446945356779104),
+//!         Vector3::new(0.0, 0.0, 0.44682738840312125),
+//! ];
+//!
+//! b_fields.iter().zip(expected).for_each(|(b, b_ref)| {assert_close_vector_elem!(b, &b_ref, 1e-12);});
 //!
 //! use magba::conversion::*;
-//! let h_field = Bs_to_Hs(&b_field);
-//! assert_eq!(
-//!     h_field,
-//!     [
-//!         Vector3::new(0.0, 0.0, 5.200596220326883e-8),
-//!         Vector3::new(0.0, 0.0, 2.3335483854964688e-8),
-//!         Vector3::new(0.0, 0.0, 1.2517260554074943e-8),
-//!     ]
-//! );
+//! let h_field = Bs_to_Hs(&b_fields);
 //! ```
 //!
-//! ### Move and rotate objects
-//! The transformation functionalities are available for all [Source] and types that implement [geometry::Transform].
+//! ## Move and Rotate Objects
+//! The transformation functionalities are available for all [Source] and types that implement [Transform].
 //!
 #![cfg_attr(
     not(feature = "sources"),
@@ -109,12 +146,11 @@ simply: `cargo add magba`.
 )]
 #![cfg_attr(not(feature = "sources"), doc = "```ignore")]
 #![cfg_attr(feature = "sources", doc = "```")]
-//! use magba::{CylinderMagnet, Field};
-//! use magba::geometry::Transform;
-//! use magba::util::*;
+//! use magba::*;
 //! use nalgebra::*;
+//! use std::f64::consts::PI;
 //!
-//! // Don't forget to make the object mutable if you need to move it.
+//! // Define mutable object to allow transformations.
 //! let mut magnet = CylinderMagnet::new(
 //!     Point3::origin(),
 //!     UnitQuaternion::identity(),
@@ -123,73 +159,73 @@ simply: `cargo add magba`.
 //!     0.020,
 //! );
 //!
-//! // Here, we try various ways to move the magnet closer to the observer.
+//! // Computing the magnetic field
 //! let points = [Point3::new(0.0, 0.0, 0.05)];
 //! let b = magnet.get_B(&points)[0];
 //! let expected = Vector3::new(0.0, 0.0, 0.0019205466890453442);
-//! assert_close_vector_elem (&b, &expected, 1e-12);
+//! assert_close_vector_elem!(&b, &expected, 1e-12);
 //!
+//! // Moving the magnet
 //! magnet.translate(&Translation3::new(0.0, 0.0, 0.01));
 //! let b = magnet.get_B(&points)[0];
 //! let expected = Vector3::new(0.0, 0.0, 0.0038894698700304275);
-//! assert_close_vector_elem (&b, &expected, 1e-12);
+//! assert_close_vector_elem!(&b, &expected, 1e-12);
 //!
 //! magnet.set_position(Point3::new(0.0, 0.0, 0.02));
 //! let b = magnet.get_B(&points)[0];
 //! let expected = Vector3::new(0.0, 0.0, 0.00996091945575112);
-//! assert_close_vector_elem (&b, &expected, 1e-12);
+//! assert_close_vector_elem!(&b, &expected, 1e-12);
 //!
-//! // Let's try rotating the magnet next.
-//! use std::f64::consts::PI;
+//! // Rotating the magnet
 //! magnet.rotate(&UnitQuaternion::from_scaled_axis(Vector3::new(PI / 4.0, 0.0, 0.0)));
 //! let b = magnet.get_B(&points)[0];
 //! let expected = Vector3::new(3.9407500527173422e-19, 0.0035238379945531874, 0.005577663229073966);
-//! assert_close_vector_elem (&b, &expected, 1e-12);
+//! assert_close_vector_elem!(&b, &expected, 1e-12);
 //!
 //! magnet.set_orientation(UnitQuaternion::from_scaled_axis(Vector3::new(PI / 2.0, 0.0, 0.0)));
 //! let b = magnet.get_B(&points)[0];
 //! let expected = Vector3::new(6.086025172136602e-35, 0.003642460886175623, 0.0);
-//! assert_close_vector_elem (&b, &expected, 1e-12);
+//! assert_close_vector_elem!(&b, &expected, 1e-12);
 //! ```
 //!
-//! ### Directly calculate fields
+//! ### Direct Field Calculation
 //! If you just need to access the field functions, you can use [fields].
 //! ```
+//! use magba::*;
 //! use magba::fields;
-//! use magba::util::*;
 //! use nalgebra::*;
 //!
+//! // Compute the magnetic field of a cylinder magnet.
 //! let b = fields::cylinder_B(
-//!     &[Point3::new(1.0, -1.0, 0.0)],
-//!     &Point::origin(),
-//!     &UnitQuaternion::identity(),
-//!     &Vector3::new(1.0, 2.0, 3.0),
-//!     1.0,
-//!     2.0
-//! )[0];
+//!     &[Point3::new(1.0, -1.0, 0.0)], // observer positions (m)
+//!     &Point::origin(),               // magnet position (m)
+//!     &UnitQuaternion::identity(),    // magnet orientation
+//!     &Vector3::new(1.0, 2.0, 3.0),   // polarization (T)
+//!     1.0,                            // radius (m)
+//!     2.0,                            // height (m)
+//! )[0]; // Extract the element since the field function returns a vec of Vector3s.
 //! let expected = Vector3::new(-0.3684605662842379, -0.10171405289381347, -0.330064920993222);
-//! assert_close_vector_elem (&b, &expected, 1e-12);
+//! assert_close_vector_elem!(&b, &expected, 1e-12);
 //! ```
-/*!
-## Feature Flags
-- `default`: enable `sources` and `parallel`
-- `sources`: magnet structs and collection
-- `parallel`: enable parallelization for performance
+//!
+//! ## Acknowledgment
+//! Most of the field computation used in Magba is based on [MagpyLib](https://github.com/magpylib/magpylib).
+//! We would like to thank MagpyLib contributors their hard work and contributions to the scientific community.
 
-## Acknowledgment
-Most of the field computation used in Magba is based on [MagpyLib](https://github.com/magpylib/magpylib).
-We would like to thank MagpyLib contributors their hard work and contributions to the scientific community.
-*/
+#![cfg_attr(
+    not(feature = "default"),
+    allow(rustdoc::broken_intra_doc_links, unused)
+)]
 
 mod crate_util;
 pub mod util;
 
 pub mod constants;
+pub mod conversion;
 pub mod fields;
 pub mod geometry;
 
-use crate::constants::MagneticConstants;
-pub use fields::*;
+use constants::MagneticConstants;
 
 /// Generic trait for floating point numbers compatible with all [Magba](crate) implementations.
 ///
@@ -203,6 +239,8 @@ impl Float for f64 {}
 
 #[cfg(feature = "sources")]
 pub mod sources;
+#[cfg(feature = "transform")]
+pub use geometry::Transform;
 #[cfg(feature = "sources")]
 pub use sources::*;
 

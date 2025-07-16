@@ -218,6 +218,40 @@ pub mod source_testing_util {
     use nalgebra::RealField;
     pub(crate) use test_B_magnet;
 
+    /// Generate basic tests for magnetic sources.
+    /// Tests get_B, get_B for small magnets, translate, and rotate.
+    ///
+    /// ```text
+    /// generate_tests! {
+    ///     Magnet
+    ///     filename: magnet
+    ///     params: { polarization: Vector3::z() }
+    ///     rtols: {
+    ///         static: 1e-10,
+    ///         static_small: 1e-10,
+    ///         translate: 1e-10,
+    ///         rotate: 1e-10,
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// ```text
+    /// $source_type: ident
+    /// filename: $filename: ident
+    /// params: { $($pname:ident : $params: expr),* $(,)? }
+    /// rtols: {
+    ///     static: $rtol_static:expr,
+    ///     static_small: $rtol_static_small:expr,
+    ///     translate: $rtol_translate:expr,
+    ///     rotate: $rtol_rotate:expr $(,)?
+    /// }
+    /// ```
+    /// - $source_type: Type identifier for the magnet.
+    /// - $filename: Base name of the test file.
+    /// - $pname: Name of the parameter. Unused in the test generation but serves as a reminder for the coder.
+    /// - $params: The base parameter value for the test. Must implement division operator as it will be
+    ///   divided by 10 in small workspace tests.
+    /// - rtols: Relative tolerance for corresponding tests.
     macro_rules! generate_tests {
         {
             $source_type: ident
