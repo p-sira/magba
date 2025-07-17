@@ -19,11 +19,12 @@ to conveniently convert between physical quantities.
 The source code is available on [GitHub](https://github.com/p-sira/magba).
 
 ## Features
-- Compute [magnetic fields](#field-computation) analytically.
+- Compute [magnetic fields](#field-computation) analytically for various source geometries.
 - Create [magnetic sources](Source) and group them as [source collections](#sources-and-collections).
 - [Move and rotate objects](#move-and-rotate-objects) in 3D space.
 - Increase performance using [parallelization](#installation) with [Rayon](https://docs.rs/crate/rayon/latest).
 - Support calculation with [f32] and [f64].
+- Python bindings available via [Pymagba](https://github.com/p-sira/pymagba)
 
 ## Installation
 To install Magba using `cargo`, simply run in your command line:
