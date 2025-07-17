@@ -53,7 +53,7 @@ The available feature flags are:
 //!
 //! The magnetic sources are located in the [sources] submodule. The parameters of the sources
 //! can be accessed and modified using *getters* and *setters*, such as `position()` and `set_position()`.
-//! 
+//!
 //! The sources can be grouped as "source collections". For performance, there are two types
 //! of source collections, the [SourceCollection] and [MultiSourceCollection]. [SourceCollection]
 //! is faster, as it is stack-allocated. However, [SourceCollection] can only hold the same type

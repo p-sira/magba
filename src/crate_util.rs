@@ -172,3 +172,15 @@ macro_rules! impl_parallel_sum {
     }};
 }
 pub(crate) use impl_parallel_sum;
+
+macro_rules! pub_on_feature {
+    {$feature:literal, $($kw:ident {$($item:ident),+ $(,)?})+ $(,)?} => {
+        $($(
+            #[cfg(feature=$feature)]
+            pub $kw $item;
+            #[cfg(not(feature=$feature))]
+            pub(crate) $kw $item;
+        )+)+
+    };
+}
+pub(crate) use pub_on_feature;

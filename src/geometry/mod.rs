@@ -6,7 +6,10 @@
 //! Geometric utilities for 3D transformations and coordinate conversions.
 //!
 mod coordinate;
+#[cfg(feature = "unstable")]
 pub use coordinate::*;
+#[cfg(not(feature = "unstable"))]
+pub(crate) use coordinate::*;
 
 #[cfg(feature = "transform")]
 pub(crate) mod transform;
