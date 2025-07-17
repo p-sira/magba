@@ -7,7 +7,7 @@ use crate::sources::magnets::define_magnet;
 use nalgebra::Vector3;
 
 define_magnet! {
-    /// Uniformly magnetized cylindrical magnet in 3D space.
+    /// Uniformly magnetized cuboid magnet in 3D space.
     ///
     /// # Fields
     /// - `position`: Center of the cuboid (m)
