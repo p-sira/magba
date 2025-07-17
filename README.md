@@ -53,7 +53,7 @@ let cuboid = Box::new(CuboidMagnet::new(
     Vector3::z(),                // polarization (T)
     Vector3::new(0.1, 0.2, 0.3), // dimensions (m)
 ));
-//!
+
 // Grouping sources as collection
 let mut collection = MultiSourceCollection::from_sources(vec![cylinder, cuboid]);
 collection.add(Box::new(Dipole::default()));
