@@ -2,11 +2,12 @@
 ## 0.2
 ### 0.2.0
 **Breaking Changes**
-- Functions will return bare values instead of `Result`.
+- Functions will return bare values instead of `Result`.e
 - Removed `local_cyl_B_vec` as the parallelization is done at the level of global frame calculation.
 - Change the function names in `field_cylinder` to cylinder instead of cyl and the argument name from `pol` to `polarization`.
 - `magba::fields::conversion` submodule moved to `magba::conversion`. However, this will not affect legacy codes importing from
   `magba::conversion` as the submodule was re-exported there before.
+- Core field computation functions in `fields::*` submodules are gated behind the `unstable` feature flag.
 
 **New Features**
 - Support both `f32` and `f64`.
