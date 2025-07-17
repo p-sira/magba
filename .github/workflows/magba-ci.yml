@@ -1,5 +1,8 @@
 name: Magba CI
 
+permissions:
+  contents: write
+
 on:
   push:
     branches: [ "main", "dev" ]
@@ -15,8 +18,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - name: Check formatting
-      run: cargo fmt -- --check
     - name: Clippy
       run: cargo clippy
   test-default:
@@ -43,3 +44,32 @@ jobs:
     - uses: actions/checkout@v4 
     - name: Test parallel
       run: cargo test --no-default-features --features=parallel
+  test-unstable:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Test unstable
+      run: cargo test --features=unstable
+  test-nodefault-unstable:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Test unstable
+      run: cargo test --no-default-features --features=unstable
+  doc:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Make doc
+      run: cargo doc --no-deps
+  format:
+    runs-on: ubuntu-latest
+    needs: [test-default, test-no-default, test-sources, test-parallel]
+    steps:
+    - name: Format code
+      run: |
+        cargo fmt
+        git config --global user.name 'github-actions'
+        git config --global user.email 'github-actions@github.com'
+        git add .
+        git diff --cached --quiet || (git commit -m "FMT: CI cargo fmt" && git push)
