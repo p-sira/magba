@@ -1,6 +1,6 @@
 [package]
 name = "magba"
-version = "0.1.1"
+version = "0.2.0"
 authors = ["Sira Pornsiriprasert <code@psira.me>"]
 
 description = "Magnetic computation library for Rust"
@@ -15,9 +15,12 @@ edition = "2021"
 exclude = ["benches", "logo", "magba.code-workspace", "python", "tests/test-data", "requirements*", ".github", ".gitignore"]
 
 [dependencies]
-ellip = "~0.3"
+ellip = "0.3.2"
 getset = "0.1.6"
+itertools = "0.14.0"
 nalgebra = { version = "0.33.2" }
+num-traits = "0.2.19"
+numeric_literals = "0.2.0"
 rayon = { version = "1.10.0", optional = true }
 
 [dev-dependencies]
@@ -31,6 +34,7 @@ default = ["sources", "parallel"]
 transform = []
 sources = ["transform"]
 parallel = ["dep:rayon", "nalgebra/rayon"]
+unstable = []
 
 [[bench]]
 name = "bench"

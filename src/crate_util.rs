@@ -5,7 +5,7 @@
 
 //! Internal utilities for Magba
 
-use nalgebra::{distance, Point3, Vector3};
+use nalgebra::{distance, Point3, RealField, Vector3};
 
 /// Calculate the symmetric relative error
 pub fn relative_error(a: f64, b: f64) -> f64 {
@@ -33,7 +33,7 @@ pub fn is_close(a: f64, b: f64, rtol: f64) -> bool {
 }
 
 /// Calculate the relative Euclidean distance
-pub fn relative_vec_distance(a: Vector3<f64>, b: Vector3<f64>) -> f64 {
+pub fn relative_vec_distance<T: RealField + Copy>(a: Vector3<T>, b: Vector3<T>) -> T {
     let dist = distance(&Point3::from(a), &Point3::from(b));
     (dist / a.magnitude()).max(dist / b.magnitude())
 }
@@ -44,8 +44,8 @@ pub fn is_vec_close(a: Vector3<f64>, b: Vector3<f64>, rtol: f64) -> bool {
     relative_vec_distance(a, b) <= rtol
 }
 
-/// Panics if two vectors are not close element by element
-pub fn assert_close_vector_elem(vec1: &Vector3<f64>, vec2: &Vector3<f64>, rtol: f64) {
+/// Return the number of failed elements if the elements of two vectors are not close.
+pub fn is_elem_close(vec1: &Vector3<f64>, vec2: &Vector3<f64>, rtol: f64) -> Option<usize> {
     let mut n_fail: usize = 0;
     vec1.iter().zip(vec2).enumerate().for_each(|(n, (&a, &b))| {
         if !is_close(a, b, rtol) {
@@ -61,9 +61,18 @@ pub fn assert_close_vector_elem(vec1: &Vector3<f64>, vec2: &Vector3<f64>, rtol: 
         }
     });
     if n_fail > 0 {
-        panic!("Failed. Mismatched {n_fail}/3 elements.")
+        Some(n_fail)
+    } else {
+        None
     }
 }
+
+macro_rules! format_float {
+    ($v: expr) => {
+        $v.to_string()
+    };
+}
+pub(crate) use format_float;
 
 macro_rules! format_vector3 {
     ($v: expr) => {
@@ -85,3 +94,93 @@ macro_rules! format_quat {
     };
 }
 pub(crate) use format_quat;
+
+macro_rules! assert_eq_lens {
+    ($str_err:expr, [$ref_vec:expr $(, $vec:expr)+]) => {
+        {
+            let len = $ref_vec.len();
+            $(
+                if $vec.len() != len {
+                    panic!($str_err)
+                }
+            )+
+        }
+    };
+}
+pub(crate) use assert_eq_lens;
+
+macro_rules! impl_parallel {
+    ($func: ident, $threshold: expr, $items: expr, $($func_args: expr),* $(,)?) => {
+        {
+            #[cfg(feature = "parallel")]
+            if $items.len() > $threshold {
+                use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+                return $items
+                    .par_iter()
+                    .map(|p| $func(p, $($func_args),*))
+                    .collect();
+            }
+
+            $items
+                .iter()
+                .map(|p| $func(p, $($func_args),*))
+                .collect()
+        }
+    };
+}
+pub(crate) use impl_parallel;
+
+macro_rules! impl_parallel_sum {
+    ($items:expr, [$($vecs:expr),+], |$($args:ident),*| $call:expr) => {{
+        use crate::crate_util::assert_eq_lens;
+        assert_eq_lens!(
+            "Lengths of input vectors must be equal.",
+            [$($vecs),+]
+        );
+
+        let combinations = itertools::izip!($($vecs),+);
+
+        #[cfg(feature = "parallel")]
+        {
+            use rayon::iter::{ParallelBridge, ParallelIterator};
+
+            let vectors = combinations
+                .par_bridge()
+                .map(|($($args),*)| $call)
+                .collect::<Vec<Vec<_>>>();
+
+            (0..$items.len())
+                .map(|i| vectors.iter().map(|v| v[i]).sum())
+                .collect()
+        }
+
+        #[cfg(not(feature = "parallel"))]
+        {
+            let mut net_vectors: Vec<Vector3<_>> = vec![Vector3::zeros(); $items.len()];
+
+            combinations
+                .map(|($($args),*)| $call)
+                .for_each(|field_vectors| {
+                    net_vectors
+                        .iter_mut()
+                        .zip(field_vectors)
+                        .for_each(|(net_vector, field_vector)| *net_vector += field_vector)
+                });
+
+            net_vectors
+        }
+    }};
+}
+pub(crate) use impl_parallel_sum;
+
+macro_rules! pub_on_feature {
+    {$feature:literal, $($kw:ident {$($item:ident),+ $(,)?})+ $(,)?} => {
+        $($(
+            #[cfg(feature=$feature)]
+            pub $kw $item;
+            #[cfg(not(feature=$feature))]
+            pub(crate) $kw $item;
+        )+)+
+    };
+}
+pub(crate) use pub_on_feature;

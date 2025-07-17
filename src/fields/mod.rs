@@ -5,10 +5,17 @@
 
 //! Analytical computation of magnetic fields for various source geometries.
 //!
-//! - [`field_cylinder`]: Analytical B-field for cylindrical magnets.
-//! - [`conversion`]: Utilities for converting between B-field, H-field, magnetization, and polarization.
+//! ## Item requiring `unstable` features
+//! - `magba::fields::field_cuboid`: Analytical B-field computation for cuboid magnets.
+//! - `magba::fields::field_cylinder`: Analytical B-field computation for cylinder magnets.
+//! - `magba::fields::field_dipole`: Analytical B-field computation for magnetic dipole moment.
 
-pub mod field_cylinder;
-pub use field_cylinder::{cyl_B, sum_multiple_cyl_B};
+crate::crate_util::pub_on_feature! {
+    "unstable", mod {
+        field_cuboid, field_cylinder, field_dipole
+    }
+}
 
-pub mod conversion;
+pub use field_cuboid::{cuboid_B, sum_multiple_cuboid_B};
+pub use field_cylinder::{cylinder_B, sum_multiple_cylinder_B};
+pub use field_dipole::{dipole_B, sum_multiple_dipole_B};
