@@ -19,10 +19,10 @@ to conveniently convert between physical quantities.
 The source code is available on [GitHub](https://github.com/p-sira/magba).
 
 ## Features
-- Compute magnetic [fields] analytically.
-- Create magnetic [sources](Source) and group them as [source collections](SourceCollection).
-- Move and rotate objects in 3D space.
-- Increase performance using parallelization with [Rayon](https://docs.rs/crate/rayon/latest).
+- Compute [magnetic fields](#field-computation) analytically.
+- Create [magnetic sources](Source) and group them as [source collections](#sources-and-collections).
+- [Move and rotate objects](#move-and-rotate-objects) in 3D space.
+- Increase performance using [parallelization](#installation) with [Rayon](https://docs.rs/crate/rayon/latest).
 - Support calculation with [f32] and [f64].
 
 ## Installation
@@ -31,7 +31,7 @@ To install Magba using `cargo`, simply run in your command line:
 >> cargo add magba
 ```
 
-By default, Magba installs with all feature flags enabled. To install only the specified
+By default, Magba installs with all stable features enabled. To install only the specified
 feature flags, use:
 ```bash
 >> cargo add magba --no-default-features --features sources,parallel
@@ -41,7 +41,7 @@ The available feature flags are:
 - `transform`: Enable spatial transformation functionalities.
 - `sources`: Magnetic source structs and collections. Also enable `transform`.
 - `parallel`: Enable parallelization with Rayon for performance.
-
+- `unstable`: Enable unstable features. These features may change any time.
 */
 
 //! ## Sources and Collections
@@ -51,14 +51,14 @@ The available feature flags are:
     doc = "<div class=\"warning\">This functionality need `sources` feature flag.</div>"
 )]
 //!
-//! The magnetic sources are located in the [sources] submodule. The parameters of the sources
+//! The magnetic sources are located in the **[sources]** submodule. The parameters of the sources
 //! can be accessed and modified using *getters* and *setters*, such as `position()` and `set_position()`.
 //!
-//! The sources can be grouped as "source collections". For performance, there are two types
-//! of source collections, the [SourceCollection] and [MultiSourceCollection]. [SourceCollection]
-//! is faster, as it is stack-allocated. However, [SourceCollection] can only hold the same type
-//! of [Source]. Meanwhile, [MultiSourceCollection] is slower due to heap allocation but can hold
-//! heterogenous source types encapsulated in [Box].
+//! The sources can be grouped as *source collections*. For performance, there are two types
+//! of source collections, the [SourceCollection] and [MultiSourceCollection]. **SourceCollection**
+//! is faster, as it is stack-allocated. However, it can only hold the same type of [Source]. Meanwhile,
+//! **MultiSourceCollection** is slower due to heap allocation but can holdheterogenous source types
+//! encapsulated in [Box].
 //!
 //! ### Defining Sources and Grouping as MultiSourceCollection
 #![cfg_attr(not(feature = "sources"), doc = "```ignore")]
