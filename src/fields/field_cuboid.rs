@@ -4,6 +4,8 @@
  */
 
 //! Analytical B-field computation for cuboid magnets.
+//! 
+//! <div class="warning">⚠️ Unstable feature. May subject to changes.</div>
 
 use std::iter::Sum;
 
@@ -17,6 +19,8 @@ use crate::{
 
 /// Compute B-field of a homogeneous cuboid magnet at point (x, y, z) in the local frame.
 ///
+/// <div class="warning">⚠️ Unstable feature. May subject to changes.</div>
+/// 
 /// # Arguments
 /// - `point`: Observer position (m)
 /// - `dimensions`: Cuboid side lengths (m)
@@ -167,8 +171,10 @@ pub fn local_cuboid_B<T: RealField + Copy>(
 
 /// Compute B-field of a homogeneous cuboid magnet at point (x, y, z).
 ///
+/// <div class="warning">⚠️ Unstable feature. May subject to changes.</div>
+/// 
 /// # Arguments
-/// - `point`: Observer positions (m)
+/// - `point`: Observer position (m)
 /// - `position`: Magnet position (m)
 /// - `orientation`: Magnet orientation in unit quaternion
 /// - `dimensions`: Cuboid side lengths (m)
@@ -208,6 +214,9 @@ pub fn global_cuboid_B<T: RealField + Copy>(
 ///
 /// # Returns
 /// - B-field vectors at each observer (T)
+/// 
+/// # References
+/// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[allow(non_snake_case)]
 pub fn cuboid_B<T: RealField + Copy>(
     points: &[Point3<T>],
@@ -238,6 +247,9 @@ pub fn cuboid_B<T: RealField + Copy>(
 ///
 /// # Returns
 /// - Net B-field vectors at each observer (T)
+/// 
+/// # References
+/// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[allow(non_snake_case)]
 pub fn sum_multiple_cuboid_B<T: RealField + Copy + Sum>(
     points: &[Point3<T>],

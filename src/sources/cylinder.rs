@@ -30,6 +30,10 @@ define_magnet! {
     ///     0.02,                       // height (m)
     /// );
     /// ```
+    /// # References
+    /// - Caciagli, Alessio, Roel J. Baars, Albert P. Philipse, and Bonny W. M. Kuipers. “Exact Expression for the Magnetic Field of a Finite Cylinder with Arbitrary Uniform Magnetization.” Journal of Magnetism and Magnetic Materials 456 (June 15, 2018): 423–32. <https://doi.org/10.1016/j.jmmm.2018.02.003>.
+    /// - Derby, Norman, and Stanislaw Olbert. “Cylindrical Magnets and Ideal Solenoids.” American Journal of Physics 78, no. 3 (March 1, 2010): 229–35. <https://doi.org/10.1119/1.3256157>.
+    /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
     CylinderMagnet
     field_fn: cylinder_B
     args: {polarization:Vector3<T> = Vector3::z(), radius v:T = T::one(), height v:T = T::one()}

@@ -222,7 +222,11 @@ The available feature flags are:
 
 #![cfg_attr(
     not(feature = "default"),
-    allow(rustdoc::broken_intra_doc_links, unused)
+    allow(
+        rustdoc::broken_intra_doc_links,
+        rustdoc::private_intra_doc_links,
+        unused,
+    )
 )]
 
 mod crate_util;
@@ -248,8 +252,10 @@ impl Float for f64 {}
 #[cfg(feature = "sources")]
 pub mod sources;
 #[cfg(feature = "transform")]
+#[doc(inline)]
 pub use geometry::Transform;
 #[cfg(feature = "sources")]
+#[doc(inline)]
 pub use sources::*;
 
 #[cfg(test)]
