@@ -196,8 +196,11 @@ The available feature flags are:
 //! assert_close_vector_elem!(&b, &expected, 1e-12);
 //! ```
 //!
-//! ### Direct Field Calculation
-//! If you just need to access the field functions, you can use [fields].
+//! ## Direct Field Calculation
+//! If you only need to access the field functions, you can use the [fields] submodule and disable
+//! the `sources` feature by running `cargo add magba --no-default-features --features parallel`.
+//! The core field computation functions, such as computation in local frame, are available under
+//! the `unstable` feature flag.
 //! ```
 //! use magba::*;
 //! use magba::fields;
