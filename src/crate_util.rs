@@ -184,3 +184,27 @@ macro_rules! pub_on_feature {
     };
 }
 pub(crate) use pub_on_feature;
+
+macro_rules! implement {
+    (
+        $trait:ident <$($trait_bound:ident),+> for $for:ident
+        bounds: [$(($bound_var:ident : $($bound:tt)+)),+]
+
+        $($inner:item)*
+    ) => {
+        impl<$($bound_var : $($bound)+),+> $trait<$($trait_bound),+> for $for<$($bound_var),+> {
+            $($inner)*
+        }
+    };
+    (
+        $trait:ident for $for:ident
+        bounds: [$(($bound_var:ident : $($bound:tt)+)),+]
+
+        $($inner:item)*
+    ) => {
+        impl<$($bound_var : $($bound)+),+> $trait for $for<$($bound_var),+> {
+            $($inner)*
+        }
+    };
+}
+pub(crate) use implement;

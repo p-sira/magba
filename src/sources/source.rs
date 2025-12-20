@@ -9,7 +9,11 @@ use std::fmt::{Debug, Display};
 
 use nalgebra::{Point3, RealField, Translation3, UnitQuaternion, Vector3};
 
-use crate::{crate_util, geometry::Transform, Float};
+use crate::{
+    crate_util::{self, implement},
+    geometry::Transform,
+    Float,
+};
 
 /// Trait shared by objects that generate magnetic field.
 #[allow(non_snake_case)]
@@ -33,141 +37,208 @@ pub trait Source<T: RealField + Copy>:
 }
 
 macro_rules! impl_default {
-    () => {
-        fn default() -> Self {
-            Self {
-                position: Point3::origin(),
-                orientation: UnitQuaternion::identity(),
-                children: Vec::new(),
-            }
-        }
-    };
-}
+    ($struct:ident <$(($bound_var:ident : $($bound:tt)+)),+>) => {
+        implement!(
+            Default for $struct
+            bounds: [$(($bound_var : $($bound)+)),+]
 
-/// Implement deep Transform for objects with children.
-macro_rules! impl_transform_collection {
-    () => {
-        #[inline]
-        fn position(&self) -> Point3<T> {
-            self.position
-        }
-
-        #[inline]
-        fn orientation(&self) -> UnitQuaternion<T> {
-            self.orientation
-        }
-
-        #[inline]
-        fn set_position(&mut self, position: Point3<T>) {
-            let translation = Translation3::from(position - &self.position);
-            self.children
-                .iter_mut()
-                .for_each(|source| source.translate(&translation));
-
-            self.position = position
-        }
-
-        #[inline]
-        fn set_orientation(&mut self, orientation: UnitQuaternion<T>) {
-            let rotation = orientation * &self.orientation.inverse();
-            self.children
-                .iter_mut()
-                .for_each(|source| source.rotate_anchor(&rotation, &self.position));
-
-            self.orientation = orientation;
-        }
-
-        #[inline]
-        fn translate(&mut self, translation: &Translation3<T>) {
-            self.children
-                .iter_mut()
-                .for_each(|source| source.translate(translation));
-
-            self.position = translation.transform_point(&self.position);
-        }
-
-        #[inline]
-        fn rotate(&mut self, rotation: &UnitQuaternion<T>) {
-            #[cfg(feature = "parallel")]
-            if self.children.len() > 5000 {
-                use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
-
-                self.children
-                    .par_iter_mut()
-                    .for_each(|source| source.rotate_anchor(rotation, &self.position));
-
-                self.orientation = rotation * self.orientation;
-                return;
-            }
-
-            self.children
-                .iter_mut()
-                .for_each(|source| source.rotate_anchor(rotation, &self.position));
-            self.orientation = rotation * self.orientation;
-        }
-
-        #[inline]
-        fn rotate_anchor(&mut self, rotation: &UnitQuaternion<T>, anchor: &Point3<T>) {
-            #[cfg(feature = "parallel")]
-            if self.children.len() > 5000 {
-                use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
-                self.children
-                    .par_iter_mut()
-                    .for_each(|source| source.rotate_anchor(rotation, anchor));
-            } else {
-                self.children
-                    .iter_mut()
-                    .for_each(|source| source.rotate_anchor(rotation, anchor));
-            }
-
-            #[cfg(not(feature = "parallel"))]
-            {
-                self.children
-                    .iter_mut()
-                    .for_each(|source| source.rotate_anchor(rotation, anchor));
-            }
-
-            let local_position = self.position - anchor;
-            self.position = Point3::from(rotation * local_position + Vector3::from(anchor.coords));
-            self.orientation = rotation * &self.orientation;
-        }
-    };
-}
-
-/// Implement Field for source collection-like structs.
-macro_rules! impl_field_collection {
-    () => {
-        #[inline]
-        fn get_B(&self, points: &[Point3<T>]) -> Vec<Vector3<T>> {
-            let mut net_field = vec![Vector3::zeros(); points.len()];
-            #[cfg(feature = "parallel")]
-            {
-                use rayon::prelude::*;
-                let b_fields: Vec<_> = self
-                    .children
-                    .par_iter()
-                    .map(|source| source.get_B(points))
-                    .collect();
-                b_fields.iter().for_each(|child_b_field| {
-                    net_field
-                        .iter_mut()
-                        .zip(child_b_field)
-                        .for_each(|(sum, b)| *sum += b)
-                });
-            }
-            #[cfg(not(feature = "parallel"))]
-            {
-                for source in &self.children {
-                    let b_fields = source.get_B(points);
-                    net_field
-                        .iter_mut()
-                        .zip(b_fields)
-                        .for_each(|(sum, b)| *sum += b);
+            fn default() -> Self {
+                Self {
+                    position: Point3::origin(),
+                    orientation: UnitQuaternion::identity(),
+                    children: Vec::new(),
                 }
             }
-            net_field
-        }
+        );
     };
+}
+
+macro_rules! impl_transform_collection {
+    ($struct:ident <$(($bound_var:ident : $($bound:tt)+)),+>) => {
+        implement!(
+            Transform<T> for $struct
+            bounds: [$(($bound_var : $($bound)+)),+]
+
+            #[inline]
+            fn position(&self) -> Point3<T> {
+                self.position
+            }
+
+            #[inline]
+            fn orientation(&self) -> UnitQuaternion<T> {
+                self.orientation
+            }
+
+            #[inline]
+            fn set_position(&mut self, position: Point3<T>) {
+                let translation = Translation3::from(position - &self.position);
+                self.children
+                    .iter_mut()
+                    .for_each(|source| source.translate(&translation));
+
+                self.position = position
+            }
+
+            #[inline]
+            fn set_orientation(&mut self, orientation: UnitQuaternion<T>) {
+                let rotation = orientation * &self.orientation.inverse();
+                self.children
+                    .iter_mut()
+                    .for_each(|source| source.rotate_anchor(&rotation, &self.position));
+
+                self.orientation = orientation;
+            }
+
+            #[inline]
+            fn translate(&mut self, translation: &Translation3<T>) {
+                self.children
+                    .iter_mut()
+                    .for_each(|source| source.translate(translation));
+
+                self.position = translation.transform_point(&self.position);
+            }
+
+            #[inline]
+            fn rotate(&mut self, rotation: &UnitQuaternion<T>) {
+                #[cfg(feature = "parallel")]
+                if self.children.len() > 5000 {
+                    use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
+
+                    self.children
+                        .par_iter_mut()
+                        .for_each(|source| source.rotate_anchor(rotation, &self.position));
+
+                    self.orientation = rotation * self.orientation;
+                    return;
+                }
+
+                self.children
+                    .iter_mut()
+                    .for_each(|source| source.rotate_anchor(rotation, &self.position));
+                self.orientation = rotation * self.orientation;
+            }
+
+            #[inline]
+            fn rotate_anchor(&mut self, rotation: &UnitQuaternion<T>, anchor: &Point3<T>) {
+                #[cfg(feature = "parallel")]
+                if self.children.len() > 5000 {
+                    use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
+                    self.children
+                        .par_iter_mut()
+                        .for_each(|source| source.rotate_anchor(rotation, anchor));
+                } else {
+                    self.children
+                        .iter_mut()
+                        .for_each(|source| source.rotate_anchor(rotation, anchor));
+                }
+
+                #[cfg(not(feature = "parallel"))]
+                {
+                    self.children
+                        .iter_mut()
+                        .for_each(|source| source.rotate_anchor(rotation, anchor));
+                }
+
+                let local_position = self.position - anchor;
+                self.position = Point3::from(rotation * local_position + Vector3::from(anchor.coords));
+                self.orientation = rotation * &self.orientation;
+            }
+
+        );
+    };
+    () => {
+
+    };
+}
+
+macro_rules! impl_field_collection {
+    ($struct:ident <$(($bound_var:ident : $($bound:tt)+)),+>) => {
+        implement!(
+            Field<T> for $struct
+            bounds: [$(($bound_var : $($bound)+)),+]
+
+            #[inline]
+            fn get_B(&self, points: &[Point3<T>]) -> Vec<Vector3<T>> {
+                let mut net_field = vec![Vector3::zeros(); points.len()];
+                #[cfg(feature = "parallel")]
+                {
+                    use rayon::prelude::*;
+                    let b_fields: Vec<_> = self
+                        .children
+                        .par_iter()
+                        .map(|source| source.get_B(points))
+                        .collect();
+                    b_fields.iter().for_each(|child_b_field| {
+                        net_field
+                            .iter_mut()
+                            .zip(child_b_field)
+                            .for_each(|(sum, b)| *sum += b)
+                    });
+                }
+                #[cfg(not(feature = "parallel"))]
+                {
+                    for source in &self.children {
+                        let b_fields = source.get_B(points);
+                        net_field
+                            .iter_mut()
+                            .zip(b_fields)
+                            .for_each(|(sum, b)| *sum += b);
+                    }
+                }
+                net_field
+            }
+        );
+    };
+}
+
+macro_rules! impl_partial_eq {
+    ($struct:ident <$(($bound_var:ident : $($bound:tt)+)),+>) => {
+        implement!(
+            PartialEq for $struct
+            bounds: [$(($bound_var : $($bound)+)),+]
+
+            fn eq(&self, other: &Self) -> bool {
+                self.position == other.position
+                    && self.orientation == other.orientation
+                    && self.children.len() == other.children.len()
+                    && self.children.iter().all(|source| {
+                        other
+                            .children
+                            .iter()
+                            .any(|other_source| source.eq(other_source))
+                    })
+            }
+
+        );
+    };
+}
+
+macro_rules! impl_display {
+    ($struct:ident <$(($bound_var:ident : $($bound:tt)+)),+>) => {
+        implement!(
+            Display for $struct
+            bounds: [$(($bound_var : $($bound)+)),+]
+
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                let len = self.children.len();
+                writeln!(
+                    f,
+                    concat![stringify!($struct), " ({} children) at pos={}, q={}"],
+                    len,
+                    crate_util::format_point3!(self.position),
+                    crate_util::format_quat!(self.orientation)
+                )?;
+                for (i, source) in self.children.iter().enumerate() {
+                    if i + 1 != len {
+                        writeln!(f, "├── {}: {}", i, source)?;
+                    } else {
+                        write!(f, "└── {}: {}", i, source)?;
+                    }
+                }
+                Ok(())
+            }
+        );
+    }
 }
 
 /// Stack-allocated collection of a single source type.
@@ -195,20 +266,6 @@ pub struct SourceCollection<S: Source<T>, T: Float> {
 
     /// An ordered-vec of homogeneous magnetic sources
     children: Vec<S>,
-}
-
-impl<S: Source<T> + PartialEq, T: Float> PartialEq for SourceCollection<S, T> {
-    fn eq(&self, other: &Self) -> bool {
-        self.position == other.position
-            && self.orientation == other.orientation
-            && self.children.len() == other.children.len()
-            && self.children.iter().all(|source| {
-                other
-                    .children
-                    .iter()
-                    .any(|other_source| source.eq(other_source))
-            })
-    }
 }
 
 impl<S: Source<T>, T: Float> Source<T> for SourceCollection<S, T> {}
@@ -243,38 +300,11 @@ impl<S: Source<T>, T: Float> SourceCollection<S, T> {
     }
 }
 
-impl<S: Source<T>, T: Float> Display for SourceCollection<S, T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let len = self.children.len();
-        writeln!(
-            f,
-            "SourceCollection ({} children) at pos={}, q={}",
-            len,
-            crate_util::format_point3!(self.position),
-            crate_util::format_quat!(self.orientation)
-        )?;
-        for (i, source) in self.children.iter().enumerate() {
-            if i + 1 != len {
-                writeln!(f, "├── {}: {}", i, source)?;
-            } else {
-                write!(f, "└── {}: {}", i, source)?;
-            }
-        }
-        Ok(())
-    }
-}
-
-impl<S: Source<T>, T: Float> Default for SourceCollection<S, T> {
-    impl_default!();
-}
-
-impl<S: Source<T>, T: Float> Transform<T> for SourceCollection<S, T> {
-    impl_transform_collection!();
-}
-
-impl<S: Source<T>, T: Float> Field<T> for SourceCollection<S, T> {
-    impl_field_collection!();
-}
+impl_default!(SourceCollection <(S: Source<T>), (T: Float)>);
+impl_transform_collection!(SourceCollection <(S: Source<T>), (T: Float)>);
+impl_field_collection!(SourceCollection <(S: Source<T>), (T: Float)>);
+impl_partial_eq!(SourceCollection<(S: Source<T> + PartialEq), (T: Float)>);
+impl_display!(SourceCollection <(S: Source<T>), (T: Float)>);
 
 /// Heap-allocated collection of multiple source types.
 ///
@@ -339,38 +369,10 @@ impl<T: Float> MultiSourceCollection<T> {
     }
 }
 
-impl<T: Float> Default for MultiSourceCollection<T> {
-    impl_default!();
-}
-
-impl<T: Float> Display for MultiSourceCollection<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let len = self.children.len();
-        writeln!(
-            f,
-            "MultiSourceCollection ({} children) at pos={}, q={}",
-            len,
-            crate_util::format_point3!(self.position),
-            crate_util::format_quat!(self.orientation)
-        )?;
-        for (i, source) in self.children.iter().enumerate() {
-            if i + 1 != len {
-                writeln!(f, "├── {}: {}", i, source)?;
-            } else {
-                write!(f, "└── {}: {}", i, source)?;
-            }
-        }
-        Ok(())
-    }
-}
-
-impl<T: Float> Transform<T> for MultiSourceCollection<T> {
-    impl_transform_collection!();
-}
-
-impl<T: Float> Field<T> for MultiSourceCollection<T> {
-    impl_field_collection!();
-}
+impl_default!(MultiSourceCollection <(T: Float)>);
+impl_transform_collection!(MultiSourceCollection <(T: Float)>);
+impl_field_collection!(MultiSourceCollection <(T: Float)>);
+impl_display!(MultiSourceCollection <(T: Float)>);
 
 #[cfg(test)]
 mod base_source_collection_tests {
