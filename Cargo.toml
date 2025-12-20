@@ -15,7 +15,7 @@ edition = "2021"
 exclude = ["benches", "logo", "magba.code-workspace", "python", "tests/test-data", "requirements*", ".github", ".gitignore"]
 
 [dependencies]
-ellip = "0.3.2"
+ellip = { version = "1.0.1", features = ["no_std", "unstable"] }
 getset = "0.1.6"
 itertools = "0.14.0"
 nalgebra = { version = "0.33.2" }

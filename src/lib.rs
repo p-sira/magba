@@ -246,10 +246,7 @@ use constants::MagneticConstants;
 /// Generic trait for floating point numbers compatible with all [Magba](crate) implementations.
 ///
 /// Supports [f32] and [f64].
-pub trait Float:
-    nalgebra::RealField + num_traits::Float + ellip::bulirsch::BulirschConst + MagneticConstants + Copy
-{
-}
+pub trait Float: nalgebra::RealField + num_traits::Float + MagneticConstants + Copy {}
 impl Float for f32 {}
 impl Float for f64 {}
 

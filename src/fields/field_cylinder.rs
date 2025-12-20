@@ -4,13 +4,13 @@
  */
 
 //! Analytical B-field computation for cylindrical magnets.
-//! 
+//!
 //! <div class="warning">⚠️ Unstable feature. May subject to changes.</div>
 
 use std::iter::Sum;
 
-use ellip::bulirsch::BulirschConst;
-use ellip::{cel, ellipe, ellipk};
+use ellip::bulirsch::{cel_with_const, DefaultPrecision};
+use ellip::{ellipe, ellipk};
 use nalgebra::{Point3, RealField, UnitQuaternion, Vector3};
 use numeric_literals::replace_float_literals;
 
@@ -53,10 +53,11 @@ pub fn unit_axial_cylinder_B_cyl<T: Float + Copy>(r: T, z: T, z0: T) -> Vector3<
     let gamma = rm / rp;
     let gamma2 = gamma * gamma;
 
-    let br =
-        (cel(kp, 1.0, 1.0, -1.0).unwrap() / sq1 - cel(km, 1.0, 1.0, -1.0).unwrap() / sq0) / T::pi();
-    let bz = (zp * cel(kp, gamma2, 1.0, gamma).unwrap() / sq1
-        - zm * cel(km, gamma2, 1.0, gamma).unwrap() / sq0)
+    let br = (cel_with_const::<T, DefaultPrecision>(kp, 1.0, 1.0, -1.0).unwrap() / sq1
+        - cel_with_const::<T, DefaultPrecision>(km, 1.0, 1.0, -1.0).unwrap() / sq0)
+        / T::pi();
+    let bz = (zp * cel_with_const::<T, DefaultPrecision>(kp, gamma2, 1.0, gamma).unwrap() / sq1
+        - zm * cel_with_const::<T, DefaultPrecision>(km, gamma2, 1.0, gamma).unwrap() / sq0)
         / (rp * T::pi());
     // bphi = 0
     Vector3::new(br, 0.0, bz)
@@ -66,7 +67,7 @@ pub fn unit_axial_cylinder_B_cyl<T: Float + Copy>(r: T, z: T, z0: T) -> Vector3<
 /// at point (r, phi, z) in cylindrical CS.
 ///
 /// <div class="warning">⚠️ Unstable feature. May subject to changes.</div>
-/// 
+///
 /// # Arguments
 /// - `r`, `phi`, `z`: Observer positions in cylindrical CS, normalized by radius
 /// - `z0`: Half the height over radius
@@ -82,7 +83,7 @@ pub fn unit_axial_cylinder_B_cyl<T: Float + Copy>(r: T, z: T, z0: T) -> Vector3<
 #[replace_float_literals(T::from_f64(literal).unwrap())]
 pub fn unit_diametric_cylinder_B_cyl<T>(r: T, phi: T, z: T, z0: T) -> Vector3<T>
 where
-    T: RealField + Copy + Float + BulirschConst,
+    T: RealField + Copy + Float,
 {
     let (zp, zm) = (z + z0, z - z0);
     let (zp2, zm2) = (zp * zp, zm * zm);
@@ -142,8 +143,10 @@ where
     let (ellk_p, ellk_m) = (ellipk(argp).unwrap(), ellipk(argm).unwrap());
     let (elle_p, elle_m) = (ellipe(argp).unwrap(), ellipe(argm).unwrap());
     let (ellpi_p, ellpi_m) = (
-        cel(NumFloat::sqrt(1.0 - argp), 1.0 - argc, 1.0, 1.0).unwrap(),
-        cel(NumFloat::sqrt(1.0 - argm), 1.0 - argc, 1.0, 1.0).unwrap(),
+        cel_with_const::<T, DefaultPrecision>(NumFloat::sqrt(1.0 - argp), 1.0 - argc, 1.0, 1.0)
+            .unwrap(),
+        cel_with_const::<T, DefaultPrecision>(NumFloat::sqrt(1.0 - argm), 1.0 - argc, 1.0, 1.0)
+            .unwrap(),
     );
 
     // Compute the fields
@@ -168,7 +171,7 @@ where
 /// Compute B-field of a cylindrical magnet at point (r, phi, z) in cylindrical CS.
 ///
 /// <div class="warning">⚠️ Unstable feature. May subject to changes.</div>
-/// 
+///
 /// # Arguments
 /// - `r`, `phi`, `z`: Observer positions in cylindrical CS (m, rad, m)
 /// - `radius`: Cylinder radius (m)
@@ -189,7 +192,7 @@ where
 #[allow(non_snake_case)]
 #[inline]
 #[replace_float_literals(T::from_f64(literal).unwrap())]
-pub fn cylinder_B_cyl<T: RealField + Copy + Float + BulirschConst>(
+pub fn cylinder_B_cyl<T: RealField + Copy + Float>(
     r: T,
     phi: T,
     z: T,
@@ -227,7 +230,7 @@ pub fn cylinder_B_cyl<T: RealField + Copy + Float + BulirschConst>(
 /// Compute B-field at point (x, y, z) of a cylindrical magnet in local frame.
 ///
 /// <div class="warning">⚠️ Unstable feature. May subject to changes.</div>
-/// 
+///
 /// # Arguments
 /// - `point`: Observer position in local frame (m)
 /// - `polarization`: Polarization vector (T)
@@ -243,7 +246,7 @@ pub fn cylinder_B_cyl<T: RealField + Copy + Float + BulirschConst>(
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[allow(non_snake_case)]
 #[inline]
-pub fn local_cylinder_B<T: RealField + Copy + Float + BulirschConst>(
+pub fn local_cylinder_B<T: RealField + Copy + Float>(
     point: &Point3<T>,
     polarization: &Vector3<T>,
     radius: T,
@@ -274,7 +277,7 @@ pub fn local_cylinder_B<T: RealField + Copy + Float + BulirschConst>(
 /// Compute B-field at point (x, y, z) of a cylindrical magnet.
 ///
 /// <div class="warning">⚠️ Unstable feature. May subject to changes.</div>
-/// 
+///
 /// # Arguments
 /// - `point`: Observer position in local frame (m)
 /// - `position`: Magnet position (m)
@@ -291,7 +294,7 @@ pub fn local_cylinder_B<T: RealField + Copy + Float + BulirschConst>(
 /// - Derby, Norman, and Stanislaw Olbert. “Cylindrical Magnets and Ideal Solenoids.” American Journal of Physics 78, no. 3 (March 1, 2010): 229–35. <https://doi.org/10.1119/1.3256157>.
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[allow(non_snake_case)]
-pub fn global_cylinder_B<T: RealField + Copy + Float + BulirschConst>(
+pub fn global_cylinder_B<T: RealField + Copy + Float>(
     point: &Point3<T>,
     position: &Point3<T>,
     orientation: &UnitQuaternion<T>,
@@ -326,7 +329,7 @@ pub fn global_cylinder_B<T: RealField + Copy + Float + BulirschConst>(
 /// - Derby, Norman, and Stanislaw Olbert. “Cylindrical Magnets and Ideal Solenoids.” American Journal of Physics 78, no. 3 (March 1, 2010): 229–35. <https://doi.org/10.1119/1.3256157>.
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[allow(non_snake_case)]
-pub fn cylinder_B<T: RealField + Copy + Float + BulirschConst>(
+pub fn cylinder_B<T: RealField + Copy + Float>(
     points: &[Point3<T>],
     position: &Point3<T>,
     orientation: &UnitQuaternion<T>,
@@ -364,7 +367,7 @@ pub fn cylinder_B<T: RealField + Copy + Float + BulirschConst>(
 /// - Derby, Norman, and Stanislaw Olbert. “Cylindrical Magnets and Ideal Solenoids.” American Journal of Physics 78, no. 3 (March 1, 2010): 229–35. <https://doi.org/10.1119/1.3256157>.
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[allow(non_snake_case)]
-pub fn sum_multiple_cylinder_B<T: RealField + Copy + Float + BulirschConst + Sum>(
+pub fn sum_multiple_cylinder_B<T: RealField + Copy + Float + Sum>(
     points: &[Point3<T>],
     positions: &[Point3<T>],
     orientations: &[UnitQuaternion<T>],
