@@ -250,6 +250,8 @@ pub trait Float: nalgebra::RealField + num_traits::Float + MagneticConstants + C
 impl Float for f32 {}
 impl Float for f64 {}
 
+pub type StrErr = &'static str;
+
 #[cfg(feature = "sources")]
 pub mod sources;
 #[cfg(feature = "transform")]
