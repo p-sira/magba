@@ -1,5 +1,9 @@
 # Changelog
 ## 0.2
+### 0.2.1
+**Dependencies**
+- Update ellip to v1.0.2
+
 ### 0.2.0
 **Breaking Changes**
 - Functions will return bare values instead of `Result`.
