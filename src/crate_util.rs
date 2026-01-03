@@ -130,6 +130,7 @@ macro_rules! impl_parallel {
 }
 pub(crate) use impl_parallel;
 
+// TODO: compare par_bridge with zip -> par_iter
 macro_rules! impl_parallel_sum {
     ($items:expr, [$($vecs:expr),+], |$($args:ident),*| $call:expr) => {{
         use crate::crate_util::assert_eq_lens;
