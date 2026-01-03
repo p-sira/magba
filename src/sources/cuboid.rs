@@ -15,7 +15,7 @@ define_magnet! {
     /// - `polarization`: Polarization vector (T)
     /// - `dimensions`: Cuboid side lengths (m)
     ///
-    /// # Example
+    /// # Examples
     /// ```
     /// use magba::sources::CuboidMagnet;
     /// use nalgebra::*;

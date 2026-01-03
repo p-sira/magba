@@ -17,7 +17,7 @@ define_magnet! {
     /// - `diameter`: Cylinder diameter (m)
     /// - `height`: Cylinder height (m)
     ///
-    /// # Example
+    /// # Examples
     /// ```
     /// use magba::sources::CylinderMagnet;
     /// use nalgebra::*;

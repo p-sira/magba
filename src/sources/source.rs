@@ -265,7 +265,7 @@ macro_rules! impl_display {
 /// - `orientation`: Orientation of the collection, where the children reference.
 /// - `children`: An ordered-vec of homogeneous magnetic sources.
 ///
-/// # Example
+/// # Examples
 /// ```
 /// use magba::sources::*;
 /// use nalgebra::*;
@@ -330,7 +330,7 @@ impl_display!(SourceCollection <(S: Source<T>), (T: Float)>);
 /// - `orientation`: Orientation of the collection, where the children reference.
 /// - `children`: An ordered-vec of heterogeneous magnetic sources.
 ///
-/// # Example
+/// # Examples
 /// ```
 /// use magba::sources::*;
 /// use nalgebra::*;

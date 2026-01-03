@@ -15,7 +15,7 @@ define_magnet! {
     /// - `orientation`: Orientation as unit quaternion
     /// - `moment`: Magnetic dipole moment vector (A·m²)
     ///
-    /// # Example
+    /// # Examples
     /// ```
     /// use magba::sources::Dipole;
     /// use nalgebra::*;
