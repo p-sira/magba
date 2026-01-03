@@ -1,6 +1,6 @@
 [package]
 name = "magba"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Sira Pornsiriprasert <code@psira.me>"]
 
 description = "Magnetic computation library for Rust"
