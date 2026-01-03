@@ -1,6 +1,9 @@
 # Changelog
 ## 0.3
 ### 0.3.0
+**Breaking Changes**
+- Change the argument `radius` to `diameter` in `CylinderMagnet`.
+
 **Dependencies**
 - Update ellip to v1.0.2
 

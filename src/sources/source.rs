@@ -422,8 +422,8 @@ mod base_source_collection_tests {
         );
 
         assert_eq!("SourceCollection (2 children) at pos=[0, 0, 0], q=[0, 0, 0, 1]
-├── 0: CylinderMagnet (pol=[1, 2, 3], r=0.1, h=0.3) at pos=[4, 5, 6], q=[0, 0, 0, 1]
-└── 1: CylinderMagnet (pol=[7, 8, 9], r=0.1, h=0.3) at pos=[10, 11, 12], q=[0.7071067811865475, 0, 0, 0.7071067811865476]", format!("{}", collection))
+├── 0: CylinderMagnet (pol=[1, 2, 3], d=0.1, h=0.3) at pos=[4, 5, 6], q=[0, 0, 0, 1]
+└── 1: CylinderMagnet (pol=[7, 8, 9], d=0.1, h=0.3) at pos=[10, 11, 12], q=[0.7071067811865475, 0, 0, 0.7071067811865476]", format!("{}", collection))
     }
 }
 
@@ -720,21 +720,21 @@ mod cylinder_collection_tests {
             Point3::new(0.009389999999999999, 0.0, -0.006),
             quat_from_rotvec(1.2091995761561452, 1.209199576156145, 1.2091995761561452),
             Vector3::new(1.0, 2.0, 3.0),
-            1.5e-3,
+            3e-3,
             4e-3,
         ));
         collection.add(CylinderMagnet::new(
             Point3::new(-0.004694999999999998, 0.008131978541535878, -0.006),
             quat_from_rotvec(1.5315599088338596, 0.41038024073191587, 0.4103802407319159),
             Vector3::new(0.4, 0.5, 0.6),
-            2e-3,
+            4e-3,
             5e-3,
         ));
         collection.add(CylinderMagnet::new(
             Point3::new(-0.004695000000000004, -0.008131978541535875, -0.006),
             quat_from_rotvec(1.5315599088338594, -0.410380240731917, -0.41038024073191703),
             Vector3::new(0.9, 0.8, 0.6),
-            2.5e-3,
+            5e-3,
             6e-3,
         ));
         collection
@@ -851,7 +851,7 @@ mod multi_source_collection_tests {
             Point3::new(0.005, 0.01, 0.015),
             UnitQuaternion::identity(),
             Vector3::new(0.1, 0.2, 0.3),
-            0.02,
+            0.04,
             0.05,
         )));
         collection.add(Box::new(CuboidMagnet::new(
@@ -902,7 +902,7 @@ mod multi_source_collection_tests {
 
         println!("{}", collection);
         assert_eq!("MultiSourceCollection (2 children) at pos=[0, 0, 0], q=[0, 0, 0, 1]
-├── 0: CylinderMagnet (pol=[0.1, 0.2, 0.3], r=0.02, h=0.05) at pos=[0.005, 0.01, 0.015], q=[0, 0, 0, 1]
+├── 0: CylinderMagnet (pol=[0.1, 0.2, 0.3], d=0.04, h=0.05) at pos=[0.005, 0.01, 0.015], q=[0, 0, 0, 1]
 └── 1: CuboidMagnet (pol=[0.1, 0.2, 0.3], dim=[0.02, 0.02, 0.03]) at pos=[0.015, 0.005, 0.01], q=[0, 0.5, 0, 0.8660254037844386]",
          format!("{}", collection))
     }

@@ -117,7 +117,7 @@ The available feature flags are:
 //! use magba::util::*;
 //! use nalgebra::*;
 //!
-//! // A unit cylinder magnet (pol=(0,0,1), r=1, h=1) at (0,0,0), q=(0,0,0,1)
+//! // A unit cylinder magnet (pol=(0,0,1), d=1, h=1) at (0,0,0), q=(0,0,0,1)
 //! let mut magnet = CylinderMagnet::default();
 //!
 //! // Observer positions
@@ -130,9 +130,9 @@ The available feature flags are:
 //! // Compute the magnetic field
 //! let b_fields = magnet.get_B(&points);
 //! let expected = [
-//!         Vector3::new(0.0, 0.0, 0.4470419021133804),
-//!         Vector3::new(0.0, 0.0, 0.446945356779104),
-//!         Vector3::new(0.0, 0.0, 0.44682738840312125),
+//!         Vector3::new(0.0, 0.0, 0.7066824465457847),
+//!         Vector3::new(0.0, 0.0, 0.706443696474588),
+//!         Vector3::new(0.0, 0.0, 0.7061518306386746),
 //! ];
 //!
 //! b_fields.iter().zip(expected).for_each(|(b, b_ref)| {assert_close_vector_elem!(b, &b_ref, 1e-12);});
@@ -164,8 +164,8 @@ The available feature flags are:
 //!     Point3::origin(),
 //!     UnitQuaternion::identity(),
 //!     Vector3::new(0.0, 0.0, 0.9),
-//!     0.005,
-//!     0.020,
+//!     0.01,
+//!     0.02,
 //! );
 //!
 //! // Computing the magnetic field
@@ -213,7 +213,7 @@ The available feature flags are:
 //!     &Point::origin(),               // magnet position (m)
 //!     &UnitQuaternion::identity(),    // magnet orientation
 //!     &Vector3::new(1.0, 2.0, 3.0),   // polarization (T)
-//!     1.0,                            // radius (m)
+//!     2.0,                            // diameter (m)
 //!     2.0,                            // height (m)
 //! )[0]; // Extract the element since the field function returns a vec of Vector3.
 //! let expected = Vector3::new(-0.3684605662842379, -0.10171405289381347, -0.330064920993222);

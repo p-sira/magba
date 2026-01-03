@@ -14,7 +14,7 @@ define_magnet! {
     /// - `position`: Center of the cylinder (m)
     /// - `orientation`: Orientation as unit quaternion
     /// - `polarization`: Polarization vector (T)
-    /// - `radius`: Cylinder radius (m)
+    /// - `diameter`: Cylinder diameter (m)
     /// - `height`: Cylinder height (m)
     ///
     /// # Example
@@ -26,7 +26,7 @@ define_magnet! {
     ///     Point3::origin(),           // position (m)
     ///     UnitQuaternion::identity(), // orientation
     ///     Vector3::z(),               // polarization (T)
-    ///     0.005,                      // radius (m)
+    ///     0.01,                       // diameter (m)
     ///     0.02,                       // height (m)
     /// );
     /// ```
@@ -36,12 +36,12 @@ define_magnet! {
     /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
     CylinderMagnet
     field_fn: cylinder_B
-    args: {polarization:Vector3<T> = Vector3::z(), radius v:T = T::one(), height v:T = T::one()}
-    arg_display: "pol={}, r={}, h={}";
+    args: {polarization:Vector3<T> = Vector3::z(), diameter v:T = T::one(), height v:T = T::one()}
+    arg_display: "pol={}, d={}, h={}";
     arg_fmt: [format_vector3, format_float, format_float]
     on_new: [
-        if radius < T::zero() || height < T::zero() {
-            panic!("Radius and height cannot be negative.")
+        if diameter < T::zero() || height < T::zero() {
+            panic!("diameter and height cannot be negative.")
         }
     ]
 }
@@ -50,7 +50,7 @@ define_magnet! {
 crate::testing_util::generate_tests! {
     CylinderMagnet
     filename: cylinder
-    params: { polarization: Vector3::new(1.0, 2.0, 3.0), r: 0.05, h: 0.2}
+    params: { polarization: Vector3::new(1.0, 2.0, 3.0), d: 0.1, h: 0.2}
     rtols: {
         static: 5e-10,
         static_small: 5e-10,

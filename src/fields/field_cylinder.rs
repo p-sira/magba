@@ -318,7 +318,7 @@ pub fn global_cylinder_B<T: RealField + Copy + Float>(
 /// - `position`: Magnet position (m)
 /// - `orientation`: Magnet orientation as unit quaternion
 /// - `polarization`: Polarization vector (T)
-/// - `radius`: Cylinder radius (m)
+/// - `diameter`: Cylinder diameter (m)
 /// - `height`: Cylinder height (m)
 ///
 /// # Returns
@@ -334,7 +334,7 @@ pub fn cylinder_B<T: RealField + Copy + Float>(
     position: &Point3<T>,
     orientation: &UnitQuaternion<T>,
     polarization: &Vector3<T>,
-    radius: T,
+    diameter: T,
     height: T,
 ) -> Vec<Vector3<T>> {
     impl_parallel!(
@@ -344,7 +344,7 @@ pub fn cylinder_B<T: RealField + Copy + Float>(
         position,
         orientation,
         polarization,
-        radius,
+        diameter / T::from(2.0).unwrap(),
         height,
     )
 }
@@ -356,7 +356,7 @@ pub fn cylinder_B<T: RealField + Copy + Float>(
 /// - `positions`: Magnet positions (m)
 /// - `orientations`: Magnet orientations as unit quaternions
 /// - `polarizations`: Polarization vectors (T)
-/// - `radii`: Cylinder radii (m)
+/// - `diameters`: Cylinder diameters (m)
 /// - `heights`: Cylinder heights (m)
 ///
 /// # Returns
@@ -372,12 +372,12 @@ pub fn sum_multiple_cylinder_B<T: RealField + Copy + Float + Sum>(
     positions: &[Point3<T>],
     orientations: &[UnitQuaternion<T>],
     polarizations: &[Vector3<T>],
-    radii: &[T],
+    diameters: &[T],
     heights: &[T],
 ) -> Vec<Vector3<T>> {
     impl_parallel_sum!(
         points,
-        [positions, orientations, polarizations, radii, heights],
-        |pos, orien, pol, r, h| cylinder_B(points, pos, orien, pol, *r, *h)
+        [positions, orientations, polarizations, diameters, heights],
+        |pos, orien, pol, d, h| cylinder_B(points, pos, orien, pol, *d, *h)
     )
 }
