@@ -1,0 +1,12 @@
+[project]
+name = "magba"
+version = "0.1.0"
+description = "Test dataset generator for Magba based on MagpyLib"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "magpylib>=5.2.1",
+    "numpy>=2.4.0",
+    "pip-tools>=7.5.2",
+    "scipy>=1.16.3",
+]
