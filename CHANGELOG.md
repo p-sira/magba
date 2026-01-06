@@ -16,7 +16,8 @@
 - Add static tests and corresponding testing suite.
 
 **Dependencies**
-- Update ellip to v1.0.2
+- Update ellip to v1.0.2.
+- Add regex as dev-dependency.
 
 ## 0.2
 ### 0.2.0
