@@ -7,7 +7,7 @@
 
 use nalgebra::{RealField, Vector3};
 
-use crate::constants::MagneticConstants;
+use crate::{constants::MagneticConstants, crate_util::need_std};
 
 /// Convert B-field vector to H-field vector.
 ///
@@ -21,21 +21,6 @@ pub fn B_to_H<T: RealField + MagneticConstants>(B_vector: &Vector3<T>) -> Vector
     B_vector.scale(T::mu0())
 }
 
-/// Convert B-field vectors to H-field vectors.
-///
-/// # Arguments
-/// - `B_vectors`: Magnetic flux density vectors (T)
-///
-/// # Returns
-/// - Magnetic field strength vectors (A/m)
-#[allow(non_snake_case)]
-pub fn Bs_to_Hs<T: RealField + MagneticConstants>(B_vectors: &[Vector3<T>]) -> Vec<Vector3<T>> {
-    B_vectors
-        .iter()
-        .map(|vector| vector.scale(T::mu0()))
-        .collect()
-}
-
 /// Convert magnetization (**M**) to polarization (**J**).
 ///
 /// # Arguments
@@ -47,18 +32,35 @@ pub fn mag_to_pol<T: RealField + MagneticConstants>(mag_vector: &Vector3<T>) -> 
     mag_vector.scale(T::one() / T::mu0())
 }
 
-/// Convert magnetization vectors (**M**) to polarization vectors (**J**).
-///
-/// # Arguments
-/// - `mag_vectors`: Magnetization vectors (A/m)
-///
-/// # Returns
-/// - Polarization vectors (T)
-pub fn mags_to_pols<T: RealField + MagneticConstants>(
-    mag_vectors: &[Vector3<T>],
-) -> Vec<Vector3<T>> {
-    mag_vectors
-        .iter()
-        .map(|vector| vector.scale(T::one() / T::mu0()))
-        .collect()
+need_std! {
+    /// Convert B-field vectors to H-field vectors.
+    ///
+    /// # Arguments
+    /// - `B_vectors`: Magnetic flux density vectors (T)
+    ///
+    /// # Returns
+    /// - Magnetic field strength vectors (A/m)
+    #[allow(non_snake_case)]
+    pub fn Bs_to_Hs<T: RealField + MagneticConstants>(B_vectors: &[Vector3<T>]) -> Vec<Vector3<T>> {
+        B_vectors
+            .iter()
+            .map(|vector| vector.scale(T::mu0()))
+            .collect()
+    }
+
+    /// Convert magnetization vectors (**M**) to polarization vectors (**J**).
+    ///
+    /// # Arguments
+    /// - `mag_vectors`: Magnetization vectors (A/m)
+    ///
+    /// # Returns
+    /// - Polarization vectors (T)
+    pub fn mags_to_pols<T: RealField + MagneticConstants>(
+        mag_vectors: &[Vector3<T>],
+    ) -> Vec<Vector3<T>> {
+        mag_vectors
+            .iter()
+            .map(|vector| vector.scale(T::one() / T::mu0()))
+            .collect()
+    }
 }

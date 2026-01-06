@@ -4,6 +4,9 @@
 **Breaking Changes**
 - Change the argument `radius` to `diameter` in `CylinderMagnet`.
 
+**New Features**
+- Add `no_std` feature flag.
+
 **Improvements**
 - Add code of conduct and contributing documentations.
 - Add testing documentation in `tests/`.
