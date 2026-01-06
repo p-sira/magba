@@ -10,16 +10,7 @@ repository = "https://github.com/p-sira/magba"
 license = "BSD-3-Clause"
 keywords = ["analytical", "field", "magnet", "magnetic", "simulation"]
 categories = ["science", "simulation"]
-exclude = [
-  ".github",
-  ".gitignore",
-  "benches",
-  "logo",
-  "magba.code-workspace",
-  "python",
-  "requirements*",
-  "tests/test-data",
-]
+include = ["/src", "/tests/README.md", "/LICENSE"]
 
 [package.metadata]
 authors = ["Sira Pornsiriprasert <code@psira.me>"]
