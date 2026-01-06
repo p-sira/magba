@@ -5,9 +5,9 @@ permissions:
 
 on:
   push:
-    branches: [ "main", "dev" ]
+    branches: ["main", "dev"]
   pull_request:
-    branches: [ "main", "dev" ]
+    branches: ["main", "dev"]
   workflow_dispatch:
 
 env:
@@ -17,66 +17,48 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Clippy
-      run: cargo clippy
-  test-default:
+      - uses: actions/checkout@v4
+      - name: Clippy
+        run: cargo clippy
+
+  test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        no_default: [false, true]
+        features: ["", sources, parallel, unstable, no_std]
+        exclude:
+          # no_std always implies no-default-features
+          - no_default: false
+            features: no_std
     steps:
-    - uses: actions/checkout@v4
-    - name: Test default
-      run: cargo test
-  test-no-default:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: Test no-default
-      run: cargo test --no-default-features
-  test-sources:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: Test sources
-      run: cargo test --no-default-features --features=sources
-  test-parallel:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4 
-    - name: Test parallel
-      run: cargo test --no-default-features --features=parallel
-  test-unstable:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: Test unstable
-      run: cargo test --features=unstable
-  test-nodefault-unstable:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: Test unstable
-      run: cargo test --no-default-features --features=unstable
-  test-no-std:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: Test no_std
-      run: cargo test --no-default-features --features=no_std
+      - uses: actions/checkout@v4
+      - name: Run tests
+        run: |
+          FLAGS=""
+          if [ "${{ matrix.no_default }}" = "true" ]; then
+            FLAGS="$FLAGS --no-default-features"
+          fi
+          if [ -n "${{ matrix.features }}" ]; then
+            FLAGS="$FLAGS --features=${{ matrix.features }}"
+          fi
+          cargo test $FLAGS
   doc:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Make doc
-      run: cargo doc --no-deps
+      - uses: actions/checkout@v4
+      - name: Make doc
+        run: cargo doc --no-deps
   format:
     runs-on: ubuntu-latest
-    needs: [test-default, test-no-default, test-sources, test-parallel, test-unstable, test-nodefault-unstable, test-no-std]
+    needs: test
     steps:
-    - uses: actions/checkout@v4
-    - name: Format codes
-      run: |
-        cargo fmt
-        git config --global user.name 'github-actions'
-        git config --global user.email 'github-actions@github.com'
-        git add .
-        git diff --cached --quiet || (git commit -m "FMT: CI cargo fmt" && git push)
+      - uses: actions/checkout@v4
+      - name: Format codes
+        run: |
+          cargo fmt
+          git config --global user.name 'github-actions'
+          git config --global user.email 'github-actions@github.com'
+          git add .
+          git diff --cached --quiet || (git commit -m "FMT: CI cargo fmt" && git push)
