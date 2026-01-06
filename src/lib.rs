@@ -265,7 +265,7 @@ pub use geometry::Transform;
 #[doc(inline)]
 pub use sources::*;
 
-#[cfg(all(test, not(feature = "no_std")))]
+#[cfg(test)]
 pub mod testing_util;
 
 #[cfg(all(feature = "no_std", feature = "parallel"))]
