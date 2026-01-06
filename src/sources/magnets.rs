@@ -97,6 +97,7 @@ macro_rules! define_magnet {
                 )
             }
         }
+        #[cfg(not(feature = "no_std"))]
         impl<T: crate::Float> std::fmt::Display for $name<T> {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 write!(

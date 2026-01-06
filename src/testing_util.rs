@@ -264,7 +264,7 @@ pub mod source_testing_util {
                 rotate: $rtol_rotate:expr $(,)?
             }
         } => {
-            mod tests {
+            mod generated_tests {
                 use std::f64::consts::PI;
 
                 use nalgebra::{Point3, Translation3};

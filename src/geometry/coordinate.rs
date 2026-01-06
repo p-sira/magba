@@ -46,33 +46,10 @@ pub fn local_point<T: RealField + Copy>(
     orientation.inverse() * Point3::from(point.coords - position.coords)
 }
 
-/// Transform multiple points in global frame to the local frame of the object.
-pub fn local_points<T: RealField + Copy>(
-    points: &[Point3<T>],
-    position: &Point3<T>,
-    orientation: &UnitQuaternion<T>,
-) -> Vec<Point3<T>> {
-    points
-        .iter()
-        .map(|point| local_point(point, position, orientation))
-        .collect()
-}
-
 /// Transform local vector to the global frame.
 pub fn global_vector<T: RealField + Copy>(
     vector: &Vector3<T>,
     orientation: &UnitQuaternion<T>,
 ) -> Vector3<T> {
     orientation * vector
-}
-
-/// Transform local vectors to the global frame.
-pub fn global_vectors<T: RealField + Copy>(
-    local_vectors: &[Vector3<T>],
-    orientation: &UnitQuaternion<T>,
-) -> Vec<Vector3<T>> {
-    local_vectors
-        .iter()
-        .map(|local_vector| global_vector(local_vector, orientation))
-        .collect()
 }

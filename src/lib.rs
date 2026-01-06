@@ -3,6 +3,8 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
+#![cfg_attr(feature = "no_std", no_std)]
+
 /*!
 # Magba
 **Magba** is a performant analytical magnetic computation library for Rust.
@@ -109,8 +111,9 @@ The available feature flags are:
 //!
 #![cfg_attr(
     not(feature = "sources"),
-    doc = "This functionality need `sources` feature flag."
+    doc = "<div class=\"warning\">This functionality need `sources` feature flag.</div>"
 )]
+//!
 #![cfg_attr(not(feature = "sources"), doc = "```ignore")]
 #![cfg_attr(feature = "sources", doc = "```")]
 //! use magba::*;
@@ -151,8 +154,9 @@ The available feature flags are:
 //!
 #![cfg_attr(
     not(feature = "sources"),
-    doc = "This functionality need `sources` feature flag."
+    doc = "<div class=\"warning\">This functionality need `sources` feature flag.</div>"
 )]
+//!
 #![cfg_attr(not(feature = "sources"), doc = "```ignore")]
 #![cfg_attr(feature = "sources", doc = "```")]
 //! use magba::*;
@@ -261,5 +265,11 @@ pub use geometry::Transform;
 #[doc(inline)]
 pub use sources::*;
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "no_std")))]
 pub mod testing_util;
+
+#[cfg(all(feature = "no_std", feature = "parallel"))]
+compile_error!("The feature flag "parallel" is incompatible with "no_std".");
+
+#[cfg(feature = "no_std")]
+const SIZE: usize = 1000;

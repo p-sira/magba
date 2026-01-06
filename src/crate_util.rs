@@ -7,6 +7,55 @@
 
 use nalgebra::{distance, Point3, RealField, Vector3};
 
+macro_rules! need_std {
+    ($($body:item)*) => {
+        $(
+            #[cfg(not(feature = "no_std"))]
+            $body
+        )*
+    };
+}
+pub(crate) use need_std;
+
+macro_rules! eprint_if_std {
+    ($($args:expr),* $(,)?) => {
+        #[cfg(not(feature = "no_std"))]
+        eprintln!(
+            $($args,)*
+        );
+    };
+}
+pub(crate) use eprint_if_std;
+
+macro_rules! return_vec_or_array {
+    (
+        $(#[$attr:meta])*
+        $vis:vis fn $name:ident <($($generics:tt)*)> (
+            $($arg:ident : $arg_ty:ty),* $(,)?
+        ) -> [$ret_ty:ty]
+        {
+            $($body:tt)*
+        }
+    ) => {
+        #[cfg(not(feature = "no_std"))]
+        $(#[$attr])*
+        $vis fn $name<$($generics)*>(
+            $($arg: $arg_ty),*
+        ) -> Vec<$ret_ty> {
+            $($body)*
+        }
+
+        #[cfg(feature = "no_std")]
+        $(#[$attr])*
+        $vis fn $name<$($generics)*>(
+            $($arg: $arg_ty),*
+        ) -> [$ret_ty; crate::SIZE] {
+            $($body)*
+        }
+    };
+}
+pub(crate) use return_vec_or_array;
+
 /// Calculate the symmetric relative error
 pub fn relative_error(a: f64, b: f64) -> f64 {
     if a == 0.0 && b == 0.0 {
@@ -49,7 +98,7 @@ pub fn is_elem_close(vec1: &Vector3<f64>, vec2: &Vector3<f64>, rtol: f64) -> Opt
     let mut n_fail: usize = 0;
     vec1.iter().zip(vec2).enumerate().for_each(|(n, (&a, &b))| {
         if !is_close(a, b, rtol) {
-            eprintln!(
+            eprint_if_std!(
                 "Element {} mismatch. actual={}, expected={}, relative={:e}, rtol={:e}",
                 n,
                 a,
@@ -67,6 +116,22 @@ pub fn is_elem_close(vec1: &Vector3<f64>, vec2: &Vector3<f64>, rtol: f64) -> Opt
     }
 }
 
+need_std! {
+    macro_rules! format_point3 {
+        ($p: expr) => {
+            format!("[{}, {}, {}]", $p[0], $p[1], $p[2])
+        };
+    }
+    pub(crate) use format_point3;
+
+    macro_rules! format_quat {
+        ($q: expr) => {
+            format!("[{}, {}, {}, {}]", $q[0], $q[1], $q[2], $q[3])
+        };
+    }
+    pub(crate) use format_quat;
+}
+
 macro_rules! format_float {
     ($v: expr) => {
         $v.to_string()
@@ -80,20 +145,6 @@ macro_rules! format_vector3 {
     };
 }
 pub(crate) use format_vector3;
-
-macro_rules! format_point3 {
-    ($p: expr) => {
-        format!("[{}, {}, {}]", $p[0], $p[1], $p[2])
-    };
-}
-pub(crate) use format_point3;
-
-macro_rules! format_quat {
-    ($q: expr) => {
-        format!("[{}, {}, {}, {}]", $q[0], $q[1], $q[2], $q[3])
-    };
-}
-pub(crate) use format_quat;
 
 macro_rules! assert_eq_lens {
     ($str_err:expr, [$ref_vec:expr $(, $vec:expr)+]) => {
@@ -121,10 +172,24 @@ macro_rules! impl_parallel {
                     .collect();
             }
 
-            $items
-                .iter()
-                .map(|p| $func(p, $($func_args),*))
-                .collect()
+            #[cfg(not(feature = "no_std"))]
+            {
+                $items
+                    .iter()
+                    .map(|p| $func(p, $($func_args),*))
+                    .collect()
+            }
+
+            #[cfg(feature = "no_std")]
+            {
+                let mut results = [Vector3::zeros(); crate::SIZE];
+                $items
+                    .iter()
+                    .enumerate()
+                    .for_each(|(i, p)| results[i] = $func(p, $($func_args),*));
+
+                results
+            }
         }
     };
 }
@@ -157,7 +222,11 @@ macro_rules! impl_parallel_sum {
 
         #[cfg(not(feature = "parallel"))]
         {
+            #[cfg(not(feature = "no_std"))]
             let mut net_vectors: Vec<Vector3<_>> = vec![Vector3::zeros(); $items.len()];
+
+            #[cfg(feature = "no_std")]
+            let mut net_vectors = [Vector3::zeros(); crate::SIZE];
 
             combinations
                 .map(|($($args),*)| $call)

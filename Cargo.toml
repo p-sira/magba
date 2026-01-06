@@ -35,12 +35,9 @@ nalgebra = { version = "0.33.2" }
 rayon = "1.10.0"
 
 [features]
-default = ["sources", "parallel"]
-transform = []
-sources = ["transform"]
+default = ["parallel", "sources"]
+no_std = []
 parallel = ["dep:rayon", "nalgebra/rayon"]
+sources = ["transform"]
+transform = []
 unstable = []
-
-[[bench]]
-name = "bench"
-harness = false
