@@ -1,18 +1,32 @@
 [package]
 name = "magba"
 version = "0.3.0"
-authors = ["Sira Pornsiriprasert <code@psira.me>"]
-
+edition = "2021"
 description = "Magnetic computation library for Rust"
-categories = ["science", "simulation"]
-keywords = ["magnet", "magnetic", "field", "analytical", "simulation"]
 documentation = "https://docs.rs/magba"
+readme = "README.md"
 homepage = "https://github.com/p-sira/magba"
 repository = "https://github.com/p-sira/magba"
-readme = "README.md"
 license = "BSD-3-Clause"
-edition = "2021"
-exclude = ["benches", "logo", "magba.code-workspace", "python", "tests/test-data", "requirements*", ".github", ".gitignore"]
+keywords = ["analytical", "field", "magnet", "magnetic", "simulation"]
+categories = ["science", "simulation"]
+exclude = [
+  ".github",
+  ".gitignore",
+  "benches",
+  "logo",
+  "magba.code-workspace",
+  "python",
+  "requirements*",
+  "tests/test-data",
+]
+
+[package.metadata]
+authors = ["Sira Pornsiriprasert <code@psira.me>"]
+
+[[bench]]
+harness = false
+name = "bench"
 
 [dependencies]
 ellip = { version = "1.0.2", features = ["unstable"] }
