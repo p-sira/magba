@@ -386,3 +386,30 @@ return_vec_or_array! {
         )
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{crate_util::assert_close_vec, testing_util::quat_from_rotvec};
+    use nalgebra::{point, vector, Point3};
+
+    #[test]
+    fn static_cases() {
+        assert_close_vec!(
+            cylinder_B(
+                &[point![5.0, 6.0, 7.0]],
+                &point![1.0, 2.0, 3.0],
+                &quat_from_rotvec(1.0471975511965976, 0.6283185307179586, 0.4487989505128276),
+                &vector![0.45, 0.3, 0.15],
+                1.0,
+                2.0
+            )[0],
+            vector![
+                0.00018917835277408574,
+                0.00023329950084703265,
+                0.00027040129610630406
+            ],
+            1e-12
+        );
+    }
+}

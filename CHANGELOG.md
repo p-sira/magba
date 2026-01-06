@@ -12,6 +12,9 @@
 - Add testing documentation in `tests/`.
 - Improve documentations.
 
+**Testing**
+- Add static tests and corresponding testing suite.
+
 **Dependencies**
 - Update ellip to v1.0.2
 
