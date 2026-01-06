@@ -32,16 +32,17 @@ jobs:
         run: cargo clippy
 
   test:
-    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest, ubuntu-24.04-arm]
         no_default: [false, true]
         features: ["", sources, parallel, unstable, no_std]
         exclude:
           # no_std always implies no-default-features
           - no_default: false
             features: no_std
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - name: Cache cargo
@@ -51,11 +52,12 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             target
-          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}-${{ matrix.no_default }}-${{ matrix.features }}
+          key: cargo-${{ matrix.os }}-${{ hashFiles('**/Cargo.lock') }}-${{ matrix.no_default }}-${{ matrix.features }}
           restore-keys: |
-            cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}-
-            cargo-${{ runner.os }}-
+            cargo-${{ matrix.os }}-${{ hashFiles('**/Cargo.lock') }}-
+            cargo-${{ matrix.os }}-
       - name: Run tests
+        shell: bash
         run: |
           FLAGS=""
           if [ "${{ matrix.no_default }}" = "true" ]; then
