@@ -156,6 +156,22 @@ need_std! {
             panic!("assert_close_vec_vector")
         }
     }
+
+    pub fn mask_long_floats(s: &str) -> String {
+    let re = regex::Regex::new(
+        r"-?\d+\.(\d+)(?:e-?\d+)?"
+    ).unwrap();
+
+    re.replace_all(s, |caps: &regex::Captures| {
+        let frac_len = caps[1].len();
+        if frac_len > 6 {
+            "<float>".to_string()
+        } else {
+            caps[0].to_string()
+        }
+    })
+    .to_string()
+}
 }
 
 #[cfg(feature = "sources")]

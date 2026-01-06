@@ -396,7 +396,7 @@ mod base_source_collection_tests {
     use std::f64::consts::FRAC_PI_2;
 
     use super::*;
-    use crate::{sources::*, testing_util::quat_from_rotvec};
+    use crate::{sources::*, testing_util::*};
 
     #[test]
     fn test_collection_display() {
@@ -423,7 +423,7 @@ mod base_source_collection_tests {
 
         assert_eq!("SourceCollection (2 children) at pos=[0, 0, 0], q=[0, 0, 0, 1]
 ├── 0: CylinderMagnet (pol=[1, 2, 3], d=0.1, h=0.3) at pos=[4, 5, 6], q=[0, 0, 0, 1]
-└── 1: CylinderMagnet (pol=[7, 8, 9], d=0.1, h=0.3) at pos=[10, 11, 12], q=[0.7071067811865475, 0, 0, 0.7071067811865476]", format!("{}", collection))
+└── 1: CylinderMagnet (pol=[7, 8, 9], d=0.1, h=0.3) at pos=[10, 11, 12], q=[<float>, 0, 0, <float>]", mask_long_floats(&format!("{}", collection)))
     }
 }
 
@@ -903,7 +903,7 @@ mod multi_source_collection_tests {
         println!("{}", collection);
         assert_eq!("MultiSourceCollection (2 children) at pos=[0, 0, 0], q=[0, 0, 0, 1]
 ├── 0: CylinderMagnet (pol=[0.1, 0.2, 0.3], d=0.04, h=0.05) at pos=[0.005, 0.01, 0.015], q=[0, 0, 0, 1]
-└── 1: CuboidMagnet (pol=[0.1, 0.2, 0.3], dim=[0.02, 0.02, 0.03]) at pos=[0.015, 0.005, 0.01], q=[0, 0.5, 0, 0.8660254037844386]",
-         format!("{}", collection))
+└── 1: CuboidMagnet (pol=[0.1, 0.2, 0.3], dim=[0.02, 0.02, 0.03]) at pos=[0.015, 0.005, 0.01], q=[0, 0.5, 0, <float>]",
+         mask_long_floats(&format!("{}", collection)))
     }
 }
