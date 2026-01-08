@@ -436,7 +436,7 @@ mod partial_eq_tests {
     use crate::{sources::*, testing_util::quat_from_rotvec};
     use nalgebra::{point, vector};
 
-    fn create_magnet1() -> CylinderMagnet<f64> {
+    fn magnet1() -> CylinderMagnet<f64> {
         CylinderMagnet::new(
             point![1.0, 2.0, 3.0],
             UnitQuaternion::identity(),
@@ -446,7 +446,7 @@ mod partial_eq_tests {
         )
     }
 
-    fn create_magnet2() -> CylinderMagnet<f64> {
+    fn magnet2() -> CylinderMagnet<f64> {
         CylinderMagnet::new(
             point![4.0, 5.0, 6.0],
             quat_from_rotvec(FRAC_PI_2, 0.0, 0.0),
@@ -456,7 +456,7 @@ mod partial_eq_tests {
         )
     }
 
-    fn create_magnet3() -> CylinderMagnet<f64> {
+    fn magnet3() -> CylinderMagnet<f64> {
         CylinderMagnet::new(
             point![10.0, 11.0, 12.0],
             UnitQuaternion::identity(),
@@ -466,246 +466,84 @@ mod partial_eq_tests {
         )
     }
 
-    #[test]
-    fn test_partial_eq_equal_collections() {
-        let magnet1 = create_magnet1();
-        let magnet2 = create_magnet2();
-
-        let collection1 = SourceCollection::new(
-            point![0.0, 0.0, 0.0],
-            UnitQuaternion::identity(),
-            vec![magnet1.clone(), magnet2.clone()],
-        );
-
-        let collection2 = SourceCollection::new(
-            point![0.0, 0.0, 0.0],
-            UnitQuaternion::identity(),
-            vec![magnet1, magnet2],
-        );
-
-        assert_eq!(collection1, collection2);
+    fn collection(pos: Point3<f64>, orient: UnitQuaternion<f64>, magnets: Vec<CylinderMagnet<f64>>) -> SourceCollection<CylinderMagnet<f64>, f64> {
+        SourceCollection::new(pos, orient, magnets)
     }
 
     #[test]
-    fn test_partial_eq_different_positions() {
-        let magnet1 = create_magnet1();
-        let magnet2 = create_magnet2();
-
-        let collection1 = SourceCollection::new(
-            point![0.0, 0.0, 0.0],
-            UnitQuaternion::identity(),
-            vec![magnet1.clone(), magnet2.clone()],
-        );
-
-        let collection2 = SourceCollection::new(
-            point![1.0, 0.0, 0.0],
-            UnitQuaternion::identity(),
-            vec![magnet1, magnet2],
-        );
-
-        assert_ne!(collection1, collection2);
+    fn test_equal() {
+        let c1 = collection(Point3::origin(), UnitQuaternion::identity(), vec![magnet1(), magnet2()]);
+        let c2 = collection(Point3::origin(), UnitQuaternion::identity(), vec![magnet1(), magnet2()]);
+        assert_eq!(c1, c2);
     }
 
     #[test]
-    fn test_partial_eq_different_orientations() {
-        let magnet1 = create_magnet1();
-        let magnet2 = create_magnet2();
-
-        let collection1 = SourceCollection::new(
-            Point3::origin(),
-            UnitQuaternion::identity(),
-            vec![magnet1.clone(), magnet2.clone()],
-        );
-
-        let collection2 = SourceCollection::new(
-            Point3::origin(),
-            quat_from_rotvec(FRAC_PI_2, 0.0, 0.0),
-            vec![magnet1, magnet2],
-        );
-
-        assert_ne!(collection1, collection2);
+    fn test_different_position() {
+        let c1 = collection(Point3::origin(), UnitQuaternion::identity(), vec![magnet1()]);
+        let c2 = collection(point![1.0, 0.0, 0.0], UnitQuaternion::identity(), vec![magnet1()]);
+        assert_ne!(c1, c2);
     }
 
     #[test]
-    fn test_partial_eq_different_lengths() {
-        let magnet1 = create_magnet1();
-        let magnet2 = create_magnet2();
-
-        let collection1 = SourceCollection::new(
-            Point3::origin(),
-            UnitQuaternion::identity(),
-            vec![magnet1.clone(), magnet2.clone()],
-        );
-
-        let collection2 =
-            SourceCollection::new(Point3::origin(), UnitQuaternion::identity(), vec![magnet1]);
-
-        assert_ne!(collection1, collection2);
+    fn test_different_orientation() {
+        let c1 = collection(Point3::origin(), UnitQuaternion::identity(), vec![magnet1()]);
+        let c2 = collection(Point3::origin(), quat_from_rotvec(FRAC_PI_2, 0.0, 0.0), vec![magnet1()]);
+        assert_ne!(c1, c2);
     }
 
     #[test]
-    fn test_partial_eq_different_children() {
-        let magnet1 = create_magnet1();
-        let magnet2 = create_magnet2();
-        let magnet3 = create_magnet3();
-
-        let collection1 = SourceCollection::new(
-            Point3::origin(),
-            UnitQuaternion::identity(),
-            vec![magnet1.clone(), magnet2.clone()],
-        );
-
-        let collection2 = SourceCollection::new(
-            Point3::origin(),
-            UnitQuaternion::identity(),
-            vec![magnet1, magnet3],
-        );
-
-        assert_ne!(collection1, collection2);
+    fn test_different_length() {
+        let c1 = collection(Point3::origin(), UnitQuaternion::identity(), vec![magnet1(), magnet2()]);
+        let c2 = collection(Point3::origin(), UnitQuaternion::identity(), vec![magnet1()]);
+        assert_ne!(c1, c2);
     }
 
     #[test]
-    fn test_partial_eq_order_independent() {
-        let magnet1 = create_magnet1();
-        let magnet2 = create_magnet2();
-
-        let collection1 = SourceCollection::new(
-            Point3::origin(),
-            UnitQuaternion::identity(),
-            vec![magnet1.clone(), magnet2.clone()],
-        );
-
-        let collection2 = SourceCollection::new(
-            Point3::origin(),
-            UnitQuaternion::identity(),
-            vec![magnet2, magnet1],
-        );
-
-        // Collections with same children in different order should be equal
-        assert_eq!(collection1, collection2);
+    fn test_different_children() {
+        let c1 = collection(Point3::origin(), UnitQuaternion::identity(), vec![magnet1(), magnet2()]);
+        let c2 = collection(Point3::origin(), UnitQuaternion::identity(), vec![magnet1(), magnet3()]);
+        assert_ne!(c1, c2);
     }
 
     #[test]
-    fn test_partial_eq_duplicate_children() {
-        let magnet1 = create_magnet1();
-        let magnet2 = create_magnet2();
-
-        // Collection with duplicate children
-        let collection1 = SourceCollection::new(
-            Point3::origin(),
-            UnitQuaternion::identity(),
-            vec![magnet1.clone(), magnet1.clone()],
-        );
-
-        // Collection with two different children
-        let collection2 = SourceCollection::new(
-            Point3::origin(),
-            UnitQuaternion::identity(),
-            vec![magnet1.clone(), magnet2],
-        );
-
-        // Should not be equal - duplicates must match duplicates
-        assert_ne!(collection1, collection2);
-
-        // But two collections with same duplicates should be equal
-        let collection3 = SourceCollection::new(
-            Point3::origin(),
-            UnitQuaternion::identity(),
-            vec![magnet1.clone(), magnet1.clone()],
-        );
-
-        assert_eq!(collection1, collection3);
+    fn test_order_independent() {
+        let c1 = collection(Point3::origin(), UnitQuaternion::identity(), vec![magnet1(), magnet2()]);
+        let c2 = collection(Point3::origin(), UnitQuaternion::identity(), vec![magnet2(), magnet1()]);
+        assert_eq!(c1, c2);
     }
 
     #[test]
-    fn test_partial_eq_empty_collections() {
-        let collection1: SourceCollection<CylinderMagnet<f64>, f64> =
-            SourceCollection::new(Point3::origin(), UnitQuaternion::identity(), vec![]);
-
-        let collection2: SourceCollection<CylinderMagnet<f64>, f64> =
-            SourceCollection::new(Point3::origin(), UnitQuaternion::identity(), vec![]);
-
-        assert_eq!(collection1, collection2);
+    fn test_duplicates() {
+        let c1 = collection(Point3::origin(), UnitQuaternion::identity(), vec![magnet1(), magnet1()]);
+        let c2 = collection(Point3::origin(), UnitQuaternion::identity(), vec![magnet1(), magnet2()]);
+        let c3 = collection(Point3::origin(), UnitQuaternion::identity(), vec![magnet1(), magnet1()]);
+        
+        assert_ne!(c1, c2);
+        assert_eq!(c1, c3);
     }
 
     #[test]
-    fn test_partial_eq_empty_vs_non_empty() {
-        let magnet1 = create_magnet1();
-
-        let collection1 =
-            SourceCollection::new(Point3::origin(), UnitQuaternion::identity(), vec![]);
-
-        let collection2 =
-            SourceCollection::new(Point3::origin(), UnitQuaternion::identity(), vec![magnet1]);
-
-        assert_ne!(collection1, collection2);
+    fn test_empty() {
+        let c1: SourceCollection<CylinderMagnet<f64>, f64> = collection(Point3::origin(), UnitQuaternion::identity(), vec![]);
+        let c2: SourceCollection<CylinderMagnet<f64>, f64> = collection(Point3::origin(), UnitQuaternion::identity(), vec![]);
+        assert_eq!(c1, c2);
     }
 
     #[test]
-    fn test_partial_eq_multiple_duplicates() {
-        let magnet1 = create_magnet1();
-        let magnet2 = create_magnet2();
-
-        // Collection with two of magnet1 and one of magnet2
-        let collection1 = SourceCollection::new(
-            Point3::origin(),
-            UnitQuaternion::identity(),
-            vec![magnet1.clone(), magnet1.clone(), magnet2.clone()],
-        );
-
-        // Collection with one of magnet1 and two of magnet2
-        let collection2 = SourceCollection::new(
-            Point3::origin(),
-            UnitQuaternion::identity(),
-            vec![magnet1.clone(), magnet2.clone(), magnet2.clone()],
-        );
-
-        assert_ne!(collection1, collection2);
-
-        // But same duplicates in different order should be equal
-        let collection3 = SourceCollection::new(
-            Point3::origin(),
-            UnitQuaternion::identity(),
-            vec![magnet2, magnet1.clone(), magnet1],
-        );
-
-        assert_eq!(collection1, collection3);
+    fn test_empty_vs_non_empty() {
+        let c1 = collection(Point3::origin(), UnitQuaternion::identity(), vec![]);
+        let c2 = collection(Point3::origin(), UnitQuaternion::identity(), vec![magnet1()]);
+        assert_ne!(c1, c2);
     }
 
     #[test]
-    fn test_partial_eq_single_child() {
-        let magnet1 = create_magnet1();
-
-        let collection1 = SourceCollection::new(
-            Point3::origin(),
-            UnitQuaternion::identity(),
-            vec![magnet1.clone()],
-        );
-
-        let collection2 =
-            SourceCollection::new(Point3::origin(), UnitQuaternion::identity(), vec![magnet1]);
-
-        assert_eq!(collection1, collection2);
-    }
-
-    #[test]
-    fn test_partial_eq_same_position_different_children() {
-        let magnet1 = create_magnet1();
-        let magnet2 = create_magnet2();
-
-        let collection1 = SourceCollection::new(
-            point![5.0, 5.0, 5.0],
-            UnitQuaternion::identity(),
-            vec![magnet1],
-        );
-
-        let collection2 = SourceCollection::new(
-            point![5.0, 5.0, 5.0],
-            UnitQuaternion::identity(),
-            vec![magnet2],
-        );
-
-        assert_ne!(collection1, collection2);
+    fn test_multiple_duplicates() {
+        let c1 = collection(Point3::origin(), UnitQuaternion::identity(), vec![magnet1(), magnet1(), magnet2()]);
+        let c2 = collection(Point3::origin(), UnitQuaternion::identity(), vec![magnet1(), magnet2(), magnet2()]);
+        let c3 = collection(Point3::origin(), UnitQuaternion::identity(), vec![magnet2(), magnet1(), magnet1()]);
+        
+        assert_ne!(c1, c2);
+        assert_eq!(c1, c3);
     }
 }
 
