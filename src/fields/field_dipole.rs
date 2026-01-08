@@ -136,7 +136,7 @@ return_vec_or_array! {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{crate_util::assert_close_vec, testing_util::quat_from_rotvec};
+    use crate::{assert_close_vec, testing_util::quat_from_rotvec};
     use nalgebra::{point, vector};
 
     #[test]

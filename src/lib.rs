@@ -138,7 +138,7 @@ The available feature flags are:
 //!         vector![0.0, 0.0, 0.7061518306386746],
 //! ];
 //!
-//! b_fields.iter().zip(expected).for_each(|(b, b_ref)| {assert_close_vector_elem!(b, &b_ref, 1e-12);});
+//! b_fields.iter().zip(expected).for_each(|(b, b_ref)| {assert_close_vec!(b, &b_ref, 1e-12);});
 //!
 //! use magba::conversion::*;
 //! let h_field = Bs_to_Hs(&b_fields);
@@ -176,29 +176,29 @@ The available feature flags are:
 //! let points = [point![0.0, 0.0, 0.05]];
 //! let b = magnet.get_B(&points)[0];
 //! let expected = vector![0.0, 0.0, 0.0019205466890453442];
-//! assert_close_vector_elem!(&b, &expected, 1e-12);
+//! assert_close_vec!(&b, &expected, 1e-12);
 //!
 //! // Moving the magnet
 //! magnet.translate(&Translation3::new(0.0, 0.0, 0.01));
 //! let b = magnet.get_B(&points)[0];
 //! let expected = vector![0.0, 0.0, 0.0038894698700304275];
-//! assert_close_vector_elem!(&b, &expected, 1e-12);
+//! assert_close_vec!(&b, &expected, 1e-12);
 //!
 //! magnet.set_position(point![0.0, 0.0, 0.02]);
 //! let b = magnet.get_B(&points)[0];
 //! let expected = vector![0.0, 0.0, 0.00996091945575112];
-//! assert_close_vector_elem!(&b, &expected, 1e-12);
+//! assert_close_vec!(&b, &expected, 1e-12);
 //!
 //! // Rotating the magnet
 //! magnet.rotate(&UnitQuaternion::from_scaled_axis(vector![PI / 4.0, 0.0, 0.0]));
 //! let b = magnet.get_B(&points)[0];
 //! let expected = vector![3.9407500527173422e-19, 0.0035238379945531874, 0.005577663229073966];
-//! assert_close_vector_elem!(&b, &expected, 1e-12);
+//! assert_close_vec!(&b, &expected, 1e-12);
 //!
 //! magnet.set_orientation(UnitQuaternion::from_scaled_axis(vector![PI / 2.0, 0.0, 0.0]));
 //! let b = magnet.get_B(&points)[0];
 //! let expected = vector![6.086025172136602e-35, 0.003642460886175623, 0.0];
-//! assert_close_vector_elem!(&b, &expected, 1e-12);
+//! assert_close_vec!(&b, &expected, 1e-12);
 //! ```
 //!
 //! ## Direct Field Calculation
@@ -221,7 +221,7 @@ The available feature flags are:
 //!     2.0,                            // height (m)
 //! )[0]; // Extract the element since the field function returns a vec of Vector3.
 //! let expected = vector![-0.3684605662842379, -0.10171405289381347, -0.330064920993222];
-//! assert_close_vector_elem!(&b, &expected, 1e-12);
+//! assert_close_vec!(&b, &expected, 1e-12);
 //! ```
 //!
 //! ## Acknowledgment
@@ -259,7 +259,6 @@ macro_rules! compile_if_valid_feature_flags {
 
 compile_if_valid_feature_flags! {
     mod crate_util;
-    pub mod util;
 
     pub mod constants;
     pub mod conversion;
@@ -291,4 +290,26 @@ compile_if_valid_feature_flags! {
 
     #[cfg(feature = "no_std")]
     const SIZE: usize = 1000;
+}
+
+/* #region: Public Macros */
+
+/// Check if two vectors are close using relative Euclidean distance
+#[macro_export]
+macro_rules! assert_close_vec {
+    ($a:expr, $b:expr, $rtol:expr) => {{
+        use nalgebra::{distance, Point3};
+
+        let dist = distance(&Point3::from($a.clone()), &Point3::from($b.clone()));
+
+        let rel_a: f64 = dist / $a.magnitude();
+        let rel_b: f64 = dist / $b.magnitude();
+        let rel = rel_a.max(rel_b);
+        if rel > $rtol {
+            panic!(
+                "Assertion failed: a={}, b={}, dist = {:e}, rel = {:e}, rtol = {:e}",
+                $a, $b, dist, rel, $rtol
+            );
+        }
+    }};
 }
