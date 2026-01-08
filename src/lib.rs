@@ -237,39 +237,58 @@ The available feature flags are:
     )
 )]
 
+#[cfg(all(feature = "no_std", feature = "default"))]
+compile_error!(
+    "The feature flag `no_std` is incompatible with `default`. Please add --no-default-features"
+);
+
 #[cfg(all(feature = "no_std", feature = "parallel"))]
-compile_error!("The feature flag "parallel" is incompatible with "no_std".");
+compile_error!("The feature flag `parallel` is incompatible with `no_std`.");
 
-mod crate_util;
-pub mod util;
+macro_rules! compile_if_valid_feature_flags {
+    ($($body:item)*) => {
+        $(
+            #[cfg(not(any(
+            all(feature = "no_std", feature = "default"),
+            all(feature = "no_std", feature = "parallel")
+        )))]
+        $body
+        )*
+    };
+}
 
-pub mod constants;
-pub mod conversion;
-pub mod fields;
-pub mod geometry;
+compile_if_valid_feature_flags! {
+    mod crate_util;
+    pub mod util;
 
-use constants::MagneticConstants;
+    pub mod constants;
+    pub mod conversion;
+    pub mod fields;
+    pub mod geometry;
 
-/// Generic trait for floating point numbers compatible with all [Magba](crate) implementations.
-///
-/// Supports [f32] and [f64].
-pub trait Float: nalgebra::RealField + num_traits::Float + MagneticConstants + Copy {}
-impl Float for f32 {}
-impl Float for f64 {}
+    use constants::MagneticConstants;
 
-pub type StrErr = &'static str;
+    /// Generic trait for floating point numbers compatible with all [Magba](crate) implementations.
+    ///
+    /// Supports [f32] and [f64].
+    pub trait Float: nalgebra::RealField + num_traits::Float + MagneticConstants + Copy {}
+    impl Float for f32 {}
+    impl Float for f64 {}
 
-#[cfg(feature = "sources")]
-pub mod sources;
-#[cfg(feature = "transform")]
-#[doc(inline)]
-pub use geometry::Transform;
-#[cfg(feature = "sources")]
-#[doc(inline)]
-pub use sources::*;
+    pub type StrErr = &'static str;
 
-#[cfg(test)]
-pub mod testing_util;
+    #[cfg(feature = "sources")]
+    pub mod sources;
+    #[cfg(feature = "transform")]
+    #[doc(inline)]
+    pub use geometry::Transform;
+    #[cfg(feature = "sources")]
+    #[doc(inline)]
+    pub use sources::*;
 
-#[cfg(feature = "no_std")]
-const SIZE: usize = 1000;
+    #[cfg(test)]
+    pub mod testing_util;
+
+    #[cfg(feature = "no_std")]
+    const SIZE: usize = 1000;
+}
