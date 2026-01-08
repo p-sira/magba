@@ -117,7 +117,6 @@ The available feature flags are:
 #![cfg_attr(not(feature = "sources"), doc = "```ignore")]
 #![cfg_attr(feature = "sources", doc = "```")]
 //! use magba::*;
-//! use magba::util::*;
 //! use nalgebra::*;
 //!
 //! // A unit cylinder magnet (pol=(0,0,1), d=1, h=1) at (0,0,0), q=(0,0,0,1)
