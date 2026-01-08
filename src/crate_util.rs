@@ -7,6 +7,16 @@
 
 use nalgebra::{distance, Point3, RealField, Vector3};
 
+macro_rules! need_feature {
+    ($feature:literal, $($body:item)*) => {
+        $(
+            #[cfg(feature = $feature)]
+            $body
+        )*
+    };
+}
+pub(crate) use need_feature;
+
 macro_rules! need_std {
     ($($body:item)*) => {
         $(

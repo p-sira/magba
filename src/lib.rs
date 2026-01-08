@@ -40,10 +40,11 @@ feature flags, use:
 >> cargo add magba --no-default-features --features sources,parallel
 ```
 The available feature flags are:
-- `default`: Enable `sources` and `parallel`.
-- `transform`: Enable spatial transformation functionalities.
+- `default`: Enable `sources`, `parallel`, and `shorthands`.
+- `transform`: Spatial transformation functionalities.
 - `sources`: Magnetic source structs and collections. Also enable `transform`.
-- `parallel`: Enable parallelization with Rayon for performance.
+- `parallel`: Parallel computation using Rayon for performance.
+- `shorthands`: Enable shorthands for quickly defining sources.
 - `unstable`: Enable unstable features. These features may change any time.
 */
 
@@ -258,11 +259,14 @@ macro_rules! compile_if_valid_feature_flags {
 
 compile_if_valid_feature_flags! {
     mod crate_util;
+    use crate::crate_util::need_feature;
 
     pub mod constants;
     pub mod conversion;
     pub mod fields;
     pub mod geometry;
+
+    need_feature!{"shorthands", pub mod shorthands;}
 
     use constants::MagneticConstants;
 
@@ -275,20 +279,23 @@ compile_if_valid_feature_flags! {
 
     pub type StrErr = &'static str;
 
-    #[cfg(feature = "sources")]
-    pub mod sources;
-    #[cfg(feature = "transform")]
-    #[doc(inline)]
-    pub use geometry::Transform;
-    #[cfg(feature = "sources")]
-    #[doc(inline)]
-    pub use sources::*;
+    need_feature!{"sources",
+        pub mod sources;
+        #[cfg(feature = "sources")]
+        #[doc(inline)]
+        pub use sources::*;
+    }
+
+    need_feature!{"transform",
+        #[doc(inline)]
+        pub use geometry::Transform;
+    }
 
     #[cfg(test)]
     pub mod testing_util;
 
     #[cfg(feature = "no_std")]
-    /// Size of fixed-size arrays used in no-allocation environments. 
+    /// Size of fixed-size arrays used in no-allocation environments.
     const SIZE: usize = 1000;
 }
 
