@@ -288,6 +288,7 @@ compile_if_valid_feature_flags! {
     pub mod testing_util;
 
     #[cfg(feature = "no_std")]
+    /// Size of fixed-size arrays used in no-allocation environments. 
     const SIZE: usize = 1000;
 }
 
