@@ -48,7 +48,7 @@ use std::f64::consts::PI;
 // Define magnetic sources
 let cylinder = Box::new(CylinderMagnet::default());
 let cuboid = Box::new(CuboidMagnet::new(
-    Point3::new(1.0, 0.0, 0.0),  // position (m)
+    point![1.0, 0.0, 0.0],  // position (m)
     UnitQuaternion::identity(),  // orientation
     Vector3::z(),                // polarization (T)
     Vector3::new(0.1, 0.2, 0.3), // dimensions (m)
@@ -60,9 +60,9 @@ collection.add(Box::new(Dipole::default()));
 
 // Observer positions
 let points = [
-    Point3::new(0.0, 0.0, 0.020),
-    Point3::new(0.0, 0.0, 0.025),
-    Point3::new(0.0, 0.0, 0.030),
+    point![0.0, 0.0, 0.020],
+    point![0.0, 0.0, 0.025],
+    point![0.0, 0.0, 0.030],
 ];
 
 // Compute B-field (Magnetic flux density [T])

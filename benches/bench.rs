@@ -26,9 +26,9 @@ mod parallel_overhead {
     #[allow(non_snake_case)]
     fn generate_global_cylinder_B_test_data(size: usize) -> CylinderTestData {
         let test_points = [
-            Point3::new(1.0, -1.0, 1.5),
-            Point3::new(1.0, 1.0, 1.5),
-            Point3::new(0.0, 0.0, 0.0),
+            point![1.0, -1.0, 1.5],
+            point![1.0, 1.0, 1.5],
+            point![0.0, 0.0, 0.0],
         ];
         let points = (0..size)
             .map(|n| test_points[n % test_points.len()].clone())
@@ -105,7 +105,7 @@ mod parallel_overhead {
         (0..n)
             .map(|i| {
                 let i = i as f64;
-                Point3::new(i, i + 1.0, i + 2.0)
+                point![i, i + 1.0, i + 2.0]
             })
             .collect()
     }
@@ -168,7 +168,7 @@ mod parallel_overhead {
             let points = get_points(*size);
             let current_orientation = UnitQuaternion::identity();
             let rotation = UnitQuaternion::from_scaled_axis(Vector3::new(1.0, 2.0, 3.0));
-            let anchor = Point3::new(3.0, 2.0, 1.0);
+            let anchor = point![3.0, 2.0, 1.0];
 
             group.bench_with_input(BenchmarkId::new("rotate_serial", size), &size, |b, _| {
                 b.iter(|| {
@@ -201,7 +201,7 @@ mod parallel_overhead {
         (0..n)
             .map(|_| {
                 CylinderMagnet::new(
-                    Point3::new(-0.004694999999999998, 0.008131978541535878, -0.006),
+                    point![-0.004694999999999998, 0.008131978541535878, -0.006],
                     UnitQuaternion::from_scaled_axis(Vector3::new(
                         1.5315599088338596,
                         0.41038024073191587,

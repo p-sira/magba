@@ -71,7 +71,7 @@ The available feature flags are:
 //!
 //! let cylinder = Box::new(CylinderMagnet::default());
 //! let cuboid = Box::new(CuboidMagnet::new(
-//!     Point3::new(1.0, 0.0, 0.0),  // position (m)
+//!     point![1.0, 0.0, 0.0],  // position (m)
 //!     UnitQuaternion::identity(),  // orientation
 //!     Vector3::z(),                // polarization (T)
 //!     Vector3::new(0.1, 0.2, 0.3), // dimensions (m)
@@ -89,7 +89,7 @@ The available feature flags are:
 //! use std::f64::consts::PI;
 //!
 //! let magnet1 = CylinderMagnet::new(
-//!     Point3::new(0.0, 0.0, 1.0), // position (m)
+//!     point![0.0, 0.0, 1.0], // position (m)
 //!     UnitQuaternion::identity(), // orientation
 //!     Vector3::z(),               // polarization (T)
 //!     0.1,                        // radius (m)
@@ -125,9 +125,9 @@ The available feature flags are:
 //!
 //! // Observer positions
 //! let points = [
-//!     Point3::new(0.0, 0.0, 0.020),
-//!     Point3::new(0.0, 0.0, 0.025),
-//!     Point3::new(0.0, 0.0, 0.030),
+//!     point![0.0, 0.0, 0.020],
+//!     point![0.0, 0.0, 0.025],
+//!     point![0.0, 0.0, 0.030],
 //! ];
 //!
 //! // Compute the magnetic field
@@ -173,7 +173,7 @@ The available feature flags are:
 //! );
 //!
 //! // Computing the magnetic field
-//! let points = [Point3::new(0.0, 0.0, 0.05)];
+//! let points = [point![0.0, 0.0, 0.05]];
 //! let b = magnet.get_B(&points)[0];
 //! let expected = Vector3::new(0.0, 0.0, 0.0019205466890453442);
 //! assert_close_vector_elem!(&b, &expected, 1e-12);
@@ -184,7 +184,7 @@ The available feature flags are:
 //! let expected = Vector3::new(0.0, 0.0, 0.0038894698700304275);
 //! assert_close_vector_elem!(&b, &expected, 1e-12);
 //!
-//! magnet.set_position(Point3::new(0.0, 0.0, 0.02));
+//! magnet.set_position(point![0.0, 0.0, 0.02]);
 //! let b = magnet.get_B(&points)[0];
 //! let expected = Vector3::new(0.0, 0.0, 0.00996091945575112);
 //! assert_close_vector_elem!(&b, &expected, 1e-12);
@@ -213,7 +213,7 @@ The available feature flags are:
 //!
 //! // Compute the magnetic field of a cylinder magnet.
 //! let b = fields::cylinder_B(
-//!     &[Point3::new(1.0, -1.0, 0.0)], // observer positions (m)
+//!     &[point![1.0, -1.0, 0.0]], // observer positions (m)
 //!     &Point::origin(),               // magnet position (m)
 //!     &UnitQuaternion::identity(),    // magnet orientation
 //!     &Vector3::new(1.0, 2.0, 3.0),   // polarization (T)

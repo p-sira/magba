@@ -24,6 +24,7 @@ need_std! {
     };
 
     use crate::crate_util::relative_vec_distance;
+    use nalgebra::point;
 
     pub fn load_matrix_from_csv<T: RealField + FromStr + Debug>(path: &Path) -> DMatrix<T> {
         let file =
@@ -65,7 +66,7 @@ need_std! {
     pub fn matrix_to_point_vec<T: RealField + Copy>(matrix: &DMatrix<T>) -> Vec<Point3<T>> {
         matrix
             .row_iter()
-            .map(|row| Point3::new(row[0], row[1], row[2]))
+            .map(|row| point![row[0], row[1], row[2]])
             .collect()
     }
 
@@ -287,7 +288,7 @@ pub mod source_testing_util {
             mod generated_tests {
                 use std::f64::consts::PI;
 
-                use nalgebra::{Point3, Translation3};
+                use nalgebra::{point, Translation3};
 
                 use crate::geometry::Transform;
                 use crate::testing_util::*;
@@ -295,7 +296,7 @@ pub mod source_testing_util {
 
                 fn magnet() -> $source_type<f64> {
                     $source_type::new(
-                        Point3::new(0.1, 0.2, 0.3),
+                        point![0.1, 0.2, 0.3],
                         quat_from_rotvec(PI / 7.0, PI / 6.0, PI / 5.0),
                         $($params),*
                     )
@@ -309,7 +310,7 @@ pub mod source_testing_util {
                 #[test]
                 fn test_static_small() {
                     let magnet = $source_type::new(
-                        Point3::new(0.03, 0.02, 0.01),
+                        point![0.03, 0.02, 0.01],
                         quat_from_rotvec(PI / 7.0, PI / 6.0, PI / 5.0),
                         $(($params) / 10.0),*
                     );
