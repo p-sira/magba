@@ -237,6 +237,9 @@ The available feature flags are:
     )
 )]
 
+#[cfg(all(feature = "no_std", feature = "parallel"))]
+compile_error!("The feature flag "parallel" is incompatible with "no_std".");
+
 mod crate_util;
 pub mod util;
 
@@ -267,9 +270,6 @@ pub use sources::*;
 
 #[cfg(test)]
 pub mod testing_util;
-
-#[cfg(all(feature = "no_std", feature = "parallel"))]
-compile_error!("The feature flag "parallel" is incompatible with "no_std".");
 
 #[cfg(feature = "no_std")]
 const SIZE: usize = 1000;
