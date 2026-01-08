@@ -7,7 +7,7 @@
 //!
 //! <div class="warning">⚠️ Unstable feature. May subject to changes.</div>
 
-use nalgebra::{Matrix3, Point3, RealField, UnitQuaternion, Vector3};
+use nalgebra::{vector, Matrix3, Point3, RealField, UnitQuaternion, Vector3};
 use numeric_literals::replace_float_literals;
 
 use crate::{
@@ -164,7 +164,7 @@ pub fn local_cuboid_B<T: RealField + Copy>(
     let by_tot = by_pol_x + by_pol_y + by_pol_z;
     let bz_tot = bz_pol_x + bz_pol_y + bz_pol_z;
 
-    Vector3::new(bx_tot, by_tot, bz_tot) / (4.0 * T::pi())
+    vector![bx_tot, by_tot, bz_tot] / (4.0 * T::pi())
 }
 
 /// Compute B-field of a homogeneous cuboid magnet at point (x, y, z).
@@ -271,7 +271,7 @@ return_vec_or_array! {
 mod tests {
     use super::*;
     use crate::{crate_util::assert_close_vec, testing_util::quat_from_rotvec};
-    use nalgebra::{point, vector, Point3};
+    use nalgebra::{point, vector};
 
     #[test]
     fn static_cases() {

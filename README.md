@@ -51,7 +51,7 @@ let cuboid = Box::new(CuboidMagnet::new(
     point![1.0, 0.0, 0.0],  // position (m)
     UnitQuaternion::identity(),  // orientation
     Vector3::z(),                // polarization (T)
-    Vector3::new(0.1, 0.2, 0.3), // dimensions (m)
+    vector![0.1, 0.2, 0.3], // dimensions (m)
 ));
 
 // Grouping sources as collection
@@ -75,7 +75,7 @@ let b_fields = collection.get_B(&points);
 
 // Move and Rotate
 collection.translate(&Translation3::new(0.0, 0.0, 0.010));
-collection.rotate(&UnitQuaternion::from_scaled_axis(Vector3::new(PI / 4.0, 0.0, 0.0)));
+collection.rotate(&UnitQuaternion::from_scaled_axis(vector![PI / 4.0, 0.0, 0.0]));
 
 let b_fields = collection.get_B(&points);
 // [

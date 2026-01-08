@@ -9,7 +9,7 @@
 
 use ellip::bulirsch::{cel_with_const, DefaultPrecision};
 use ellip::{ellipe, ellipk};
-use nalgebra::{Point3, RealField, UnitQuaternion, Vector3};
+use nalgebra::{vector, Point3, RealField, UnitQuaternion, Vector3};
 use numeric_literals::replace_float_literals;
 
 #[cfg(feature = "no_std")]
@@ -61,7 +61,7 @@ pub fn unit_axial_cylinder_B_cyl<T: Float + Copy>(r: T, z: T, z0: T) -> Vector3<
         - zm * cel_with_const::<T, DefaultPrecision>(km, gamma2, 1.0, gamma).unwrap() / sq0)
         / (rp * T::pi());
     // bphi = 0
-    Vector3::new(br, 0.0, bz)
+    vector![br, 0.0, bz]
 }
 
 /// Compute B-field of a cylindrical magnet with unit diametrial (r-axis) polarization
@@ -121,7 +121,7 @@ where
                     * r5
                     * ((1.0 - 12.0 * zp2 + 8.0 * zp4) / zpp5 / sqrt_p
                         - (1.0 - 12.0 * zm2 + 8.0 * zm4) / zmm5 / sqrt_m));
-        return Vector3::new(br, bphi, bz);
+        return vector![br, bphi, bz];
     }
 
     // General case
@@ -166,7 +166,7 @@ where
         * (am * elle_m - ap * elle_p - (1.0 + zm2 + r2) / am * ellk_m
             + (1.0 + zp2 + r2) / ap * ellk_p);
 
-    Vector3::new(br, bphi, bz)
+    vector![br, bphi, bz]
 }
 
 /// Compute B-field of a cylindrical magnet at point (r, phi, z) in cylindrical CS.
@@ -269,10 +269,10 @@ pub fn local_cylinder_B<T: RealField + Copy + Float>(
     let (bx, by) = vec_cyl2cart(b_cyl.x, b_cyl.y, phi);
     // Check if point is in the magnet
     if r <= radius && NumFloat::abs(point.z) <= height / T::from(2.0).unwrap() {
-        return Vector3::new(bx + polarization.x, by + polarization.y, b_cyl.z);
+        return vector![bx + polarization.x, by + polarization.y, b_cyl.z];
     }
 
-    Vector3::new(bx, by, b_cyl.z)
+    vector![bx, by, b_cyl.z]
 }
 
 /// Compute B-field at point (x, y, z) of a cylindrical magnet.
@@ -391,7 +391,7 @@ return_vec_or_array! {
 mod tests {
     use super::*;
     use crate::{crate_util::assert_close_vec, testing_util::quat_from_rotvec};
-    use nalgebra::{point, vector, Point3};
+    use nalgebra::{point, vector};
 
     #[test]
     fn static_cases() {

@@ -41,7 +41,7 @@ define_magnet! {
 crate::testing_util::generate_tests! {
     Dipole
     filename: dipole
-    params: { moment: Vector3::new(1.0, 2.0, 3.0) }
+    params: { moment: vector![1.0, 2.0, 3.0] }
     rtols: {
         static: 2e-10,
         static_small: 2e-10,

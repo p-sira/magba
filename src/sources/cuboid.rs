@@ -24,7 +24,7 @@ define_magnet! {
     ///     Point3::origin(),              // position (m)
     ///     UnitQuaternion::identity(),    // orientation
     ///     Vector3::z(),                  // polarization (T)
-    ///     Vector3::new(0.01, 0.01, 0.02) // dimensions (m)
+    ///     vector![0.01, 0.01, 0.02] // dimensions (m)
     /// );
     /// ```
     /// # References
@@ -47,7 +47,7 @@ define_magnet! {
 crate::testing_util::generate_tests! {
     CuboidMagnet
     filename: cuboid
-    params: { polarization: Vector3::new(1.0, 2.0, 3.0), dimensions: Vector3::new(0.1, 0.2, 0.3)}
+    params: { polarization: vector![1.0, 2.0, 3.0], dimensions: vector![0.1, 0.2, 0.3]}
     rtols: {
         static: 2e-10,
         static_small: 2e-10,
