@@ -3,6 +3,7 @@
 ### 0.3.0
 **Breaking Changes**
 - Change the argument `radius` to `diameter` in `CylinderMagnet`.
+- Remove `util` module
 
 **New Features**
 - Add `no_std` feature flag.
@@ -14,6 +15,7 @@
 
 **Testing**
 - Add static tests and corresponding testing suite.
+- Add `assert_close_vec!` macro for doctest.
 
 **Dependencies**
 - Update ellip to v1.0.2.

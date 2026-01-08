@@ -82,27 +82,14 @@ pub fn is_close(a: f64, b: f64, rtol: f64) -> bool {
 }
 
 /// Calculate the relative Euclidean distance
+#[allow(unused)]
 pub fn relative_vec_distance<T: RealField + Copy>(a: Vector3<T>, b: Vector3<T>) -> T {
     let dist = distance(&Point3::from(a), &Point3::from(b));
     (dist / a.magnitude()).max(dist / b.magnitude())
 }
 
-/// Check if two vectors are close using relative Euclidean distance
-macro_rules! assert_close_vec {
-    ($a:expr, $b:expr, $rtol:expr) => {{
-        use crate::crate_util::relative_vec_distance;
-        let rel = relative_vec_distance($a, $b);
-        if rel > $rtol {
-            panic!(
-                "Assertion failed: a={}, b={}, rel = {:e}, rtol = {:e}",
-                $a, $b, rel, $rtol
-            );
-        }
-    }};
-}
-pub(crate) use assert_close_vec;
-
 /// Return the number of failed elements if the elements of two vectors are not close.
+#[allow(unused)]
 pub fn is_elem_close(vec1: &Vector3<f64>, vec2: &Vector3<f64>, rtol: f64) -> Option<usize> {
     let mut n_fail: usize = 0;
     vec1.iter().zip(vec2).enumerate().for_each(|(n, (&a, &b))| {
