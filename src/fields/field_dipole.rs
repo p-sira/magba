@@ -137,7 +137,7 @@ return_vec_or_array! {
 mod tests {
     use super::*;
     use crate::{crate_util::assert_close_vec, testing_util::quat_from_rotvec};
-    use nalgebra::{point, vector, Point3};
+    use nalgebra::{point, vector};
 
     #[test]
     fn static_cases() {

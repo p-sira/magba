@@ -6,12 +6,12 @@
 //! Testing utilities.
 
 use csv::ReaderBuilder;
-use nalgebra::{DMatrix, Point3, RealField, UnitQuaternion, Vector3};
+use nalgebra::{point, vector, DMatrix, Point3, RealField, UnitQuaternion, Vector3};
 
 use crate::crate_util::need_std;
 
 pub fn quat_from_rotvec<T: RealField + Copy>(x: T, y: T, z: T) -> UnitQuaternion<T> {
-    UnitQuaternion::from_scaled_axis(Vector3::new(x, y, z))
+    UnitQuaternion::from_scaled_axis(vector![x, y, z])
 }
 
 need_std! {
@@ -24,7 +24,6 @@ need_std! {
     };
 
     use crate::crate_util::relative_vec_distance;
-    use nalgebra::point;
 
     pub fn load_matrix_from_csv<T: RealField + FromStr + Debug>(path: &Path) -> DMatrix<T> {
         let file =
@@ -73,7 +72,7 @@ need_std! {
     pub fn matrix_to_vector_vec<T: RealField + Copy>(matrix: &DMatrix<T>) -> Vec<Vector3<T>> {
         matrix
             .row_iter()
-            .map(|row| Vector3::new(row[0], row[1], row[2]))
+            .map(|row| vector![row[0], row[1], row[2]])
             .collect()
     }
 
@@ -288,7 +287,7 @@ pub mod source_testing_util {
             mod generated_tests {
                 use std::f64::consts::PI;
 
-                use nalgebra::{point, Translation3};
+                use nalgebra::{point, vector, Translation3};
 
                 use crate::geometry::Transform;
                 use crate::testing_util::*;

@@ -74,7 +74,7 @@ The available feature flags are:
 //!     point![1.0, 0.0, 0.0],  // position (m)
 //!     UnitQuaternion::identity(),  // orientation
 //!     Vector3::z(),                // polarization (T)
-//!     Vector3::new(0.1, 0.2, 0.3), // dimensions (m)
+//!     vector![0.1, 0.2, 0.3], // dimensions (m)
 //! ));
 //!
 //! let mut collection = MultiSourceCollection::from_sources(vec![cylinder, cuboid]);
@@ -98,7 +98,7 @@ The available feature flags are:
 //!
 //! let mut magnet2 = magnet1.clone();
 //! magnet2.rotate_anchor(
-//!     &UnitQuaternion::from_scaled_axis(Vector3::new(PI, 0.0, 0.0)),
+//!     &UnitQuaternion::from_scaled_axis(vector![PI, 0.0, 0.0]),
 //!     &Point3::origin(),
 //! );
 //!
@@ -133,9 +133,9 @@ The available feature flags are:
 //! // Compute the magnetic field
 //! let b_fields = magnet.get_B(&points);
 //! let expected = [
-//!         Vector3::new(0.0, 0.0, 0.7066824465457847),
-//!         Vector3::new(0.0, 0.0, 0.706443696474588),
-//!         Vector3::new(0.0, 0.0, 0.7061518306386746),
+//!         vector![0.0, 0.0, 0.7066824465457847],
+//!         vector![0.0, 0.0, 0.706443696474588],
+//!         vector![0.0, 0.0, 0.7061518306386746],
 //! ];
 //!
 //! b_fields.iter().zip(expected).for_each(|(b, b_ref)| {assert_close_vector_elem!(b, &b_ref, 1e-12);});
@@ -167,7 +167,7 @@ The available feature flags are:
 //! let mut magnet = CylinderMagnet::new(
 //!     Point3::origin(),
 //!     UnitQuaternion::identity(),
-//!     Vector3::new(0.0, 0.0, 0.9),
+//!     vector![0.0, 0.0, 0.9],
 //!     0.01,
 //!     0.02,
 //! );
@@ -175,29 +175,29 @@ The available feature flags are:
 //! // Computing the magnetic field
 //! let points = [point![0.0, 0.0, 0.05]];
 //! let b = magnet.get_B(&points)[0];
-//! let expected = Vector3::new(0.0, 0.0, 0.0019205466890453442);
+//! let expected = vector![0.0, 0.0, 0.0019205466890453442];
 //! assert_close_vector_elem!(&b, &expected, 1e-12);
 //!
 //! // Moving the magnet
 //! magnet.translate(&Translation3::new(0.0, 0.0, 0.01));
 //! let b = magnet.get_B(&points)[0];
-//! let expected = Vector3::new(0.0, 0.0, 0.0038894698700304275);
+//! let expected = vector![0.0, 0.0, 0.0038894698700304275];
 //! assert_close_vector_elem!(&b, &expected, 1e-12);
 //!
 //! magnet.set_position(point![0.0, 0.0, 0.02]);
 //! let b = magnet.get_B(&points)[0];
-//! let expected = Vector3::new(0.0, 0.0, 0.00996091945575112);
+//! let expected = vector![0.0, 0.0, 0.00996091945575112];
 //! assert_close_vector_elem!(&b, &expected, 1e-12);
 //!
 //! // Rotating the magnet
-//! magnet.rotate(&UnitQuaternion::from_scaled_axis(Vector3::new(PI / 4.0, 0.0, 0.0)));
+//! magnet.rotate(&UnitQuaternion::from_scaled_axis(vector![PI / 4.0, 0.0, 0.0]));
 //! let b = magnet.get_B(&points)[0];
-//! let expected = Vector3::new(3.9407500527173422e-19, 0.0035238379945531874, 0.005577663229073966);
+//! let expected = vector![3.9407500527173422e-19, 0.0035238379945531874, 0.005577663229073966];
 //! assert_close_vector_elem!(&b, &expected, 1e-12);
 //!
-//! magnet.set_orientation(UnitQuaternion::from_scaled_axis(Vector3::new(PI / 2.0, 0.0, 0.0)));
+//! magnet.set_orientation(UnitQuaternion::from_scaled_axis(vector![PI / 2.0, 0.0, 0.0]));
 //! let b = magnet.get_B(&points)[0];
-//! let expected = Vector3::new(6.086025172136602e-35, 0.003642460886175623, 0.0);
+//! let expected = vector![6.086025172136602e-35, 0.003642460886175623, 0.0];
 //! assert_close_vector_elem!(&b, &expected, 1e-12);
 //! ```
 //!
@@ -216,11 +216,11 @@ The available feature flags are:
 //!     &[point![1.0, -1.0, 0.0]], // observer positions (m)
 //!     &Point::origin(),               // magnet position (m)
 //!     &UnitQuaternion::identity(),    // magnet orientation
-//!     &Vector3::new(1.0, 2.0, 3.0),   // polarization (T)
+//!     &vector![1.0, 2.0, 3.0],   // polarization (T)
 //!     2.0,                            // diameter (m)
 //!     2.0,                            // height (m)
 //! )[0]; // Extract the element since the field function returns a vec of Vector3.
-//! let expected = Vector3::new(-0.3684605662842379, -0.10171405289381347, -0.330064920993222);
+//! let expected = vector![-0.3684605662842379, -0.10171405289381347, -0.330064920993222];
 //! assert_close_vector_elem!(&b, &expected, 1e-12);
 //! ```
 //!

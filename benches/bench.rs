@@ -39,7 +39,7 @@ mod parallel_overhead {
             orientation: UnitQuaternion::identity(),
             radius: 1.0,
             height: 3.0,
-            polarization: Vector3::new(1.0, 1.0, 1.0),
+            polarization: vector![1.0, 1.0, 1.0],
         }
     }
 
@@ -167,7 +167,7 @@ mod parallel_overhead {
         for size in [1000, 5000, 10000].iter() {
             let points = get_points(*size);
             let current_orientation = UnitQuaternion::identity();
-            let rotation = UnitQuaternion::from_scaled_axis(Vector3::new(1.0, 2.0, 3.0));
+            let rotation = UnitQuaternion::from_scaled_axis(vector![1.0, 2.0, 3.0]);
             let anchor = point![3.0, 2.0, 1.0];
 
             group.bench_with_input(BenchmarkId::new("rotate_serial", size), &size, |b, _| {
@@ -207,7 +207,7 @@ mod parallel_overhead {
                         0.41038024073191587,
                         0.4103802407319159,
                     )),
-                    Vector3::new(0.4, 0.5, 0.6),
+                    vector![0.4, 0.5, 0.6],
                     2e-3,
                     5e-3,
                 )

@@ -397,21 +397,21 @@ mod base_source_collection_tests {
 
     use super::*;
     use crate::{sources::*, testing_util::*};
-    use nalgebra::point;
+    use nalgebra::{point, vector};
 
     #[test]
     fn test_collection_display() {
         let magnet1 = CylinderMagnet::new(
             point![4.0, 5.0, 6.0],
             UnitQuaternion::identity(),
-            Vector3::new(1.0, 2.0, 3.0),
+            vector![1.0, 2.0, 3.0],
             0.1,
             0.3,
         );
         let magnet2 = CylinderMagnet::new(
             point![10.0, 11.0, 12.0],
             quat_from_rotvec(FRAC_PI_2, 0.0, 0.0),
-            Vector3::new(7.0, 8.0, 9.0),
+            vector![7.0, 8.0, 9.0],
             0.1,
             0.3,
         );
@@ -434,13 +434,13 @@ mod partial_eq_tests {
 
     use super::*;
     use crate::{sources::*, testing_util::quat_from_rotvec};
-    use nalgebra::point;
+    use nalgebra::{point, vector};
 
     fn create_magnet1() -> CylinderMagnet<f64> {
         CylinderMagnet::new(
             point![1.0, 2.0, 3.0],
             UnitQuaternion::identity(),
-            Vector3::new(1.0, 2.0, 3.0),
+            vector![1.0, 2.0, 3.0],
             0.1,
             0.2,
         )
@@ -450,7 +450,7 @@ mod partial_eq_tests {
         CylinderMagnet::new(
             point![4.0, 5.0, 6.0],
             quat_from_rotvec(FRAC_PI_2, 0.0, 0.0),
-            Vector3::new(7.0, 8.0, 9.0),
+            vector![7.0, 8.0, 9.0],
             0.3,
             0.4,
         )
@@ -460,7 +460,7 @@ mod partial_eq_tests {
         CylinderMagnet::new(
             point![10.0, 11.0, 12.0],
             UnitQuaternion::identity(),
-            Vector3::new(0.1, 0.2, 0.3),
+            vector![0.1, 0.2, 0.3],
             0.5,
             0.6,
         )
@@ -715,28 +715,28 @@ mod cylinder_collection_tests {
 
     use super::*;
     use crate::{sources::*, testing_util::*};
-    use nalgebra::point;
+    use nalgebra::{point, vector};
 
     fn get_collection() -> SourceCollection<CylinderMagnet<f64>, f64> {
         let mut collection = SourceCollection::default();
         collection.add(CylinderMagnet::new(
             point![0.009389999999999999, 0.0, -0.006],
             quat_from_rotvec(1.2091995761561452, 1.209199576156145, 1.2091995761561452),
-            Vector3::new(1.0, 2.0, 3.0),
+            vector![1.0, 2.0, 3.0],
             3e-3,
             4e-3,
         ));
         collection.add(CylinderMagnet::new(
             point![-0.004694999999999998, 0.008131978541535878, -0.006],
             quat_from_rotvec(1.5315599088338596, 0.41038024073191587, 0.4103802407319159),
-            Vector3::new(0.4, 0.5, 0.6),
+            vector![0.4, 0.5, 0.6],
             4e-3,
             5e-3,
         ));
         collection.add(CylinderMagnet::new(
             point![-0.004695000000000004, -0.008131978541535875, -0.006],
             quat_from_rotvec(1.5315599088338594, -0.410380240731917, -0.41038024073191703),
-            Vector3::new(0.9, 0.8, 0.6),
+            vector![0.9, 0.8, 0.6],
             5e-3,
             6e-3,
         ));
@@ -783,27 +783,27 @@ mod cuboid_collection_tests {
 
     use super::*;
     use crate::{sources::*, testing_util::*};
-    use nalgebra::point;
+    use nalgebra::{point, vector};
 
     fn get_collection() -> SourceCollection<CuboidMagnet<f64>, f64> {
         let mut collection = SourceCollection::default();
         collection.add(CuboidMagnet::new(
             point![0.005, 0.01, 0.015],
             UnitQuaternion::identity(),
-            Vector3::new(0.1, 0.2, 0.3),
-            Vector3::new(0.02, 0.02, 0.03),
+            vector![0.1, 0.2, 0.3],
+            vector![0.02, 0.02, 0.03],
         ));
         collection.add(CuboidMagnet::new(
             point![0.015, 0.005, 0.01],
             quat_from_rotvec(0.0, FRAC_PI_3, 0.0),
-            Vector3::new(0.1, 0.2, 0.3),
-            Vector3::new(0.02, 0.02, 0.03),
+            vector![0.1, 0.2, 0.3],
+            vector![0.02, 0.02, 0.03],
         ));
         collection.add(CuboidMagnet::new(
             point![0.01, 0.015, 0.005],
             quat_from_rotvec(0.0, 0.0, FRAC_PI_3),
-            Vector3::new(0.1, 0.2, 0.3),
-            Vector3::new(0.02, 0.02, 0.03),
+            vector![0.1, 0.2, 0.3],
+            vector![0.02, 0.02, 0.03],
         ));
         collection
     }
@@ -848,22 +848,22 @@ mod multi_source_collection_tests {
 
     use super::*;
     use crate::{sources::*, testing_util::*};
-    use nalgebra::point;
+    use nalgebra::{point, vector};
 
     fn get_collection() -> MultiSourceCollection<f64> {
         let mut collection = MultiSourceCollection::default();
         collection.add(Box::new(CylinderMagnet::new(
             point![0.005, 0.01, 0.015],
             UnitQuaternion::identity(),
-            Vector3::new(0.1, 0.2, 0.3),
+            vector![0.1, 0.2, 0.3],
             0.04,
             0.05,
         )));
         collection.add(Box::new(CuboidMagnet::new(
             point![0.015, 0.005, 0.01],
             quat_from_rotvec(0.0, FRAC_PI_3, 0.0),
-            Vector3::new(0.1, 0.2, 0.3),
-            Vector3::new(0.02, 0.02, 0.03),
+            vector![0.1, 0.2, 0.3],
+            vector![0.02, 0.02, 0.03],
         )));
         collection
     }

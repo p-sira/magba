@@ -50,7 +50,7 @@ define_magnet! {
 crate::testing_util::generate_tests! {
     CylinderMagnet
     filename: cylinder
-    params: { polarization: Vector3::new(1.0, 2.0, 3.0), d: 0.1, h: 0.2}
+    params: { polarization: vector![1.0, 2.0, 3.0], d: 0.1, h: 0.2}
     rtols: {
         static: 5e-10,
         static_small: 5e-10,
