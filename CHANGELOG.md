@@ -7,6 +7,7 @@
 
 **New Features**
 - Add `no_std` feature flag.
+- Add shorthands module and feature flag for improve ergonomics when defining sources.
 
 **Improvements**
 - Add code of conduct and contributing documentations.

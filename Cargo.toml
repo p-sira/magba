@@ -36,9 +36,10 @@ rayon = "1.10.0"
 regex = "1.12.2"
 
 [features]
-default = ["parallel", "sources"]
+default = ["parallel", "sources", "shorthands"]
 no_std = []
 parallel = ["dep:rayon", "nalgebra/rayon"]
 sources = ["transform"]
 transform = []
+shorthands = ["sources"]
 unstable = []
