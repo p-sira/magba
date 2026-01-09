@@ -3,6 +3,8 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
+//! Simple constructors for magnetic sources. 
+
 use nalgebra::UnitQuaternion;
 
 use crate::{CuboidMagnet, CylinderMagnet, Dipole, Float};
