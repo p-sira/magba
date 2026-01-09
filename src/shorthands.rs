@@ -24,12 +24,25 @@ use crate::{CuboidMagnet, CylinderMagnet, Dipole, Float};
 /// use magba::shorthands::cylinder;
 ///
 /// let magnet = cylinder(
-///     [0.0, 0.0, 0.0], // position (m)
+///     [1.0, 2.0, 3.0], // position (m)
 ///     [0.0, 0.0, 0.0], // orientation (rad)
 ///     [0.0, 0.0, 1.0], // polarization (T)
 ///     0.01,            // diameter (m)
 ///     0.02,            // height (m)
 /// );
+///
+/// # use magba::*;
+/// # use nalgebra::*;
+/// # assert_eq!(
+/// #     magnet,
+/// #     CylinderMagnet::new(
+/// #         point![1.0, 2.0, 3.0],
+/// #         UnitQuaternion::identity(),
+/// #         vector![0.0, 0.0, 1.0],
+/// #         0.01,
+/// #         0.02,
+/// #     )
+/// # );
 /// ```
 pub fn cylinder<T: Float>(
     position: [T; 3],
@@ -63,11 +76,23 @@ pub fn cylinder<T: Float>(
 /// use magba::shorthands::cuboid;
 ///
 /// let magnet = cuboid(
-///     [0.0, 0.0, 0.0], // position (m)
-///     [0.0, 0.0, 0.0], // orientation (identity rotation)
-///     [1.0, 0.0, 0.0], // polarization (T)
+///     [1.0, 2.0, 3.0], // position (m)
+///     [0.0, 0.0, 0.0], // orientation (rad)
+///     [0.0, 0.0, 1.0], // polarization (T)
 ///     [0.01, 0.02, 0.03], // dimensions (m)
 /// );
+///
+/// # use magba::*;
+/// # use nalgebra::*;
+/// # assert_eq!(
+/// #     magnet,
+/// #     CuboidMagnet::new(
+/// #         point![1.0, 2.0, 3.0],
+/// #         UnitQuaternion::identity(),
+/// #         vector![0.0, 0.0, 1.0],
+/// #         vector![0.01, 0.02, 0.03],
+/// #     )
+/// # );
 /// ```
 pub fn cuboid<T: Float>(
     position: [T; 3],
@@ -97,11 +122,22 @@ pub fn cuboid<T: Float>(
 /// ```
 /// use magba::shorthands::dipole;
 ///
-/// let dipole = dipole(
-///     [0.0, 0.0, 0.0], // position (m)
-///     [0.0, 0.0, 0.0], // orientation (identity rotation)
+/// let dipole_magnet = dipole(
+///     [1.0, 2.0, 3.0], // position (m)
+///     [0.0, 0.0, 0.0], // orientation (rad)
 ///     [0.0, 0.0, 1.0], // magnetic moment (A·m²)
 /// );
+///
+/// # use magba::*;
+/// # use nalgebra::*;
+/// # assert_eq!(
+/// #     dipole_magnet,
+/// #     Dipole::new(
+/// #         point![1.0, 2.0, 3.0],
+/// #         UnitQuaternion::identity(),
+/// #         vector![0.0, 0.0, 1.0],
+/// #     )
+/// # );
 /// ```
 pub fn dipole<T: Float>(position: [T; 3], orientation: [T; 3], moment: [T; 3]) -> Dipole<T> {
     Dipole::new(
