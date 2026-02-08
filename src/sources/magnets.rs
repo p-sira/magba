@@ -25,8 +25,9 @@
 ///     on_new: [ $($on_new:tt)* ]
 /// }
 /// ```
-/// 
+///
 /// # Example
+///
 /// ```text
 /// define_magnet!{
 ///     Magnet
@@ -75,7 +76,7 @@
 /// 5. `impl crate::Source`, `impl crate::geometry::Transform`.
 /// 6. `impl crate::Field` which maps `get_B` to the provided `$field_fn`.
 /// 7. `impl std::fmt::Display` (if `no_std` is not active).
-/// 
+///
 /// # Rationale
 /// This macro serves as a consistent mean to implement magnet structs.
 macro_rules! define_magnet {
