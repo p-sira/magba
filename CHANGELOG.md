@@ -10,6 +10,7 @@
 - Add shorthands module and feature flag for improve ergonomics when defining sources.
 
 **Improvements**
+- Unify `SourceCollection` and `MultiSourceCollection`. `MultiSourceCollection` is now an alias for collection of boxed sources.
 - Add code of conduct and contributing documentations.
 - Add testing documentation in `tests/`.
 - Improve documentations.

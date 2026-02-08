@@ -267,6 +267,7 @@ compile_if_valid_feature_flags! {
     pub mod geometry;
 
     need_feature!{"shorthands", pub mod shorthands;}
+    // need_feature!{"macros", mod macros;}
 
     use constants::MagneticConstants;
 
