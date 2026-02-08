@@ -306,7 +306,7 @@ compile_if_valid_feature_flags! {
 #[macro_export]
 macro_rules! assert_close_vec {
     ($a:expr, $b:expr, $rtol:expr) => {{
-        use nalgebra::{distance, Point3};
+        use nalgebra::{Point3, distance};
 
         let dist = distance(&Point3::from($a.clone()), &Point3::from($b.clone()));
 
