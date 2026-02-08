@@ -36,7 +36,7 @@ define_magnet! {
     /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
     CylinderMagnet
     field_fn: cylinder_B
-    args: {polarization:Vector3<T> = Vector3::z(), diameter v:T = T::one(), height v:T = T::one()}
+    args: {polarization: Vector3<T> = Vector3::z(), diameter: @val T = T::one(), height: @val T = T::one()}
     arg_display: "pol={}, d={}, h={}";
     arg_fmt: [format_vector3, format_float, format_float]
     on_new: [

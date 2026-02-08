@@ -5,12 +5,33 @@
 
 //! Function and macros shared by all magnetic sources
 
-/// Define magnet struct
+/// Generates a struct representing a magnetic source and implements standard boilerplate traits.
+///
+/// This macro handles the creation of the struct, constructor logic (including `Into` conversions),
+/// getters/setters, and the implementation of the `Source`, `Field`, and `Transform` traits.
+///
+/// # Usage Syntax
+///
+/// ```text
+/// define_magnet! {
+///     $(#[$meta:meta])*
+///     $name:ident
+///     field_fn: $field_fn:ident
+///     args: {
+///         $($arg:ident : $(@$is_value:ident)? $arg_type:ty = $arg_default:expr),*
+///     }
+///     arg_display: $arg_display:expr;
+///     arg_fmt: [ $($arg_fmt:ident),* ]
+///     on_new: [ $($on_new:tt)* ]
+/// }
+/// ```
+/// 
+/// # Example
 /// ```text
 /// define_magnet!{
 ///     Magnet
 ///     field_fn: magnet_B
-///     args: {polarization:Vector3<T>, dimensions:Vector3<T>, lucky_number v:T}
+///     args: {polarization:Vector3<T>, dimensions:Vector3<T>, lucky_number: @val T}
 ///     arg_display: "pol={}, dim={}, lucky={}";
 ///     arg_fmt: [format_vector3, format_vector3, format_float]
 ///     on_new: [
@@ -19,32 +40,56 @@
 /// }
 /// ```
 ///
-/// ```text
-/// $(#[$meta:meta])*
-/// $name:ident
-/// field_fn: $field_fn:ident
-/// args: { $($arg:ident $($pass_arg_by:ident)?: $arg_type:ty = $arg_default:expr),* $(,)? }
-/// arg_display: $arg_display:expr;
-/// arg_fmt: [ $($arg_fmt:ident),* $(,)? ]
-/// on_new: [ $($on_new:tt)* ]
-/// ```
-/// - $name: The name of the struct
-/// - $field_fn: Function identifier for magnetic field (B) calculation with signature: (points, position, orientation, fields, ...)
-/// - $arg: Arguments of the field function, excluding position and orientation, which are also the field of the struct
-/// - $pass_arg_by: Use v to pass by value, leave out to pass by reference
-/// - $arg_type: Type of the argument
-/// - $arg_default: Default value of the argument.
-/// - $arg_display: String for displaying $args
-/// - $arg_fmt: Macros to use to format for each $arg
-/// - $on_new: Checks to do in new() method before returning the instance
+/// # Parameters
+///
+/// - **$name**: The name of the struct to generate.
+/// - **$field_fn**: The function identifier for magnetic field ($B$) calculation.
+///   - Signature must be: `(points, position, orientation, fields...)`.
+/// - **$arg**: Name of a specific field/argument for the magnet (e.g., `polarization`, `length`).
+///   - **Note on `@val`**: If the optional `@val` keyword is placed before the type (e.g., `radius: @val f64`),
+///     the argument is passed by value and strictly typed. If omitted, the argument uses `Into<T>`
+///     generic conversion and is passed by reference to the calculation function.
+/// - **$arg_type**: The concrete type of the argument.
+/// - **$arg_default**: The default value (used in `Default::default()`).
+/// - **$arg_display**: A format string used in `std::fmt::Display` (e.g., `"pol={}, len={}"`).
+/// - **$arg_fmt**: A list of macros used to format each argument (e.g., `format_vector3`).
+/// - **$on_new**: Custom validation logic to run inside the `new()` constructor.
+///
+/// # Internal Pattern Matching
+///
+/// To handle the distinction between "pass-by-value" and "pass-by-reference/Into", the macro uses
+/// internal helper rules. These allow recursive calls to process arguments differently based on
+/// the presence of the `val` token.
+///
+/// - `@arg_into`: Handles conversion. If `val` is present, returns `$arg`. Otherwise, returns `$arg.into()`.
+/// - `@arg_type_decl`: Handles signatures. If `val` is present, uses `$type`. Otherwise, uses `impl Into<$type>`.
+/// - `@pass_arg`: Handles field function calls. If `val` is present, passes `$arg`. Otherwise, passes `&$arg`.
+///
+/// # Generated API
+///
+/// The macro generates:
+/// 1. A struct with `position`, `orientation`, and the specified `$args`.
+/// 2. `Debug`, `Clone`, `PartialEq`, `getset::Getters`, `getset::Setters`.
+/// 3. A `new()` constructor with automatic `Into` conversions for position/orientation and compatible args.
+/// 4. `impl Default` using the provided `$arg_default` values.
+/// 5. `impl crate::Source`, `impl crate::geometry::Transform`.
+/// 6. `impl crate::Field` which maps `get_B` to the provided `$field_fn`.
+/// 7. `impl std::fmt::Display` (if `no_std` is not active).
+/// 
+/// # Rationale
+/// This macro serves as a consistent mean to implement magnet structs.
 macro_rules! define_magnet {
+    (@arg_into $arg:expr) => { $arg.into() };
+    (@arg_into $arg:expr, val) => { $arg };
+    (@arg_type_decl $arg_type:ty) => { impl Into<$arg_type> };
+    (@arg_type_decl $arg_type:ty, val) => { $arg_type };
     (@pass_arg $arg:expr) => { &$arg };
-    (@pass_arg $arg:expr, v) => { $arg };
+    (@pass_arg $arg:expr, val) => { $arg };
     {
         $(#[$meta:meta])*
         $name:ident
         field_fn: $field_fn:ident
-        args: { $($arg:ident $($pass_arg_by:ident)?: $arg_type:ty = $arg_default:expr),* $(,)? }
+        args: { $($arg:ident: $(@$is_value:ident)? $arg_type:ty = $arg_default:expr),* $(,)? }
         arg_display: $arg_display:expr;
         arg_fmt: [ $($arg_fmt:ident),* $(,)? ]
         on_new: [ $($on_new:tt)* ]
@@ -62,10 +107,18 @@ macro_rules! define_magnet {
 
         impl<T: crate::Float> $name<T> {
             pub fn new(
-                position: nalgebra::Point3<T>,
-                orientation: nalgebra::UnitQuaternion<T>,
-                $($arg: $arg_type),*
+                position: impl Into<nalgebra::Point3<T>>,
+                orientation: impl Into<nalgebra::UnitQuaternion<T>>,
+                $(
+                    $arg: define_magnet!(@arg_type_decl $arg_type $(, $is_value)?)
+                ),*
             ) -> Self {
+                let position = position.into();
+                let orientation = orientation.into();
+                $(
+                    let $arg = define_magnet!(@arg_into $arg $(, $is_value)?);
+                )*
+
                 $($on_new)*
                 $name {
                     position,
@@ -93,7 +146,7 @@ macro_rules! define_magnet {
                     points,
                     &self.position,
                     &self.orientation,
-                    $( define_magnet!(@pass_arg self.$arg $(, $pass_arg_by)?), )*
+                    $( define_magnet!(@pass_arg self.$arg $(, $is_value)?), )*
                 )
             }
         }
