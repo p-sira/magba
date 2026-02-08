@@ -5,7 +5,7 @@
 
 //! Internal utilities for Magba
 
-use nalgebra::{distance, Point3, RealField, Vector3};
+use nalgebra::{Point3, RealField, Vector3, distance};
 
 macro_rules! need_feature {
     ($feature:literal, $($body:item)*) => {
@@ -115,11 +115,7 @@ pub fn is_elem_close(vec1: &Vector3<f64>, vec2: &Vector3<f64>, rtol: f64) -> Opt
             n_fail += 1
         }
     });
-    if n_fail > 0 {
-        Some(n_fail)
-    } else {
-        None
-    }
+    if n_fail > 0 { Some(n_fail) } else { None }
 }
 
 need_std! {
@@ -260,27 +256,3 @@ macro_rules! pub_on_feature {
     };
 }
 pub(crate) use pub_on_feature;
-
-macro_rules! implement {
-    (
-        $trait:ident <$($trait_bound:ident),+> for $for:ident
-        bounds: [$(($bound_var:ident : $($bound:tt)+)),+]
-
-        $($inner:item)*
-    ) => {
-        impl<$($bound_var : $($bound)+),+> $trait<$($trait_bound),+> for $for<$($bound_var),+> {
-            $($inner)*
-        }
-    };
-    (
-        $trait:ident for $for:ident
-        bounds: [$(($bound_var:ident : $($bound:tt)+)),+]
-
-        $($inner:item)*
-    ) => {
-        impl<$($bound_var : $($bound)+),+> $trait for $for<$($bound_var),+> {
-            $($inner)*
-        }
-    };
-}
-pub(crate) use implement;
