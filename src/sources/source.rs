@@ -167,7 +167,7 @@ impl<S: Source<T>, T: Float> Transform<T> for SourceCollection<S, T> {
 
     #[inline]
     fn set_position(&mut self, position: Point3<T>) {
-        let translation = Translation3::from(position - &self.position);
+        let translation = Translation3::from(position - self.position);
         self.children
             .iter_mut()
             .for_each(|source| source.translate(&translation));
@@ -177,7 +177,7 @@ impl<S: Source<T>, T: Float> Transform<T> for SourceCollection<S, T> {
 
     #[inline]
     fn set_orientation(&mut self, orientation: UnitQuaternion<T>) {
-        let rotation = orientation * &self.orientation.inverse();
+        let rotation = orientation * self.orientation.inverse();
         self.children
             .iter_mut()
             .for_each(|source| source.rotate_anchor(&rotation, &self.position));
@@ -242,7 +242,7 @@ impl<S: Source<T>, T: Float> Transform<T> for SourceCollection<S, T> {
 
         let local_position = self.position - anchor;
         self.position = Point3::from(rotation * local_position + Vector3::from(anchor.coords));
-        self.orientation = rotation * &self.orientation;
+        self.orientation = rotation * self.orientation;
     }
 }
 
