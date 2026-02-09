@@ -5,26 +5,10 @@
 
 //! Function and macros shared by all magnetic sources
 
-/// Generates a struct representing a magnetic source and implements standard boilerplate traits.
+/// Generates a struct representing a magnetic source.
 ///
 /// This macro handles the creation of the struct, constructor logic (including `Into` conversions),
-/// getters/setters, and the implementation of the `Source`, `Field`, and `Transform` traits.
-///
-/// # Usage Syntax
-///
-/// ```text
-/// define_magnet! {
-///     $(#[$meta:meta])*
-///     $name:ident
-///     field_fn: $field_fn:ident
-///     args: {
-///         $($arg:ident : $(@$is_value:ident)? $arg_type:ty = $arg_default:expr),*
-///     }
-///     arg_display: $arg_display:expr;
-///     arg_fmt: [ $($arg_fmt:ident),* ]
-///     on_new: [ $($on_new:tt)* ]
-/// }
-/// ```
+/// input validation, getters/setters, and the implementation of the `Source` trait.
 ///
 /// # Example
 ///
@@ -32,7 +16,11 @@
 /// define_magnet!{
 ///     Magnet
 ///     field_fn: magnet_B
-///     args: {polarization:Vector3<T>, dimensions:Vector3<T>; where is_positive(dimensions), lucky_number: @val T}
+///     args: {
+///         polarization:Vector3<T>,
+///         dimensions:Vector3<T>; where dimensions.iter().all(|&i| i > 0); else "Bad dim.",
+///         lucky_number: @val T
+///     }
 ///     arg_display: "pol={}, dim={}, lucky={}";
 ///     arg_fmt: [format_vector3, format_vector3, format_float]
 ///     on_new: [
@@ -52,6 +40,7 @@
 ///     generic conversion and is passed by reference to the calculation function.
 /// - **$arg_type**: The concrete type of the argument.
 /// - **$arg_default**: The default value (used in `Default::default()`).
+/// - **where $validate:expr; else $error:literal**: Optional pattern for argument validation. If $validate is false, the macros will panic with $error.    
 /// - **$arg_display**: A format string used in `std::fmt::Display` (e.g., `"pol={}, len={}"`).
 /// - **$arg_fmt**: A list of macros used to format each argument (e.g., `format_vector3`).
 /// - **$on_new**: Custom validation logic to run inside the `new()` constructor.
@@ -70,8 +59,8 @@
 ///
 /// The macro generates:
 /// 1. A struct with `position`, `orientation`, and the specified `$args`.
-/// 2. `Debug`, `Clone`, `PartialEq`, `getset::Getters`, `getset::Setters`.
-/// 3. A `new()` constructor with automatic `Into` conversions for position/orientation and compatible args.
+/// 2. Getters, setters, builders for all arguments. Includes input validation and automatic `Into` conversions for position/orientation and compatible args.
+/// 3. `Debug`, `Clone`, `PartialEq`.
 /// 4. `impl Default` using the provided `$arg_default` values.
 /// 5. `impl crate::Source`, `impl crate::geometry::Transform`.
 /// 6. `impl crate::Field` which maps `get_B` to the provided `$field_fn`.
@@ -168,7 +157,6 @@ macro_rules! define_magnet {
 
         define_magnet!(@getters $name, $(($arg, $arg_type))*);
 
-        // Pass full metadata (including validation) to setter generator
         define_magnet!(@setters $name, $(
             (
                 $arg,
