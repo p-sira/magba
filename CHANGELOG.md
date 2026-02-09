@@ -30,6 +30,9 @@
 - Add concat_idents.
 - Add regex as dev-dependency.
 
+**Others**
+- Upgrade Python dependencies.
+
 ## 0.2
 ### 0.2.0
 **Breaking Changes**
