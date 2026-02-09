@@ -7,9 +7,14 @@
 
 **New Features**
 - Add `no_std` feature flag.
+- Add builder methods (`with_*`) to all magnet structs..
 
 **Improvements**
 - Unify `SourceCollection` and `MultiSourceCollection`. `MultiSourceCollection` is now an alias for collection of boxed sources.
+- Add input validation for constructors and setters.
+- `geometry`: Move transformation logics from the `impl_transform` macro to Transform's trait default method
+
+**Documentations**
 - Add code of conduct and contributing documentations.
 - Add testing documentation in `tests/`.
 - Improve documentations.
