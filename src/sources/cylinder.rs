@@ -58,3 +58,14 @@ crate::testing_util::generate_tests! {
         rotate: 2e-10,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::CylinderMagnet;
+
+    #[test]
+    #[should_panic]
+    fn test_input_validation() {
+        CylinderMagnet::default().with_diameter(-1.0_f64);
+    }
+}
