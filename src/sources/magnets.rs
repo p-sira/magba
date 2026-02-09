@@ -100,10 +100,10 @@ macro_rules! define_magnet {
     )*) => {
         impl<T: crate::Float> $struct_name<T> {
             $(
-                // Setter
+                // Setters
                 concat_idents::concat_idents!(fn_name = set_, $arg {
-                    pub fn fn_name(&mut self, $arg: impl Into<$arg_type>) {
-                        let $arg: $arg_type = $arg.into();
+                    pub fn fn_name(&mut self, $arg: define_magnet!(@arg_type_decl $arg_type $(, $is_value)?)) {
+                        let $arg: $arg_type = define_magnet!(@arg_into $arg $(, $is_value)?);
                         $(
                             if !($validate) {
                                 panic!($error);
@@ -113,16 +113,12 @@ macro_rules! define_magnet {
                     }
                 });
 
-                // Bulider (with setters)
+                // Buliders (with setters)
                 concat_idents::concat_idents!(fn_name = with_, $arg {
-                    pub fn fn_name(mut self, $arg: impl Into<$arg_type>) -> Self {
-                        let $arg: $arg_type = $arg.into();
-                        $(
-                            if !($validate) {
-                                panic!($error);
-                            }
-                        )?
-                        self.$arg = $arg;
+                    pub fn fn_name(mut self, $arg: define_magnet!(@arg_type_decl $arg_type $(, $is_value)?)) -> Self {
+                        concat_idents::concat_idents!(ident = set_, $arg {
+                            self.ident($arg);
+                        });
                         self
                     }
                 });
