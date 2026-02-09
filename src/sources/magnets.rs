@@ -200,7 +200,10 @@ macro_rules! define_magnet {
                     $($arg),*
                 }
             }
+
+            crate::geometry::transform::impl_transform!(@builders);
         }
+
         impl<T: crate::Float> Default for $name<T> {
             fn default() -> Self {
                 Self {
@@ -210,10 +213,13 @@ macro_rules! define_magnet {
                 }
             }
         }
+
         impl<T: crate::Float> crate::Source<T> for $name<T> {}
+        
         impl<T: crate::Float> crate::geometry::Transform<T> for $name<T> {
             crate::geometry::impl_transform!();
         }
+        
         impl<T: crate::Float> crate::Field<T> for $name<T> {
             fn get_B(&self, points: &[nalgebra::Point3<T>]) -> Vec<nalgebra::Vector3<T>> {
                 crate::fields::$field_fn(
@@ -224,6 +230,7 @@ macro_rules! define_magnet {
                 )
             }
         }
+        
         #[cfg(not(feature = "no_std"))]
         impl<T: crate::Float> std::fmt::Display for $name<T> {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
