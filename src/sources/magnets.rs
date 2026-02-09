@@ -32,10 +32,10 @@
 /// # Parameters
 ///
 /// - **$name**: The name of the struct to generate.
-/// - **$field_fn**: The function identifier for magnetic field ($B$) calculation.
+/// - **$field_fn**: The function identifier for magnetic field (B) calculation.
 ///   - Signature must be: `(points, position, orientation, fields...)`.
 /// - **$arg**: Name of a specific field/argument for the magnet (e.g., `polarization`, `length`).
-///   - **Note on `@val`**: If the optional `@val` keyword is placed before the type (e.g., `radius: @val f64`),
+///   - `@val`: If the optional keyword is placed before the type (e.g., `radius: @val f64`),
 ///     the argument is passed by value and strictly typed. If omitted, the argument uses `Into<T>`
 ///     generic conversion and is passed by reference to the calculation function.
 /// - **$arg_type**: The concrete type of the argument.
