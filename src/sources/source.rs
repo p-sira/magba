@@ -57,6 +57,10 @@ impl<S: Transform<T> + ?Sized, T: RealField + Copy> Transform<T> for Box<S> {
         (**self).set_orientation(orientation)
     }
 
+    fn set_orientation_from_scaled_axis(&mut self, scaled_axis: nalgebra::Vector3<T>) {
+        (**self).set_orientation_from_scaled_axis(scaled_axis)
+    }
+
     fn translate(&mut self, translation: &Translation3<T>) {
         (**self).translate(translation)
     }
@@ -179,6 +183,11 @@ impl<S: Source<T>, T: Float> Transform<T> for SourceCollection<S, T> {
             .for_each(|source| source.rotate_anchor(&rotation, &self.position));
 
         self.orientation = orientation;
+    }
+
+    #[inline]
+    fn set_orientation_from_scaled_axis(&mut self, scaled_axis: nalgebra::Vector3<T>) {
+        self.set_orientation(UnitQuaternion::from_scaled_axis(scaled_axis));
     }
 
     #[inline]

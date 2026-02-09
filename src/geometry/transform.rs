@@ -18,6 +18,8 @@ pub trait Transform<T: RealField + Copy> {
     fn set_position(&mut self, position: Point3<T>);
     /// Set the object orientation.
     fn set_orientation(&mut self, orientation: UnitQuaternion<T>);
+    /// Set the object orientation from scaled axis (rotation vector)
+    fn set_orientation_from_scaled_axis(&mut self, scaled_axis: nalgebra::Vector3<T>);
     /// Translate the object.
     fn translate(&mut self, translation: &Translation3<T>);
     /// Rotate the object.
@@ -47,6 +49,11 @@ macro_rules! impl_transform {
         #[inline]
         fn set_orientation(&mut self, orientation: nalgebra::UnitQuaternion<T>) {
             self.orientation = orientation;
+        }
+
+        #[inline]
+        fn set_orientation_from_scaled_axis(&mut self, scaled_axis: nalgebra::Vector3<T>) {
+            self.orientation = nalgebra::UnitQuaternion::from_scaled_axis(scaled_axis);
         }
 
         #[inline]
