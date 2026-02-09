@@ -20,6 +20,7 @@
 
 **Dependencies**
 - Update ellip to v1.0.4.
+- Update nalgebra to v0.34.1.
 - Add regex as dev-dependency.
 
 ## 0.2
