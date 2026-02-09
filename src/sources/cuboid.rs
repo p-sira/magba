@@ -55,3 +55,21 @@ crate::testing_util::generate_tests! {
         rotate: 2e-10,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use nalgebra::UnitQuaternion;
+
+    use crate::CuboidMagnet;
+
+    #[test]
+    #[should_panic]
+    fn test_input_validation() {
+        CuboidMagnet::new(
+            [0.0; 3],
+            UnitQuaternion::identity(),
+            [0.0; 3],
+            [0.0, -1.0, -2.0],
+        );
+    }
+}
