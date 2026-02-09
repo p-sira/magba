@@ -7,7 +7,6 @@
 
 **New Features**
 - Add `no_std` feature flag.
-- Add shorthands module and feature flag for improve ergonomics when defining sources.
 
 **Improvements**
 - Unify `SourceCollection` and `MultiSourceCollection`. `MultiSourceCollection` is now an alias for collection of boxed sources.
@@ -20,7 +19,7 @@
 - Add `assert_close_vec!` macro for doctest.
 
 **Dependencies**
-- Update ellip to v1.0.2.
+- Update ellip to v1.0.4.
 - Add regex as dev-dependency.
 
 ## 0.2
