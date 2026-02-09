@@ -31,16 +31,13 @@ define_magnet! {
     /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
     CuboidMagnet
     field_fn: cuboid_B
-    args: {polarization:Vector3<T> = Vector3::z(), dimensions:Vector3<T> = Vector3::from_element(T::one())}
+    args: {
+        polarization:Vector3<T> = Vector3::z(),
+        dimensions:Vector3<T> = Vector3::from_element(T::one());
+            where dimensions.iter().all(|&elem| elem >= T::zero()); else "Dimensions must be non-negative."
+    }
     arg_display: "pol={}, dim={}";
     arg_fmt: [format_vector3, format_vector3]
-    on_new: [
-        dimensions.iter().for_each(|&elem| {
-            if elem < T::zero() {
-                panic!("Dimensions must be non-negative.")
-            }
-        });
-    ]
 }
 
 #[cfg(test)]

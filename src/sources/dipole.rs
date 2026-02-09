@@ -34,7 +34,6 @@ define_magnet! {
     args: { moment:Vector3<T> = Vector3::z() }
     arg_display: "m={}";
     arg_fmt: [format_vector3]
-    on_new: []
 }
 
 #[cfg(test)]

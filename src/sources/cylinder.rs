@@ -36,14 +36,13 @@ define_magnet! {
     /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
     CylinderMagnet
     field_fn: cylinder_B
-    args: {polarization: Vector3<T> = Vector3::z(), diameter: @val T = T::one(), height: @val T = T::one()}
+    args: {
+        polarization: Vector3<T> = Vector3::z(),
+        diameter: @val T = T::one(); where diameter > T::zero(); else "Diameter cannot be negative.",
+        height: @val T = T::one(); where height > T::zero(); else "Height cannot be negative.",
+    }
     arg_display: "pol={}, d={}, h={}";
     arg_fmt: [format_vector3, format_float, format_float]
-    on_new: [
-        if diameter < T::zero() || height < T::zero() {
-            panic!("diameter and height cannot be negative.")
-        }
-    ]
 }
 
 #[cfg(test)]
