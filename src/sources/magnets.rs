@@ -80,7 +80,7 @@
 /// # Rationale
 /// This macro serves as a consistent mean to implement magnet structs.
 macro_rules! define_magnet {
-    
+
     // --- Helpers ---
     (@arg_into $arg:expr) => { $arg.into() };
     (@arg_into $arg:expr, val) => { $arg };
@@ -88,6 +88,37 @@ macro_rules! define_magnet {
     (@arg_type_decl $arg_type:ty, val) => { $arg_type };
     (@pass_arg $arg:expr) => { &$arg };
     (@pass_arg $arg:expr, val) => { $arg };
+
+    // --- Methods ---
+    (@getters $struct_name:ident, $(($arg:ident, $arg_type:ty))*) => {
+        impl<T: crate::Float> $struct_name<T> {
+            $(
+                pub fn $arg(&self) -> $arg_type {
+                    self.$arg
+                }
+            )*
+        }
+    };
+    (@setters $struct_name:ident, $(($arg:ident, $arg_type:ty))*) => {
+        impl<T: crate::Float> $struct_name<T> {
+            $(
+                // Setters
+                concat_idents::concat_idents!(fn_name = set_, $arg {
+                    pub fn fn_name(&mut self, $arg: impl Into<$arg_type>) {
+                        self.$arg = $arg.into();
+                    }
+                });
+
+                // With setters
+                concat_idents::concat_idents!(fn_name = with_, $arg {
+                    pub fn fn_name(mut self, $arg: impl Into<$arg_type>) -> Self {
+                        self.$arg = $arg.into();
+                        self
+                    }
+                });
+            )*
+        }
+    };
 
     // --- Main Pattern ---
     {
@@ -100,15 +131,17 @@ macro_rules! define_magnet {
         on_new: [ $($on_new:tt)* ]
     } => {
         $(#[$meta])*
-        #[derive(Debug, Clone, PartialEq, getset::Getters, getset::Setters, getset::WithSetters)]
+        #[derive(Debug, Clone, PartialEq)]
         pub struct $name<T: crate::Float> {
             position: nalgebra::Point3<T>,
             orientation: nalgebra::UnitQuaternion<T>,
             $(
-                #[getset(get = "pub", set = "pub", set_with = "pub")]
                 $arg: $arg_type,
             )*
         }
+
+        define_magnet!(@getters $name, $(($arg, $arg_type))*);
+        define_magnet!(@setters $name, $(($arg, $arg_type))*);
 
         impl<T: crate::Float> $name<T> {
             pub fn new(
