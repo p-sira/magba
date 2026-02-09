@@ -5,7 +5,7 @@
 
 #[cfg(feature = "unstable")]
 mod parallel_overhead {
-    use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
+    use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
 
     use magba::{
         field_cylinder::global_cylinder_B,
