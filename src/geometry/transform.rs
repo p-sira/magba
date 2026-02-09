@@ -34,7 +34,7 @@ pub trait Transform<T: RealField + Copy> {
     /// Rotate the object using the anchor point as the center of rotation.
     fn rotate_anchor(&mut self, rotation: &UnitQuaternion<T>, anchor: &Point3<T>) {
         let local_position = self.position() - anchor;
-        
+
         let new_pos = rotation * local_position + anchor.coords;
         let new_rot = rotation * self.orientation();
 
