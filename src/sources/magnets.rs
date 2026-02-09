@@ -67,7 +67,14 @@
 /// 7. `impl std::fmt::Display` (if `no_std` is not active).
 ///
 /// # Rationale
+/// 
 /// This macro serves as a consistent mean to implement magnet structs.
+/// 
+/// # Notes
+/// 
+/// The validation implementation can lead to Clippy's `neg_cmp_op_on_partial_ord` warning.
+/// The behaviour is still valid, since NaN comparison will also return false.
+/// 
 macro_rules! define_magnet {
 
     // --- Helpers ---
