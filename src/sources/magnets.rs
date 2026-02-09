@@ -80,12 +80,16 @@
 /// # Rationale
 /// This macro serves as a consistent mean to implement magnet structs.
 macro_rules! define_magnet {
+    
+    // --- Helpers ---
     (@arg_into $arg:expr) => { $arg.into() };
     (@arg_into $arg:expr, val) => { $arg };
     (@arg_type_decl $arg_type:ty) => { impl Into<$arg_type> };
     (@arg_type_decl $arg_type:ty, val) => { $arg_type };
     (@pass_arg $arg:expr) => { &$arg };
     (@pass_arg $arg:expr, val) => { $arg };
+
+    // --- Main Pattern ---
     {
         $(#[$meta:meta])*
         $name:ident
