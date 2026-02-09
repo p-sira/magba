@@ -65,7 +65,7 @@ macro_rules! impl_transform {
 
         #[inline]
         fn rotate(&mut self, rotation: &nalgebra::UnitQuaternion<T>) {
-            self.orientation = rotation * &self.orientation;
+            self.orientation = rotation * self.orientation;
         }
 
         #[inline]
@@ -78,7 +78,7 @@ macro_rules! impl_transform {
             self.position = nalgebra::Point3::from(
                 rotation * local_position + nalgebra::Vector3::from(anchor.coords),
             );
-            self.orientation = rotation * &self.orientation;
+            self.orientation = rotation * self.orientation;
         }
     };
     () => {
