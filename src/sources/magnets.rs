@@ -100,12 +100,12 @@ macro_rules! define_magnet {
         on_new: [ $($on_new:tt)* ]
     } => {
         $(#[$meta])*
-        #[derive(Debug, Clone, PartialEq, getset::Getters, getset::Setters)]
+        #[derive(Debug, Clone, PartialEq, getset::Getters, getset::Setters, getset::WithSetters)]
         pub struct $name<T: crate::Float> {
             position: nalgebra::Point3<T>,
             orientation: nalgebra::UnitQuaternion<T>,
             $(
-                #[getset(get = "pub", set = "pub")]
+                #[getset(get = "pub", set = "pub", set_with = "pub")]
                 $arg: $arg_type,
             )*
         }
