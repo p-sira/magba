@@ -28,9 +28,9 @@ pub trait Transform<T: RealField + Copy> {
     fn rotate_anchor(&mut self, rotation: &UnitQuaternion<T>, anchor: &Point3<T>);
 }
 
-/// Macro to implement shallow [`Transform`] for types with no children.
+/// Macro to implement [`Transform`].
 macro_rules! impl_transform {
-    () => {
+    (@getters) => {
         #[inline]
         fn position(&self) -> nalgebra::Point3<T> {
             self.position
@@ -40,7 +40,8 @@ macro_rules! impl_transform {
         fn orientation(&self) -> nalgebra::UnitQuaternion<T> {
             self.orientation
         }
-
+    };
+    (@setters) => {
         #[inline]
         fn set_position(&mut self, position: nalgebra::Point3<T>) {
             self.position = position;
@@ -55,7 +56,8 @@ macro_rules! impl_transform {
         fn set_orientation_from_scaled_axis(&mut self, scaled_axis: nalgebra::Vector3<T>) {
             self.orientation = nalgebra::UnitQuaternion::from_scaled_axis(scaled_axis);
         }
-
+    };
+    (@shallow_transform) => {
         #[inline]
         fn translate(&mut self, translation: &nalgebra::Translation3<T>) {
             self.position = translation.transform_point(&self.position);
@@ -78,6 +80,11 @@ macro_rules! impl_transform {
             );
             self.orientation = rotation * &self.orientation;
         }
+    };
+    () => {
+        crate::geometry::impl_transform!(@getters);
+        crate::geometry::impl_transform!(@setters);
+        crate::geometry::impl_transform!(@shallow_transform);
     };
 }
 pub(crate) use impl_transform;
