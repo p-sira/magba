@@ -32,7 +32,7 @@
 /// define_magnet!{
 ///     Magnet
 ///     field_fn: magnet_B
-///     args: {polarization:Vector3<T>, dimensions:Vector3<T>, lucky_number: @val T}
+///     args: {polarization:Vector3<T>, dimensions:Vector3<T>; where is_positive(dimensions), lucky_number: @val T}
 ///     arg_display: "pol={}, dim={}, lucky={}";
 ///     arg_fmt: [format_vector3, format_vector3, format_float]
 ///     on_new: [
@@ -99,20 +99,41 @@ macro_rules! define_magnet {
             )*
         }
     };
-    (@setters $struct_name:ident, $(($arg:ident, $arg_type:ty))*) => {
+
+    (@setters $struct_name:ident, $(
+        (
+            $arg:ident,
+            $arg_type:ty,
+            [$(@$is_value:ident)?],
+            [$($validate:expr)?],
+            [$($error:literal)?]
+        )
+    )*) => {
         impl<T: crate::Float> $struct_name<T> {
             $(
-                // Setters
+                // Setter
                 concat_idents::concat_idents!(fn_name = set_, $arg {
                     pub fn fn_name(&mut self, $arg: impl Into<$arg_type>) {
-                        self.$arg = $arg.into();
+                        let $arg: $arg_type = $arg.into();
+                        $(
+                            if !($validate) {
+                                panic!($error);
+                            }
+                        )?
+                        self.$arg = $arg;
                     }
                 });
 
-                // With setters
+                // Bulider (with setters)
                 concat_idents::concat_idents!(fn_name = with_, $arg {
                     pub fn fn_name(mut self, $arg: impl Into<$arg_type>) -> Self {
-                        self.$arg = $arg.into();
+                        let $arg: $arg_type = $arg.into();
+                        $(
+                            if !($validate) {
+                                panic!($error);
+                            }
+                        )?
+                        self.$arg = $arg;
                         self
                     }
                 });
@@ -125,10 +146,15 @@ macro_rules! define_magnet {
         $(#[$meta:meta])*
         $name:ident
         field_fn: $field_fn:ident
-        args: { $($arg:ident: $(@$is_value:ident)? $arg_type:ty = $arg_default:expr),* $(,)? }
+        args: {
+            $(
+                $arg:ident : $(@$is_value:ident)? $arg_type:ty = $arg_default:expr
+                $(; where $validate:expr; else $error:literal)?
+            ),* $(,)?
+        }
         arg_display: $arg_display:expr;
         arg_fmt: [ $($arg_fmt:ident),* $(,)? ]
-        on_new: [ $($on_new:tt)* ]
+        $(on_new: [ $($on_new:tt)* ])?
     } => {
         $(#[$meta])*
         #[derive(Debug, Clone, PartialEq)]
@@ -141,7 +167,17 @@ macro_rules! define_magnet {
         }
 
         define_magnet!(@getters $name, $(($arg, $arg_type))*);
-        define_magnet!(@setters $name, $(($arg, $arg_type))*);
+
+        // Pass full metadata (including validation) to setter generator
+        define_magnet!(@setters $name, $(
+            (
+                $arg,
+                $arg_type,
+                [$(@$is_value)?],
+                [$($validate)?],
+                [$($error)?]
+            )
+        )*);
 
         impl<T: crate::Float> $name<T> {
             pub fn new(
@@ -154,10 +190,19 @@ macro_rules! define_magnet {
                 let position = position.into();
                 let orientation = orientation.into();
                 $(
-                    let $arg = define_magnet!(@arg_into $arg $(, $is_value)?);
+                    let $arg: $arg_type = define_magnet!(@arg_into $arg $(, $is_value)?);
                 )*
 
-                $($on_new)*
+                // Run validation logic after conversion
+                $(
+                    $(
+                        if !($validate) {
+                            panic!($error);
+                        }
+                    )?
+                )*
+
+                $($($on_new)*)?
                 $name {
                     position,
                     orientation,
