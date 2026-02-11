@@ -5,11 +5,31 @@
 
 //! Provides the [`Transform`] trait and macros for implementing it.
 
+use std::fmt::Display;
+
 use nalgebra::{Isometry3, Point3, RealField, Translation3, UnitQuaternion};
 
-#[derive(Clone, Copy, Debug, PartialEq, Default)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Pose<T: RealField> {
     isometry: Isometry3<T>,
+}
+
+impl<T: RealField> Default for Pose<T> {
+    fn default() -> Self {
+        Self {
+            isometry: Isometry3::identity(),
+        }
+    }
+}
+
+impl<T: RealField> Display for Pose<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Source at pos={}, q={}",
+            self.isometry.translation, self.isometry.rotation,
+        )
+    }
 }
 
 impl<T: RealField> Pose<T> {
@@ -67,9 +87,26 @@ impl<T: RealField> Pose<T> {
 
 macro_rules! impl_pose_method {
     () => {
-        fn pose(&self) -> crate::geometry::Pose<T> {
-            self.pose
+        fn pose(&self) -> &crate::geometry::Pose<T> {
+            &self.pose
         }
     };
 }
 pub(crate) use impl_pose_method;
+
+macro_rules! delegate_to_pose {
+    () => {
+        delegate::delegate! {
+            to self.pose() {
+                fn position(&self) -> nalgebra::Point3<T>;
+                fn orientation(&self) -> nalgebra::UnitQuaternion<T>;
+                fn set_position(&mut self, position: impl Into<nalgebra::Translation3<T>>);
+                fn set_orientation(&mut self, orientation: nalgebra::UnitQuaternion<T>);
+                fn translate(&mut self, translation: impl Into<nalgebra::Translation3<T>>);
+                fn rotate(&mut self, rotation: nalgebra::UnitQuaternion<T>);
+                fn rotate_anchor(&mut self, rotation: nalgebra::UnitQuaternion<T>, anchor: impl Into<nalgebra::Point3<T>>);
+            }
+        };
+    };
+}
+pub(crate) use delegate_to_pose;
