@@ -1,19 +1,31 @@
-[package]
-name = "magba"
+[workspace]
+members = []
+
+[workspace.package]
 version = "0.3.0"
-edition = "2021"
-description = "Magnetic computation library for Rust"
+authors = ["Sira Pornsiriprasert <code@psira.me>"]
 documentation = "https://docs.rs/magba"
-readme = "README.md"
 homepage = "https://github.com/p-sira/magba"
 repository = "https://github.com/p-sira/magba"
 license = "BSD-3-Clause"
 keywords = ["analytical", "field", "magnet", "magnetic", "simulation"]
 categories = ["science", "simulation"]
-include = ["/src", "/tests/README.md", "/LICENSE"]
 
-[package.metadata]
-authors = ["Sira Pornsiriprasert <code@psira.me>"]
+[package]
+name = "magba"
+version.workspace = true
+authors.workspace = true
+categories.workspace = true
+keywords.workspace = true
+homepage.workspace = true
+repository.workspace = true
+documentation.workspace = true
+license.workspace = true
+
+edition = "2024"
+readme = "README.md"
+description = "Magnetic computation library for Rust"
+include = ["/src", "/tests/README.md", "/LICENSE"]
 
 [[bench]]
 harness = false
@@ -23,7 +35,7 @@ name = "bench"
 concat-idents = "1.1.5"
 ellip = { version = "1.0.4", features = ["unstable"] }
 itertools = "0.14.0"
-nalgebra = { version = "0.33.2" }
+nalgebra = "0.34.1"
 num-traits = "0.2.19"
 numeric_literals = "0.2.0"
 rayon = { version = "1.10.0", optional = true }
