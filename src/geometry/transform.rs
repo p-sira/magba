@@ -7,7 +7,7 @@
 
 use nalgebra::{Isometry3, Point3, RealField, Translation3, UnitQuaternion};
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Default)]
 pub struct Pose<T: RealField> {
     isometry: Isometry3<T>,
 }
@@ -18,6 +18,22 @@ impl<T: RealField> Pose<T> {
         Self {
             isometry: Isometry3::from_parts(position.into(), orientation),
         }
+    }
+
+    pub fn position(&self) -> Point3<T> {
+        self.isometry.translation.vector.clone().into()
+    }
+
+    pub fn orientation(&self) -> UnitQuaternion<T> {
+        self.isometry.rotation.clone()
+    }
+
+    pub fn set_position(&mut self, position: impl Into<Translation3<T>>) {
+        self.isometry.translation = position.into();
+    }
+
+    pub fn set_orientation(&mut self, orientation: UnitQuaternion<T>) {
+        self.isometry.rotation = orientation;
     }
 
     /// Translate the object.
@@ -44,3 +60,12 @@ impl<T: RealField> Pose<T> {
         &self.isometry
     }
 }
+
+macro_rules! impl_pose_method {
+    () => {
+        fn pose(&self) -> crate::geometry::Pose<T> {
+            self.pose
+        }
+    };
+}
+pub(crate) use impl_pose_method;
