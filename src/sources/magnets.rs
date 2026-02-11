@@ -67,14 +67,14 @@
 /// 7. `impl std::fmt::Display` (if `no_std` is not active).
 ///
 /// # Rationale
-/// 
+///
 /// This macro serves as a consistent mean to implement magnet structs.
-/// 
+///
 /// # Notes
-/// 
+///
 /// The validation implementation can lead to Clippy's `neg_cmp_op_on_partial_ord` warning.
 /// The behaviour is still valid, since NaN comparison will also return false.
-/// 
+///
 macro_rules! define_magnet {
 
     // --- Helpers ---
@@ -151,8 +151,7 @@ macro_rules! define_magnet {
         $(#[$meta])*
         #[derive(Debug, Clone, PartialEq)]
         pub struct $name<T: crate::Float> {
-            position: nalgebra::Point3<T>,
-            orientation: nalgebra::UnitQuaternion<T>,
+            pose: crate::geometry::Pose<T>,
             $(
                 $arg: $arg_type,
             )*
@@ -173,13 +172,13 @@ macro_rules! define_magnet {
         impl<T: crate::Float> $name<T> {
             pub fn new(
                 position: impl Into<nalgebra::Point3<T>>,
-                orientation: impl Into<nalgebra::UnitQuaternion<T>>,
+                orientation: nalgebra::UnitQuaternion<T>,
                 $(
                     $arg: define_magnet!(@arg_type_decl $arg_type $(, $is_value)?)
                 ),*
             ) -> Self {
-                let position = position.into();
-                let orientation = orientation.into();
+                let pose = crate::geometry::Pose::new(position.into(), orientation.into());
+
                 $(
                     let $arg: $arg_type = define_magnet!(@arg_into $arg $(, $is_value)?);
                 )*
@@ -195,42 +194,38 @@ macro_rules! define_magnet {
 
                 $($($on_new)*)?
                 $name {
-                    position,
-                    orientation,
+                    pose,
                     $($arg),*
                 }
             }
 
-            crate::geometry::transform::impl_transform!(@builders);
+            crate::geometry::transform::delegate_to_pose!();
         }
 
         impl<T: crate::Float> Default for $name<T> {
             fn default() -> Self {
                 Self {
-                    position: Default::default(),
-                    orientation: Default::default(),
+                    pose: Default::default(),
                     $($arg: $arg_default),*
                 }
             }
         }
 
-        impl<T: crate::Float> crate::Source<T> for $name<T> {}
-        
-        impl<T: crate::Float> crate::geometry::Transform<T> for $name<T> {
-            crate::geometry::impl_transform!();
+        impl<T: crate::Float> crate::Source<T> for $name<T> {
+            crate::geometry::transform::impl_pose_method!();
         }
-        
+
         impl<T: crate::Float> crate::Field<T> for $name<T> {
             fn get_B(&self, points: &[nalgebra::Point3<T>]) -> Vec<nalgebra::Vector3<T>> {
                 crate::fields::$field_fn(
                     points,
-                    &self.position,
-                    &self.orientation,
+                    &self.position(),
+                    &self.orientation(),
                     $( define_magnet!(@pass_arg self.$arg $(, $is_value)?), )*
                 )
             }
         }
-        
+
         #[cfg(not(feature = "no_std"))]
         impl<T: crate::Float> std::fmt::Display for $name<T> {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -243,8 +238,8 @@ macro_rules! define_magnet {
                         ") at pos={}, q={}"
                     ),
                     $(crate::crate_util::$arg_fmt!(&self.$arg),)*
-                    crate::crate_util::format_point3!(&self.position),
-                    crate::crate_util::format_quat!(&self.orientation)
+                    crate::crate_util::format_point3!(&self.position()),
+                    crate::crate_util::format_quat!(&self.orientation())
                 )
             }
         }
