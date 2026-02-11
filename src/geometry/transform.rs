@@ -20,18 +20,22 @@ impl<T: RealField> Pose<T> {
         }
     }
 
+    #[inline]
     pub fn position(&self) -> Point3<T> {
         self.isometry.translation.vector.clone().into()
     }
 
+    #[inline]
     pub fn orientation(&self) -> UnitQuaternion<T> {
         self.isometry.rotation.clone()
     }
 
+    #[inline]
     pub fn set_position(&mut self, position: impl Into<Translation3<T>>) {
         self.isometry.translation = position.into();
     }
 
+    #[inline]
     pub fn set_orientation(&mut self, orientation: UnitQuaternion<T>) {
         self.isometry.rotation = orientation;
     }
