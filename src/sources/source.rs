@@ -27,9 +27,7 @@ pub trait Field<T: RealField> {
     fn get_B(&self, points: &[Point3<T>]) -> Vec<Vector3<T>>;
 }
 
-/// Trait shared by magnetic sources.
-///
-/// Requires [`Transform`] and [`Field`].
+/// Magnetic sources that can apply 3D transformations and calculate magnetic fields.
 pub trait Source<T: RealField>: Field<T> + Send + Sync {
     /// Get the pose object.
     fn pose(&self) -> &Pose<T>;
