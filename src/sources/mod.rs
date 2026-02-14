@@ -7,6 +7,7 @@
 
 mod magnets;
 
+mod boxed_collection;
 mod scollection;
 mod cuboid;
 mod cylinder;
@@ -15,6 +16,7 @@ mod dipole;
 mod source;
 mod zero_magnet;
 
+pub use boxed_collection::BoxedCollection;
 pub use scollection::SCollection;
 pub use cuboid::CuboidMagnet;
 pub use cylinder::CylinderMagnet;
