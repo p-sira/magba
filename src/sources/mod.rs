@@ -7,11 +7,13 @@
 
 mod magnets;
 
+mod zero_magnet;
 mod cuboid;
 mod cylinder;
 mod dipole;
 mod source;
 
+pub use zero_magnet::ZeroMagnet;
 pub use cuboid::CuboidMagnet;
 pub use cylinder::CylinderMagnet;
 pub use dipole::Dipole;

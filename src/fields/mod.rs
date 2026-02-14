@@ -16,6 +16,9 @@ crate::crate_util::pub_on_feature! {
     }
 }
 
+mod field_zero;
+
 pub use field_cuboid::{cuboid_B, sum_multiple_cuboid_B};
 pub use field_cylinder::{cylinder_B, sum_multiple_cylinder_B};
 pub use field_dipole::{dipole_B, sum_multiple_dipole_B};
+pub use field_zero::zero_field;
