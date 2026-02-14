@@ -91,18 +91,33 @@ impl<T: RealField> From<Isometry3<T>> for Pose<T> {
     }
 }
 
-macro_rules! impl_pose_method {
-    () => {
-        fn pose(&self) -> &crate::geometry::Pose<T> {
-            &self.pose
-        }
+pub trait Transform<T: RealField> {
+    /// Get the pose object.
+    fn pose(&self) -> &Pose<T>;
 
-        fn pose_mut(&mut self) -> &mut crate::geometry::Pose<T> {
-            &mut self.pose
+    /// Get the mutable pose object.
+    fn pose_mut(&mut self) -> &mut Pose<T>;
+
+    /// Set the pose.
+    fn set_pose(&mut self, pose: Pose<T>) {
+        *self.pose_mut() = pose;
+    }
+}
+
+macro_rules! impl_transform {
+    ($name:ident < $( $args:ident ),* > where $( $bounds:tt )* ) => {
+        impl< $( $bounds )* > crate::geometry::transform::Transform<T> for $name< $( $args ),* > {
+            fn pose(&self) -> &crate::geometry::Pose<T> {
+                &self.pose
+            }
+
+            fn pose_mut(&mut self) -> &mut crate::geometry::Pose<T> {
+                &mut self.pose
+            }
         }
     };
 }
-pub(crate) use impl_pose_method;
+pub(crate) use impl_transform;
 
 macro_rules! delegate_to_pose {
     () => {

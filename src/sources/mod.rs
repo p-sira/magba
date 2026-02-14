@@ -8,19 +8,19 @@
 mod magnets;
 
 mod boxed_collection;
-mod scollection;
+mod collection;
 mod cuboid;
 mod cylinder;
-mod collection;
 mod dipole;
+mod scollection;
 mod source;
 mod zero_magnet;
 
 pub use boxed_collection::BoxedCollection;
-pub use scollection::SCollection;
+pub use collection::Collection;
 pub use cuboid::CuboidMagnet;
 pub use cylinder::CylinderMagnet;
-pub use collection::{BoxedCollection, Collection};
 pub use dipole::Dipole;
+pub use scollection::SCollection;
 pub use source::{Field, Source};
 pub use zero_magnet::ZeroMagnet;
