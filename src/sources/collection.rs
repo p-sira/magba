@@ -249,21 +249,6 @@ impl<S: Source<T>, T: Float> Display for Collection<S, T> {
 }
 
 #[cfg(test)]
-mod mytest {
-    use crate::{CuboidMagnet, CylinderMagnet, Source, Collection};
-
-    #[test]
-    fn my() {
-        let cylinder = CylinderMagnet::default();
-        let cuboid = CuboidMagnet::default();
-
-        let sources: Vec<Box<dyn Source<f64>>> = vec![Box::new(cylinder), Box::new(cuboid)];
-
-        Collection::from_sources(sources);
-    }
-}
-
-#[cfg(test)]
 mod base_source_collection_tests {
     use std::f64::consts::FRAC_PI_2;
 
