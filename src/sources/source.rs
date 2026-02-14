@@ -7,13 +7,16 @@
 
 use std::fmt::{Debug, Display};
 
+use crate::{
+    Float, crate_util,
+    geometry::{Pose, impl_pose_method},
+};
+use delegate::delegate;
 use nalgebra::{Point3, RealField, Translation3, UnitQuaternion, Vector3};
-
-use crate::{Float, crate_util, geometry::Transform};
 
 /// Trait shared by objects that generate magnetic field.
 #[allow(non_snake_case)]
-pub trait Field<T: RealField + Copy> {
+pub trait Field<T: RealField> {
     /// Compute the magnetic field (B) at the given points.
     ///
     /// # Arguments
@@ -27,9 +30,35 @@ pub trait Field<T: RealField + Copy> {
 /// Trait shared by magnetic sources.
 ///
 /// Requires [`Transform`] and [`Field`].
-pub trait Source<T: RealField + Copy>:
-    Transform<T> + Field<T> + Debug + Send + Sync + Display
-{
+pub trait Source<T: RealField>: Field<T> + Send + Sync {
+    /// Get the pose object.
+    fn pose(&self) -> &Pose<T>;
+
+    /// Get the mutable pose object.
+    fn pose_mut(&mut self) -> &mut Pose<T>;
+
+    /// Set the pose.
+    fn set_pose(&mut self, pose: Pose<T>) {
+        *self.pose_mut() = pose;
+    }
+
+    /// A default formatter that behaves like Display.
+    /// Override this for custom printouts.
+    fn format(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Source at pos={}, q={}",
+            self.pose().position(),
+            self.pose().orientation()
+        )
+    }
+}
+
+impl<T: RealField> std::fmt::Display for dyn Source<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // Delegate to the trait method
+        self.format(f)
+    }
 }
 
 /* #region Box<Source> */
@@ -40,41 +69,16 @@ impl<S: Field<T> + ?Sized, T: RealField + Copy> Field<T> for Box<S> {
     }
 }
 
-impl<S: Transform<T> + ?Sized, T: RealField + Copy> Transform<T> for Box<S> {
-    fn position(&self) -> Point3<T> {
-        (**self).position()
-    }
-
-    fn orientation(&self) -> UnitQuaternion<T> {
-        (**self).orientation()
-    }
-
-    fn set_position(&mut self, position: Point3<T>) {
-        (**self).set_position(position)
-    }
-
-    fn set_orientation(&mut self, orientation: UnitQuaternion<T>) {
-        (**self).set_orientation(orientation)
-    }
-
-    fn set_orientation_from_scaled_axis(&mut self, scaled_axis: nalgebra::Vector3<T>) {
-        (**self).set_orientation_from_scaled_axis(scaled_axis)
-    }
-
-    fn translate(&mut self, translation: &Translation3<T>) {
-        (**self).translate(translation)
-    }
-
-    fn rotate(&mut self, rotation: &UnitQuaternion<T>) {
-        (**self).rotate(rotation)
-    }
-
-    fn rotate_anchor(&mut self, rotation: &UnitQuaternion<T>, anchor: &Point3<T>) {
-        (**self).rotate_anchor(rotation, anchor)
+impl<S: Source<T> + ?Sized, T: RealField + Copy> Source<T> for Box<S> {
+    delegate! {
+        to (**self) {
+            fn pose(&self) -> &Pose<T>;
+            fn pose_mut(&mut self) -> &mut Pose<T>;
+            fn set_pose(&mut self, pose: Pose<T>);
+            fn format(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result;
+        }
     }
 }
-
-impl<S: Source<T> + ?Sized, T: RealField + Copy> Source<T> for Box<S> {}
 
 // #region: SourceCollection
 
@@ -96,36 +100,49 @@ impl<S: Source<T> + ?Sized, T: RealField + Copy> Source<T> for Box<S> {}
 /// ```
 #[derive(Debug)]
 pub struct SourceCollection<S: Source<T>, T: Float> {
-    /// Center of the collection (m), where the children reference
-    position: Point3<T>,
-    /// Orientation of the collection, where the children reference
-    orientation: UnitQuaternion<T>,
+    /// Local frame of the collection, where the children reference
+    pose: Pose<T>,
 
     /// An ordered-vec of homogeneous magnetic sources
     children: Vec<S>,
+
+    /// The relative pose of each child in LOCAL frame
+    offsets: Vec<Pose<T>>,
 }
 
 impl<S: Source<T>, T: Float> SourceCollection<S, T> {
     /// Initialize [SourceCollection].
     pub fn new(position: Point3<T>, orientation: UnitQuaternion<T>, sources: Vec<S>) -> Self {
+        let pose = Pose::new(position, orientation);
+        let pose_inv = pose.as_isometry().inverse();
+        let offsets = sources
+            .iter()
+            .map(|s| (pose_inv * s.pose().as_isometry()).into())
+            .collect();
+
         Self {
-            position,
-            orientation,
+            pose,
             children: sources,
+            offsets,
         }
     }
 
     /// Initialize [SourceCollection] from a vec of homogeneous [Source].
     pub fn from_sources(sources: Vec<S>) -> Self {
+        let offsets = sources.iter().map(|s| s.pose().clone()).collect();
+
         Self {
-            position: Point3::origin(),
-            orientation: UnitQuaternion::identity(),
+            pose: Pose::default(),
             children: sources,
+            offsets,
         }
     }
 
     /// Add [Source] to the collection.
     pub fn add(&mut self, source: S) {
+        let relative_pose = self.pose.as_isometry().inverse() * source.pose().as_isometry();
+
+        self.offsets.push(relative_pose.into());
         self.children.push(source);
     }
 
@@ -133,9 +150,59 @@ impl<S: Source<T>, T: Float> SourceCollection<S, T> {
     pub fn add_sources(&mut self, source: &mut Vec<S>) {
         self.children.append(source);
     }
+
+    pub fn set_pose(&mut self, new_pose: impl Into<Pose<T>>) {
+        self.pose = new_pose.into();
+
+        // Re-calculate absolute positions for all children
+        // This wipes out any drift that might have occurred
+        for (child, offset) in self.children.iter_mut().zip(&self.offsets) {
+            let global_isometry = self.pose.as_isometry() * offset.as_isometry();
+            child.set_pose(global_isometry.into());
+        }
+    }
+
+    delegate::delegate! {
+        to self.pose {
+            pub fn position(&self) -> Point3<T>;
+            pub fn orientation(&self) -> UnitQuaternion<T>;
+        }
+    }
+
+    pub fn set_position(&mut self, position: impl Into<Translation3<T>>) {
+        let mut new_pose = *self.pose();
+        new_pose.set_position(position);
+        self.set_pose(new_pose);
+    }
+
+    pub fn set_orientation(&mut self, orientation: UnitQuaternion<T>) {
+        let mut new_pose = *self.pose();
+        new_pose.set_orientation(orientation);
+        self.set_pose(new_pose);
+    }
+
+    pub fn translate(&mut self, translation: impl Into<Translation3<T>>) {
+        let mut new_pose = *self.pose();
+        new_pose.translate(translation);
+        self.set_pose(new_pose);
+    }
+
+    pub fn rotate(&mut self, rotation: UnitQuaternion<T>) {
+        let mut new_pose = *self.pose();
+        new_pose.rotate(rotation);
+        self.set_pose(new_pose);
+    }
+
+    pub fn rotate_anchor(&mut self, rotation: UnitQuaternion<T>, anchor: impl Into<Point3<T>>) {
+        let mut new_pose = *self.pose();
+        new_pose.rotate_anchor(rotation, anchor);
+        self.set_pose(new_pose);
+    }
 }
 
-impl<S: Source<T>, T: Float> Source<T> for SourceCollection<S, T> {}
+impl<S: Source<T>, T: Float> Source<T> for SourceCollection<S, T> {
+    impl_pose_method!();
+}
 
 /// Alias of [SourceCollection] for heap-allocated collection of multiple source types.
 pub type MultiSourceCollection<T> = SourceCollection<Box<dyn Source<T>>, T>;
@@ -145,104 +212,10 @@ pub type MultiSourceCollection<T> = SourceCollection<Box<dyn Source<T>>, T>;
 impl<S: Source<T>, T: Float> Default for SourceCollection<S, T> {
     fn default() -> Self {
         Self {
-            position: Point3::origin(),
-            orientation: UnitQuaternion::identity(),
+            pose: Pose::default(),
             children: Vec::new(),
+            offsets: Vec::new(),
         }
-    }
-}
-
-// #region Transform Implementation
-
-impl<S: Source<T>, T: Float> Transform<T> for SourceCollection<S, T> {
-    #[inline]
-    fn position(&self) -> Point3<T> {
-        self.position
-    }
-
-    #[inline]
-    fn orientation(&self) -> UnitQuaternion<T> {
-        self.orientation
-    }
-
-    #[inline]
-    fn set_position(&mut self, position: Point3<T>) {
-        let translation = Translation3::from(position - self.position);
-        self.children
-            .iter_mut()
-            .for_each(|source| source.translate(&translation));
-
-        self.position = position
-    }
-
-    #[inline]
-    fn set_orientation(&mut self, orientation: UnitQuaternion<T>) {
-        let rotation = orientation * self.orientation.inverse();
-        self.children
-            .iter_mut()
-            .for_each(|source| source.rotate_anchor(&rotation, &self.position));
-
-        self.orientation = orientation;
-    }
-
-    #[inline]
-    fn set_orientation_from_scaled_axis(&mut self, scaled_axis: nalgebra::Vector3<T>) {
-        self.set_orientation(UnitQuaternion::from_scaled_axis(scaled_axis));
-    }
-
-    #[inline]
-    fn translate(&mut self, translation: &Translation3<T>) {
-        self.children
-            .iter_mut()
-            .for_each(|source| source.translate(translation));
-
-        self.position = translation.transform_point(&self.position);
-    }
-
-    #[inline]
-    fn rotate(&mut self, rotation: &UnitQuaternion<T>) {
-        #[cfg(feature = "parallel")]
-        if self.children.len() > 5000 {
-            use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
-
-            self.children
-                .par_iter_mut()
-                .for_each(|source| source.rotate_anchor(rotation, &self.position));
-
-            self.orientation = rotation * self.orientation;
-            return;
-        }
-
-        self.children
-            .iter_mut()
-            .for_each(|source| source.rotate_anchor(rotation, &self.position));
-        self.orientation = rotation * self.orientation;
-    }
-
-    #[inline]
-    fn rotate_anchor(&mut self, rotation: &UnitQuaternion<T>, anchor: &Point3<T>) {
-        #[cfg(feature = "parallel")]
-        if self.children.len() > 5000 {
-            use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
-            self.children
-                .par_iter_mut()
-                .for_each(|source| source.rotate_anchor(rotation, anchor));
-        } else {
-            self.children
-                .iter_mut()
-                .for_each(|source| source.rotate_anchor(rotation, anchor));
-        }
-
-        #[cfg(not(feature = "parallel"))]
-        {
-            self.children
-                .iter_mut()
-                .for_each(|source| source.rotate_anchor(rotation, anchor));
-        }
-
-        let local_position = self.position - anchor;
-        self.position = Point3::from(rotation * local_position + Vector3::from(anchor.coords));
-        self.orientation = rotation * self.orientation;
     }
 }
 
@@ -285,8 +258,8 @@ impl<S: Source<T>, T: Float> Field<T> for SourceCollection<S, T> {
 
 impl<S: Source<T> + PartialEq, T: Float> PartialEq for SourceCollection<S, T> {
     fn eq(&self, other: &Self) -> bool {
-        if self.position != other.position
-            || self.orientation != other.orientation
+        if self.position() != other.position()
+            || self.orientation() != other.orientation()
             || self.children.len() != other.children.len()
         {
             return false;
@@ -323,16 +296,25 @@ impl<S: Source<T>, T: Float> Display for SourceCollection<S, T> {
             f,
             "SourceCollection ({} children) at pos={}, q={}",
             len,
-            crate_util::format_point3!(self.position),
-            crate_util::format_quat!(self.orientation)
+            crate_util::format_point3!(self.position()),
+            crate_util::format_quat!(self.orientation())
         )?;
+
         for (i, source) in self.children.iter().enumerate() {
-            if i + 1 != len {
-                writeln!(f, "├── {}: {}", i, source)?;
-            } else {
-                write!(f, "└── {}: {}", i, source)?;
+            if i != 0 {
+                writeln!(f)?;
             }
+
+            let prefix = if i + 1 != len {
+                "├──"
+            } else {
+                "└──"
+            };
+
+            write!(f, "{} {}: ", prefix, i)?;
+            source.format(f)?;
         }
+
         Ok(())
     }
 }
@@ -596,7 +578,7 @@ mod cylinder_collection_tests {
 
     use super::*;
     use crate::{sources::*, testing_util::*};
-    use nalgebra::{point, vector};
+    use nalgebra::{Translation3, point, vector};
 
     fn get_collection() -> SourceCollection<CylinderMagnet<f64>, f64> {
         let mut collection = SourceCollection::default();
@@ -634,10 +616,10 @@ mod cylinder_collection_tests {
     fn test_collection_translate() {
         let mut collection = get_collection();
         let translation = Translation3::new(0.01, 0.015, 0.02);
-        collection.translate(&translation);
+        collection.translate(translation);
         test_B_magnet!(@small, &collection, "cylinder-collection-translate.csv", 1e-8);
 
-        collection.translate(&translation.inverse());
+        collection.translate(translation.inverse());
         collection.set_position(point![0.01, 0.015, 0.02]);
         test_B_magnet!(@small, &collection, "cylinder-collection-translate.csv", 1e-8);
     }
@@ -646,10 +628,10 @@ mod cylinder_collection_tests {
     fn test_collection_rotate() {
         let mut collection = get_collection();
         let rotation = quat_from_rotvec(PI / 3.0, PI / 4.0, PI / 5.0);
-        collection.rotate(&rotation);
+        collection.rotate(rotation);
         test_B_magnet!(@small, &collection, "cylinder-collection-rotate.csv", 1e-9);
 
-        collection.rotate(&rotation.inverse());
+        collection.rotate(rotation.inverse());
         collection.set_orientation(rotation);
         test_B_magnet!(@small, &collection, "cylinder-collection-rotate.csv", 5e-8);
 
@@ -664,7 +646,7 @@ mod cuboid_collection_tests {
 
     use super::*;
     use crate::{sources::*, testing_util::*};
-    use nalgebra::{point, vector};
+    use nalgebra::{Translation3, point, vector};
 
     fn get_collection() -> SourceCollection<CuboidMagnet<f64>, f64> {
         let mut collection = SourceCollection::default();
@@ -699,10 +681,10 @@ mod cuboid_collection_tests {
     fn test_collection_translate() {
         let mut collection = get_collection();
         let translation = Translation3::new(0.01, 0.015, 0.02);
-        collection.translate(&translation);
+        collection.translate(translation);
         test_B_magnet!(@small, &collection, "cuboid-collection-translate.csv", 2e-13);
 
-        collection.translate(&translation.inverse());
+        collection.translate(translation.inverse());
         collection.set_position(point![0.01, 0.015, 0.02]);
         test_B_magnet!(@small, &collection, "cuboid-collection-translate.csv", 2e-13);
     }
@@ -711,10 +693,10 @@ mod cuboid_collection_tests {
     fn test_collection_rotate() {
         let mut collection = get_collection();
         let rotation = quat_from_rotvec(PI / 3.0, PI / 4.0, PI / 5.0);
-        collection.rotate(&rotation);
+        collection.rotate(rotation);
         test_B_magnet!(@small, &collection, "cuboid-collection-rotate.csv", 2e-13);
 
-        collection.rotate(&rotation.inverse());
+        collection.rotate(rotation.inverse());
         collection.set_orientation(rotation);
         test_B_magnet!(@small, &collection, "cuboid-collection-rotate.csv", 2e-13);
 
@@ -729,7 +711,7 @@ mod multi_source_collection_tests {
 
     use super::*;
     use crate::{sources::*, testing_util::*};
-    use nalgebra::{point, vector};
+    use nalgebra::{Translation3, point, vector};
 
     fn get_collection() -> MultiSourceCollection<f64> {
         let mut collection = MultiSourceCollection::default();
@@ -759,10 +741,10 @@ mod multi_source_collection_tests {
     fn test_collection_translate() {
         let mut collection = get_collection();
         let translation = Translation3::new(0.01, 0.015, 0.02);
-        collection.translate(&translation);
+        collection.translate(translation.clone());
         test_B_magnet!(@small, &collection, "multi-collection-translate.csv", 5e-11);
 
-        collection.translate(&translation.inverse());
+        collection.translate(translation.inverse());
         collection.set_position(point![0.01, 0.015, 0.02]);
         test_B_magnet!(@small, &collection, "multi-collection-translate.csv", 5e-11);
     }
@@ -771,10 +753,10 @@ mod multi_source_collection_tests {
     fn test_collection_rotate() {
         let mut collection = get_collection();
         let rotation = quat_from_rotvec(PI / 3.0, PI / 4.0, PI / 5.0);
-        collection.rotate(&rotation);
+        collection.rotate(rotation);
         test_B_magnet!(@small, &collection, "multi-collection-rotate.csv", 5e-11);
 
-        collection.rotate(&rotation.inverse());
+        collection.rotate(rotation.inverse());
         collection.set_orientation(rotation);
         test_B_magnet!(@small, &collection, "multi-collection-rotate.csv", 5e-11);
 
