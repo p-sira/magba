@@ -7,17 +7,18 @@
 
 mod magnets;
 
-mod zero_magnet;
+mod collection;
 mod cuboid;
 mod cylinder;
+mod dcollection;
 mod dipole;
 mod source;
+mod zero_magnet;
 
-pub use zero_magnet::ZeroMagnet;
+pub use collection::Collection;
 pub use cuboid::CuboidMagnet;
 pub use cylinder::CylinderMagnet;
+pub use dcollection::{MultiSourceCollection, SourceCollection};
 pub use dipole::Dipole;
-pub use source::{Field, MultiSourceCollection, Source, SourceCollection};
-
-mod collection;
-pub use collection::Collection;
+pub use source::{Field, Source};
+pub use zero_magnet::ZeroMagnet;
