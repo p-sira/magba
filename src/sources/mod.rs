@@ -16,3 +16,6 @@ pub use cuboid::CuboidMagnet;
 pub use cylinder::CylinderMagnet;
 pub use dipole::Dipole;
 pub use source::{Field, MultiSourceCollection, Source, SourceCollection};
+
+mod collection;
+pub use collection::Collection;

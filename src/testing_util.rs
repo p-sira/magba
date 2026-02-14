@@ -289,7 +289,6 @@ pub mod source_testing_util {
 
                 use nalgebra::{point, vector, Translation3};
 
-                use crate::geometry::Transform;
                 use crate::testing_util::*;
                 use super::*;
 
@@ -319,7 +318,7 @@ pub mod source_testing_util {
                 #[test]
                 fn test_translate() {
                     let mut magnet = magnet();
-                    magnet.translate(&Translation3::new(-0.1, -0.2, -0.3));
+                    magnet.translate(Translation3::new(-0.1, -0.2, -0.3));
                     test_B_magnet!(&magnet, &format!("{}-translate.csv", stringify!($filename)), $rtol_translate)
 
                 }
@@ -327,7 +326,7 @@ pub mod source_testing_util {
                 #[test]
                 fn test_rotate() {
                     let mut magnet = magnet();
-                    magnet.rotate(&quat_from_rotvec(PI / 7.0, PI / 6.0, PI / 5.0).inverse());
+                    magnet.rotate(quat_from_rotvec(PI / 7.0, PI / 6.0, PI / 5.0).inverse());
                     test_B_magnet!(&magnet, &format!("{}-rotate.csv", stringify!($filename)), $rtol_rotate)
                 }
             }

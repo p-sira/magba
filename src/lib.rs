@@ -99,8 +99,8 @@ The available feature flags are:
 //!
 //! let mut magnet2 = magnet1.clone();
 //! magnet2.rotate_anchor(
-//!     &UnitQuaternion::from_scaled_axis(vector![PI, 0.0, 0.0]),
-//!     &Point3::origin(),
+//!     UnitQuaternion::from_scaled_axis(vector![PI, 0.0, 0.0]),
+//!     Point3::origin(),
 //! );
 //!
 //! let collection = SourceCollection::from_sources(vec![magnet1, magnet2]);
@@ -179,7 +179,7 @@ The available feature flags are:
 //! assert_close_vec!(&b, &expected, 1e-12);
 //!
 //! // Moving the magnet
-//! magnet.translate(&Translation3::new(0.0, 0.0, 0.01));
+//! magnet.translate(Translation3::new(0.0, 0.0, 0.01));
 //! let b = magnet.get_B(&points)[0];
 //! let expected = vector![0.0, 0.0, 0.0038894698700304275];
 //! assert_close_vec!(&b, &expected, 1e-12);
@@ -190,7 +190,7 @@ The available feature flags are:
 //! assert_close_vec!(&b, &expected, 1e-12);
 //!
 //! // Rotating the magnet
-//! magnet.rotate(&UnitQuaternion::from_scaled_axis(vector![PI / 4.0, 0.0, 0.0]));
+//! magnet.rotate(UnitQuaternion::from_scaled_axis(vector![PI / 4.0, 0.0, 0.0]));
 //! let b = magnet.get_B(&points)[0];
 //! let expected = vector![3.9407500527173422e-19, 0.0035238379945531874, 0.005577663229073966];
 //! assert_close_vec!(&b, &expected, 1e-12);
@@ -266,8 +266,7 @@ compile_if_valid_feature_flags! {
     pub mod fields;
     pub mod geometry;
 
-    need_feature!{"shorthands", pub mod shorthands;}
-    // need_feature!{"macros", mod macros;}
+    need_feature!{"macros", mod macros;}
 
     use constants::MagneticConstants;
 
@@ -285,11 +284,6 @@ compile_if_valid_feature_flags! {
         #[cfg(feature = "sources")]
         #[doc(inline)]
         pub use sources::*;
-    }
-
-    need_feature!{"transform",
-        #[doc(inline)]
-        pub use geometry::Transform;
     }
 
     #[cfg(test)]
