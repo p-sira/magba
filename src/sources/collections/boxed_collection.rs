@@ -6,7 +6,7 @@
 use crate::{Collection, Source};
 use nalgebra::UnitQuaternion;
 
-/// Alias of [SourceCollection] for heap-allocated collection of multiple source types.
+/// Alias of [Collection] for heap-allocated collection of multiple source types.
 pub type BoxedCollection<T> = Collection<Box<dyn Source<T>>, T>;
 
 #[cfg(test)]
