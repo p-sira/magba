@@ -7,7 +7,7 @@ use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
 use crate::{
     Field, Float, Source,
-    geometry::{Pose, impl_pose_method},
+    geometry::{Pose, Transform, impl_transform},
 };
 
 #[derive(Debug)]
@@ -92,9 +92,9 @@ impl<S: Source<T>, T: Float, const N: usize> SCollection<S, T, N> {
     }
 }
 
-impl<S: Source<T>, T: Float, const N: usize> Source<T> for SCollection<S, T, N> {
-    impl_pose_method!();
-}
+impl<S: Source<T>, T: Float, const N: usize> Source<T> for SCollection<S, T, N> {}
+
+impl_transform!(SCollection<S, T, N> where S: Source<T>, T: Float, const N: usize);
 
 impl<S: Source<T> + Default, T: Float, const N: usize> Default for SCollection<S, T, N> {
     fn default() -> Self {

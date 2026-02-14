@@ -212,8 +212,6 @@ macro_rules! define_magnet {
         }
 
         impl<T: crate::Float> crate::Source<T> for $name<T> {
-            crate::geometry::transform::impl_pose_method!();
-
             fn format(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 write!(
                     f,
@@ -229,6 +227,8 @@ macro_rules! define_magnet {
                 )
             }
         }
+
+        crate::geometry::transform::impl_transform!($name<T> where T: crate::Float);
 
         impl<T: crate::Float> crate::Field<T> for $name<T> {
             fn get_B(&self, points: &[nalgebra::Point3<T>]) -> Vec<nalgebra::Vector3<T>> {

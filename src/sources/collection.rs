@@ -9,7 +9,10 @@ use std::fmt::Display;
 
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
-use crate::{Field, Float, Source, crate_util, geometry::{Pose, impl_pose_method}};
+use crate::{
+    Field, Float, Source, crate_util,
+    geometry::{Pose, Transform, impl_transform},
+};
 
 /// Stack-allocated collection of a single source type.
 ///
@@ -129,10 +132,9 @@ impl<S: Source<T>, T: Float> Collection<S, T> {
     }
 }
 
-impl<S: Source<T>, T: Float> Source<T> for Collection<S, T> {
-    impl_pose_method!();
-}
+impl<S: Source<T>, T: Float> Source<T> for Collection<S, T> {}
 
+impl_transform!(Collection<S, T> where S: Source<T>, T: Float);
 
 // #region Default Implementation
 

@@ -5,7 +5,7 @@
 
 //! Core traits and types for magnetic sources and collections of sources.
 
-use crate::geometry::Pose;
+use crate::geometry::{Pose, Transform};
 use delegate::delegate;
 use nalgebra::{Point3, RealField, Vector3};
 
@@ -23,18 +23,7 @@ pub trait Field<T: RealField> {
 }
 
 /// Magnetic sources that can apply 3D transformations and calculate magnetic fields.
-pub trait Source<T: RealField>: Field<T> + Send + Sync {
-    /// Get the pose object.
-    fn pose(&self) -> &Pose<T>;
-
-    /// Get the mutable pose object.
-    fn pose_mut(&mut self) -> &mut Pose<T>;
-
-    /// Set the pose.
-    fn set_pose(&mut self, pose: Pose<T>) {
-        *self.pose_mut() = pose;
-    }
-
+pub trait Source<T: RealField>: Transform<T> + Field<T> + Send + Sync {
     /// A default formatter that behaves like Display.
     /// Override this for custom printouts.
     fn format(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -65,10 +54,17 @@ impl<S: Field<T> + ?Sized, T: RealField + Copy> Field<T> for Box<S> {
 impl<S: Source<T> + ?Sized, T: RealField + Copy> Source<T> for Box<S> {
     delegate! {
         to (**self) {
+            fn format(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result;
+        }
+    }
+}
+
+impl<S: Source<T> + ?Sized, T: RealField + Copy> Transform<T> for Box<S> {
+    delegate! {
+        to (**self) {
             fn pose(&self) -> &Pose<T>;
             fn pose_mut(&mut self) -> &mut Pose<T>;
             fn set_pose(&mut self, pose: Pose<T>);
-            fn format(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result;
         }
     }
 }
