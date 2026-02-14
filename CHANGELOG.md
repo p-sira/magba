@@ -6,7 +6,7 @@
 - Rename `SourceCollection` to `Collection` and `MultiSourceCollection` to `BoxedCollection`.
 - Remove `util` module.
 - Remove `transform` feature flag. Transformation capabilities are shipped with `sources`.
-- Remove `Transform` trait.
+- `Transform` trait now indicates the ability to return `Pose` object.
 
 **New Features**
 - `SCollection`: Stack-allocated collection for `no_std` environment.
