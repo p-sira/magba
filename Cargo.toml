@@ -33,6 +33,7 @@ name = "bench"
 
 [dependencies]
 concat-idents = "1.1.5"
+delegate = "0.13.5"
 ellip = { version = "1.0.4", features = ["unstable"] }
 itertools = "0.14.0"
 nalgebra = "0.34.1"
@@ -47,10 +48,10 @@ rayon = "1.10.0"
 regex = "1.12.2"
 
 [features]
-default = ["parallel", "sources", "shorthands"]
+default = ["parallel", "sources", "macros"]
 no_std = []
 parallel = ["dep:rayon", "nalgebra/rayon"]
 sources = ["transform"]
 transform = []
-shorthands = ["sources"]
+macros = ["sources"]
 unstable = []
