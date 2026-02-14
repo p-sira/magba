@@ -3,16 +3,19 @@
 ### 0.3.0
 **Breaking Changes**
 - Change the argument `radius` to `diameter` in `CylinderMagnet`.
-- Remove `util` module
+- Remove `util` module.
+- Remove `transform` feature flag. Transformation capabilities are shipped with `sources`.
+- Remove `Transform` trait.
 
 **New Features**
 - Add `no_std` feature flag.
-- Add builder methods (`with_*`) to all magnet structs..
+- Add builder methods (`with_*`) to all magnet structs.
+- `Pose` struct for holding data for `Source` and provide transformation capabilities. `Source` delegates their transformation methods to `Pose`.
 
 **Improvements**
 - Unify `SourceCollection` and `MultiSourceCollection`. `MultiSourceCollection` is now an alias for collection of boxed sources.
 - Add input validation for constructors and setters.
-- `geometry`: Move transformation logics from the `impl_transform` macro to Transform's trait default method
+- `SourceCollection` holds its children's relative position in the local coordinate, mitigating error accumulation when transforming the collection.
 
 **Documentations**
 - Add code of conduct and contributing documentations.
@@ -24,11 +27,12 @@
 - Add `assert_close_vec!` macro for doctest.
 
 **Dependencies**
-- Update ellip to v1.0.4.
-- Update nalgebra to v0.34.1.
-- Remove getset.
-- Add concat_idents.
-- Add regex as dev-dependency.
+- Update `ellip` to v1.0.4.
+- Update `nalgebra` to v0.34.1.
+- Remove `getset`.
+- Add `concat_idents`.
+- Add `delegate`.
+- Add `regex` as dev-dependency.
 
 **Others**
 - Upgrade Python dependencies.
