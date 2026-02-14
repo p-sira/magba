@@ -11,6 +11,7 @@
 - Add `no_std` feature flag.
 - Add builder methods (`with_*`) to all magnet structs.
 - `Pose` struct for holding data for `Source` and provide transformation capabilities. `Source` delegates their transformation methods to `Pose`.
+- `ZeroMagnet` and `zero_field` to serve as a placeholder in static `Collection`.
 
 **Improvements**
 - Unify `SourceCollection` and `MultiSourceCollection`. `MultiSourceCollection` is now an alias for collection of boxed sources.
