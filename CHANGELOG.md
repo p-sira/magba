@@ -3,11 +3,13 @@
 ### 0.3.0
 **Breaking Changes**
 - Change the argument `radius` to `diameter` in `CylinderMagnet`.
+- Rename `SourceCollection` to `Collection` and `MultiSourceCollection` to `BoxedCollection`.
 - Remove `util` module.
 - Remove `transform` feature flag. Transformation capabilities are shipped with `sources`.
 - Remove `Transform` trait.
 
 **New Features**
+- `SCollection`: Stack-allocated collection for `no_std` environment.
 - Add `no_std` feature flag.
 - Add builder methods (`with_*`) to all magnet structs.
 - `Pose` struct for holding data for `Source` and provide transformation capabilities. `Source` delegates their transformation methods to `Pose`.
