@@ -5,7 +5,7 @@
 
 use nalgebra::Vector3;
 
-use crate::sources::magnets::define_magnet;
+use crate::sources::define_magnet::define_magnet;
 
 define_magnet! {
     /// Magnetic dipole in 3D space.

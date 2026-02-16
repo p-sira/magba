@@ -5,7 +5,7 @@
 
 //! Magnetic source traits and structs.
 
-mod magnets;
+mod define_magnet;
 
 pub mod collections;
 mod cuboid;
