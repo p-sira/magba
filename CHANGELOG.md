@@ -4,6 +4,7 @@
 **Breaking Changes**
 - Change the argument `radius` to `diameter` in `CylinderMagnet`.
 - Rename `SourceCollection` to `Collection` and `MultiSourceCollection` to `BoxedCollection`.
+- `Collection`: Rename the methods `add` to `push` and `add_sources` to `extend`.
 - Remove `util` module.
 - Remove `transform` feature flag. Transformation capabilities are shipped with `sources`.
 - `Transform` trait now indicates the ability to return `Pose` object.
