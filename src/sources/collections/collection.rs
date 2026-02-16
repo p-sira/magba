@@ -10,8 +10,7 @@ use std::fmt::Display;
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
 use crate::{
-    Field, Float, Source, crate_util,
-    geometry::{Pose, Transform, impl_transform},
+    Field, Float, Source, crate_util, geometry::{Pose, Transform, impl_transform}
 };
 
 /// Stack-allocated collection of a single source type.
@@ -28,7 +27,7 @@ use crate::{
 ///
 /// let magnet = CylinderMagnet::<f64>::default();
 /// let mut collection = SourceCollection::default();
-/// collection.add(magnet);
+/// collection.push(magnet);
 /// ```
 #[derive(Debug)]
 pub struct Collection<S: Source<T>, T: Float> {
@@ -70,16 +69,16 @@ impl<S: Source<T>, T: Float> Collection<S, T> {
         }
     }
 
-    /// Add [Source] to the collection.
-    pub fn add(&mut self, source: S) {
+    /// Append [Source] to end of the collection.
+    pub fn push(&mut self, source: S) {
         let relative_pose = self.pose.as_isometry().inverse() * source.pose().as_isometry();
 
         self.offsets.push(relative_pose.into());
         self.children.push(source);
     }
 
-    /// Add multiple [Source] to the collection.
-    pub fn add_sources(&mut self, source: &mut Vec<S>) {
+    /// Append multiple [Source] to end of the collection.
+    pub fn extend(&mut self, source: &mut Vec<S>) {
         self.children.append(source);
     }
 
@@ -496,21 +495,21 @@ mod cylinder_collection_tests {
 
     fn get_collection() -> Collection<CylinderMagnet<f64>, f64> {
         let mut collection = Collection::default();
-        collection.add(CylinderMagnet::new(
+        collection.push(CylinderMagnet::new(
             point![0.009389999999999999, 0.0, -0.006],
             quat_from_rotvec(1.2091995761561452, 1.209199576156145, 1.2091995761561452),
             vector![1.0, 2.0, 3.0],
             3e-3,
             4e-3,
         ));
-        collection.add(CylinderMagnet::new(
+        collection.push(CylinderMagnet::new(
             point![-0.004694999999999998, 0.008131978541535878, -0.006],
             quat_from_rotvec(1.5315599088338596, 0.41038024073191587, 0.4103802407319159),
             vector![0.4, 0.5, 0.6],
             4e-3,
             5e-3,
         ));
-        collection.add(CylinderMagnet::new(
+        collection.push(CylinderMagnet::new(
             point![-0.004695000000000004, -0.008131978541535875, -0.006],
             quat_from_rotvec(1.5315599088338594, -0.410380240731917, -0.41038024073191703),
             vector![0.9, 0.8, 0.6],
@@ -564,19 +563,19 @@ mod cuboid_collection_tests {
 
     fn get_collection() -> Collection<CuboidMagnet<f64>, f64> {
         let mut collection = Collection::default();
-        collection.add(CuboidMagnet::new(
+        collection.push(CuboidMagnet::new(
             point![0.005, 0.01, 0.015],
             UnitQuaternion::identity(),
             vector![0.1, 0.2, 0.3],
             vector![0.02, 0.02, 0.03],
         ));
-        collection.add(CuboidMagnet::new(
+        collection.push(CuboidMagnet::new(
             point![0.015, 0.005, 0.01],
             quat_from_rotvec(0.0, FRAC_PI_3, 0.0),
             vector![0.1, 0.2, 0.3],
             vector![0.02, 0.02, 0.03],
         ));
-        collection.add(CuboidMagnet::new(
+        collection.push(CuboidMagnet::new(
             point![0.01, 0.015, 0.005],
             quat_from_rotvec(0.0, 0.0, FRAC_PI_3),
             vector![0.1, 0.2, 0.3],
