@@ -199,7 +199,7 @@ macro_rules! define_magnet {
                 }
             }
 
-            crate::geometry::transform::delegate_to_pose!();
+            crate::core::transform::delegate_to_pose!();
         }
 
         impl<T: crate::core::Float> Default for $name<T> {
@@ -228,7 +228,7 @@ macro_rules! define_magnet {
             }
         }
 
-        crate::geometry::transform::impl_transform!($name<T> where T: crate::core::Float);
+        crate::core::transform::impl_transform!($name<T> where T: crate::core::Float);
 
         impl<T: crate::core::Float> crate::core::Field<T> for $name<T> {
             fn get_B(&self, points: &[nalgebra::Point3<T>]) -> Vec<nalgebra::Vector3<T>> {

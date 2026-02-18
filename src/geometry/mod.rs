@@ -11,5 +11,5 @@ pub use coordinate::*;
 #[cfg(not(feature = "unstable"))]
 pub(crate) use coordinate::*;
 
-pub(crate) mod transform;
-pub use transform::*;
+mod pose;
+pub use pose::Pose;
