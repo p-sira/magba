@@ -1,45 +1,50 @@
 # Changelog
 ## 0.3
 ### 0.3.0
-**Breaking Changes**
-- Change the argument `radius` to `diameter` in `CylinderMagnet`.
-- Rename `SourceCollection` to `Collection` and `MultiSourceCollection` to `BoxedCollection`.
+
+#### BREAKING CHANGES
+
+**Core Architecture**
+- **Unified Collection:** `Collection` holds a `Vec<Component>` and handles both heap and stack-allocated items internally.
+* **MultiSourceCollection Removed:** Use `Collection` which now supports nested and mixed types.
+
+**API Renames & Standardization**
+- `CylinderMagnet` accepts `diameter` instead of `radius`.
 - `Collection`: Rename the methods `add` to `push` and `add_sources` to `extend`.
-- Remove `util` module.
-- Remove `transform` feature flag. Transformation capabilities are shipped with `sources`.
+
+**Codebase Restructure**
+- Remove the `util` module.
+- Remove the `transform` feature flag. Transformation capabilities are shipped with `sources`.
 - `Transform` trait now indicates the ability to return `Pose` object.
 
-**New Features**
-- `SCollection`: Stack-allocated collection for `no_std` environment.
-- Add `no_std` feature flag.
-- Add builder methods (`with_*`) to all magnet structs.
-- `Pose` struct for holding data for `Source` and provide transformation capabilities. `Source` delegates their transformation methods to `Pose`.
-- `ZeroMagnet` and `zero_field` to serve as a placeholder in static `Collection`.
+#### New Features
 
-**Improvements**
-- Unify `SourceCollection` and `MultiSourceCollection`. `MultiSourceCollection` is now an alias for collection of boxed sources.
-- Add input validation for constructors and setters.
-- `SourceCollection` holds its children's relative position in the local coordinate, mitigating error accumulation when transforming the collection.
+**Stack Allocation & No-Std**
+- `SourceArray`: A fixed-size, stack-allocated, homogeneous collection of Sources.
+- `ZeroMagnet` and `zero_field` to serve as a placeholder in `SourceArray`.
+- Add `no_std` feature flag.
+
+**Pose Struct**
+- Introduce `Pose` struct to handle position/orientation logic centrally. `Source` delegates transformation logic here.
+
+**Developer Experience**
+- Add builder methods (`with_*`) to all magnet structs.
+- Add input validation for all constructors and setters.
+
+#### Improvements
+
+- **Relative Positioning:** Collections now store its children's positions relative to the collection's local coordinate, mitigating error accumulation during repeated transformations.
+- **Performance improvement:** Update `ellip`, the internal math backend, to v1.0.4.
+- Update `nalgebra` to v0.34.1.
 
 **Documentations**
-- Add code of conduct and contributing documentations.
+- Add `CODE_OF_CONDUCT.md` and `CONTRIBUTING.md`.
 - Add testing documentation in `tests/`.
 - Improve documentations.
 
 **Testing**
 - Add static tests and corresponding testing suite.
 - Add `assert_close_vec!` macro for doctest.
-
-**Dependencies**
-- Update `ellip` to v1.0.4.
-- Update `nalgebra` to v0.34.1.
-- Remove `getset`.
-- Add `concat_idents`.
-- Add `delegate`.
-- Add `regex` as dev-dependency.
-
-**Others**
-- Upgrade Python dependencies.
 
 ## 0.2
 ### 0.2.0
