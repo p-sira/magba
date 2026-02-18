@@ -270,8 +270,6 @@ compile_if_valid_feature_flags! {
 
     use constants::MagneticConstants;
 
-    pub type StrErr = &'static str;
-
     need_feature!{"sources",
         pub mod core;
         pub mod magnets;
