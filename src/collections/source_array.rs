@@ -6,8 +6,8 @@
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
 use crate::{
-    core::{Field, Float, Source},
-    geometry::{Pose, Transform, impl_transform},
+    core::{Field, Float, Source, Transform, transform::impl_transform},
+    geometry::Pose,
 };
 
 #[derive(Debug, Clone)]

@@ -3,7 +3,11 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-use crate::{collections::component::Component, core::Float, geometry::Transform, magnets::Magnet};
+use crate::{
+    collections::component::Component,
+    core::{Float, Transform},
+    magnets::Magnet,
+};
 use enum_dispatch::enum_dispatch;
 use nalgebra::{Point3, RealField, Vector3};
 
