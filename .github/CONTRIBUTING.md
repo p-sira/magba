@@ -54,8 +54,7 @@ cargo bench
 
 ### Function Implementation
 
-- The types must be generic [`Float`](https://docs.rs/num-traits/0.2.19/num_traits/float/trait.Float.html) when applicable.
-- Use `Result<StrErr>` types for fallible operations. The Error message must include the function name, followed by an informative description.
+- The types must be generic [`Float`](https://docs.rs/magba/latest/magba/trait.Float.html) when applicable.
 - Document conditions under which functions may fail.
 
 ### Magnet Class Implementation
