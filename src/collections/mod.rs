@@ -4,8 +4,9 @@
  */
 
 mod collection;
+mod component;
 mod source_array;
-pub mod component;
 
 pub use collection::Collection;
+pub use component::Component;
 pub use source_array::SourceArray;
