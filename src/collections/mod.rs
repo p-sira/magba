@@ -3,10 +3,9 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-mod boxed_collection;
 mod collection;
-mod scollection;
+mod source_array;
+pub mod component;
 
-pub use boxed_collection::BoxedCollection;
 pub use collection::Collection;
-pub use scollection::SCollection;
+pub use source_array::SourceArray;

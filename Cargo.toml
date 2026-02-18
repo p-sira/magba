@@ -35,6 +35,7 @@ name = "bench"
 concat-idents = "1.1.5"
 delegate = "0.13.5"
 ellip = { version = "1.0.4", features = ["unstable"] }
+enum_dispatch = "0.3.13"
 itertools = "0.14.0"
 nalgebra = "0.34.1"
 num-traits = "0.2.19"

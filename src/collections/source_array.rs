@@ -6,18 +6,18 @@
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
 use crate::{
-    Field, Float, Source,
+    core::{Field, Float, Source},
     geometry::{Pose, Transform, impl_transform},
 };
 
-#[derive(Debug)]
-pub struct SCollection<S: Source<T>, T: Float, const N: usize> {
+#[derive(Debug, Clone)]
+pub struct SourceArray<S: Source<T>, T: Float, const N: usize> {
     pose: Pose<T>,
     children: [S; N],
     offsets: [Pose<T>; N],
 }
 
-impl<S: Source<T>, T: Float, const N: usize> SCollection<S, T, N> {
+impl<S: Source<T>, T: Float, const N: usize> SourceArray<S, T, N> {
     /// Initialize [SourceCollection].
     pub fn new(position: Point3<T>, orientation: UnitQuaternion<T>, sources: [S; N]) -> Self {
         let pose = Pose::new(position, orientation);
@@ -92,11 +92,11 @@ impl<S: Source<T>, T: Float, const N: usize> SCollection<S, T, N> {
     }
 }
 
-impl<S: Source<T>, T: Float, const N: usize> Source<T> for SCollection<S, T, N> {}
+impl<S: Source<T>, T: Float, const N: usize> Source<T> for SourceArray<S, T, N> {}
 
-impl_transform!(SCollection<S, T, N> where S: Source<T>, T: Float, const N: usize);
+impl_transform!(SourceArray<S, T, N> where S: Source<T>, T: Float, const N: usize);
 
-impl<S: Source<T> + Default, T: Float, const N: usize> Default for SCollection<S, T, N> {
+impl<S: Source<T> + Default, T: Float, const N: usize> Default for SourceArray<S, T, N> {
     fn default() -> Self {
         Self {
             pose: Pose::default(),
@@ -106,7 +106,7 @@ impl<S: Source<T> + Default, T: Float, const N: usize> Default for SCollection<S
     }
 }
 
-impl<S: Source<T>, T: Float, const N: usize> Field<T> for SCollection<S, T, N> {
+impl<S: Source<T>, T: Float, const N: usize> Field<T> for SourceArray<S, T, N> {
     #[inline]
     fn get_B(&self, points: &[Point3<T>]) -> Vec<Vector3<T>> {
         let mut net_field = vec![Vector3::zeros(); points.len()];

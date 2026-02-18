@@ -87,7 +87,7 @@ macro_rules! define_magnet {
 
     // --- Methods ---
     (@getters $struct_name:ident, $(($arg:ident, $arg_type:ty))*) => {
-        impl<T: crate::Float> $struct_name<T> {
+        impl<T: crate::core::Float> $struct_name<T> {
             $(
                 pub fn $arg(&self) -> $arg_type {
                     self.$arg
@@ -105,7 +105,7 @@ macro_rules! define_magnet {
             [$($error:literal)?]
         )
     )*) => {
-        impl<T: crate::Float> $struct_name<T> {
+        impl<T: crate::core::Float> $struct_name<T> {
             $(
                 // Setters
                 concat_idents::concat_idents!(fn_name = set_, $arg {
@@ -150,7 +150,7 @@ macro_rules! define_magnet {
     } => {
         $(#[$meta])*
         #[derive(Debug, Clone, PartialEq)]
-        pub struct $name<T: crate::Float> {
+        pub struct $name<T: crate::core::Float> {
             pose: crate::geometry::Pose<T>,
             $(
                 $arg: $arg_type,
@@ -169,7 +169,7 @@ macro_rules! define_magnet {
             )
         )*);
 
-        impl<T: crate::Float> $name<T> {
+        impl<T: crate::core::Float> $name<T> {
             pub fn new(
                 position: impl Into<nalgebra::Point3<T>>,
                 orientation: nalgebra::UnitQuaternion<T>,
@@ -202,7 +202,7 @@ macro_rules! define_magnet {
             crate::geometry::transform::delegate_to_pose!();
         }
 
-        impl<T: crate::Float> Default for $name<T> {
+        impl<T: crate::core::Float> Default for $name<T> {
             fn default() -> Self {
                 Self {
                     pose: Default::default(),
@@ -211,7 +211,7 @@ macro_rules! define_magnet {
             }
         }
 
-        impl<T: crate::Float> crate::Source<T> for $name<T> {
+        impl<T: crate::core::Float> crate::core::Source<T> for $name<T> {
             fn format(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 write!(
                     f,
@@ -228,9 +228,9 @@ macro_rules! define_magnet {
             }
         }
 
-        crate::geometry::transform::impl_transform!($name<T> where T: crate::Float);
+        crate::geometry::transform::impl_transform!($name<T> where T: crate::core::Float);
 
-        impl<T: crate::Float> crate::Field<T> for $name<T> {
+        impl<T: crate::core::Float> crate::core::Field<T> for $name<T> {
             fn get_B(&self, points: &[nalgebra::Point3<T>]) -> Vec<nalgebra::Vector3<T>> {
                 crate::fields::$field_fn(
                     points,
@@ -242,9 +242,9 @@ macro_rules! define_magnet {
         }
 
         #[cfg(not(feature = "no_std"))]
-        impl<T: crate::Float> std::fmt::Display for $name<T> {
+        impl<T: crate::core::Float> std::fmt::Display for $name<T> {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                <Self as crate::Source<T>>::format(self, f)
+                <Self as crate::core::Source<T>>::format(self, f)
             }
         }
     }

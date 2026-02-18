@@ -3,90 +3,77 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-// #region: SourceCollection
-
 use std::fmt::Display;
 
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
 use crate::{
-    Field, Float, Source, crate_util, geometry::{Pose, Transform, impl_transform}
+    collections::component::Component,
+    core::{Field, Float, Source},
+    crate_util,
+    geometry::{Pose, Transform, impl_transform},
 };
 
-/// Stack-allocated collection of a single source type.
-///
-/// # Fields
-/// - `position`: Center of the collection (m), where the children reference.
-/// - `orientation`: Orientation of the collection, where the children reference.
-/// - `children`: An ordered-vec of homogeneous magnetic sources.
-///
-/// # Examples
-/// ```
-/// use magba::sources::*;
-/// use nalgebra::*;
-///
-/// let magnet = CylinderMagnet::<f64>::default();
-/// let mut collection = SourceCollection::default();
-/// collection.push(magnet);
-/// ```
-#[derive(Debug)]
-pub struct Collection<S: Source<T>, T: Float> {
-    /// Local frame of the collection, where the children reference
+#[derive(Debug, Clone)]
+pub struct Collection<T: Float> {
     pose: Pose<T>,
-
-    /// An ordered-vec of homogeneous magnetic sources
-    children: Vec<S>,
-
-    /// The relative pose of each child in LOCAL frame
+    children: Vec<Component<T>>,
     offsets: Vec<Pose<T>>,
 }
 
-impl<S: Source<T>, T: Float> Collection<S, T> {
-    /// Initialize [SourceCollection].
-    pub fn new(position: Point3<T>, orientation: UnitQuaternion<T>, sources: Vec<S>) -> Self {
+impl<T: Float> Collection<T> {
+    /// Initialize a new collection.
+    pub fn new(
+        position: Point3<T>,
+        orientation: UnitQuaternion<T>,
+        components: Vec<impl Into<Component<T>>>,
+    ) -> Self {
         let pose = Pose::new(position, orientation);
         let pose_inv = pose.as_isometry().inverse();
-        let offsets = sources
+
+        let children: Vec<Component<T>> = components.into_iter().map(|c| c.into()).collect();
+
+        let offsets = children
             .iter()
-            .map(|s| (pose_inv * s.pose().as_isometry()).into())
+            .map(|c| (pose_inv * c.pose().as_isometry()).into())
             .collect();
 
         Self {
             pose,
-            children: sources,
+            children,
             offsets,
         }
     }
 
-    /// Initialize [SourceCollection] from a vec of homogeneous [Source].
-    pub fn from_sources(sources: Vec<S>) -> Self {
-        let offsets = sources.iter().map(|s| s.pose().clone()).collect();
+    /// Initialize from a vec of components (defaults to origin pose).
+    pub fn from_components(components: Vec<impl Into<Component<T>>>) -> Self {
+        let children: Vec<Component<T>> = components.into_iter().map(|c| c.into()).collect();
+        let offsets: Vec<Pose<T>> = children.iter().map(|c| c.pose().clone()).collect();
 
         Self {
             pose: Pose::default(),
-            children: sources,
+            children,
             offsets,
         }
     }
 
-    /// Append [Source] to end of the collection.
-    pub fn push(&mut self, source: S) {
-        let relative_pose = self.pose.as_isometry().inverse() * source.pose().as_isometry();
+    /// Append a component to the end of the collection.
+    pub fn push(&mut self, component: impl Into<Component<T>>) {
+        let component: Component<T> = component.into();
+        let relative_pose = self.pose.as_isometry().inverse() * component.pose().as_isometry();
 
         self.offsets.push(relative_pose.into());
-        self.children.push(source);
+        self.children.push(component);
     }
 
-    /// Append multiple [Source] to end of the collection.
-    pub fn extend(&mut self, source: &mut Vec<S>) {
-        self.children.append(source);
+    pub fn extend(&mut self, components: &mut Vec<impl Into<Component<T>>>) {
+        for c in components.drain(..) {
+            self.push(c);
+        }
     }
 
     pub fn set_pose(&mut self, new_pose: impl Into<Pose<T>>) {
         self.pose = new_pose.into();
-
-        // Re-calculate absolute positions for all children
-        // This wipes out any drift that might have occurred
         for (child, offset) in self.children.iter_mut().zip(&self.offsets) {
             let global_isometry = self.pose.as_isometry() * offset.as_isometry();
             child.set_pose(global_isometry.into());
@@ -131,31 +118,17 @@ impl<S: Source<T>, T: Float> Collection<S, T> {
     }
 }
 
-impl<S: Source<T>, T: Float> Source<T> for Collection<S, T> {}
+impl_transform!(Collection<T> where T: Float);
 
-impl_transform!(Collection<S, T> where S: Source<T>, T: Float);
-
-// #region Default Implementation
-
-impl<S: Source<T>, T: Float> Default for Collection<S, T> {
-    fn default() -> Self {
-        Self {
-            pose: Pose::default(),
-            children: Vec::new(),
-            offsets: Vec::new(),
-        }
-    }
-}
-
-// #region Field Implementation
-
-impl<S: Source<T>, T: Float> Field<T> for Collection<S, T> {
+impl<T: Float> Field<T> for Collection<T> {
     #[inline]
     fn get_B(&self, points: &[Point3<T>]) -> Vec<Vector3<T>> {
         let mut net_field = vec![Vector3::zeros(); points.len()];
+
         #[cfg(feature = "parallel")]
         {
             use rayon::prelude::*;
+
             let b_fields: Vec<_> = self
                 .children
                 .par_iter()
@@ -168,6 +141,7 @@ impl<S: Source<T>, T: Float> Field<T> for Collection<S, T> {
                     .for_each(|(sum, b)| *sum += b)
             });
         }
+
         #[cfg(not(feature = "parallel"))]
         {
             for source in &self.children {
@@ -182,9 +156,19 @@ impl<S: Source<T>, T: Float> Field<T> for Collection<S, T> {
     }
 }
 
-// #region Partial Equal Implementation
+impl<T: Float> Source<T> for Collection<T> {}
 
-impl<S: Source<T> + PartialEq, T: Float> PartialEq for Collection<S, T> {
+impl<T: Float> Default for Collection<T> {
+    fn default() -> Self {
+        Self {
+            pose: Pose::default(),
+            children: Vec::new(),
+            offsets: Vec::new(),
+        }
+    }
+}
+
+impl<T: Float> PartialEq for Collection<T> {
     fn eq(&self, other: &Self) -> bool {
         if self.position() != other.position()
             || self.orientation() != other.orientation()
@@ -193,37 +177,29 @@ impl<S: Source<T> + PartialEq, T: Float> PartialEq for Collection<S, T> {
             return false;
         }
 
-        // Track which elements in other.children have been matched
-        // This ensures proper 1:1 matching and handles duplicates correctly
         let mut matched = vec![false; other.children.len()];
-
         for source in &self.children {
-            // Find the first unmatched element in other that equals source
             let found = other
                 .children
                 .iter()
                 .enumerate()
-                .find(|(idx, other_source)| !matched[*idx] && source.eq(other_source));
+                .find(|(idx, other_source)| !matched[*idx] && *source == **other_source);
 
             match found {
                 Some((idx, _)) => matched[idx] = true,
                 None => return false,
             }
         }
-
         true
     }
 }
 
-// #region Display Implementation
-
-impl<S: Source<T>, T: Float> Display for Collection<S, T> {
+impl<T: Float> Display for Collection<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let len = self.children.len();
         writeln!(
             f,
-            "SourceCollection ({} children) at pos={}, q={}",
-            len,
+            "Collection ({} children) at pos={}, q={}",
+            self.children.len(),
             crate_util::format_point3!(self.position()),
             crate_util::format_quat!(self.orientation())
         )?;
@@ -232,17 +208,14 @@ impl<S: Source<T>, T: Float> Display for Collection<S, T> {
             if i != 0 {
                 writeln!(f)?;
             }
-
-            let prefix = if i + 1 != len {
+            let prefix = if i + 1 != self.children.len() {
                 "├──"
             } else {
                 "└──"
             };
-
             write!(f, "{} {}: ", prefix, i)?;
             source.format(f)?;
         }
-
         Ok(())
     }
 }
@@ -252,7 +225,7 @@ mod base_source_collection_tests {
     use std::f64::consts::FRAC_PI_2;
 
     use super::*;
-    use crate::{sources::*, testing_util::*};
+    use crate::{magnets::*, testing_util::*};
     use nalgebra::{point, vector};
 
     #[test]
@@ -272,13 +245,13 @@ mod base_source_collection_tests {
             0.3,
         );
 
-        let collection = Collection::new(
+        let collection = Collection::<f64>::new(
             Point3::origin(),
             UnitQuaternion::identity(),
             vec![magnet1, magnet2],
         );
 
-        assert_eq!("SourceCollection (2 children) at pos=[0, 0, 0], q=[0, 0, 0, 1]
+        assert_eq!("Collection (2 children) at pos=[0, 0, 0], q=[0, 0, 0, 1]
 ├── 0: CylinderMagnet (pol=[1, 2, 3], d=0.1, h=0.3) at pos=[4, 5, 6], q=[0, 0, 0, 1]
 └── 1: CylinderMagnet (pol=[7, 8, 9], d=0.1, h=0.3) at pos=[10, 11, 12], q=[<float>, 0, 0, <float>]", mask_long_floats(&format!("{}", collection)))
     }
@@ -289,7 +262,7 @@ mod partial_eq_tests {
     use std::f64::consts::FRAC_PI_2;
 
     use super::*;
-    use crate::{sources::*, testing_util::quat_from_rotvec};
+    use crate::{magnets::*, testing_util::quat_from_rotvec};
     use nalgebra::{point, vector};
 
     fn magnet1() -> CylinderMagnet<f64> {
@@ -326,8 +299,9 @@ mod partial_eq_tests {
         pos: Point3<f64>,
         orient: UnitQuaternion<f64>,
         magnets: Vec<CylinderMagnet<f64>>,
-    ) -> Collection<CylinderMagnet<f64>, f64> {
-        Collection::new(pos, orient, magnets)
+    ) -> Collection<f64> {
+        let components = magnets.into_iter().map(Component::from).collect();
+        Collection::new(pos, orient, components)
     }
 
     #[test]
@@ -444,10 +418,8 @@ mod partial_eq_tests {
 
     #[test]
     fn test_empty() {
-        let c1: Collection<CylinderMagnet<f64>, f64> =
-            collection(Point3::origin(), UnitQuaternion::identity(), vec![]);
-        let c2: Collection<CylinderMagnet<f64>, f64> =
-            collection(Point3::origin(), UnitQuaternion::identity(), vec![]);
+        let c1: Collection<f64> = collection(Point3::origin(), UnitQuaternion::identity(), vec![]);
+        let c2: Collection<f64> = collection(Point3::origin(), UnitQuaternion::identity(), vec![]);
         assert_eq!(c1, c2);
     }
 
@@ -490,10 +462,10 @@ mod cylinder_collection_tests {
     use std::f64::consts::PI;
 
     use super::*;
-    use crate::{sources::*, testing_util::*};
+    use crate::{magnets::*, testing_util::*};
     use nalgebra::{Translation3, point, vector};
 
-    fn get_collection() -> Collection<CylinderMagnet<f64>, f64> {
+    fn get_collection() -> Collection<f64> {
         let mut collection = Collection::default();
         collection.push(CylinderMagnet::new(
             point![0.009389999999999999, 0.0, -0.006],
@@ -558,10 +530,10 @@ mod cuboid_collection_tests {
     use std::f64::consts::{FRAC_PI_3, PI};
 
     use super::*;
-    use crate::{sources::*, testing_util::*};
+    use crate::{magnets::*, testing_util::*};
     use nalgebra::{Translation3, point, vector};
 
-    fn get_collection() -> Collection<CuboidMagnet<f64>, f64> {
+    fn get_collection() -> Collection<f64> {
         let mut collection = Collection::default();
         collection.push(CuboidMagnet::new(
             point![0.005, 0.01, 0.015],

@@ -3,7 +3,7 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-use crate::sources::define_magnet::define_magnet;
+use crate::magnets::define_magnet::define_magnet;
 
 define_magnet! {
     ZeroMagnet
