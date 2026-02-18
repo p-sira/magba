@@ -7,17 +7,17 @@
 //!
 //! <div class="warning">⚠️ Unstable feature. May subject to changes.</div>
 
-use ellip::bulirsch::{cel_with_const, DefaultPrecision};
+use ellip::bulirsch::{DefaultPrecision, cel_with_const};
 use ellip::{ellipe, ellipk};
-use nalgebra::{vector, Point3, RealField, UnitQuaternion, Vector3};
+use nalgebra::{Point3, RealField, UnitQuaternion, Vector3, vector};
 use numeric_literals::replace_float_literals;
 
 #[cfg(feature = "no_std")]
 use crate::SIZE;
 
+use crate::core::Float;
 use crate::crate_util::{impl_parallel, impl_parallel_sum, return_vec_or_array};
 use crate::geometry::{cart2cyl, compute_in_local, vec_cyl2cart};
-use crate::Float;
 use num_traits::Float as NumFloat;
 
 /// Compute B-field of a cylindrical magnet with unit axial (z-axis) polarization

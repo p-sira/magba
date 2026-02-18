@@ -266,24 +266,21 @@ compile_if_valid_feature_flags! {
     pub mod fields;
     pub mod geometry;
 
-    need_feature!{"macros", mod macros;}
+    // need_feature!{"macros", mod macros;}
 
     use constants::MagneticConstants;
-
-    /// Generic trait for floating point numbers compatible with all [Magba](crate) implementations.
-    ///
-    /// Supports [f32] and [f64].
-    pub trait Float: nalgebra::RealField + num_traits::Float + MagneticConstants + Copy {}
-    impl Float for f32 {}
-    impl Float for f64 {}
 
     pub type StrErr = &'static str;
 
     need_feature!{"sources",
-        pub mod sources;
-        #[cfg(feature = "sources")]
+        pub mod core;
+        pub mod magnets;
+        pub mod collections;
+
         #[doc(inline)]
-        pub use sources::*;
+        pub use magnets::{CuboidMagnet, CylinderMagnet, Dipole, ZeroMagnet};
+        #[doc(inline)]
+        pub use collections::*;
     }
 
     #[cfg(test)]

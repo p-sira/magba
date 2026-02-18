@@ -6,7 +6,7 @@
 //! Testing utilities.
 
 use csv::ReaderBuilder;
-use nalgebra::{point, vector, DMatrix, Point3, RealField, UnitQuaternion, Vector3};
+use nalgebra::{DMatrix, Point3, RealField, UnitQuaternion, Vector3, point, vector};
 
 use crate::crate_util::need_std;
 
@@ -180,7 +180,7 @@ pub use source_testing_util::*;
 #[cfg(feature = "sources")]
 pub mod source_testing_util {
     use super::*;
-    use crate::sources::*;
+    use crate::core::*;
 
     #[allow(non_snake_case)]
     pub fn compare_B_with_file<S: Source<T>, T: RealField + Copy + LowerExp + FromStr>(
@@ -192,11 +192,15 @@ pub mod source_testing_util {
         let points_path = Path::new(points_path_str);
         let ref_path = Path::new(ref_path_str);
         if !points_path.is_file() {
-            println!("Test data {points_path:?} not found. Download from https://github.com/p-sira/magba/tree/main/tests/test-data.");
+            println!(
+                "Test data {points_path:?} not found. Download from https://github.com/p-sira/magba/tree/main/tests/test-data."
+            );
             return;
         }
         if !ref_path.is_file() {
-            println!("Test data {ref_path:?} not found. Download from https://github.com/p-sira/magba/tree/main/tests/test-data.");
+            println!(
+                "Test data {ref_path:?} not found. Download from https://github.com/p-sira/magba/tree/main/tests/test-data."
+            );
             return;
         }
 

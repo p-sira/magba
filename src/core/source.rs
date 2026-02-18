@@ -3,13 +3,12 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-//! Core traits and types for magnetic sources and collections of sources.
-
-use crate::geometry::{Pose, Transform};
-use delegate::delegate;
+use crate::{collections::component::Component, core::Float, geometry::Transform, magnets::Magnet};
+use enum_dispatch::enum_dispatch;
 use nalgebra::{Point3, RealField, Vector3};
 
 /// Trait shared by objects that generate magnetic field.
+#[enum_dispatch]
 #[allow(non_snake_case)]
 pub trait Field<T: RealField> {
     /// Compute the magnetic field (B) at the given points.
@@ -22,6 +21,7 @@ pub trait Field<T: RealField> {
     fn get_B(&self, points: &[Point3<T>]) -> Vec<Vector3<T>>;
 }
 
+#[enum_dispatch]
 /// Magnetic sources that can apply 3D transformations and calculate magnetic fields.
 pub trait Source<T: RealField>: Transform<T> + Field<T> + Send + Sync {
     /// A default formatter that behaves like Display.
@@ -40,31 +40,5 @@ impl<T: RealField> std::fmt::Display for dyn Source<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         // Delegate to the trait method
         self.format(f)
-    }
-}
-
-/* #region Box<Source> */
-
-impl<S: Field<T> + ?Sized, T: RealField + Copy> Field<T> for Box<S> {
-    fn get_B(&self, points: &[Point3<T>]) -> Vec<Vector3<T>> {
-        (**self).get_B(points)
-    }
-}
-
-impl<S: Source<T> + ?Sized, T: RealField + Copy> Source<T> for Box<S> {
-    delegate! {
-        to (**self) {
-            fn format(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result;
-        }
-    }
-}
-
-impl<S: Source<T> + ?Sized, T: RealField + Copy> Transform<T> for Box<S> {
-    delegate! {
-        to (**self) {
-            fn pose(&self) -> &Pose<T>;
-            fn pose_mut(&mut self) -> &mut Pose<T>;
-            fn set_pose(&mut self, pose: Pose<T>);
-        }
     }
 }

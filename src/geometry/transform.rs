@@ -7,6 +7,7 @@
 
 use std::fmt::Display;
 
+use enum_dispatch::enum_dispatch;
 use nalgebra::{Isometry3, Point3, RealField, Translation3, UnitQuaternion};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -91,6 +92,7 @@ impl<T: RealField> From<Isometry3<T>> for Pose<T> {
     }
 }
 
+#[enum_dispatch]
 pub trait Transform<T: RealField> {
     /// Get the pose object.
     fn pose(&self) -> &Pose<T>;
