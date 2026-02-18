@@ -280,7 +280,7 @@ compile_if_valid_feature_flags! {
         #[doc(inline)]
         pub use magnets::{CuboidMagnet, CylinderMagnet, Dipole, ZeroMagnet};
         #[doc(inline)]
-        pub use collections::*;
+        pub use collections::Collection;
     }
 
     #[cfg(test)]

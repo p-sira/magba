@@ -5,7 +5,7 @@
 
 //! Provides the [`Transform`] trait and macros for implementing it.
 
-use crate::{component::Component, core::Float, magnets::Magnet, magnets::*};
+use crate::{collections::Component, core::Float, magnets::Magnet, magnets::*};
 use enum_dispatch::enum_dispatch;
 use nalgebra::RealField;
 

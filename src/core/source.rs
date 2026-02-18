@@ -4,7 +4,7 @@
  */
 
 use crate::{
-    collections::component::Component,
+    collections::Component,
     core::{Float, Transform},
     magnets::Magnet,
 };
