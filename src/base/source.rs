@@ -5,7 +5,7 @@
 
 use crate::{
     collections::Component,
-    core::{Float, Transform},
+    base::{Float, Transform},
     magnets::Magnet,
 };
 use enum_dispatch::enum_dispatch;

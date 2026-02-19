@@ -6,7 +6,7 @@
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
 use crate::{
-    core::{Field, Float, Source, Transform, transform::impl_transform},
+    base::{Field, Float, Source, Transform, transform::impl_transform},
     geometry::Pose,
 };
 

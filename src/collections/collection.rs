@@ -9,7 +9,7 @@ use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
 use crate::{
     collections::component::Component,
-    core::{Field, Float, Source, Transform, transform::impl_transform},
+    base::{Field, Float, Source, Transform, transform::impl_transform},
     crate_util,
     geometry::Pose,
 };

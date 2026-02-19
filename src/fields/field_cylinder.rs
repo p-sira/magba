@@ -15,7 +15,7 @@ use numeric_literals::replace_float_literals;
 #[cfg(feature = "no_std")]
 use crate::SIZE;
 
-use crate::core::Float;
+use crate::base::Float;
 use crate::crate_util::{impl_parallel, impl_parallel_sum, return_vec_or_array};
 use crate::geometry::{cart2cyl, compute_in_local, vec_cyl2cart};
 use num_traits::Float as NumFloat;
