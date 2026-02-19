@@ -281,6 +281,14 @@ compile_if_valid_feature_flags! {
         pub use collections::Collection;
     }
 
+    pub mod prelude {
+        pub use crate::base::{Source, Transform};
+
+        pub use crate::collections::Collection;
+        pub use crate::magnets::{CylinderMagnet, CuboidMagnet, Dipole, Magnet};
+        pub use crate::geometry::Pose;
+    }
+
     #[cfg(test)]
     pub mod testing_util;
 

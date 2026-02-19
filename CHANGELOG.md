@@ -28,6 +28,7 @@
 - Introduce `Pose` struct to handle position/orientation logic centrally. `Source` delegates transformation logic here.
 
 **Developer Experience**
+- Introduce `prelude` module, containing essential traits and commonly used structs.
 - Add builder methods (`with_*`) to all magnet structs.
 - Add input validation for all constructors and setters.
 
