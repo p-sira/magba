@@ -271,7 +271,7 @@ compile_if_valid_feature_flags! {
     use constants::MagneticConstants;
 
     need_feature!{"sources",
-        pub mod core;
+        pub mod base;
         pub mod magnets;
         pub mod collections;
 

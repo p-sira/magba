@@ -180,7 +180,7 @@ pub use source_testing_util::*;
 #[cfg(feature = "sources")]
 pub mod source_testing_util {
     use super::*;
-    use crate::core::*;
+    use crate::base::*;
 
     #[allow(non_snake_case)]
     pub fn compare_B_with_file<S: Source<T>, T: RealField + Copy + LowerExp + FromStr>(
