@@ -165,7 +165,7 @@ pub(crate) use assert_eq_lens;
 macro_rules! impl_parallel {
     ($func: ident, $threshold: expr, $items: expr, $($func_args: expr),* $(,)?) => {
         {
-            #[cfg(feature = "parallel")]
+            #[cfg(feature = "rayon")]
             if $items.len() > $threshold {
                 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
                 return $items
@@ -208,7 +208,7 @@ macro_rules! impl_parallel_sum {
 
         let combinations = itertools::izip!($($vecs),+);
 
-        #[cfg(feature = "parallel")]
+        #[cfg(feature = "rayon")]
         {
             use rayon::iter::{ParallelBridge, ParallelIterator};
 
@@ -222,7 +222,7 @@ macro_rules! impl_parallel_sum {
                 .collect()
         }
 
-        #[cfg(not(feature = "parallel"))]
+        #[cfg(not(feature = "rayon"))]
         {
             #[cfg(not(feature = "no_std"))]
             let mut net_vectors: Vec<Vector3<_>> = vec![Vector3::zeros(); $items.len()];

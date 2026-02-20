@@ -60,7 +60,7 @@ crate::testing_util::generate_tests! {
 
 #[cfg(test)]
 mod tests {
-    use crate::CylinderMagnet;
+    use crate::magnets::CylinderMagnet;
 
     #[test]
     #[should_panic]

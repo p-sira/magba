@@ -9,6 +9,7 @@ use crate::{collections::Component, base::Float, magnets::Magnet, magnets::*};
 use enum_dispatch::enum_dispatch;
 use nalgebra::RealField;
 
+/// Trait shared by objects that can return [Pose].
 #[enum_dispatch]
 pub trait Transform<T: RealField> {
     /// Get the pose object.

@@ -86,7 +86,7 @@ need_std! {
             panic!("assert_close_vector fails. Two vecs of Vector3 must be the same length.")
         }
         // Use parallel comparison for large vectors
-        #[cfg(feature = "parallel")]
+        #[cfg(feature = "rayon")]
         if len > 1000 {
             use rayon::prelude::*;
             let failures: Vec<_> = vecs1
@@ -174,10 +174,10 @@ need_std! {
 }
 }
 
-#[cfg(feature = "sources")]
+#[cfg(feature = "magnets")]
 pub use source_testing_util::*;
 
-#[cfg(feature = "sources")]
+#[cfg(feature = "magnets")]
 pub mod source_testing_util {
     use super::*;
     use crate::base::*;
