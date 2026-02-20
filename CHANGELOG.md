@@ -35,8 +35,8 @@
 #### Improvements
 
 - **Relative Positioning:** Collections now store its children's positions relative to the collection's local coordinate, mitigating error accumulation during repeated transformations.
-- **Performance improvement:** Update `ellip`, the internal math backend, to v1.0.4.
-- Update `nalgebra` to v0.34.1.
+- **Dependency Upgrade:** Update `ellip`, the internal math backend, to v1.0.4, improving performance and removing BulirschConst constraint from `magba::Float`.
+- **Dependency Upgrade:** Update `nalgebra` to v0.34.1.
 
 **Documentations**
 - Add `CODE_OF_CONDUCT.md` and `CONTRIBUTING.md`.
