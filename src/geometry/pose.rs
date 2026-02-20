@@ -3,12 +3,21 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-use std::fmt::Display;
-
 use nalgebra::{Isometry3, Point3, RealField, Translation3, UnitQuaternion};
 
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct Pose<T: RealField> {
+/// Struct for holding object's position and orientation with methods for transformations.
+///
+/// ### Examples
+/// 
+/// ```
+/// # use magba::*;
+/// # use nalgebra::Point3;
+/// let mut pose: Pose = Pose::default();
+/// pose.translate([1.0, 2.0, 3.0]);
+/// assert_eq!(pose.position(), Point3::new(1.0, 2.0, 3.0));
+/// ```
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Pose<T: RealField = f64> {
     isometry: Isometry3<T>,
 }
 
@@ -17,16 +26,6 @@ impl<T: RealField> Default for Pose<T> {
         Self {
             isometry: Isometry3::identity(),
         }
-    }
-}
-
-impl<T: RealField> Display for Pose<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "Source at pos={}, q={}",
-            self.isometry.translation, self.isometry.rotation,
-        )
     }
 }
 
@@ -86,5 +85,79 @@ impl<T: RealField> Pose<T> {
 impl<T: RealField> From<Isometry3<T>> for Pose<T> {
     fn from(isometry: Isometry3<T>) -> Self {
         Self { isometry }
+    }
+}
+
+#[cfg(feature = "std")]
+use std::fmt::{Display, LowerExp};
+
+#[cfg(feature = "std")]
+impl<T: RealField> Display for Pose<T> {
+    /// ```
+    /// # use magba::*;
+    /// let mut pose: Pose = Pose::default();
+    /// assert_eq!(format!("{}", pose), "pos=[0.0, 0.0, 0.0], r=[0.0, 0.0, 0.0]");
+    ///
+    /// pose.translate([1.23456, 0.0, 0.0]);
+    /// assert_eq!(format!("{:.3}", pose), "pos=[1.235, 0.000, 0.000], r=[0.000, 0.000, 0.000]");
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let t = &self.isometry.translation.vector;
+        let r = self.isometry.rotation.scaled_axis();
+
+        if let Some(p) = f.precision() {
+            write!(
+                f,
+                "pos=[{:.p$?}, {:.p$?}, {:.p$?}], r=[{:.p$?}, {:.p$?}, {:.p$?}]",
+                t.x,
+                t.y,
+                t.z,
+                r.x,
+                r.y,
+                r.z,
+                p = p
+            )
+        } else {
+            write!(
+                f,
+                "pos=[{:?}, {:?}, {:?}], r=[{:?}, {:?}, {:?}]",
+                t.x, t.y, t.z, r.x, r.y, r.z
+            )
+        }
+    }
+}
+
+#[cfg(feature = "std")]
+impl<T: RealField + LowerExp> LowerExp for Pose<T> {
+    /// ```
+    /// # use magba::*;
+    /// # use nalgebra::UnitQuaternion;
+    /// let mut pose: Pose = Pose::default();
+    /// pose.translate([0.0, 0.0, 1e5]);
+    /// pose.rotate(UnitQuaternion::from_scaled_axis([0.0, std::f64::consts::PI, 0.0].into()));
+    /// assert_eq!(format!("{:.3e}", pose), "pos=[0.000e0, 0.000e0, 1.000e5], r=[0.000e0, 3.142e0, 0.000e0]");
+    /// ```
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let t = &self.isometry.translation.vector;
+        let r = self.isometry.rotation.scaled_axis();
+
+        if let Some(p) = f.precision() {
+            write!(
+                f,
+                "pos=[{:.p$e}, {:.p$e}, {:.p$e}], r=[{:.p$e}, {:.p$e}, {:.p$e}]",
+                t.x,
+                t.y,
+                t.z,
+                r.x,
+                r.y,
+                r.z,
+                p = p
+            )
+        } else {
+            write!(
+                f,
+                "pos=[{:e}, {:e}, {:e}], r=[{:e}, {:e}, {:e}]",
+                t.x, t.y, t.z, r.x, r.y, r.z
+            )
+        }
     }
 }
