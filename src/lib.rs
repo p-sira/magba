@@ -270,10 +270,16 @@ compile_if_valid_feature_flags! {
     use constants::MagneticConstants;
 
     use crate_util::need_feature;
-    need_feature!{"base", 
+    need_feature!{"base",
         pub mod base;
         pub mod collections;
-        pub use collections::Collection;
+
+        // Re-exports
+        pub use crate::base::{Source, Transform};
+
+        pub use crate::collections::Collection;
+        pub use crate::magnets::{CylinderMagnet, CuboidMagnet, Dipole, Magnet};
+        pub use crate::geometry::Pose;
     }
 
     #[cfg(feature = "magnets")]
@@ -282,13 +288,6 @@ compile_if_valid_feature_flags! {
     #[cfg(feature = "sensors")]
     pub mod sensors;
 
-    pub mod prelude {
-        pub use crate::base::{Source, Transform};
-
-        pub use crate::collections::Collection;
-        pub use crate::magnets::{CylinderMagnet, CuboidMagnet, Dipole, Magnet};
-        pub use crate::geometry::Pose;
-    }
 
     #[cfg(test)]
     pub mod testing_util;
