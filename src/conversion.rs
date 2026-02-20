@@ -3,7 +3,7 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-//! Conversion tools for magnetic field-related quantities.
+//! Conversion utilities for magnetic field-related quantities.
 
 use nalgebra::{RealField, Vector3};
 

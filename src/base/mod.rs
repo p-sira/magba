@@ -3,6 +3,8 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
+//! Base traits and behaviors.
+
 mod source;
 pub(crate) mod transform;
 
