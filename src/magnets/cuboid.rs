@@ -57,7 +57,7 @@ crate::testing_util::generate_tests! {
 mod tests {
     use nalgebra::UnitQuaternion;
 
-    use crate::CuboidMagnet;
+    use crate::magnets::CuboidMagnet;
 
     #[test]
     #[should_panic]

@@ -125,7 +125,7 @@ impl<T: Float> Field<T> for Collection<T> {
     fn get_B(&self, points: &[Point3<T>]) -> Vec<Vector3<T>> {
         let mut net_field = vec![Vector3::zeros(); points.len()];
 
-        #[cfg(feature = "parallel")]
+        #[cfg(feature = "rayon")]
         {
             use rayon::prelude::*;
 
@@ -142,7 +142,7 @@ impl<T: Float> Field<T> for Collection<T> {
             });
         }
 
-        #[cfg(not(feature = "parallel"))]
+        #[cfg(not(feature = "rayon"))]
         {
             for source in &self.children {
                 let b_fields = source.get_B(points);

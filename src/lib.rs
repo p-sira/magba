@@ -51,7 +51,7 @@ The available feature flags are:
 //! ## Sources and Collections
 //!
 #![cfg_attr(
-    not(feature = "sources"),
+    not(feature = "magnets"),
     doc = "<div class=\"warning\">This functionality need `sources` feature flag.</div>"
 )]
 //!
@@ -65,8 +65,8 @@ The available feature flags are:
 //! encapsulated in [Box].
 //!
 //! ### Defining Sources and Grouping as MultiSourceCollection
-#![cfg_attr(not(feature = "sources"), doc = "```ignore")]
-#![cfg_attr(feature = "sources", doc = "```")]
+#![cfg_attr(not(feature = "magnets"), doc = "```ignore")]
+#![cfg_attr(feature = "magnets", doc = "```")]
 //! use magba::*;
 //! use nalgebra::*;
 //!
@@ -83,8 +83,8 @@ The available feature flags are:
 //! ```
 //!
 //! ### Stack-allocated Collection
-#![cfg_attr(not(feature = "sources"), doc = "```ignore")]
-#![cfg_attr(feature = "sources", doc = "```")]
+#![cfg_attr(not(feature = "magnets"), doc = "```ignore")]
+#![cfg_attr(feature = "magnets", doc = "```")]
 //! use magba::*;
 //! use nalgebra::*;
 //! use std::f64::consts::PI;
@@ -111,12 +111,12 @@ The available feature flags are:
 //! including [SourceCollection] and [MultiSourceCollection].
 //!
 #![cfg_attr(
-    not(feature = "sources"),
+    not(feature = "magnets"),
     doc = "<div class=\"warning\">This functionality need `sources` feature flag.</div>"
 )]
 //!
-#![cfg_attr(not(feature = "sources"), doc = "```ignore")]
-#![cfg_attr(feature = "sources", doc = "```")]
+#![cfg_attr(not(feature = "magnets"), doc = "```ignore")]
+#![cfg_attr(feature = "magnets", doc = "```")]
 //! use magba::*;
 //! use nalgebra::*;
 //!
@@ -153,12 +153,12 @@ The available feature flags are:
 //! - [Transform::rotate] and [Transform::rotate_anchor]
 //!
 #![cfg_attr(
-    not(feature = "sources"),
+    not(feature = "magnets"),
     doc = "<div class=\"warning\">This functionality need `sources` feature flag.</div>"
 )]
 //!
-#![cfg_attr(not(feature = "sources"), doc = "```ignore")]
-#![cfg_attr(feature = "sources", doc = "```")]
+#![cfg_attr(not(feature = "magnets"), doc = "```ignore")]
+#![cfg_attr(feature = "magnets", doc = "```")]
 //! use magba::*;
 //! use nalgebra::*;
 //! use std::f64::consts::PI;
@@ -242,7 +242,7 @@ compile_error!(
     "The feature flag `no_std` is incompatible with `default`. Please add --no-default-features"
 );
 
-#[cfg(all(feature = "no_std", feature = "parallel"))]
+#[cfg(all(feature = "no_std", feature = "rayon"))]
 compile_error!("The feature flag `parallel` is incompatible with `no_std`.");
 
 macro_rules! compile_if_valid_feature_flags {
@@ -250,7 +250,7 @@ macro_rules! compile_if_valid_feature_flags {
         $(
             #[cfg(not(any(
             all(feature = "no_std", feature = "default"),
-            all(feature = "no_std", feature = "parallel")
+            all(feature = "no_std", feature = "rayon")
         )))]
         $body
         )*
@@ -259,7 +259,6 @@ macro_rules! compile_if_valid_feature_flags {
 
 compile_if_valid_feature_flags! {
     mod crate_util;
-    use crate::crate_util::need_feature;
 
     pub mod constants;
     pub mod conversion;
@@ -270,16 +269,18 @@ compile_if_valid_feature_flags! {
 
     use constants::MagneticConstants;
 
-    need_feature!{"sources",
+    use crate_util::need_feature;
+    need_feature!{"base", 
         pub mod base;
-        pub mod magnets;
         pub mod collections;
-
-        #[doc(inline)]
-        pub use magnets::{CuboidMagnet, CylinderMagnet, Dipole, ZeroMagnet};
-        #[doc(inline)]
         pub use collections::Collection;
     }
+
+    #[cfg(feature = "magnets")]
+    pub mod magnets;
+
+    #[cfg(feature = "sensors")]
+    pub mod sensors;
 
     pub mod prelude {
         pub use crate::base::{Source, Transform};

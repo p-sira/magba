@@ -5,7 +5,7 @@
 
 use enum_dispatch::enum_dispatch;
 
-use crate::{CuboidMagnet, CylinderMagnet, Dipole, ZeroMagnet, base::Float, magnets::Magnet};
+use crate::{magnets::{CuboidMagnet, CylinderMagnet, Dipole, ZeroMagnet}, base::Float, magnets::Magnet};
 
 #[derive(Debug, Clone, PartialEq)]
 #[enum_dispatch(Source<T>, Transform<T>, Field<T>)]

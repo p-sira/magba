@@ -110,7 +110,7 @@ impl<S: Source<T>, T: Float, const N: usize> Field<T> for SourceArray<S, T, N> {
     #[inline]
     fn get_B(&self, points: &[Point3<T>]) -> Vec<Vector3<T>> {
         let mut net_field = vec![Vector3::zeros(); points.len()];
-        #[cfg(feature = "parallel")]
+        #[cfg(feature = "rayon")]
         {
             use rayon::prelude::*;
             let b_fields: Vec<_> = self
@@ -125,7 +125,7 @@ impl<S: Source<T>, T: Float, const N: usize> Field<T> for SourceArray<S, T, N> {
                     .for_each(|(sum, b)| *sum += b)
             });
         }
-        #[cfg(not(feature = "parallel"))]
+        #[cfg(not(feature = "rayon"))]
         {
             for source in &self.children {
                 let b_fields = source.get_B(points);
