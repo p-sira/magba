@@ -4,8 +4,8 @@
  */
 
 use crate::{
-    collections::Component,
     base::{Float, Transform},
+    collections::Component,
     magnets::Magnet,
 };
 use enum_dispatch::enum_dispatch;
@@ -14,7 +14,7 @@ use nalgebra::{Point3, RealField, Vector3};
 /// Trait shared by objects that generate magnetic field.
 #[enum_dispatch]
 #[allow(non_snake_case)]
-pub trait Field<T: RealField> {
+pub trait Field<T: RealField = f64> {
     /// Compute the magnetic field (B) at the given points.
     ///
     /// # Arguments
@@ -26,20 +26,16 @@ pub trait Field<T: RealField> {
 }
 
 #[enum_dispatch]
-/// Magnetic sources that can apply 3D transformations and calculate magnetic fields.
+/// Physical representation of magnetic sources.
 pub trait Source<T: RealField>: Transform<T> + Field<T> + Send + Sync {
     /// A default formatter that behaves like Display.
     /// Override this for custom printouts.
     fn format(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "Source at pos={}, q={}",
-            self.pose().position(),
-            self.pose().orientation()
-        )
+        write!(f, "Source at {}", self.pose())
     }
 }
 
+#[cfg(feature = "std")]
 impl<T: RealField> std::fmt::Display for dyn Source<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         // Delegate to the trait method
