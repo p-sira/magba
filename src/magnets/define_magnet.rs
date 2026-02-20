@@ -149,8 +149,8 @@ macro_rules! define_magnet {
         $(on_new: [ $($on_new:tt)* ])?
     } => {
         $(#[$meta])*
-        #[derive(Debug, Clone, PartialEq)]
-        pub struct $name<T: crate::base::Float> {
+        #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+        pub struct $name<T: crate::base::Float = f64> {
             pose: crate::geometry::Pose<T>,
             $(
                 $arg: $arg_type,
