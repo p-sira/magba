@@ -3,3 +3,4 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
+//! Sensors for measuring magnetic fields.

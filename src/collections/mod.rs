@@ -3,6 +3,8 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
+//! Data structures for grouping and management of magnetic components.
+
 mod collection;
 mod component;
 mod source_array;

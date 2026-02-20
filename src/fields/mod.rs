@@ -4,11 +4,6 @@
  */
 
 //! Analytical computation of magnetic fields for various source geometries.
-//!
-//! ## Item requiring `unstable` features
-//! - `magba::fields::field_cuboid`: Analytical B-field computation for cuboid magnets.
-//! - `magba::fields::field_cylinder`: Analytical B-field computation for cylinder magnets.
-//! - `magba::fields::field_dipole`: Analytical B-field computation for magnetic dipole moment.
 
 crate::crate_util::pub_on_feature! {
     "unstable", mod {
