@@ -89,14 +89,11 @@ impl<T: RealField> From<Isometry3<T>> for Pose<T> {
 }
 
 #[cfg(feature = "std")]
-use std::fmt::{Display, LowerExp};
-
-#[cfg(feature = "std")]
-impl<T: RealField> Display for Pose<T> {
+impl<T: RealField> std::fmt::Display for Pose<T> {
     /// ```
     /// # use magba::*;
     /// let mut pose: Pose = Pose::default();
-    /// assert_eq!(format!("{}", pose), "pos=[0, 0, 0], r=[0, 0, 0]");
+    /// assert_eq!(format!("{}", pose), "pos=[0.0, 0.0, 0.0], r=[0.0, 0.0, 0.0]");
     ///
     /// pose.translate([1.23456, 0.0, 0.0]);
     /// assert_eq!(format!("{:.3}", pose), "pos=[1.235, 0.000, 0.000], r=[0.000, 0.000, 0.000]");
@@ -119,7 +116,7 @@ impl<T: RealField> Display for Pose<T> {
         } else {
             write!(
                 f,
-                "pos=[{:}, {:}, {:}], r=[{:}, {:}, {:}]",
+                "pos=[{:?}, {:?}, {:?}], r=[{:?}, {:?}, {:?}]",
                 t.x, t.y, t.z, r.x, r.y, r.z
             )
         }
@@ -127,7 +124,7 @@ impl<T: RealField> Display for Pose<T> {
 }
 
 #[cfg(feature = "std")]
-impl<T: RealField + LowerExp> LowerExp for Pose<T> {
+impl<T: RealField + std::fmt::LowerExp> std::fmt::LowerExp for Pose<T> {
     /// ```
     /// # use magba::*;
     /// # use nalgebra::UnitQuaternion;
