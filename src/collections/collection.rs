@@ -5,28 +5,51 @@
 
 use std::fmt::Display;
 
-use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
+use nalgebra::{
+    Point3, Translation3, UnitQuaternion, Vector3,
+};
 
 use crate::{
-    collections::component::Component,
     base::{Field, Float, Source, Transform, transform::impl_transform},
+    collections::component::Component,
     crate_util,
     geometry::Pose,
 };
 
+#[macro_export]
+macro_rules! collection {
+    // collection!(magnet1, magnet2, ...)
+    ($($items:expr),* $(,)?) => {{
+        let c: [Component<_>; _] = [$($items.into()),*];
+        magba::Collection::from(c)
+    }};
+}
+
+/// Heap-allocated data structure for grouping [Component].
+///
+/// ### Examples
+///
+/// ```
+/// # use magba::*;
+/// let cylinder = CylinderMagnet::default();
+/// let cuboid = CuboidMagnet::default();
+/// let dipole = Dipole::default();
+///
+/// let collection: Collection = collection!(cylinder, cuboid, dipole);
+/// ```
 #[derive(Debug, Clone)]
-pub struct Collection<T: Float> {
+pub struct Collection<T: Float = f64> {
     pose: Pose<T>,
     children: Vec<Component<T>>,
     offsets: Vec<Pose<T>>,
 }
 
 impl<T: Float> Collection<T> {
-    /// Initialize a new collection.
+    /// Initialize a new collection, keeping the components' coordinates as GLOBAL.
     pub fn new(
         position: Point3<T>,
         orientation: UnitQuaternion<T>,
-        components: Vec<impl Into<Component<T>>>,
+        components: impl IntoIterator<Item = impl Into<Component<T>>>,
     ) -> Self {
         let pose = Pose::new(position, orientation);
         let pose_inv = pose.as_isometry().inverse();
@@ -45,31 +68,26 @@ impl<T: Float> Collection<T> {
         }
     }
 
-    /// Initialize from a vec of components (defaults to origin pose).
-    pub fn from_components(components: Vec<impl Into<Component<T>>>) -> Self {
-        let children: Vec<Component<T>> = components.into_iter().map(|c| c.into()).collect();
-        let offsets: Vec<Pose<T>> = children.iter().map(|c| c.pose().clone()).collect();
-
-        Self {
-            pose: Pose::default(),
-            children,
-            offsets,
-        }
+    /// ```
+    /// # use magba::*;
+    /// let cylinder = CylinderMagnet::default();
+    /// let cuboid = CuboidMagnet::default();
+    /// let dipole = Dipole::default();
+    ///
+    /// let components: [Component; _] = [cylinder.into(), cuboid.into(), dipole.into()];
+    /// let collection = Collection::from(components);
+    /// collection.iter().enumerate().for_each(|(i, &component)| assert_eq!(component, components[i]));
+    /// ```
+    pub fn iter(&self) -> std::slice::Iter<'_, Component<T>> {
+        self.children.iter()
     }
 
-    /// Append a component to the end of the collection.
     pub fn push(&mut self, component: impl Into<Component<T>>) {
         let component: Component<T> = component.into();
         let relative_pose = self.pose.as_isometry().inverse() * component.pose().as_isometry();
 
         self.offsets.push(relative_pose.into());
         self.children.push(component);
-    }
-
-    pub fn extend(&mut self, components: &mut Vec<impl Into<Component<T>>>) {
-        for c in components.drain(..) {
-            self.push(c);
-        }
     }
 
     pub fn set_pose(&mut self, new_pose: impl Into<Pose<T>>) {
@@ -115,6 +133,60 @@ impl<T: Float> Collection<T> {
         let mut new_pose = *self.pose();
         new_pose.rotate_anchor(rotation, anchor);
         self.set_pose(new_pose);
+    }
+}
+
+impl<T: Float> FromIterator<Component<T>> for Collection<T> {
+    fn from_iter<I: IntoIterator<Item = Component<T>>>(iter: I) -> Self {
+        let children: Vec<Component<T>> = iter.into_iter().map(|c| c.into()).collect();
+        let offsets: Vec<Pose<T>> = children.iter().map(|c| c.pose().clone()).collect();
+
+        Self {
+            pose: Pose::default(),
+            children,
+            offsets,
+        }
+    }
+}
+
+impl<T: Float, I: Into<Component<T>>, const N: usize> From<[I; N]> for Collection<T> {
+    fn from(components: [I; N]) -> Self {
+        components.into_iter().map(Into::into).collect()
+    }
+}
+
+impl<T: Float, I: Into<Component<T>>> From<Vec<I>> for Collection<T> {
+    fn from(components: Vec<I>) -> Self {
+        components.into_iter().map(Into::into).collect()
+    }
+}
+
+impl<T: Float> From<&[Component<T>]> for Collection<T> {
+    fn from(components: &[Component<T>]) -> Self {
+        components.iter().cloned().collect()
+    }
+}
+
+impl<T: Float> From<Component<T>> for Collection<T> {
+    fn from(component: Component<T>) -> Self {
+        [component].into()
+    }
+}
+
+impl<'a, T: Float> IntoIterator for &'a Collection<T> {
+    type Item = &'a Component<T>;
+    type IntoIter = std::slice::Iter<'a, Component<T>>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.children.iter()
+    }
+}
+
+impl<T: Float> Extend<Component<T>> for Collection<T> {
+    fn extend<I: IntoIterator<Item = Component<T>>>(&mut self, iter: I) {
+        for component in iter {
+            self.push(component);
+        }
     }
 }
 
@@ -300,7 +372,7 @@ mod partial_eq_tests {
         orient: UnitQuaternion<f64>,
         magnets: Vec<CylinderMagnet<f64>>,
     ) -> Collection<f64> {
-        let components = magnets.into_iter().map(Component::from).collect();
+        let components: Vec<Component> = magnets.iter().map(|&m| m.into()).collect();
         Collection::new(pos, orient, components)
     }
 
