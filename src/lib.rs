@@ -296,8 +296,6 @@ compile_if_valid_feature_flags! {
     const SIZE: usize = 1000;
 }
 
-/* #region: Public Macros */
-
 /// Check if two vectors are close using relative Euclidean distance
 #[macro_export]
 macro_rules! assert_close_vec {
