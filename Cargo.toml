@@ -34,6 +34,7 @@ name = "bench"
 [dependencies]
 concat-idents = "1.1.5"
 delegate = "0.13.5"
+derive_more = { version = "2.1.1", features = ["display"] }
 ellip = { version = "1.0.4", features = ["unstable"] }
 enum_dispatch = "0.3.13"
 itertools = "0.14.0"
