@@ -93,6 +93,7 @@ macro_rules! collection {
         let c: [Component<_>; _] = [$($items.into()),*];
         Collection::from(c)
     }};
+    () => { Collection::default() };
 }
 
 // MARK: From, Into
