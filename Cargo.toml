@@ -50,12 +50,11 @@ rayon = "1.10.0"
 regex = "1.12.2"
 
 [features]
-default = ["std", "base", "magnets", "sensors", "rayon", "macros"]
+default = ["std", "base", "magnets", "sensors", "rayon"]
 std = []
 no_std = []
 rayon = ["dep:rayon", "nalgebra/rayon"]
 base = []
 magnets = ["base"]
 sensors = ["base"]
-macros = ["base"]
 unstable = []
