@@ -5,12 +5,15 @@
 
 use enum_dispatch::enum_dispatch;
 
-use crate::{magnets::{CuboidMagnet, CylinderMagnet, Dipole, ZeroMagnet}, base::Float, magnets::Magnet};
+use crate::{
+    base::Float,
+    magnets::{CuboidMagnet, CylinderMagnet, Dipole, Magnet, ZeroMagnet},
+};
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 #[enum_dispatch(Source<T>, Transform<T>, Field<T>)]
 /// High-level component type used by collections.
-pub enum Component<T: Float> {
+pub enum Component<T: Float = f64> {
     Magnet(Magnet<T>),
 }
 
@@ -30,3 +33,5 @@ macro_rules! impl_transitive_from {
 }
 
 impl_transitive_from!(CylinderMagnet, CuboidMagnet, Dipole, ZeroMagnet);
+
+impl<T: Float> Eq for Component<T> {}
