@@ -91,7 +91,7 @@ macro_rules! collection {
     // collection!(magnet1, magnet2, ...)
     ($($items:expr),* $(,)?) => {{
         let c: [Component<_>; _] = [$($items.into()),*];
-        magba::Collection::from(c)
+        Collection::from(c)
     }};
 }
 
