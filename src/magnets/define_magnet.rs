@@ -212,6 +212,7 @@ macro_rules! define_magnet {
         }
 
         impl<T: crate::base::Float> crate::base::Source<T> for $name<T> {
+            #[cfg(feature = "std")]
             fn format(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 write!(
                     f,
@@ -219,11 +220,10 @@ macro_rules! define_magnet {
                         stringify!($name),
                         " (",
                         $arg_display,
-                        ") at pos={}, q={}"
+                        ") at {}"
                     ),
                     $(crate::crate_util::$arg_fmt!(&self.$arg),)*
-                    crate::crate_util::format_point3!(&self.position()),
-                    crate::crate_util::format_quat!(&self.orientation())
+                    self.pose
                 )
             }
         }
@@ -241,7 +241,7 @@ macro_rules! define_magnet {
             }
         }
 
-        #[cfg(not(feature = "no_std"))]
+        #[cfg(feature = "std")]
         impl<T: crate::base::Float> std::fmt::Display for $name<T> {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 <Self as crate::base::Source<T>>::format(self, f)
