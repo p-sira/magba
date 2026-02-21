@@ -12,7 +12,13 @@ use crate::{
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 #[enum_dispatch(Source<T>, Transform<T>, Field<T>)]
-/// High-level component type used by collections.
+/// Components that can be grouped into collections.
+///
+/// ```
+/// # use magba::*;
+/// let magnet: Component = CylinderMagnet::default().into();
+/// let collection = Collection::from(magnet);
+/// ```
 pub enum Component<T: Float = f64> {
     Magnet(Magnet<T>),
 }
