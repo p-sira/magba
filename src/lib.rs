@@ -275,10 +275,9 @@ compile_if_valid_feature_flags! {
         pub mod collections;
 
         // Re-exports
-        pub use crate::base::{Source, Transform};
-
-        pub use crate::collections::Collection;
-        pub use crate::magnets::{CylinderMagnet, CuboidMagnet, Dipole, Magnet};
+        pub use crate::base::*;
+        pub use crate::collections::*;
+        pub use crate::magnets::*;
         pub use crate::geometry::Pose;
     }
 
