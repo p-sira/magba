@@ -200,6 +200,16 @@ macro_rules! define_magnet {
             }
 
             crate::geometry::pose::delegate_to_pose!();
+
+            pub fn with_position(mut self, position: impl Into<nalgebra::Point3<T>>) -> Self {
+                self.set_position(position.into());
+                self
+            }
+
+            pub fn with_orientation(mut self, orientation: nalgebra::UnitQuaternion<T>) -> Self {
+                self.set_orientation(orientation);
+                self
+            }
         }
 
         impl<T: crate::base::Float> Default for $name<T> {
