@@ -158,3 +158,20 @@ impl<T: RealField + std::fmt::LowerExp> std::fmt::LowerExp for Pose<T> {
         }
     }
 }
+
+macro_rules! delegate_to_pose {
+    () => {
+        delegate::delegate! {
+            to self.pose {
+                pub fn position(&self) -> nalgebra::Point3<T>;
+                pub fn orientation(&self) -> nalgebra::UnitQuaternion<T>;
+                pub fn set_position(&mut self, position: impl Into<nalgebra::Translation3<T>>);
+                pub fn set_orientation(&mut self, orientation: nalgebra::UnitQuaternion<T>);
+                pub fn translate(&mut self, translation: impl Into<nalgebra::Translation3<T>>);
+                pub fn rotate(&mut self, rotation: nalgebra::UnitQuaternion<T>);
+                pub fn rotate_anchor(&mut self, rotation: nalgebra::UnitQuaternion<T>, anchor: impl Into<nalgebra::Point3<T>>);
+            }
+        }
+    };
+}
+pub(crate) use delegate_to_pose;

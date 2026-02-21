@@ -77,7 +77,7 @@
 ///
 macro_rules! define_magnet {
 
-    // --- Helpers ---
+    // MARK: Helpers
     (@arg_into $arg:expr) => { $arg.into() };
     (@arg_into $arg:expr, val) => { $arg };
     (@arg_type_decl $arg_type:ty) => { impl Into<$arg_type> };
@@ -85,7 +85,7 @@ macro_rules! define_magnet {
     (@pass_arg $arg:expr) => { &$arg };
     (@pass_arg $arg:expr, val) => { $arg };
 
-    // --- Methods ---
+    // MARK: Get, Set, With
     (@getters $struct_name:ident, $(($arg:ident, $arg_type:ty))*) => {
         impl<T: crate::base::Float> $struct_name<T> {
             $(
@@ -133,7 +133,7 @@ macro_rules! define_magnet {
         }
     };
 
-    // --- Main Pattern ---
+    // MARK: Main Entry
     {
         $(#[$meta:meta])*
         $name:ident
@@ -199,7 +199,7 @@ macro_rules! define_magnet {
                 }
             }
 
-            crate::base::transform::delegate_to_pose!();
+            crate::geometry::pose::delegate_to_pose!();
         }
 
         impl<T: crate::base::Float> Default for $name<T> {
