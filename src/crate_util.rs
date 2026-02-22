@@ -118,21 +118,21 @@ pub fn is_elem_close(vec1: &Vector3<f64>, vec2: &Vector3<f64>, rtol: f64) -> Opt
     if n_fail > 0 { Some(n_fail) } else { None }
 }
 
-need_std! {
-    macro_rules! format_point3 {
-        ($p: expr) => {
-            format!("[{}, {}, {}]", $p[0], $p[1], $p[2])
-        };
-    }
-    pub(crate) use format_point3;
+// need_std! {
+//     macro_rules! format_point3 {
+//         ($p: expr) => {
+//             format!("[{}, {}, {}]", $p[0], $p[1], $p[2])
+//         };
+//     }
+//     pub(crate) use format_point3;
 
-    macro_rules! format_quat {
-        ($q: expr) => {
-            format!("[{}, {}, {}, {}]", $q[0], $q[1], $q[2], $q[3])
-        };
-    }
-    pub(crate) use format_quat;
-}
+//     macro_rules! format_quat {
+//         ($q: expr) => {
+//             format!("[{}, {}, {}, {}]", $q[0], $q[1], $q[2], $q[3])
+//         };
+//     }
+//     pub(crate) use format_quat;
+// }
 
 macro_rules! format_float {
     ($v: expr) => {
