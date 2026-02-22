@@ -377,8 +377,7 @@ mod partial_eq_tests {
     use std::f64::consts::FRAC_PI_2;
 
     use super::*;
-    use crate::{magnets::*, testing_util::quat_from_rotvec};
-    use nalgebra::{point, vector};
+    use crate::magnets::*;
 
     fn magnet1() -> CylinderMagnet<f64> {
         CylinderMagnet::default()
@@ -387,13 +386,12 @@ mod partial_eq_tests {
     }
 
     fn magnet2() -> CylinderMagnet<f64> {
-        CylinderMagnet::new(
-            point![4.0, 5.0, 6.0],
-            quat_from_rotvec(FRAC_PI_2, 0.0, 0.0),
-            vector![7.0, 8.0, 9.0],
-            0.3,
-            0.4,
-        )
+        CylinderMagnet::default()
+            .with_orientation(UnitQuaternion::from_scaled_axis(
+                [FRAC_PI_2, 0.0, 0.0].into(),
+            ))
+            .with_diameter(0.3)
+            .with_height(0.4)
     }
 
     #[test]
@@ -419,6 +417,13 @@ mod partial_eq_tests {
         let c3 = collection!(magnet1(), magnet2());
         assert_ne!(c1, c2);
         assert_ne!(c1, c3);
+    }
+
+    #[test]
+    fn test_different_types() {
+        let c1 = collection!(magnet1(), magnet2());
+        let c2 = collection!(magnet1(), CuboidMagnet::default());
+        assert_ne!(c1, c2);
     }
 
     #[test]
