@@ -333,40 +333,37 @@ impl<T: Float> Display for Collection<T> {
     }
 }
 
+// MARK: Test Display
+
 #[cfg(test)]
-mod base_source_collection_tests {
+mod display_tests {
     use std::f64::consts::FRAC_PI_2;
 
     use super::*;
     use crate::{magnets::*, testing_util::*};
-    use nalgebra::{point, vector};
 
     #[test]
     fn test_collection_display() {
-        let magnet1 = CylinderMagnet::new(
-            point![4.0, 5.0, 6.0],
-            UnitQuaternion::identity(),
-            vector![1.0, 2.0, 3.0],
-            0.1,
-            0.3,
-        );
-        let magnet2 = CylinderMagnet::new(
-            point![10.0, 11.0, 12.0],
-            quat_from_rotvec(FRAC_PI_2, 0.0, 0.0),
-            vector![7.0, 8.0, 9.0],
-            0.1,
-            0.3,
-        );
+        let m1 = CylinderMagnet::default()
+            .with_polarization([1.0, 2.0, 3.0])
+            .with_diameter(0.1)
+            .with_height(0.3);
+        let m2: Dipole = Dipole::default();
+        let m3 = CuboidMagnet::default()
+            .with_position([4.0, 5.0, 6.0])
+            .with_orientation(UnitQuaternion::from_scaled_axis(
+                [FRAC_PI_2, 0.0, 0.0].into(),
+            ));
 
-        let collection = Collection::<f64>::new(
-            Point3::origin(),
-            UnitQuaternion::identity(),
-            vec![magnet1, magnet2],
-        );
+        let collection = collection!(m1, m2, m3);
 
-        assert_eq!("Collection (2 children) at pos=[0.0, 0.0, 0.0], r=[0.0, 0.0, 0.0]
-├── 0: CylinderMagnet (pol=[1, 2, 3], d=0.1, h=0.3) at pos=[4.0, 5.0, 6.0], r=[0.0, 0.0, 0.0]
-└── 1: CylinderMagnet (pol=[7, 8, 9], d=0.1, h=0.3) at pos=[10.0, 11.0, 12.0], r=[<float>, 0.0, 0.0]", mask_long_floats(&format!("{}", collection)))
+        assert_eq!(
+            "Collection (3 children) at pos=[0.0, 0.0, 0.0], r=[0.0, 0.0, 0.0]
+├── 0: CylinderMagnet (pol=[1, 2, 3], d=0.1, h=0.3) at pos=[0.0, 0.0, 0.0], r=[0.0, 0.0, 0.0]
+├── 1: Dipole (m=[0, 0, 1]) at pos=[0.0, 0.0, 0.0], r=[0.0, 0.0, 0.0]
+└── 2: CuboidMagnet (pol=[0, 0, 1], dim=[1, 1, 1]) at pos=[4.0, 5.0, 6.0], r=[<float>, 0.0, 0.0]",
+            mask_long_floats(&format!("{}", collection))
+        )
     }
 }
 
