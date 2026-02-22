@@ -10,7 +10,7 @@ use crate::{
     magnets::{CuboidMagnet, CylinderMagnet, Dipole, Magnet, ZeroMagnet},
 };
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 #[enum_dispatch(Source<T>, Transform<T>, Field<T>)]
 /// Components that can be grouped into collections.
 ///
