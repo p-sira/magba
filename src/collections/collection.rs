@@ -84,6 +84,30 @@ impl<T: Float> Default for Collection<T> {
     }
 }
 
+// MARK: With builders
+
+impl<T: Float> Collection<T> {
+    pub fn with(mut self, component: impl Into<Component<T>>) -> Self {
+        self.push(component);
+        self
+    }
+
+    pub fn with_position(mut self, position: impl Into<Translation3<T>>) -> Self {
+        self.set_position(position);
+        self
+    }
+
+    pub fn with_orientation(mut self, orientation: UnitQuaternion<T>) -> Self {
+        self.set_orientation(orientation);
+        self
+    }
+
+    pub fn with_pose(mut self, pose: impl Into<Pose<T>>) -> Self {
+        self.set_pose(pose);
+        self
+    }
+}
+
 // MARK: Macro
 
 #[macro_export]
@@ -348,7 +372,7 @@ mod base_source_collection_tests {
     }
 }
 
-// MARK: Test
+// MARK: Test PartialEq
 
 #[cfg(test)]
 mod partial_eq_tests {
@@ -399,16 +423,8 @@ mod partial_eq_tests {
 
     #[test]
     fn test_equal() {
-        let c1 = collection(
-            Point3::origin(),
-            UnitQuaternion::identity(),
-            vec![magnet1(), magnet2()],
-        );
-        let c2 = collection(
-            Point3::origin(),
-            UnitQuaternion::identity(),
-            vec![magnet1(), magnet2()],
-        );
+        let c1 = collection!(magnet1(), magnet2());
+        let c2 = collection!(magnet1(), magnet2());
         assert_eq!(c1, c2);
     }
 
