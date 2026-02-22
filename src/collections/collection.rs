@@ -10,7 +10,6 @@ use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 use crate::{
     base::{Field, Float, Source, Transform, transform::impl_transform},
     collections::component::Component,
-    crate_util,
     geometry::Pose,
 };
 
@@ -313,10 +312,9 @@ impl<T: Float> Display for Collection<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(
             f,
-            "Collection ({} children) at pos={}, q={}",
+            "Collection ({} children) at {}",
             self.children.len(),
-            crate_util::format_point3!(self.position()),
-            crate_util::format_quat!(self.orientation())
+            self.pose()
         )?;
 
         for (i, source) in self.children.iter().enumerate() {
@@ -366,9 +364,9 @@ mod base_source_collection_tests {
             vec![magnet1, magnet2],
         );
 
-        assert_eq!("Collection (2 children) at pos=[0, 0, 0], q=[0, 0, 0, 1]
-├── 0: CylinderMagnet (pol=[1, 2, 3], d=0.1, h=0.3) at pos=[4, 5, 6], q=[0, 0, 0, 1]
-└── 1: CylinderMagnet (pol=[7, 8, 9], d=0.1, h=0.3) at pos=[10, 11, 12], q=[<float>, 0, 0, <float>]", mask_long_floats(&format!("{}", collection)))
+        assert_eq!("Collection (2 children) at pos=[0.0, 0.0, 0.0], r=[0.0, 0.0, 0.0]
+├── 0: CylinderMagnet (pol=[1, 2, 3], d=0.1, h=0.3) at pos=[4.0, 5.0, 6.0], r=[0.0, 0.0, 0.0]
+└── 1: CylinderMagnet (pol=[7, 8, 9], d=0.1, h=0.3) at pos=[10.0, 11.0, 12.0], r=[<float>, 0.0, 0.0]", mask_long_floats(&format!("{}", collection)))
     }
 }
 
