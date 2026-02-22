@@ -5,7 +5,12 @@
 
 //! Provides the [`Transform`] trait and macros for implementing it.
 
-use crate::{base::Float, collections::Component, geometry::Pose, magnets::*};
+use crate::{
+    base::{Float, Source},
+    collections::Component,
+    geometry::Pose,
+    magnets::*,
+};
 use enum_dispatch::enum_dispatch;
 use nalgebra::RealField;
 
@@ -25,7 +30,7 @@ pub trait Transform<T: RealField> {
 }
 
 macro_rules! impl_transform {
-    ($name:ident < $( $args:ident ),* > where $( $bounds:tt )* ) => {
+    ($name:ident < $( $args:ty ),* > where $( $bounds:tt )* ) => {
         impl< $( $bounds )* > crate::base::transform::Transform<T> for $name< $( $args ),* > {
             fn pose(&self) -> &crate::geometry::Pose<T> {
                 &self.pose
@@ -40,7 +45,7 @@ macro_rules! impl_transform {
 pub(crate) use impl_transform;
 
 macro_rules! impl_group_transform {
-    ($name:ident < $( $args:ident ),* > where $( $bounds:tt )* ) => {
+    ($name:ident < $( $args:ty ),* > where $( $bounds:tt )* ) => {
         impl< $( $bounds )* > $name< $( $args ),*> {
             pub fn set_pose(&mut self, new_pose: impl Into<Pose<T>>) {
                 self.pose = new_pose.into();
