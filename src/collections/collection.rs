@@ -455,34 +455,36 @@ mod partial_eq_tests {
     }
 }
 
+// MARK: Test Field
+
 #[cfg(test)]
 mod cylinder_collection_tests {
     use std::f64::consts::PI;
 
     use super::*;
     use crate::{magnets::*, testing_util::*};
-    use nalgebra::{Translation3, point, vector};
+    use nalgebra::{Translation3, point};
 
     fn get_collection() -> Collection<f64> {
         let mut collection = Collection::default();
         collection.push(CylinderMagnet::new(
-            point![0.009389999999999999, 0.0, -0.006],
-            quat_from_rotvec(1.2091995761561452, 1.209199576156145, 1.2091995761561452),
-            vector![1.0, 2.0, 3.0],
+            [0.0094, 0.0, -0.006],
+            quat_from_rotvec(1.2092, 1.2092, 1.2092),
+            [1.0, 2.0, 3.0],
             3e-3,
             4e-3,
         ));
         collection.push(CylinderMagnet::new(
-            point![-0.004694999999999998, 0.008131978541535878, -0.006],
-            quat_from_rotvec(1.5315599088338596, 0.41038024073191587, 0.4103802407319159),
-            vector![0.4, 0.5, 0.6],
+            [-0.0047, 0.0081, -0.006],
+            quat_from_rotvec(1.5316, 0.4104, 0.4104),
+            [0.4, 0.5, 0.6],
             4e-3,
             5e-3,
         ));
         collection.push(CylinderMagnet::new(
-            point![-0.004695000000000004, -0.008131978541535875, -0.006],
-            quat_from_rotvec(1.5315599088338594, -0.410380240731917, -0.41038024073191703),
-            vector![0.9, 0.8, 0.6],
+            [-0.0047, -0.0081, -0.006],
+            quat_from_rotvec(1.5316, -0.4104, -0.4104),
+            [0.9, 0.8, 0.6],
             5e-3,
             6e-3,
         ));
