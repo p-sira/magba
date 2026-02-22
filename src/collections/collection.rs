@@ -10,7 +10,7 @@ use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 use crate::{
     base::{Field, Float, Source, Transform, transform::impl_transform},
     collections::component::Component,
-    geometry::Pose,
+    geometry::Pose, transform::impl_group_transform,
 };
 
 // MARK: Base
@@ -190,53 +190,7 @@ impl<T: Float> Extend<Component<T>> for Collection<T> {
 // MARK: Transform
 
 impl_transform!(Collection<T> where T: Float);
-
-impl<T: Float> Collection<T> {
-    pub fn set_pose(&mut self, new_pose: impl Into<Pose<T>>) {
-        self.pose = new_pose.into();
-        for (child, offset) in self.children.iter_mut().zip(&self.offsets) {
-            let global_isometry = self.pose.as_isometry() * offset.as_isometry();
-            child.set_pose(global_isometry.into());
-        }
-    }
-
-    delegate::delegate! {
-        to self.pose {
-            pub fn position(&self) -> Point3<T>;
-            pub fn orientation(&self) -> UnitQuaternion<T>;
-        }
-    }
-
-    pub fn set_position(&mut self, position: impl Into<Translation3<T>>) {
-        let mut new_pose = *self.pose();
-        new_pose.set_position(position);
-        self.set_pose(new_pose);
-    }
-
-    pub fn set_orientation(&mut self, orientation: UnitQuaternion<T>) {
-        let mut new_pose = *self.pose();
-        new_pose.set_orientation(orientation);
-        self.set_pose(new_pose);
-    }
-
-    pub fn translate(&mut self, translation: impl Into<Translation3<T>>) {
-        let mut new_pose = *self.pose();
-        new_pose.translate(translation);
-        self.set_pose(new_pose);
-    }
-
-    pub fn rotate(&mut self, rotation: UnitQuaternion<T>) {
-        let mut new_pose = *self.pose();
-        new_pose.rotate(rotation);
-        self.set_pose(new_pose);
-    }
-
-    pub fn rotate_anchor(&mut self, rotation: UnitQuaternion<T>, anchor: impl Into<Point3<T>>) {
-        let mut new_pose = *self.pose();
-        new_pose.rotate_anchor(rotation, anchor);
-        self.set_pose(new_pose);
-    }
-}
+impl_group_transform!(Collection<T> where T: Float);
 
 // MARK: Field, Source
 
