@@ -17,13 +17,10 @@ use nalgebra::RealField;
 /// Trait shared by objects that can return [Pose].
 #[enum_dispatch]
 pub trait Transform<T: RealField> {
-    /// Get the pose object.
     fn pose(&self) -> &Pose<T>;
 
-    /// Get the mutable pose object.
     fn pose_mut(&mut self) -> &mut Pose<T>;
 
-    /// Set the pose.
     fn set_pose(&mut self, pose: Pose<T>) {
         *self.pose_mut() = pose;
     }
