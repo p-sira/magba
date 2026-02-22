@@ -13,6 +13,24 @@ use crate::{
     transform::impl_group_transform,
 };
 
+#[macro_export]
+macro_rules! sources {
+    ($($items:expr),*) => {
+        SourceArray::new([0.0; 3], nalgebra::UnitQuaternion::identity(), [$($items),*])
+    };
+}
+
+/// Stack-allocated data structure for grouping homogeneous [Source].
+///
+/// ### Examples
+///
+/// ```
+/// # use magba::*;
+/// let cuboid1 = CuboidMagnet::default();
+/// let cuboid2 = cuboid1.clone().with_position([0.0, 1.0, 0.0]);
+///
+/// let source_array = sources!(cuboid1, cuboid2);
+/// ```
 #[derive(Debug, Clone)]
 pub struct SourceArray<S: Source<T>, T: Float, const N: usize> {
     pose: Pose<T>,
@@ -21,9 +39,12 @@ pub struct SourceArray<S: Source<T>, T: Float, const N: usize> {
 }
 
 impl<S: Source<T>, T: Float, const N: usize> SourceArray<S, T, N> {
-    /// Initialize [SourceCollection].
-    pub fn new(position: Point3<T>, orientation: UnitQuaternion<T>, sources: [S; N]) -> Self {
-        let pose = Pose::new(position, orientation);
+    pub fn new(
+        position: impl Into<Point3<T>>,
+        orientation: UnitQuaternion<T>,
+        sources: [S; N],
+    ) -> Self {
+        let pose = Pose::new(position.into(), orientation);
         let pose_inv = pose.as_isometry().inverse();
 
         let offsets = core::array::from_fn(|i| (pose_inv * sources[i].pose().as_isometry()).into());
