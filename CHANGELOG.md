@@ -28,8 +28,8 @@
 - Introduce `Pose` struct to handle position/orientation logic centrally. `Source` delegates transformation logic here.
 
 **Developer Experience**
-- Introduce `prelude` module, containing essential traits and commonly used structs.
-- Add builder methods (`with_*`) to all magnet structs.
+- Most arguments now implement Into for automatic conversion from `std` types to `nalgebra` types.
+- Add builder methods (`with_*`) to all magnet and collection structs.
 - Add input validation for all constructors and setters.
 
 #### Improvements
