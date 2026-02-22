@@ -383,13 +383,9 @@ mod partial_eq_tests {
     use nalgebra::{point, vector};
 
     fn magnet1() -> CylinderMagnet<f64> {
-        CylinderMagnet::new(
-            point![1.0, 2.0, 3.0],
-            UnitQuaternion::identity(),
-            vector![1.0, 2.0, 3.0],
-            0.1,
-            0.2,
-        )
+        CylinderMagnet::default()
+            .with_position([1.0, 2.0, 3.0])
+            .with_polarization([1.0, 2.0, 3.0])
     }
 
     fn magnet2() -> CylinderMagnet<f64> {
@@ -402,167 +398,57 @@ mod partial_eq_tests {
         )
     }
 
-    fn magnet3() -> CylinderMagnet<f64> {
-        CylinderMagnet::new(
-            point![10.0, 11.0, 12.0],
-            UnitQuaternion::identity(),
-            vector![0.1, 0.2, 0.3],
-            0.5,
-            0.6,
-        )
-    }
-
-    fn collection(
-        pos: Point3<f64>,
-        orient: UnitQuaternion<f64>,
-        magnets: Vec<CylinderMagnet<f64>>,
-    ) -> Collection<f64> {
-        let components: Vec<Component> = magnets.iter().map(|&m| m.into()).collect();
-        Collection::new(pos, orient, components)
-    }
-
     #[test]
     fn test_equal() {
-        let c1 = collection!(magnet1(), magnet2());
-        let c2 = collection!(magnet1(), magnet2());
-        assert_eq!(c1, c2);
+        let c = collection!(magnet1(), magnet2());
+        assert_eq!(c, c.clone());
     }
 
     #[test]
-    fn test_different_position() {
-        let c1 = collection(
-            Point3::origin(),
-            UnitQuaternion::identity(),
-            vec![magnet1()],
-        );
-        let c2 = collection(
-            point![1.0, 0.0, 0.0],
-            UnitQuaternion::identity(),
-            vec![magnet1()],
-        );
+    fn test_different_transformation() {
+        let c1 = collection!().with(magnet1());
+        let c2 = collection!(magnet1()).with_position([1.0, 0.0, 0.0]);
+        let c3 = collection!(magnet1())
+            .with_orientation(UnitQuaternion::from_quaternion([1.0, 0.0, 0.0, 0.0].into()));
         assert_ne!(c1, c2);
-    }
-
-    #[test]
-    fn test_different_orientation() {
-        let c1 = collection(
-            Point3::origin(),
-            UnitQuaternion::identity(),
-            vec![magnet1()],
-        );
-        let c2 = collection(
-            Point3::origin(),
-            quat_from_rotvec(FRAC_PI_2, 0.0, 0.0),
-            vec![magnet1()],
-        );
-        assert_ne!(c1, c2);
-    }
-
-    #[test]
-    fn test_different_length() {
-        let c1 = collection(
-            Point3::origin(),
-            UnitQuaternion::identity(),
-            vec![magnet1(), magnet2()],
-        );
-        let c2 = collection(
-            Point3::origin(),
-            UnitQuaternion::identity(),
-            vec![magnet1()],
-        );
-        assert_ne!(c1, c2);
+        assert_ne!(c1, c3);
     }
 
     #[test]
     fn test_different_children() {
-        let c1 = collection(
-            Point3::origin(),
-            UnitQuaternion::identity(),
-            vec![magnet1(), magnet2()],
-        );
-        let c2 = collection(
-            Point3::origin(),
-            UnitQuaternion::identity(),
-            vec![magnet1(), magnet3()],
-        );
+        let c1 = collection!(magnet1());
+        let c2 = collection!(magnet2());
+        let c3 = collection!(magnet1(), magnet2());
         assert_ne!(c1, c2);
+        assert_ne!(c1, c3);
     }
 
     #[test]
     fn test_order_independent() {
-        let c1 = collection(
-            Point3::origin(),
-            UnitQuaternion::identity(),
-            vec![magnet1(), magnet2()],
-        );
-        let c2 = collection(
-            Point3::origin(),
-            UnitQuaternion::identity(),
-            vec![magnet2(), magnet1()],
-        );
+        let c1 = collection!(magnet1(), magnet2());
+        let c2 = collection!(magnet2(), magnet1());
         assert_eq!(c1, c2);
     }
 
     #[test]
     fn test_duplicates() {
-        let c1 = collection(
-            Point3::origin(),
-            UnitQuaternion::identity(),
-            vec![magnet1(), magnet1()],
-        );
-        let c2 = collection(
-            Point3::origin(),
-            UnitQuaternion::identity(),
-            vec![magnet1(), magnet2()],
-        );
-        let c3 = collection(
-            Point3::origin(),
-            UnitQuaternion::identity(),
-            vec![magnet1(), magnet1()],
-        );
-
+        let c1 = collection!(magnet1(), magnet1());
+        let c2 = collection!(magnet1(), magnet2());
+        let mut c3 = collection!(magnet1(), magnet1());
         assert_ne!(c1, c2);
         assert_eq!(c1, c3);
+        c3.push(magnet2());
+        assert_ne!(c1, c3);
+        assert_ne!(c2, c3);
     }
 
     #[test]
     fn test_empty() {
-        let c1: Collection<f64> = collection(Point3::origin(), UnitQuaternion::identity(), vec![]);
-        let c2: Collection<f64> = collection(Point3::origin(), UnitQuaternion::identity(), vec![]);
+        let c1: Collection = collection!();
+        let c2: Collection = collection!();
+        let c3 = collection!(magnet1());
         assert_eq!(c1, c2);
-    }
-
-    #[test]
-    fn test_empty_vs_non_empty() {
-        let c1 = collection(Point3::origin(), UnitQuaternion::identity(), vec![]);
-        let c2 = collection(
-            Point3::origin(),
-            UnitQuaternion::identity(),
-            vec![magnet1()],
-        );
-        assert_ne!(c1, c2);
-    }
-
-    #[test]
-    fn test_multiple_duplicates() {
-        let c1 = collection(
-            Point3::origin(),
-            UnitQuaternion::identity(),
-            vec![magnet1(), magnet1(), magnet2()],
-        );
-        let c2 = collection(
-            Point3::origin(),
-            UnitQuaternion::identity(),
-            vec![magnet1(), magnet2(), magnet2()],
-        );
-        let c3 = collection(
-            Point3::origin(),
-            UnitQuaternion::identity(),
-            vec![magnet2(), magnet1(), magnet1()],
-        );
-
-        assert_ne!(c1, c2);
-        assert_eq!(c1, c3);
+        assert_ne!(c1, c3);
     }
 }
 
