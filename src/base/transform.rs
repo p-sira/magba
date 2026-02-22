@@ -5,7 +5,7 @@
 
 //! Provides the [`Transform`] trait and macros for implementing it.
 
-use crate::{collections::Component, base::Float, magnets::Magnet, magnets::*};
+use crate::{base::Float, collections::Component, geometry::Pose, magnets::*};
 use enum_dispatch::enum_dispatch;
 use nalgebra::RealField;
 
@@ -38,5 +38,3 @@ macro_rules! impl_transform {
     };
 }
 pub(crate) use impl_transform;
-
-use crate::geometry::Pose;
