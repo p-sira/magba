@@ -92,7 +92,7 @@ impl<S: Source<T>, T: Float, const N: usize> SourceArray<S, T, N> {
     }
 }
 
-impl<S: Source<T>, T: Float, const N: usize> Source<T> for SourceArray<S, T, N> {}
+impl<S: Source<T> + Clone, T: Float, const N: usize> Source<T> for SourceArray<S, T, N> {}
 
 impl_transform!(SourceArray<S, T, N> where S: Source<T>, T: Float, const N: usize);
 
