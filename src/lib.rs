@@ -104,10 +104,6 @@ pub mod sensors;
 #[cfg(test)]
 pub mod testing_util;
 
-#[cfg(not(feature = "std"))]
-/// Size of fixed-size arrays used in no-allocation environments.
-const SIZE: usize = 1000;
-
 /// Check if two vectors are close using relative Euclidean distance
 #[macro_export]
 macro_rules! assert_close_vec {
