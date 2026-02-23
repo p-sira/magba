@@ -6,6 +6,21 @@
 use crate::magnets::define_magnet::define_magnet;
 
 define_magnet! {
+    /// Placeholder magnet type with zero field.
+    ///
+    /// # Fields
+    ///
+    /// - `position`: Position of the dipole (m)
+    /// - `orientation`: Orientation as unit quaternion
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use magba::*;
+    /// # use nalgebra::{Point3, Vector3};
+    /// let zero: ZeroMagnet = ZeroMagnet::default();
+    /// assert_eq!(zero.get_B(&[Point3::origin()])[0], Vector3::zeros());
+    /// ```
     ZeroMagnet
     field_fn: zero_field
     args: {}
