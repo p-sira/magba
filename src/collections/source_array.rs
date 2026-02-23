@@ -59,7 +59,7 @@ impl<S: Source<T>, T: Float, const N: usize> SourceArray<S, T, N> {
 
     /// Initialize [SourceCollection] from a vec of homogeneous [Source].
     pub fn from_sources(sources: [S; N]) -> Self {
-        let offsets = core::array::from_fn(|i| sources[i].pose().clone());
+        let offsets = core::array::from_fn(|i| *sources[i].pose());
 
         Self {
             pose: Pose::default(),
