@@ -20,7 +20,7 @@ pub(crate) use need_feature;
 macro_rules! need_std {
     ($($body:item)*) => {
         $(
-            #[cfg(not(feature = "no_std"))]
+            #[cfg(feature = "std")]
             $body
         )*
     };
@@ -29,7 +29,7 @@ pub(crate) use need_std;
 
 macro_rules! eprint_if_std {
     ($($args:expr),* $(,)?) => {
-        #[cfg(not(feature = "no_std"))]
+        #[cfg(feature = "std")]
         eprintln!(
             $($args,)*
         );
@@ -47,7 +47,7 @@ macro_rules! return_vec_or_array {
             $($body:tt)*
         }
     ) => {
-        #[cfg(not(feature = "no_std"))]
+        #[cfg(feature = "std")]
         $(#[$attr])*
         $vis fn $name<$($generics)*>(
             $($arg: $arg_ty),*
@@ -55,7 +55,7 @@ macro_rules! return_vec_or_array {
             $($body)*
         }
 
-        #[cfg(feature = "no_std")]
+        #[cfg(not(feature = "std"))]
         $(#[$attr])*
         $vis fn $name<$($generics)*>(
             $($arg: $arg_ty),*
@@ -198,7 +198,7 @@ macro_rules! impl_parallel {
                     .collect();
             }
 
-            #[cfg(not(feature = "no_std"))]
+            #[cfg(feature = "std")]
             {
                 $items
                     .iter()
@@ -206,7 +206,7 @@ macro_rules! impl_parallel {
                     .collect()
             }
 
-            #[cfg(feature = "no_std")]
+            #[cfg(not(feature = "std"))]
             {
                 let mut results = [Vector3::zeros(); crate::SIZE];
                 $items
