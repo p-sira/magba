@@ -3,7 +3,7 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-use std::usize;
+use std::{fmt::Display, usize};
 
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
@@ -121,3 +121,30 @@ impl<S: Source<T>, T: Float, const N: usize> Field<T> for SourceArray<S, T, N> {
 impl<S: Source<T> + Clone, T: Float, const N: usize> Source<T> for SourceArray<S, T, N> {}
 
 // MARK: From, Into
+
+// MARK: Display
+
+impl<S: Source<T>, T: Float, const N: usize> Display for SourceArray<S, T, N> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(
+            f,
+            "Source Array ({} children) at {}",
+            self.children.len(),
+            self.pose()
+        )?;
+
+        for (i, source) in self.children.iter().enumerate() {
+            if i != 0 {
+                writeln!(f)?;
+            }
+            let prefix = if i + 1 != self.children.len() {
+                "├──"
+            } else {
+                "└──"
+            };
+            write!(f, "{} {}: ", prefix, i)?;
+            source.format(f)?;
+        }
+        Ok(())
+    }
+}
