@@ -145,7 +145,7 @@ pub fn sum_multiple_dipole_B<T: RealField + num_traits::Float + Copy>(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{assert_close_vec, testing_util::quat_from_rotvec};
+    use crate::assert_close_vec;
     use nalgebra::{point, vector};
 
     #[test]
@@ -154,7 +154,9 @@ mod tests {
         dipole_B(
             &[point![5.0, 6.0, 7.0]],
             &point![1.0, 2.0, 3.0],
-            &quat_from_rotvec(1.0471975511965976, 0.6283185307179586, 0.4487989505128276),
+            &UnitQuaternion::from_scaled_axis(
+                [1.0471975511965976, 0.6283185307179586, 0.4487989505128276].into(),
+            ),
             &vector![0.45, 0.3, 0.15],
             &mut out,
         );

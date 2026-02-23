@@ -83,26 +83,23 @@ pub mod geometry;
 
 pub use constants::MagneticConstants;
 
-use crate_util::need_feature;
-need_feature! {"base",
-    pub mod base;
+pub mod base;
+pub use base::*;
+pub use geometry::Pose;
+
+crate::crate_util::need_std!(
     pub mod collections;
+    pub mod magnets;
+    pub mod sensors;
 
-    // Re-exports
-    pub use crate::base::*;
-    pub use crate::collections::*;
-    pub use crate::magnets::*;
-    pub use crate::geometry::Pose;
-}
+    pub use magnets::*;
+    pub use collections::*;
+);
 
-#[cfg(feature = "magnets")]
-pub mod magnets;
-
-#[cfg(feature = "sensors")]
-pub mod sensors;
-
-#[cfg(test)]
-pub mod testing_util;
+crate::crate_util::need_std!(
+    #[cfg(test)]
+    pub mod testing_util;
+);
 
 /// Check if two vectors are close using relative Euclidean distance
 #[macro_export]

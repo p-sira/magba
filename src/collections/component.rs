@@ -7,7 +7,7 @@ use enum_dispatch::enum_dispatch;
 
 use crate::{
     Collection,
-    base::Float,
+    base::*,
     magnets::{CuboidMagnet, CylinderMagnet, Dipole, Magnet, ZeroMagnet},
 };
 

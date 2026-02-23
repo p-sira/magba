@@ -20,17 +20,17 @@ use crate::{
 /// <div class="warning">⚠️ Unstable feature. May subject to changes.</div>
 ///
 /// # Arguments
-/// 
+///
 /// - `point`: Observer position (m)
 /// - `dimensions`: Cuboid side lengths (m)
 /// - `polarization`: Polarization vector (T)
 ///
 /// # Returns
-/// 
+///
 /// - B-field vector (T) at point (x, y, z)
 ///
 /// # References
-/// 
+///
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[allow(non_snake_case)]
 #[inline]
@@ -196,7 +196,7 @@ pub fn global_cuboid_B<T: RealField + Copy>(
 /// Compute B-field at points in global frame for a single cuboid magnet.
 ///
 /// # Arguments
-/// 
+///
 /// - `points`: Observer positions (m)
 /// - `position`: Magnet position (m)
 /// - `orientation`: Magnet orientation in unit quaternion
@@ -204,11 +204,11 @@ pub fn global_cuboid_B<T: RealField + Copy>(
 /// - `dimensions`: Cuboid side lengths (m)
 ///
 /// # Returns
-/// 
+///
 /// - B-field vectors at each observer (T)
 ///
 /// # References
-/// 
+///
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[allow(non_snake_case)]
 pub fn cuboid_B<T: RealField + Copy>(
@@ -234,7 +234,7 @@ pub fn cuboid_B<T: RealField + Copy>(
 /// Compute net B-field at each given point in global frame for multiple cuboid magnets.
 ///
 /// # Arguments
-/// 
+///
 /// - `points`: Observer positions in global frame (m)
 /// - `positions`: Magnet positions (m)
 /// - `orientations`: Magnet orientations as unit quaternions
@@ -242,11 +242,11 @@ pub fn cuboid_B<T: RealField + Copy>(
 /// - `dimensions`: Cuboid side lengths (m)
 ///
 /// # Returns
-/// 
+///
 /// - Net B-field vectors at each observer (T)
 ///
 /// # References
-/// 
+///
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[allow(non_snake_case)]
 pub fn sum_multiple_cuboid_B<T: RealField + Copy>(
@@ -269,7 +269,7 @@ pub fn sum_multiple_cuboid_B<T: RealField + Copy>(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{assert_close_vec, testing_util::quat_from_rotvec};
+    use crate::assert_close_vec;
     use nalgebra::{point, vector};
 
     #[test]
@@ -278,7 +278,9 @@ mod tests {
         cuboid_B(
             &[point![5.0, 6.0, 7.0]],
             &point![1.0, 2.0, 3.0],
-            &quat_from_rotvec(1.0471975511965976, 0.6283185307179586, 0.4487989505128276),
+            &UnitQuaternion::from_scaled_axis(
+                [1.0471975511965976, 0.6283185307179586, 0.4487989505128276].into(),
+            ),
             &vector![0.45, 0.3, 0.15],
             &vector![1.0, 2.0, 3.0],
             &mut out,
