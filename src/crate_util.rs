@@ -89,31 +89,6 @@ pub fn is_elem_close(vec1: &Vector3<f64>, vec2: &Vector3<f64>, rtol: f64) -> Opt
     if n_fail > 0 { Some(n_fail) } else { None }
 }
 
-#[cfg(feature = "std")]
-pub(crate) fn write_tree<'a, T: Float, S: Source<T> + 'a>(
-    f: &mut core::fmt::Formatter<'_>,
-    leafs: impl IntoIterator<Item = &'a S>,
-    indent: &str,
-) -> core::fmt::Result {
-    let mut iter = leafs.into_iter().enumerate().peekable();
-
-    while let Some((i, leaf)) = iter.next() {
-        let is_last = iter.peek().is_none();
-        let branch = if is_last { "└── " } else { "├── " };
-
-        write!(f, " {}{}{}: ", indent, branch, i)?;
-
-        let extension = if is_last { "    " } else { "│   " };
-        let next_indent = format!("{}{}", indent, extension);
-        leaf.format(f, &next_indent)?;
-
-        if !is_last {
-            writeln!(f)?;
-        }
-    }
-    Ok(())
-}
-
 // need_std! {
 //     macro_rules! format_point3 {
 //         ($p: expr) => {
@@ -225,5 +200,3 @@ macro_rules! pub_on_feature {
     };
 }
 pub(crate) use pub_on_feature;
-
-use crate::{Float, Source};

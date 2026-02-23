@@ -10,7 +10,6 @@ use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
 use crate::{
     base::{Field, Float, Source, Transform, transform::impl_transform},
-    crate_util::write_tree,
     geometry::Pose,
     transform::impl_group_transform,
 };
@@ -200,7 +199,7 @@ impl<S: Source<T>, T: Float, const N: usize> Display for SourceArray<S, T, N> {
             self.pose()
         )?;
 
-        write_tree(f, &self.children, "")
+        crate::collections::utils::write_tree(f, &self.children, "")
     }
 }
 
