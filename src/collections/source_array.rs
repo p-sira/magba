@@ -134,7 +134,7 @@ impl<S: Source<T>, T: Float, const N: usize> Display for SourceArray<S, T, N> {
             self.pose()
         )?;
 
-        write_tree(f, &self.children)
+        write_tree(f, &self.children, "")
     }
 }
 

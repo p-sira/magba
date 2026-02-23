@@ -232,7 +232,7 @@ macro_rules! define_magnet {
 
         impl<T: crate::base::Float> crate::base::Source<T> for $name<T> {
             #[cfg(feature = "std")]
-            fn format(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            fn format(&self, f: &mut std::fmt::Formatter<'_>, _: &str) -> std::fmt::Result {
                 write!(
                     f,
                     concat!(
@@ -263,7 +263,7 @@ macro_rules! define_magnet {
         #[cfg(feature = "std")]
         impl<T: crate::base::Float> std::fmt::Display for $name<T> {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                <Self as crate::base::Source<T>>::format(self, f)
+                <Self as crate::base::Source<T>>::format(self, f, "")
             }
         }
     }

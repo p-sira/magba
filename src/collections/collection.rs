@@ -154,12 +154,6 @@ impl<T: Float> From<&[Component<T>]> for Collection<T> {
     }
 }
 
-impl<T: Float> From<Component<T>> for Collection<T> {
-    fn from(component: Component<T>) -> Self {
-        [component].into()
-    }
-}
-
 impl<'a, T: Float> IntoIterator for &'a Collection<T> {
     type Item = &'a Component<T>;
     type IntoIter = std::slice::Iter<'a, Component<T>>;
@@ -232,8 +226,6 @@ impl<T: Float> Field<T> for Collection<T> {
     }
 }
 
-impl<T: Float> Source<T> for Collection<T> {}
-
 // MARK: PartialEq
 
 impl<T: Float> PartialEq for Collection<T> {
@@ -264,8 +256,8 @@ impl<T: Float> PartialEq for Collection<T> {
 
 // MARK: Display
 
-impl<T: Float> Display for Collection<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl<T: Float> Source<T> for Collection<T> {
+    fn format(&self, f: &mut std::fmt::Formatter<'_>, indent: &str) -> std::fmt::Result {
         writeln!(
             f,
             "Collection ({} children) at {}",
@@ -273,7 +265,13 @@ impl<T: Float> Display for Collection<T> {
             self.pose()
         )?;
 
-        write_tree(f, &self.children)
+        write_tree(f, &self.children, indent)
+    }
+}
+
+impl<T: Float> Display for Collection<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.format(f, "")
     }
 }
 
@@ -288,23 +286,31 @@ mod display_tests {
 
     #[test]
     fn test_collection_display() {
-        let m1 = CylinderMagnet::default()
+        let cylinder = CylinderMagnet::default()
             .with_polarization([1.0, 2.0, 3.0])
             .with_diameter(0.1)
             .with_height(0.3);
-        let m2: Dipole = Dipole::default();
-        let m3 = CuboidMagnet::default()
+        let cuboid = CuboidMagnet::default()
             .with_position([4.0, 5.0, 6.0])
             .with_orientation(UnitQuaternion::from_scaled_axis(
                 [FRAC_PI_2, 0.0, 0.0].into(),
             ));
 
-        let collection = collection!(m1, m2, m3);
+        let dipole: Dipole = Dipole::default();
+        let mut nested_collection = collection!(dipole.clone(), dipole);
+        let deep_collection = collection!(ZeroMagnet::default());
+        nested_collection.push(deep_collection);
+
+        let collection = collection!(cylinder, nested_collection, cuboid);
 
         assert_eq!(
             "Collection (3 children) at pos=[0.0, 0.0, 0.0], r=[0.0, 0.0, 0.0]
  ├── 0: CylinderMagnet (pol=[1, 2, 3], d=0.1, h=0.3) at pos=[0.0, 0.0, 0.0], r=[0.0, 0.0, 0.0]
- ├── 1: Dipole (m=[0, 0, 1]) at pos=[0.0, 0.0, 0.0], r=[0.0, 0.0, 0.0]
+ ├── 1: Collection (3 children) at pos=[0.0, 0.0, 0.0], r=[0.0, 0.0, 0.0]
+ │   ├── 0: Dipole (m=[0, 0, 1]) at pos=[0.0, 0.0, 0.0], r=[0.0, 0.0, 0.0]
+ │   ├── 1: Dipole (m=[0, 0, 1]) at pos=[0.0, 0.0, 0.0], r=[0.0, 0.0, 0.0]
+ │   └── 2: Collection (1 children) at pos=[0.0, 0.0, 0.0], r=[0.0, 0.0, 0.0]
+ │       └── 0: ZeroMagnet (Placeholder) at pos=[0.0, 0.0, 0.0], r=[0.0, 0.0, 0.0]
  └── 2: CuboidMagnet (pol=[0, 0, 1], dim=[1, 1, 1]) at pos=[4.0, 5.0, 6.0], r=[<float>, 0.0, 0.0]",
             mask_long_floats(&format!("{}", collection))
         )

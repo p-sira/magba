@@ -38,8 +38,9 @@ pub trait Field<T: RealField = f64> {
 /// Physical representation of magnetic sources.
 pub trait Source<T: RealField>: Transform<T> + Field<T> + Send + Sync + DynClone {
     /// A default formatter that behaves like Display.
+    /// Last argument is the indentation, which is for Collection support.
     /// Override this for custom printouts.
-    fn format(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn format(&self, f: &mut std::fmt::Formatter<'_>, _: &str) -> std::fmt::Result {
         write!(f, "Source at {}", self.pose())
     }
 }
@@ -48,7 +49,7 @@ pub trait Source<T: RealField>: Transform<T> + Field<T> + Send + Sync + DynClone
 impl<T: RealField> std::fmt::Display for dyn Source<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         // Delegate to the trait method
-        self.format(f)
+        self.format(f, "")
     }
 }
 
