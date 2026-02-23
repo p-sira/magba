@@ -491,3 +491,66 @@ mod field_tests {
         test_B_magnet!(@small, &collection, "cuboid-collection-translate-rotate.csv", 2e-13);
     }
 }
+
+#[cfg(test)]
+mod heterogeneous_collection_tests {
+    use std::f64::consts::{FRAC_PI_2, FRAC_PI_3, PI};
+
+    use super::*;
+    use crate::{magnets::*, testing_util::*};
+
+    fn collection() -> Collection {
+        let m1 = CylinderMagnet::new(
+            [0.005, 0.01, 0.015],
+            UnitQuaternion::identity(),
+            [0.1, 0.2, 0.3],
+            0.04,
+            0.05,
+        );
+        let m2 = CuboidMagnet::new(
+            [0.015, 0.005, 0.01],
+            UnitQuaternion::from_scaled_axis([0.0, FRAC_PI_3, 0.0].into()),
+            [0.1, 0.2, 0.3],
+            [0.02, 0.02, 0.03],
+        );
+        let m3 = Dipole::default()
+            .with_orientation(UnitQuaternion::from_scaled_axis(
+                [0.0, FRAC_PI_2, FRAC_PI_2].into(),
+            ))
+            .with_moment([0.4, 0.5, 0.6]);
+        collection!(m1, m2, m3)
+    }
+
+    #[test]
+    fn test_static() {
+        let collection = collection();
+        test_B_magnet!(@small, &collection, "multi-collection.csv", 1e-10);
+    }
+
+    #[test]
+    fn test_translate() {
+        let mut collection = collection();
+        let translation = Translation3::new(0.01, 0.015, 0.02);
+        collection.translate(translation);
+        test_B_magnet!(@small, &collection, "multi-collection-translate.csv", 5e-10);
+
+        collection.translate(translation.inverse());
+        collection.set_position([0.01, 0.015, 0.02]);
+        test_B_magnet!(@small, &collection, "multi-collection-translate.csv", 5e-10);
+    }
+
+    #[test]
+    fn test_rotate() {
+        let mut collection = collection();
+        let rotation = UnitQuaternion::from_scaled_axis([PI / 3.0, PI / 4.0, PI / 5.0].into());
+        collection.rotate(rotation);
+        test_B_magnet!(@small, &collection, "multi-collection-rotate.csv", 2e-10);
+
+        collection.rotate(rotation.inverse());
+        collection.set_orientation(rotation);
+        test_B_magnet!(@small, &collection, "multi-collection-rotate.csv", 2e-10);
+
+        collection.set_position([0.01, 0.015, 0.02]);
+        test_B_magnet!(@small, &collection, "multi-collection-translate-rotate.csv", 2e-10);
+    }
+}
