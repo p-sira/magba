@@ -6,6 +6,7 @@
 use enum_dispatch::enum_dispatch;
 
 use crate::{
+    Collection,
     base::Float,
     magnets::{CuboidMagnet, CylinderMagnet, Dipole, Magnet, ZeroMagnet},
 };
@@ -21,6 +22,8 @@ use crate::{
 /// ```
 pub enum Component<T: Float = f64> {
     Magnet(Magnet<T>),
+
+    Collection(Collection<T>),
 }
 
 macro_rules! impl_transitive_from {
