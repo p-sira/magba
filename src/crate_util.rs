@@ -248,10 +248,10 @@ macro_rules! impl_parallel_sum {
 
         #[cfg(not(feature = "rayon"))]
         {
-            #[cfg(not(feature = "no_std"))]
+            #[cfg(feature = "std")]
             let mut net_vectors: Vec<Vector3<_>> = vec![Vector3::zeros(); $items.len()];
 
-            #[cfg(feature = "no_std")]
+            #[cfg(not(feature = "std"))]
             let mut net_vectors = [Vector3::zeros(); crate::SIZE];
 
             combinations
