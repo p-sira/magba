@@ -251,12 +251,15 @@ macro_rules! define_magnet {
 
         impl<T: crate::base::Float> crate::base::Field<T> for $name<T> {
             fn get_B(&self, points: &[nalgebra::Point3<T>]) -> Vec<nalgebra::Vector3<T>> {
+                let mut out = vec![nalgebra::Vector3::zeros(); points.len()];
                 crate::fields::$field_fn(
                     points,
                     &self.position(),
                     &self.orientation(),
                     $( define_magnet!(@pass_arg self.$arg $(, $is_value)?), )*
-                )
+                    &mut out,
+                );
+                out
             }
         }
 

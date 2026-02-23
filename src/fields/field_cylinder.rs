@@ -16,7 +16,7 @@ use numeric_literals::replace_float_literals;
 use crate::SIZE;
 
 use crate::base::Float;
-use crate::crate_util::{impl_parallel, impl_parallel_sum, return_vec_or_array};
+use crate::crate_util::{impl_parallel, impl_parallel_sum};
 use crate::geometry::{cart2cyl, compute_in_local, vec_cyl2cart};
 use num_traits::Float as NumFloat;
 
@@ -312,79 +312,80 @@ pub fn global_cylinder_B<T: RealField + Copy + Float>(
     )
 }
 
-return_vec_or_array! {
-    /// Compute B-field at points in global frame for a single cylindrical magnet.
-    ///
-    /// # Arguments
-    /// - `points`: Observer positions in global frame (m)
-    /// - `position`: Magnet position (m)
-    /// - `orientation`: Magnet orientation as unit quaternion
-    /// - `polarization`: Polarization vector (T)
-    /// - `diameter`: Cylinder diameter (m)
-    /// - `height`: Cylinder height (m)
-    ///
-    /// # Returns
-    /// - B-field vectors at each observer (T)
-    ///
-    /// # References
-    /// - Caciagli, Alessio, Roel J. Baars, Albert P. Philipse, and Bonny W. M. Kuipers. “Exact Expression for the Magnetic Field of a Finite Cylinder with Arbitrary Uniform Magnetization.” Journal of Magnetism and Magnetic Materials 456 (June 15, 2018): 423–32. <https://doi.org/10.1016/j.jmmm.2018.02.003>.
-    /// - Derby, Norman, and Stanislaw Olbert. “Cylindrical Magnets and Ideal Solenoids.” American Journal of Physics 78, no. 3 (March 1, 2010): 229–35. <https://doi.org/10.1119/1.3256157>.
-    /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
-    #[allow(non_snake_case)]
-    pub fn cylinder_B<(T: RealField + Copy + Float)>(
-        points: &[Point3<T>],
-        position: &Point3<T>,
-        orientation: &UnitQuaternion<T>,
-        polarization: &Vector3<T>,
-        diameter: T,
-        height: T,
-    ) -> [Vector3<T>] {
-        impl_parallel!(
-            global_cylinder_B,
-            60,
-            points,
-            position,
-            orientation,
-            polarization,
-            diameter / T::from(2.0).unwrap(),
-            height,
-        )
-    }
+/// Compute B-field at points in global frame for a single cylindrical magnet.
+///
+/// # Arguments
+/// - `points`: Observer positions in global frame (m)
+/// - `position`: Magnet position (m)
+/// - `orientation`: Magnet orientation as unit quaternion
+/// - `polarization`: Polarization vector (T)
+/// - `diameter`: Cylinder diameter (m)
+/// - `height`: Cylinder height (m)
+///
+/// # Returns
+/// - B-field vectors at each observer (T)
+///
+/// # References
+/// - Caciagli, Alessio, Roel J. Baars, Albert P. Philipse, and Bonny W. M. Kuipers. “Exact Expression for the Magnetic Field of a Finite Cylinder with Arbitrary Uniform Magnetization.” Journal of Magnetism and Magnetic Materials 456 (June 15, 2018): 423–32. <https://doi.org/10.1016/j.jmmm.2018.02.003>.
+/// - Derby, Norman, and Stanislaw Olbert. “Cylindrical Magnets and Ideal Solenoids.” American Journal of Physics 78, no. 3 (March 1, 2010): 229–35. <https://doi.org/10.1119/1.3256157>.
+/// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
+#[allow(non_snake_case)]
+pub fn cylinder_B<T: RealField + Copy + Float>(
+    points: &[Point3<T>],
+    position: &Point3<T>,
+    orientation: &UnitQuaternion<T>,
+    polarization: &Vector3<T>,
+    diameter: T,
+    height: T,
+    out: &mut [Vector3<T>],
+) {
+    impl_parallel!(
+        out,
+        global_cylinder_B,
+        60,
+        points,
+        position,
+        orientation,
+        polarization,
+        diameter / T::from(2.0).unwrap(),
+        height,
+    )
 }
 
-return_vec_or_array! {
-    /// Compute net B-field at each given point in global frame for multiple cylindrical magnets.
-    ///
-    /// # Arguments
-    /// - `points`: Observer positions in global frame (m)
-    /// - `positions`: Magnet positions (m)
-    /// - `orientations`: Magnet orientations as unit quaternions
-    /// - `polarizations`: Polarization vectors (T)
-    /// - `diameters`: Cylinder diameters (m)
-    /// - `heights`: Cylinder heights (m)
-    ///
-    /// # Returns
-    /// - Net B-field vectors at each observer (T)
-    ///
-    /// # References
-    /// - Caciagli, Alessio, Roel J. Baars, Albert P. Philipse, and Bonny W. M. Kuipers. “Exact Expression for the Magnetic Field of a Finite Cylinder with Arbitrary Uniform Magnetization.” Journal of Magnetism and Magnetic Materials 456 (June 15, 2018): 423–32. <https://doi.org/10.1016/j.jmmm.2018.02.003>.
-    /// - Derby, Norman, and Stanislaw Olbert. “Cylindrical Magnets and Ideal Solenoids.” American Journal of Physics 78, no. 3 (March 1, 2010): 229–35. <https://doi.org/10.1119/1.3256157>.
-    /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
-    #[allow(non_snake_case)]
-    pub fn sum_multiple_cylinder_B<(T: RealField + Copy + Float + core::iter::Sum)>(
-        points: &[Point3<T>],
-        positions: &[Point3<T>],
-        orientations: &[UnitQuaternion<T>],
-        polarizations: &[Vector3<T>],
-        diameters: &[T],
-        heights: &[T],
-    ) -> [Vector3<T>] {
-        impl_parallel_sum!(
-            points,
-            [positions, orientations, polarizations, diameters, heights],
-            |pos, orien, pol, d, h| cylinder_B(points, pos, orien, pol, *d, *h)
-        )
-    }
+/// Compute net B-field at each given point in global frame for multiple cylindrical magnets.
+///
+/// # Arguments
+/// - `points`: Observer positions in global frame (m)
+/// - `positions`: Magnet positions (m)
+/// - `orientations`: Magnet orientations as unit quaternions
+/// - `polarizations`: Polarization vectors (T)
+/// - `diameters`: Cylinder diameters (m)
+/// - `heights`: Cylinder heights (m)
+///
+/// # Returns
+/// - Net B-field vectors at each observer (T)
+///
+/// # References
+/// - Caciagli, Alessio, Roel J. Baars, Albert P. Philipse, and Bonny W. M. Kuipers. “Exact Expression for the Magnetic Field of a Finite Cylinder with Arbitrary Uniform Magnetization.” Journal of Magnetism and Magnetic Materials 456 (June 15, 2018): 423–32. <https://doi.org/10.1016/j.jmmm.2018.02.003>.
+/// - Derby, Norman, and Stanislaw Olbert. “Cylindrical Magnets and Ideal Solenoids.” American Journal of Physics 78, no. 3 (March 1, 2010): 229–35. <https://doi.org/10.1119/1.3256157>.
+/// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
+#[allow(non_snake_case)]
+pub fn sum_multiple_cylinder_B<T: RealField + Copy + Float>(
+    points: &[Point3<T>],
+    positions: &[Point3<T>],
+    orientations: &[UnitQuaternion<T>],
+    polarizations: &[Vector3<T>],
+    diameters: &[T],
+    heights: &[T],
+    out: &mut [Vector3<T>],
+) {
+    impl_parallel_sum!(
+        out,
+        points,
+        60,
+        [positions, orientations, polarizations, diameters, heights],
+        |pos, p, o, pol, d, h| global_cylinder_B(pos, p, o, pol, *d / T::from(2.0).unwrap(), *h)
+    )
 }
 
 #[cfg(test)]
@@ -395,15 +396,18 @@ mod tests {
 
     #[test]
     fn static_cases() {
+        let mut out = [Vector3::zeros(); 1];
+        cylinder_B(
+            &[point![5.0, 6.0, 7.0]],
+            &point![1.0, 2.0, 3.0],
+            &quat_from_rotvec(1.0471975511965976, 0.6283185307179586, 0.4487989505128276),
+            &vector![0.45, 0.3, 0.15],
+            1.0,
+            2.0,
+            &mut out,
+        );
         assert_close_vec!(
-            cylinder_B(
-                &[point![5.0, 6.0, 7.0]],
-                &point![1.0, 2.0, 3.0],
-                &quat_from_rotvec(1.0471975511965976, 0.6283185307179586, 0.4487989505128276),
-                &vector![0.45, 0.3, 0.15],
-                1.0,
-                2.0
-            )[0],
+            out[0],
             vector![
                 0.00018917835277408574,
                 0.00023329950084703265,

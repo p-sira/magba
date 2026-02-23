@@ -7,11 +7,11 @@
 //!
 //! <div class="warning">⚠️ Unstable feature. May subject to changes.</div>
 
-use nalgebra::{vector, Matrix3, Point3, RealField, UnitQuaternion, Vector3};
+use nalgebra::{Matrix3, Point3, RealField, UnitQuaternion, Vector3, vector};
 use numeric_literals::replace_float_literals;
 
 use crate::{
-    crate_util::{impl_parallel, impl_parallel_sum, return_vec_or_array},
+    crate_util::{impl_parallel, impl_parallel_sum},
     geometry::compute_in_local,
 };
 
@@ -201,70 +201,71 @@ pub fn global_cuboid_B<T: RealField + Copy>(
     )
 }
 
-return_vec_or_array! {
-    /// Compute B-field at points in global frame for a single cuboid magnet.
-    ///
-    /// # Arguments
-    /// - `points`: Observer positions (m)
-    /// - `position`: Magnet position (m)
-    /// - `orientation`: Magnet orientation in unit quaternion
-    /// - `polarization`: Polarization vector (T)
-    /// - `dimensions`: Cuboid side lengths (m)
-    ///
-    /// # Returns
-    /// - B-field vectors at each observer (T)
-    ///
-    /// # References
-    /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
-    #[allow(non_snake_case)]
-    pub fn cuboid_B<(T: RealField + Copy)>(
-        points: &[Point3<T>],
-        position: &Point3<T>,
-        orientation: &UnitQuaternion<T>,
-        polarization: &Vector3<T>,
-        dimensions: &Vector3<T>,
-    ) -> [Vector3<T>] {
-        impl_parallel!(
-            global_cuboid_B,
-            60,
-            points,
-            position,
-            orientation,
-            polarization,
-            dimensions,
-        )
-    }
+/// Compute B-field at points in global frame for a single cuboid magnet.
+///
+/// # Arguments
+/// - `points`: Observer positions (m)
+/// - `position`: Magnet position (m)
+/// - `orientation`: Magnet orientation in unit quaternion
+/// - `polarization`: Polarization vector (T)
+/// - `dimensions`: Cuboid side lengths (m)
+///
+/// # Returns
+/// - B-field vectors at each observer (T)
+///
+/// # References
+/// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
+#[allow(non_snake_case)]
+pub fn cuboid_B<T: RealField + Copy>(
+    points: &[Point3<T>],
+    position: &Point3<T>,
+    orientation: &UnitQuaternion<T>,
+    polarization: &Vector3<T>,
+    dimensions: &Vector3<T>,
+    out: &mut [Vector3<T>],
+) {
+    impl_parallel!(
+        out,
+        global_cuboid_B,
+        60,
+        points,
+        position,
+        orientation,
+        polarization,
+        dimensions,
+    )
 }
 
-return_vec_or_array! {
-    /// Compute net B-field at each given point in global frame for multiple cuboid magnets.
-    ///
-    /// # Arguments
-    /// - `points`: Observer positions in global frame (m)
-    /// - `positions`: Magnet positions (m)
-    /// - `orientations`: Magnet orientations as unit quaternions
-    /// - `polarizations`: Polarization vectors (T)
-    /// - `dimensions`: Cuboid side lengths (m)
-    ///
-    /// # Returns
-    /// - Net B-field vectors at each observer (T)
-    ///
-    /// # References
-    /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
-    #[allow(non_snake_case)]
-    pub fn sum_multiple_cuboid_B<(T: RealField + Copy + core::iter::Sum)>(
-        points: &[Point3<T>],
-        positions: &[Point3<T>],
-        orientations: &[UnitQuaternion<T>],
-        polarizations: &[Vector3<T>],
-        dimensions: &[Vector3<T>],
-    ) -> [Vector3<T>] {
-        impl_parallel_sum!(
-            points,
-            [positions, orientations, polarizations, dimensions],
-            |pos, orien, pol, dim| cuboid_B(points, pos, orien, pol, dim)
-        )
-    }
+/// Compute net B-field at each given point in global frame for multiple cuboid magnets.
+///
+/// # Arguments
+/// - `points`: Observer positions in global frame (m)
+/// - `positions`: Magnet positions (m)
+/// - `orientations`: Magnet orientations as unit quaternions
+/// - `polarizations`: Polarization vectors (T)
+/// - `dimensions`: Cuboid side lengths (m)
+///
+/// # Returns
+/// - Net B-field vectors at each observer (T)
+///
+/// # References
+/// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
+#[allow(non_snake_case)]
+pub fn sum_multiple_cuboid_B<T: RealField + Copy>(
+    points: &[Point3<T>],
+    positions: &[Point3<T>],
+    orientations: &[UnitQuaternion<T>],
+    polarizations: &[Vector3<T>],
+    dimensions: &[Vector3<T>],
+    out: &mut [Vector3<T>],
+) {
+    impl_parallel_sum!(
+        out,
+        points,
+        60,
+        [positions, orientations, polarizations, dimensions],
+        |pos, p, o, pol, dim| global_cuboid_B(pos, p, o, pol, dim)
+    )
 }
 
 #[cfg(test)]
@@ -275,14 +276,17 @@ mod tests {
 
     #[test]
     fn static_cases() {
+        let mut out = [Vector3::zeros(); 1];
+        cuboid_B(
+            &[point![5.0, 6.0, 7.0]],
+            &point![1.0, 2.0, 3.0],
+            &quat_from_rotvec(1.0471975511965976, 0.6283185307179586, 0.4487989505128276),
+            &vector![0.45, 0.3, 0.15],
+            &vector![1.0, 2.0, 3.0],
+            &mut out,
+        );
         assert_close_vec!(
-            cuboid_B(
-                &[point![5.0, 6.0, 7.0]],
-                &point![1.0, 2.0, 3.0],
-                &quat_from_rotvec(1.0471975511965976, 0.6283185307179586, 0.4487989505128276),
-                &vector![0.45, 0.3, 0.15],
-                &vector![1.0, 2.0, 3.0]
-            )[0],
+            out[0],
             vector![
                 0.0007246145093594572,
                 0.0008956704674508121,
