@@ -12,3 +12,5 @@ mod source_array;
 pub use collection::Collection;
 pub use component::Component;
 pub use source_array::SourceArray;
+
+mod utils;

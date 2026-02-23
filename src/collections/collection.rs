@@ -12,7 +12,6 @@ use crate::{
     SourceArray,
     base::{Field, Float, Source, Transform, transform::impl_transform},
     collections::component::Component,
-    crate_util::write_tree,
     geometry::Pose,
     transform::impl_group_transform,
 };
@@ -292,7 +291,7 @@ impl<T: Float> Source<T> for Collection<T> {
             self.pose()
         )?;
 
-        write_tree(f, &self.children, indent)
+        crate::collections::utils::write_tree(f, &self.children, indent)
     }
 }
 
