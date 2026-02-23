@@ -18,7 +18,7 @@ use crate::{
 /// ```
 /// # use magba::*;
 /// let magnet: Component = CylinderMagnet::default().into();
-/// let collection = Collection::from(magnet);
+/// let collection = collection!(magnet);
 /// ```
 pub enum Component<T: Float = f64> {
     Magnet(Magnet<T>),

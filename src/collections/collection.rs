@@ -69,8 +69,8 @@ impl<T: Float> Collection<T> {
     /// let dipole = Dipole::default();
     ///
     /// let components: [Component; _] = [cylinder.into(), cuboid.into(), dipole.into()];
-    /// let collection = Collection::from(components);
-    /// collection.iter().enumerate().for_each(|(i, &component)| assert_eq!(component, components[i]));
+    /// let collection = Collection::from(components.clone());
+    /// collection.iter().enumerate().for_each(|(i, component)| assert_eq!(*component, components[i]));
     /// ```
     pub fn iter(&self) -> std::slice::Iter<'_, Component<T>> {
         self.children.iter()
