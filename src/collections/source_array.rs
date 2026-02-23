@@ -58,16 +58,6 @@ impl<S: Source<T>, T: Float, const N: usize> SourceArray<S, T, N> {
         }
     }
 
-    pub fn from_sources(sources: [S; N]) -> Self {
-        let offsets = core::array::from_fn(|i| *sources[i].pose());
-
-        Self {
-            pose: Pose::default(),
-            children: sources,
-            offsets,
-        }
-    }
-
     pub fn iter(&self) -> std::slice::Iter<'_, S> {
         self.children.iter()
     }
@@ -145,7 +135,13 @@ impl<S: Source<T>, T: Float, const N: usize> IndexMut<usize> for SourceArray<S, 
 
 impl<S: Source<T>, T: Float, const N: usize> From<[S; N]> for SourceArray<S, T, N> {
     fn from(sources: [S; N]) -> Self {
-        Self::from_sources(sources)
+        let offsets = core::array::from_fn(|i| *sources[i].pose());
+
+        Self {
+            pose: Pose::default(),
+            children: sources,
+            offsets,
+        }
     }
 }
 
