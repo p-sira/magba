@@ -303,9 +303,9 @@ mod display_tests {
 
         assert_eq!(
             "Collection (3 children) at pos=[0.0, 0.0, 0.0], r=[0.0, 0.0, 0.0]
-├── 0: CylinderMagnet (pol=[1, 2, 3], d=0.1, h=0.3) at pos=[0.0, 0.0, 0.0], r=[0.0, 0.0, 0.0]
-├── 1: Dipole (m=[0, 0, 1]) at pos=[0.0, 0.0, 0.0], r=[0.0, 0.0, 0.0]
-└── 2: CuboidMagnet (pol=[0, 0, 1], dim=[1, 1, 1]) at pos=[4.0, 5.0, 6.0], r=[<float>, 0.0, 0.0]",
+ ├── 0: CylinderMagnet (pol=[1, 2, 3], d=0.1, h=0.3) at pos=[0.0, 0.0, 0.0], r=[0.0, 0.0, 0.0]
+ ├── 1: Dipole (m=[0, 0, 1]) at pos=[0.0, 0.0, 0.0], r=[0.0, 0.0, 0.0]
+ └── 2: CuboidMagnet (pol=[0, 0, 1], dim=[1, 1, 1]) at pos=[4.0, 5.0, 6.0], r=[<float>, 0.0, 0.0]",
             mask_long_floats(&format!("{}", collection))
         )
     }
