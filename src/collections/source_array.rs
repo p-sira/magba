@@ -137,3 +137,34 @@ impl<S: Source<T>, T: Float, const N: usize> Display for SourceArray<S, T, N> {
         write_tree(f, &self.children)
     }
 }
+
+// MARK: Test Display
+
+#[cfg(test)]
+mod display_tests {
+    use super::*;
+    use crate::{magnets::*, testing_util::*};
+
+    #[test]
+    fn test_source_array_display() {
+        let m1 = CylinderMagnet::default().with_polarization([1.0, 2.0, 3.0]);
+        let m2 = CylinderMagnet::default()
+            .with_diameter(0.1)
+            .with_height(0.3);
+        let m3 = CylinderMagnet::default()
+            .with_position([4.0, 5.0, 6.0])
+            .with_orientation(UnitQuaternion::from_scaled_axis(
+                [std::f64::consts::FRAC_PI_2, 0.0, 0.0].into(),
+            ));
+
+        let collection = sources!(m1, m2, m3);
+
+        assert_eq!(
+            "Source Array (3 children) at pos=[0.0, 0.0, 0.0], r=[0.0, 0.0, 0.0]
+ ├── 0: CylinderMagnet (pol=[1, 2, 3], d=1, h=1) at pos=[0.0, 0.0, 0.0], r=[0.0, 0.0, 0.0]
+ ├── 1: CylinderMagnet (pol=[0, 0, 1], d=0.1, h=0.3) at pos=[0.0, 0.0, 0.0], r=[0.0, 0.0, 0.0]
+ └── 2: CylinderMagnet (pol=[0, 0, 1], d=1, h=1) at pos=[4.0, 5.0, 6.0], r=[<float>, 0.0, 0.0]",
+            mask_long_floats(&format!("{}", collection))
+        )
+    }
+}
