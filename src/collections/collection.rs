@@ -3,6 +3,7 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
+use core::ops::{Index, IndexMut};
 use std::fmt::Display;
 
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
@@ -190,6 +191,22 @@ impl<T: Float> Extend<Component<T>> for Collection<T> {
         for component in iter {
             self.push(component);
         }
+    }
+}
+
+// MARK: Index
+
+impl<T: Float> Index<usize> for Collection<T> {
+    type Output = Component<T>;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.children[index]
+    }
+}
+
+impl<T: Float> IndexMut<usize> for Collection<T> {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.children[index]
     }
 }
 

@@ -3,6 +3,7 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
+use core::ops::{Index, IndexMut};
 use std::{fmt::Display, usize};
 
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
@@ -57,7 +58,6 @@ impl<S: Source<T>, T: Float, const N: usize> SourceArray<S, T, N> {
         }
     }
 
-    /// Initialize [SourceCollection] from a vec of homogeneous [Source].
     pub fn from_sources(sources: [S; N]) -> Self {
         let offsets = core::array::from_fn(|i| *sources[i].pose());
 
@@ -124,6 +124,22 @@ impl<S: Source<T>, T: Float, const N: usize> Field<T> for SourceArray<S, T, N> {
 }
 
 impl<S: Source<T> + Clone, T: Float, const N: usize> Source<T> for SourceArray<S, T, N> {}
+
+// MARK: Index
+
+impl<S: Source<T>, T: Float, const N: usize> Index<usize> for SourceArray<S, T, N> {
+    type Output = S;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.children[index]
+    }
+}
+
+impl<S: Source<T>, T: Float, const N: usize> IndexMut<usize> for SourceArray<S, T, N> {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.children[index]
+    }
+}
 
 // MARK: From, Into
 
