@@ -3,15 +3,16 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-#[cfg(feature = "std")]
-use derive_more::Display;
-use enum_dispatch::enum_dispatch;
-
 use crate::{
     Source,
-    base::Float,
+    base::*,
     magnets::{CuboidMagnet, CylinderMagnet, Dipole, ZeroMagnet},
 };
+
+#[cfg(feature = "std")]
+use derive_more::Display;
+
+use enum_dispatch::enum_dispatch;
 
 /// Magnetic source variants.
 ///

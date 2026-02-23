@@ -5,11 +5,13 @@
 
 //! Base traits and behaviors.
 
-mod source;
-pub(crate) mod transform;
+crate::crate_util::need_std!(
+    mod source;
+    pub(crate) mod transform;
 
-pub use source::*;
-pub use transform::Transform;
+    pub use source::*;
+    pub use transform::Transform;
+);
 
 use crate::constants::MagneticConstants;
 
