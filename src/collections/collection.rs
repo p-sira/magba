@@ -432,58 +432,54 @@ mod partial_eq_tests {
 // MARK: Test Field
 
 #[cfg(test)]
-mod cuboid_collection_tests {
+mod field_tests {
     use std::f64::consts::{FRAC_PI_3, PI};
 
     use super::*;
     use crate::{magnets::*, testing_util::*};
-    use nalgebra::{Translation3, point, vector};
+    use nalgebra::Translation3;
 
-    fn get_collection() -> Collection<f64> {
-        let mut collection = Collection::default();
-        collection.push(CuboidMagnet::new(
-            point![0.005, 0.01, 0.015],
-            UnitQuaternion::identity(),
-            vector![0.1, 0.2, 0.3],
-            vector![0.02, 0.02, 0.03],
-        ));
-        collection.push(CuboidMagnet::new(
-            point![0.015, 0.005, 0.01],
-            quat_from_rotvec(0.0, FRAC_PI_3, 0.0),
-            vector![0.1, 0.2, 0.3],
-            vector![0.02, 0.02, 0.03],
-        ));
-        collection.push(CuboidMagnet::new(
-            point![0.01, 0.015, 0.005],
-            quat_from_rotvec(0.0, 0.0, FRAC_PI_3),
-            vector![0.1, 0.2, 0.3],
-            vector![0.02, 0.02, 0.03],
-        ));
-        collection
+    fn collection() -> Collection {
+        let base_magnet = CuboidMagnet::default()
+            .with_polarization([0.1, 0.2, 0.3])
+            .with_dimensions([0.02, 0.02, 0.03]);
+        let m1 = base_magnet.clone().with_position([0.005, 0.01, 0.015]);
+        let m2 = base_magnet
+            .clone()
+            .with_position([0.015, 0.005, 0.01])
+            .with_orientation(UnitQuaternion::from_scaled_axis(
+                [0.0, FRAC_PI_3, 0.0].into(),
+            ));
+        let m3 = base_magnet
+            .with_position([0.01, 0.015, 0.005])
+            .with_orientation(UnitQuaternion::from_scaled_axis(
+                [0.0, 0.0, FRAC_PI_3].into(),
+            ));
+        Collection::from([m1, m2, m3])
     }
 
     #[test]
-    fn test_collection() {
-        let collection = get_collection();
+    fn test_static() {
+        let collection = collection();
         test_B_magnet!(@small, &collection, "cuboid-collection.csv", 2e-13);
     }
 
     #[test]
-    fn test_collection_translate() {
-        let mut collection = get_collection();
+    fn test_translate() {
+        let mut collection = collection();
         let translation = Translation3::new(0.01, 0.015, 0.02);
         collection.translate(translation);
         test_B_magnet!(@small, &collection, "cuboid-collection-translate.csv", 2e-13);
 
         collection.translate(translation.inverse());
-        collection.set_position(point![0.01, 0.015, 0.02]);
+        collection.set_position([0.01, 0.015, 0.02]);
         test_B_magnet!(@small, &collection, "cuboid-collection-translate.csv", 2e-13);
     }
 
     #[test]
     fn test_collection_rotate() {
-        let mut collection = get_collection();
-        let rotation = quat_from_rotvec(PI / 3.0, PI / 4.0, PI / 5.0);
+        let mut collection = collection();
+        let rotation = UnitQuaternion::from_scaled_axis([PI / 3.0, PI / 4.0, PI / 5.0].into());
         collection.rotate(rotation);
         test_B_magnet!(@small, &collection, "cuboid-collection-rotate.csv", 2e-13);
 
@@ -491,7 +487,7 @@ mod cuboid_collection_tests {
         collection.set_orientation(rotation);
         test_B_magnet!(@small, &collection, "cuboid-collection-rotate.csv", 2e-13);
 
-        collection.set_position(point![0.01, 0.015, 0.02]);
+        collection.set_position([0.01, 0.015, 0.02]);
         test_B_magnet!(@small, &collection, "cuboid-collection-translate-rotate.csv", 2e-13);
     }
 }
