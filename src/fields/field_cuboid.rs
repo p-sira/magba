@@ -207,6 +207,34 @@ pub fn global_cuboid_B<T: RealField + Copy>(
 ///
 /// - B-field vectors at each observer (T)
 ///
+/// # Examples
+///
+/// ```
+/// # use magba::assert_close_vec;
+/// # use magba::fields::cuboid_B;
+/// # use nalgebra::*;
+/// let mut out = [Vector3::zeros(); 1];
+/// cuboid_B(
+///     &[point![5.0, 6.0, 7.0]],
+///     &point![1.0, 2.0, 3.0],
+///     &UnitQuaternion::from_scaled_axis(
+///         [1.0471975511965976, 0.6283185307179586, 0.4487989505128276].into(),
+///     ),
+///     &vector![0.45, 0.3, 0.15],
+///     &vector![1.0, 2.0, 3.0],
+///     &mut out,
+/// );
+/// assert_close_vec!(
+///     out[0],
+///     vector![
+///         0.0007246145093594572,
+///         0.0008956704674508121,
+///         0.0010056854402183814
+///    ],
+///    5e-14
+/// );
+/// ```
+///
 /// # References
 ///
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
@@ -264,35 +292,4 @@ pub fn sum_multiple_cuboid_B<T: RealField + Copy>(
         [positions, orientations, polarizations, dimensions],
         |pos, p, o, pol, dim| global_cuboid_B(pos, p, o, pol, dim)
     )
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::assert_close_vec;
-    use nalgebra::{point, vector};
-
-    #[test]
-    fn static_cases() {
-        let mut out = [Vector3::zeros(); 1];
-        cuboid_B(
-            &[point![5.0, 6.0, 7.0]],
-            &point![1.0, 2.0, 3.0],
-            &UnitQuaternion::from_scaled_axis(
-                [1.0471975511965976, 0.6283185307179586, 0.4487989505128276].into(),
-            ),
-            &vector![0.45, 0.3, 0.15],
-            &vector![1.0, 2.0, 3.0],
-            &mut out,
-        );
-        assert_close_vec!(
-            out[0],
-            vector![
-                0.0007246145093594572,
-                0.0008956704674508121,
-                0.0010056854402183814
-            ],
-            5e-14
-        );
-    }
 }

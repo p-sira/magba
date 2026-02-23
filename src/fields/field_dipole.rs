@@ -122,6 +122,33 @@ pub fn dipole_B<T: RealField + num_traits::Float + Copy>(
 ///
 /// - Net B-field vectors (T) at each observer
 ///
+/// # Examples
+///
+/// ```
+/// # use magba::assert_close_vec;
+/// # use magba::fields::dipole_B;
+/// # use nalgebra::*;
+/// let mut out = [Vector3::zeros(); 1];
+/// dipole_B(
+///     &[point![5.0, 6.0, 7.0]],
+///     &point![1.0, 2.0, 3.0],
+///     &UnitQuaternion::from_scaled_axis(
+///         [1.0471975511965976, 0.6283185307179586, 0.4487989505128276].into(),
+///     ),
+///     &vector![0.45, 0.3, 0.15],
+///     &mut out,
+/// );
+/// assert_close_vec!(
+///     out[0],
+///     vector![
+///         1.5509430032394472e-10,
+///         1.8780091679184128e-10,
+///         2.1982579999135383e-10
+///     ],
+///     2e-10
+/// );
+/// ```
+///
 /// # References
 ///
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
@@ -140,34 +167,4 @@ pub fn sum_multiple_dipole_B<T: RealField + num_traits::Float + Copy>(
         [positions, orientations, moments],
         |pos, p, o, m| global_dipole_B(pos, p, o, m)
     )
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::assert_close_vec;
-    use nalgebra::{point, vector};
-
-    #[test]
-    fn static_cases() {
-        let mut out = [Vector3::zeros(); 1];
-        dipole_B(
-            &[point![5.0, 6.0, 7.0]],
-            &point![1.0, 2.0, 3.0],
-            &UnitQuaternion::from_scaled_axis(
-                [1.0471975511965976, 0.6283185307179586, 0.4487989505128276].into(),
-            ),
-            &vector![0.45, 0.3, 0.15],
-            &mut out,
-        );
-        assert_close_vec!(
-            out[0],
-            vector![
-                1.5509430032394472e-10,
-                1.8780091679184128e-10,
-                2.1982579999135383e-10
-            ],
-            2e-10
-        );
-    }
 }
