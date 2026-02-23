@@ -234,3 +234,72 @@ mod display_tests {
         )
     }
 }
+
+// MARK: Test Field
+
+#[cfg(test)]
+mod fielde_tests {
+    use std::f64::consts::PI;
+
+    use super::*;
+    use crate::{magnets::*, testing_util::*};
+    use nalgebra::{Translation3, point};
+
+    fn array() -> SourceArray<CylinderMagnet, f64, 3> {
+        let m1 = CylinderMagnet::new(
+            [0.0094, 0.0, -0.006],
+            UnitQuaternion::from_scaled_axis([1.2092, 1.2092, 1.2092].into()),
+            [1.0, 2.0, 3.0],
+            3e-3,
+            4e-3,
+        );
+        let m2 = CylinderMagnet::new(
+            [-0.0047, 0.0081, -0.006],
+            UnitQuaternion::from_scaled_axis([1.5316, 0.4104, 0.4104].into()),
+            [0.4, 0.5, 0.6],
+            4e-3,
+            5e-3,
+        );
+        let m3 = CylinderMagnet::new(
+            [-0.0047, -0.0081, -0.006],
+            UnitQuaternion::from_scaled_axis([1.5316, -0.4104, -0.4104].into()),
+            [0.9, 0.8, 0.6],
+            5e-3,
+            6e-3,
+        );
+        SourceArray::from([m1, m2, m3])
+    }
+
+    #[test]
+    fn test_static() {
+        let arr = array();
+        test_B_magnet!(@small, &arr, "cylinder-collection.csv", 5e-9);
+    }
+
+    #[test]
+    fn test_translate() {
+        let mut arr = array();
+        let translation = Translation3::new(0.01, 0.015, 0.02);
+        arr.translate(translation);
+        test_B_magnet!(@small, &arr, "cylinder-collection-translate.csv", 1e-8);
+
+        arr.translate(translation.inverse());
+        arr.set_position([0.01, 0.015, 0.02]);
+        test_B_magnet!(@small, &arr, "cylinder-collection-translate.csv", 1e-8);
+    }
+
+    #[test]
+    fn test_rotate() {
+        let mut arr = array();
+        let rotation = UnitQuaternion::from_scaled_axis([PI / 3.0, PI / 4.0, PI / 5.0].into());
+        arr.rotate(rotation);
+        test_B_magnet!(@small, &arr, "cylinder-collection-rotate.csv", 1e-9);
+
+        arr.rotate(rotation.inverse());
+        arr.set_orientation(rotation);
+        test_B_magnet!(@small, &arr, "cylinder-collection-rotate.csv", 5e-8);
+
+        arr.set_position(point![0.01, 0.015, 0.02]);
+        test_B_magnet!(@small, &arr, "cylinder-collection-translate-rotate.csv", 5e-8);
+    }
+}
