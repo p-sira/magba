@@ -7,7 +7,7 @@
 
 use crate::{
     base::{Float, Source},
-    collections::Component,
+    collections::*,
     geometry::Pose,
     magnets::*,
 };
