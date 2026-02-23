@@ -8,6 +8,7 @@ use std::fmt::Display;
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
 use crate::{
+    SourceArray,
     base::{Field, Float, Source, Transform, transform::impl_transform},
     collections::component::Component,
     crate_util::write_tree,
@@ -160,6 +161,15 @@ impl<'a, T: Float> IntoIterator for &'a Collection<T> {
 
     fn into_iter(self) -> Self::IntoIter {
         self.children.iter()
+    }
+}
+
+impl<S, T: Float, const N: usize> From<SourceArray<S, T, N>> for Collection<T>
+where
+    S: Source<T> + Into<Component<T>>,
+{
+    fn from(array: SourceArray<S, T, N>) -> Self {
+        Collection::new(array.position(), array.orientation(), array.into_iter())
     }
 }
 
