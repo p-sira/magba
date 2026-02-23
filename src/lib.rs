@@ -265,8 +265,6 @@ compile_if_valid_feature_flags! {
     pub mod fields;
     pub mod geometry;
 
-    // need_feature!{"macros", mod macros;}
-
     use constants::MagneticConstants;
 
     use crate_util::need_feature;
