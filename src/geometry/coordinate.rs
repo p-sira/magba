@@ -5,8 +5,6 @@
 
 //! Coordinate conversion and calculation utilities for 3D geometry.
 
-#![allow(unused)]
-
 use nalgebra::{Point3, RealField, UnitQuaternion, Vector3};
 
 /// Convert Cartesian coordinates *(x, y)* to cylindrical coordinates *(r, phi)*.
