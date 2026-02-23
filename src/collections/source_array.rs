@@ -68,12 +68,6 @@ impl<S: Source<T>, T: Float, const N: usize> SourceArray<S, T, N> {
     }
 }
 
-impl_transform!(SourceArray<S, T, N> where S: Source<T>, T: Float, const N: usize);
-
-impl_group_transform!(SourceArray<S, T, N> where S: Source<T>, T: Float, const N: usize);
-
-impl<S: Source<T> + Clone, T: Float, const N: usize> Source<T> for SourceArray<S, T, N> {}
-
 impl<S: Source<T> + Default, T: Float, const N: usize> Default for SourceArray<S, T, N> {
     fn default() -> Self {
         Self {
@@ -83,6 +77,13 @@ impl<S: Source<T> + Default, T: Float, const N: usize> Default for SourceArray<S
         }
     }
 }
+
+// MARK: Transform
+
+impl_transform!(SourceArray<S, T, N> where S: Source<T>, T: Float, const N: usize);
+impl_group_transform!(SourceArray<S, T, N> where S: Source<T>, T: Float, const N: usize);
+
+// MARK: Field, Source
 
 impl<S: Source<T>, T: Float, const N: usize> Field<T> for SourceArray<S, T, N> {
     #[inline]
@@ -116,3 +117,7 @@ impl<S: Source<T>, T: Float, const N: usize> Field<T> for SourceArray<S, T, N> {
         net_field
     }
 }
+
+impl<S: Source<T> + Clone, T: Float, const N: usize> Source<T> for SourceArray<S, T, N> {}
+
+// MARK: From, Into
