@@ -121,15 +121,19 @@ pub fn is_elem_close(vec1: &Vector3<f64>, vec2: &Vector3<f64>, rtol: f64) -> Opt
 pub(crate) fn write_tree<'a, T: Float, S: Source<T> + 'a>(
     f: &mut std::fmt::Formatter<'_>,
     leafs: impl IntoIterator<Item = &'a S>,
+    indent: &str,
 ) -> std::fmt::Result {
     let mut iter = leafs.into_iter().enumerate().peekable();
 
     while let Some((i, leaf)) = iter.next() {
         let is_last = iter.peek().is_none();
-        let prefix = if is_last { " └──" } else { " ├──" };
+        let branch = if is_last { "└── " } else { "├── " };
 
-        write!(f, "{} {}: ", prefix, i)?;
-        leaf.format(f)?;
+        write!(f, " {}{}{}: ", indent, branch, i)?;
+
+        let extension = if is_last { "    " } else { "│   " };
+        let next_indent = format!("{}{}", indent, extension);
+        leaf.format(f, &next_indent)?;
 
         if !is_last {
             writeln!(f)?;
