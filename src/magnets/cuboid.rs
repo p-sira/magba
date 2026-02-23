@@ -7,27 +7,30 @@ use crate::magnets::define_magnet;
 use nalgebra::Vector3;
 
 define_magnet! {
-    /// Uniformly magnetized cuboid magnet in 3D space.
+    /// Uniformly magnetized cuboid magnet.
     ///
     /// # Fields
+    /// 
     /// - `position`: Center of the cuboid (m)
     /// - `orientation`: Orientation as unit quaternion
     /// - `polarization`: Polarization vector (T)
     /// - `dimensions`: Cuboid side lengths (m)
     ///
     /// # Examples
+    /// 
     /// ```
-    /// use magba::sources::CuboidMagnet;
-    /// use nalgebra::*;
-    ///
+    /// # use magba::CuboidMagnet;
+    /// # use nalgebra::UnitQuaternion;
     /// let magnet = CuboidMagnet::new(
-    ///     Point3::origin(),              // position (m)
-    ///     UnitQuaternion::identity(),    // orientation
-    ///     Vector3::z(),                  // polarization (T)
-    ///     vector![0.01, 0.01, 0.02] // dimensions (m)
+    ///     [0.0, 0.0, 0.0],              // position (m)
+    ///     UnitQuaternion::identity(),   // orientation
+    ///     [0.0, 0.0, 1.0],              // polarization (T)
+    ///     [0.01, 0.01, 0.02],           // dimensions (m)
     /// );
     /// ```
+    /// 
     /// # References
+    /// 
     /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
     CuboidMagnet
     field_fn: cuboid_B
