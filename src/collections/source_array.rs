@@ -67,6 +67,10 @@ impl<S: Source<T>, T: Float, const N: usize> SourceArray<S, T, N> {
             offsets,
         }
     }
+
+    pub fn iter(&self) -> std::slice::Iter<'_, S> {
+        self.children.iter()
+    }
 }
 
 impl<S: Source<T> + Default, T: Float, const N: usize> Default for SourceArray<S, T, N> {
@@ -122,6 +126,30 @@ impl<S: Source<T>, T: Float, const N: usize> Field<T> for SourceArray<S, T, N> {
 impl<S: Source<T> + Clone, T: Float, const N: usize> Source<T> for SourceArray<S, T, N> {}
 
 // MARK: From, Into
+
+impl<S: Source<T>, T: Float, const N: usize> From<[S; N]> for SourceArray<S, T, N> {
+    fn from(sources: [S; N]) -> Self {
+        Self::from_sources(sources)
+    }
+}
+
+impl<'a, S: Source<T>, T: Float, const N: usize> IntoIterator for &'a SourceArray<S, T, N> {
+    type Item = &'a S;
+    type IntoIter = std::slice::Iter<'a, S>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.children.iter()
+    }
+}
+
+impl<S: Source<T>, T: Float, const N: usize> IntoIterator for SourceArray<S, T, N> {
+    type Item = S;
+    type IntoIter = std::array::IntoIter<S, N>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.children.into_iter()
+    }
+}
 
 // MARK: Display
 
