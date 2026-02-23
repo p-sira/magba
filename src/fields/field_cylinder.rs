@@ -324,6 +324,35 @@ pub fn global_cylinder_B<T: RealField + Copy + Float>(
 ///
 /// - B-field vectors at each observer (T)
 ///
+/// # Examples
+///
+/// ```
+/// # use magba::assert_close_vec;
+/// # use magba::fields::cylinder_B;
+/// # use nalgebra::*;
+/// let mut out = [Vector3::zeros(); 1];
+/// cylinder_B(
+///     &[point![5.0, 6.0, 7.0]],
+///     &point![1.0, 2.0, 3.0],
+///     &UnitQuaternion::from_scaled_axis(
+///         [1.0471975511965976, 0.6283185307179586, 0.4487989505128276].into(),
+///     ),
+///     &vector![0.45, 0.3, 0.15],
+///     1.0,
+///     2.0,
+///     &mut out,
+/// );
+/// assert_close_vec!(
+///     out[0],
+///     vector![
+///         0.00018917835277408574,
+///         0.00023329950084703265,
+///         0.00027040129610630406
+///     ],
+///     1e-12
+/// );
+/// ```
+/// 
 /// # References
 ///
 /// - Caciagli, Alessio, Roel J. Baars, Albert P. Philipse, and Bonny W. M. Kuipers. “Exact Expression for the Magnetic Field of a Finite Cylinder with Arbitrary Uniform Magnetization.” Journal of Magnetism and Magnetic Materials 456 (June 15, 2018): 423–32. <https://doi.org/10.1016/j.jmmm.2018.02.003>.
@@ -389,36 +418,4 @@ pub fn sum_multiple_cylinder_B<T: RealField + Copy + Float>(
         [positions, orientations, polarizations, diameters, heights],
         |pos, p, o, pol, d, h| global_cylinder_B(pos, p, o, pol, *d / T::from(2.0).unwrap(), *h)
     )
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::assert_close_vec;
-    use nalgebra::{point, vector};
-
-    #[test]
-    fn static_cases() {
-        let mut out = [Vector3::zeros(); 1];
-        cylinder_B(
-            &[point![5.0, 6.0, 7.0]],
-            &point![1.0, 2.0, 3.0],
-            &UnitQuaternion::from_scaled_axis(
-                [1.0471975511965976, 0.6283185307179586, 0.4487989505128276].into(),
-            ),
-            &vector![0.45, 0.3, 0.15],
-            1.0,
-            2.0,
-            &mut out,
-        );
-        assert_close_vec!(
-            out[0],
-            vector![
-                0.00018917835277408574,
-                0.00023329950084703265,
-                0.00027040129610630406
-            ],
-            1e-12
-        );
-    }
 }
