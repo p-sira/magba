@@ -24,25 +24,27 @@ Python bindings available via [Pymagba](https://github.com/p-sira/pymagba).
 
 To install Magba using `cargo`, run:
 ```bash
->> cargo add magba
+cargo add magba
 ```
 
 By default, Magba installs with all stable features enabled.
 
-To install only the specified feature flags, e.g. magnets and rayon, use:
-
 The available feature flags are:
-- `default`: Enable `std`, `base`, `magnets`, `sensors`, `rayon`.
-- `std`: Use std features. Disable this to use in `no_std` environments.
+- `default`: Enable `std` and `rayon`.
+- `std`: Use std features, such as magnet and collection structs.
+   Disable the flag to use Magba in `no_std` environments. Without `std`,
+   you can still access the [fields] module to directly compute the fields.
 - `rayon`: Parallelization using [Rayon](https://github.com/rayon-rs/rayon).
-- `base`: Enable base traits.
-- `magnets`: Magnets and magnetic sources. Needs `base`.
-- `sensors`: Magnetic sensors. Needs `base`.
 - `unstable`: Enable unstable features. These features may change any time.
 
+To install only the specified feature flags, e.g. rayon and unstable, use:
+
 ```bash
->> cargo add magba --no-default-features --features magnets,rayon
+cargo add magba --no-default-features --features rayon,unstable
 ```
+
+The command above will install Magba with `no_std` and parallelization,
+while allowing access to unstable features.
 
 ## User Guide
 
