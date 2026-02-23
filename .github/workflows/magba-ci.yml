@@ -49,12 +49,29 @@ jobs:
           key: cargo-${{ matrix.os }}-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             cargo-${{ matrix.os }}-
-
       - name: Install cargo-hack
         uses: taiki-e/install-action@cargo-hack
-
       - name: Run tests across feature combinations
         run: cargo hack test --feature-powerset
+
+  check-no-std:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install no_std target
+        run: rustup target add thumbv7m-none-eabi
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: cargo-nostd-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+      - name: Install cargo-hack
+        uses: taiki-e/install-action@cargo-hack
+      - name: Check no_std
+        run: cargo hack check --target thumbv7m-none-eabi --feature-powerset --exclude-features std
 
   doc:
     runs-on: ubuntu-latest
