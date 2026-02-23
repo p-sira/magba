@@ -10,6 +10,7 @@ use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 use crate::{
     base::{Field, Float, Source, Transform, transform::impl_transform},
     collections::component::Component,
+    crate_util::write_tree,
     geometry::Pose,
     transform::impl_group_transform,
 };
@@ -272,19 +273,7 @@ impl<T: Float> Display for Collection<T> {
             self.pose()
         )?;
 
-        for (i, source) in self.children.iter().enumerate() {
-            if i != 0 {
-                writeln!(f)?;
-            }
-            let prefix = if i + 1 != self.children.len() {
-                "├──"
-            } else {
-                "└──"
-            };
-            write!(f, "{} {}: ", prefix, i)?;
-            source.format(f)?;
-        }
-        Ok(())
+        write_tree(f, &self.children)
     }
 }
 
