@@ -12,7 +12,7 @@ use ellip::{ellipe, ellipk};
 use nalgebra::{Point3, RealField, UnitQuaternion, Vector3, vector};
 use numeric_literals::replace_float_literals;
 
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 use crate::SIZE;
 
 use crate::base::Float;

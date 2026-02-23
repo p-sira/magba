@@ -3,7 +3,7 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-#![cfg_attr(feature = "no_std", no_std)]
+#![cfg_attr(not(feature = "std"), no_std)]
 
 /*!
 # Magba
@@ -74,62 +74,39 @@ We would like to thank MagpyLib contributors their hard work and contributions t
     )
 )]
 
-#[cfg(all(feature = "no_std", feature = "default"))]
-compile_error!(
-    "The feature flag `no_std` is incompatible with `default`. Please add --no-default-features"
-);
+mod crate_util;
 
-#[cfg(all(feature = "no_std", feature = "rayon"))]
-compile_error!("The feature flag `parallel` is incompatible with `no_std`.");
+pub mod constants;
+pub mod conversion;
+pub mod fields;
+pub mod geometry;
 
-macro_rules! compile_if_valid_feature_flags {
-    ($($body:item)*) => {
-        $(
-            #[cfg(not(any(
-            all(feature = "no_std", feature = "default"),
-            all(feature = "no_std", feature = "rayon")
-        )))]
-        $body
-        )*
-    };
+pub use constants::MagneticConstants;
+
+use crate_util::need_feature;
+need_feature! {"base",
+    pub mod base;
+    pub mod collections;
+
+    // Re-exports
+    pub use crate::base::*;
+    pub use crate::collections::*;
+    pub use crate::magnets::*;
+    pub use crate::geometry::Pose;
 }
 
-compile_if_valid_feature_flags! {
-    mod crate_util;
+#[cfg(feature = "magnets")]
+pub mod magnets;
 
-    pub mod constants;
-    pub mod conversion;
-    pub mod fields;
-    pub mod geometry;
+#[cfg(feature = "sensors")]
+pub mod sensors;
 
-    use constants::MagneticConstants;
+#[cfg(test)]
+pub mod testing_util;
 
-    use crate_util::need_feature;
-    need_feature!{"base",
-        pub mod base;
-        pub mod collections;
-
-        // Re-exports
-        pub use crate::base::*;
-        pub use crate::collections::*;
-        pub use crate::magnets::*;
-        pub use crate::geometry::Pose;
-    }
-
-    #[cfg(feature = "magnets")]
-    pub mod magnets;
-
-    #[cfg(feature = "sensors")]
-    pub mod sensors;
-
-
-    #[cfg(test)]
-    pub mod testing_util;
-
-    #[cfg(feature = "no_std")]
-    /// Size of fixed-size arrays used in no-allocation environments.
-    const SIZE: usize = 1000;
-}
+#[cfg(not(feature = "std"))]
+/// Size of fixed-size arrays used in no-allocation environments.
+const SIZE: usize = 1000;
 
 /// Check if two vectors are close using relative Euclidean distance
 #[macro_export]
