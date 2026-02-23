@@ -104,6 +104,7 @@ crate::crate_util::need_std!(
 );
 
 /// Check if two vectors are close using relative Euclidean distance
+#[doc(hidden)]
 #[macro_export]
 macro_rules! assert_close_vec {
     ($a:expr, $b:expr, $rtol:expr) => {{
