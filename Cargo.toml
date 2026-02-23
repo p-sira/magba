@@ -39,7 +39,7 @@ dyn-clone = "1.0.20"
 ellip = { version = "1.0.4", features = ["unstable"] }
 enum_dispatch = "0.3.13"
 itertools = "0.14.0"
-nalgebra = "0.34.1"
+nalgebra = { version = "0.34.1", default-features = false, features = ["libm", "macros"] }
 num-traits = "0.2.19"
 numeric_literals = "0.2.0"
 rayon = { version = "1.10.0", optional = true }
@@ -53,6 +53,6 @@ regex = "1.12.2"
 
 [features]
 default = ["std", "rayon"]
-std = []
+std = ["nalgebra/std"]
 rayon = ["dep:rayon", "nalgebra/rayon"]
 unstable = []
