@@ -39,8 +39,9 @@ jobs:
         cargo_flags:
           - ""
           - "--no-default-features"
-          - "--no-default-features --features base"
-          - "--no-default-features --features magnets"
+          - "--no-default-features --features std"
+          - "--no-default-features --features std,rayon"
+          - "--no-default-features --features std,unstable"
           - "--all-features"
     runs-on: ${{ matrix.os }}
     steps:
