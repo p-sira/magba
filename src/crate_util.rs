@@ -126,7 +126,7 @@ pub(crate) fn write_tree<'a, T: Float, S: Source<T> + 'a>(
 
     while let Some((i, leaf)) = iter.next() {
         let is_last = iter.peek().is_none();
-        let prefix = if is_last { "└──" } else { "├──" };
+        let prefix = if is_last { " └──" } else { " ├──" };
 
         write!(f, "{} {}: ", prefix, i)?;
         leaf.format(f)?;
