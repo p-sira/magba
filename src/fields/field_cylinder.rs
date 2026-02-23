@@ -12,9 +12,6 @@ use ellip::{ellipe, ellipk};
 use nalgebra::{Point3, RealField, UnitQuaternion, Vector3, vector};
 use numeric_literals::replace_float_literals;
 
-#[cfg(not(feature = "std"))]
-use crate::SIZE;
-
 use crate::base::Float;
 use crate::crate_util::{impl_parallel, impl_parallel_sum};
 use crate::geometry::{cart2cyl, compute_in_local, vec_cyl2cart};
