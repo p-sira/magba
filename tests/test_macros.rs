@@ -3,7 +3,7 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-// #[cfg(not(feature = "no_std"))]
+// #[cfg(feature = "std")]
 // mod need_std {
 //     use magba::{CuboidMagnet, CylinderMagnet, Collection, collection};
 //     use nalgebra::{Vector3, vector};

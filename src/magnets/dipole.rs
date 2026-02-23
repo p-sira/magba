@@ -11,13 +11,13 @@ define_magnet! {
     /// Magnetic dipole.
     ///
     /// # Fields
-    /// 
+    ///
     /// - `position`: Position of the dipole (m)
     /// - `orientation`: Orientation as unit quaternion
     /// - `moment`: Magnetic dipole moment vector (A·m²)
     ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// # use magba::Dipole;
     /// # use nalgebra::UnitQuaternion;
@@ -29,7 +29,7 @@ define_magnet! {
     /// ```
     ///
     /// # References
-    /// 
+    ///
     /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
     Dipole
     field_fn: dipole_B
