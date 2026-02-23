@@ -37,35 +37,6 @@ macro_rules! eprint_if_std {
 }
 pub(crate) use eprint_if_std;
 
-macro_rules! return_vec_or_array {
-    (
-        $(#[$attr:meta])*
-        $vis:vis fn $name:ident <($($generics:tt)*)> (
-            $($arg:ident : $arg_ty:ty),* $(,)?
-        ) -> [$ret_ty:ty]
-        {
-            $($body:tt)*
-        }
-    ) => {
-        #[cfg(feature = "std")]
-        $(#[$attr])*
-        $vis fn $name<$($generics)*>(
-            $($arg: $arg_ty),*
-        ) -> Vec<$ret_ty> {
-            $($body)*
-        }
-
-        #[cfg(not(feature = "std"))]
-        $(#[$attr])*
-        $vis fn $name<$($generics)*>(
-            $($arg: $arg_ty),*
-        ) -> [$ret_ty; crate::SIZE] {
-            $($body)*
-        }
-    };
-}
-pub(crate) use return_vec_or_array;
-
 /// Calculate the symmetric relative error
 pub fn relative_error(a: f64, b: f64) -> f64 {
     if a == 0.0 && b == 0.0 {
@@ -187,35 +158,22 @@ macro_rules! assert_eq_lens {
 pub(crate) use assert_eq_lens;
 
 macro_rules! impl_parallel {
-    ($func: ident, $threshold: expr, $items: expr, $($func_args: expr),* $(,)?) => {
+    ($out:expr, $func:ident, $threshold:expr, $items:expr, $($func_args:expr),* $(,)?) => {
         {
+            assert_eq!($out.len(), $items.len(), "Output slice length must match points length.");
+            
             #[cfg(feature = "rayon")]
             if $items.len() > $threshold {
-                use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
-                return $items
-                    .par_iter()
-                    .map(|p| $func(p, $($func_args),*))
-                    .collect();
+                use rayon::iter::{IndexedParallelIterator, IntoParallelRefIterator, IntoParallelRefMutIterator, ParallelIterator};
+                $out.par_iter_mut()
+                    .zip($items.par_iter())
+                    .for_each(|(o, p)| *o = $func(p, $($func_args),*));
+                return;
             }
 
-            #[cfg(feature = "std")]
-            {
-                $items
-                    .iter()
-                    .map(|p| $func(p, $($func_args),*))
-                    .collect()
-            }
-
-            #[cfg(not(feature = "std"))]
-            {
-                let mut results = [Vector3::zeros(); crate::SIZE];
-                $items
-                    .iter()
-                    .enumerate()
-                    .for_each(|(i, p)| results[i] = $func(p, $($func_args),*));
-
-                results
-            }
+            $out.iter_mut()
+                .zip($items.iter())
+                .for_each(|(o, p)| *o = $func(p, $($func_args),*));
         }
     };
 }
@@ -223,48 +181,34 @@ pub(crate) use impl_parallel;
 
 // TODO: compare par_bridge with zip -> par_iter
 macro_rules! impl_parallel_sum {
-    ($items:expr, [$($vecs:expr),+], |$($args:ident),*| $call:expr) => {{
-        use crate::crate_util::assert_eq_lens;
-        assert_eq_lens!(
-            "Lengths of input vectors must be equal.",
-            [$($vecs),+]
+    ($out:expr, $points:expr, $threshold:expr, [$($vecs:expr),+], |$p:ident, $($args:ident),*| $calc:expr) => {{
+        crate::crate_util::assert_eq_lens!(
+            "Lengths of inputs must be equal.",
+            [$out, $points, $($vecs),+]
         );
 
-        let combinations = itertools::izip!($($vecs),+);
-
         #[cfg(feature = "rayon")]
-        {
-            use rayon::iter::{ParallelBridge, ParallelIterator};
-
-            let vectors = combinations
-                .par_bridge()
-                .map(|($($args),*)| $call)
-                .collect::<Vec<Vec<_>>>();
-
-            (0..$items.len())
-                .map(|i| vectors.iter().map(|v| v[i]).sum())
-                .collect()
+        if $points.len() > $threshold {
+            use rayon::iter::{IndexedParallelIterator, IntoParallelRefIterator, IntoParallelRefMutIterator, ParallelIterator};
+            $out.par_iter_mut().zip($points.par_iter()).for_each(|(o, p_ref)| {
+                let mut sum = nalgebra::Vector3::zeros();
+                for ($($args),*) in itertools::izip!($($vecs),+) {
+                    let $p = p_ref;
+                    sum += $calc;
+                }
+                *o = sum;
+            });
+            return;
         }
 
-        #[cfg(not(feature = "rayon"))]
-        {
-            #[cfg(feature = "std")]
-            let mut net_vectors: Vec<Vector3<_>> = vec![Vector3::zeros(); $items.len()];
-
-            #[cfg(not(feature = "std"))]
-            let mut net_vectors = [Vector3::zeros(); crate::SIZE];
-
-            combinations
-                .map(|($($args),*)| $call)
-                .for_each(|field_vectors| {
-                    net_vectors
-                        .iter_mut()
-                        .zip(field_vectors)
-                        .for_each(|(net_vector, field_vector)| *net_vector += field_vector)
-                });
-
-            net_vectors
-        }
+        $out.iter_mut().zip($points.iter()).for_each(|(o, p_ref)| {
+            let mut sum = nalgebra::Vector3::zeros();
+            for ($($args),*) in itertools::izip!($($vecs),+) {
+                let $p = p_ref;
+                sum += $calc;
+            }
+            *o = sum;
+        });
     }};
 }
 pub(crate) use impl_parallel_sum;
