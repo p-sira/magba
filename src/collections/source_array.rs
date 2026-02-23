@@ -151,6 +151,32 @@ impl<S: Source<T>, T: Float, const N: usize> IntoIterator for SourceArray<S, T, 
     }
 }
 
+// MARK: PartialEq
+
+impl<S: Source<T> + PartialEq, T: Float, const N: usize> PartialEq for SourceArray<S, T, N> {
+    fn eq(&self, other: &Self) -> bool {
+        if self.position() != other.position() || self.orientation() != other.orientation() {
+            return false;
+        }
+
+        // Order-independent comparison
+        let mut matched = [false; N];
+        for source in &self.children {
+            let found = other
+                .children
+                .iter()
+                .enumerate()
+                .find(|(idx, other_source)| !matched[*idx] && *source == **other_source);
+
+            match found {
+                Some((idx, _)) => matched[idx] = true,
+                None => return false,
+            }
+        }
+        true
+    }
+}
+
 // MARK: Display
 
 impl<S: Source<T>, T: Float, const N: usize> Display for SourceArray<S, T, N> {
