@@ -26,13 +26,16 @@ use num_traits::Float as NumFloat;
 /// <div class="warning">⚠️ Unstable feature. May subject to changes.</div>
 ///
 /// # Arguments
+///
 /// - `r`, `z`: Observer positions in cylindrical CS, normalized by radius
 /// - `z0`: Half the height over radius
 ///
 /// # Returns
+///
 /// - B-field vector (T) at point (r, z)
 ///
 /// # References
+///
 /// - Derby, Norman, and Stanislaw Olbert. “Cylindrical Magnets and Ideal Solenoids.” American Journal of Physics 78, no. 3 (March 1, 2010): 229–35. <https://doi.org/10.1119/1.3256157>.
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[allow(non_snake_case)]
@@ -70,13 +73,16 @@ pub fn unit_axial_cylinder_B_cyl<T: Float + Copy>(r: T, z: T, z0: T) -> Vector3<
 /// <div class="warning">⚠️ Unstable feature. May subject to changes.</div>
 ///
 /// # Arguments
+///
 /// - `r`, `phi`, `z`: Observer positions in cylindrical CS, normalized by radius
 /// - `z0`: Half the height over radius
 ///
 /// # Returns
+///
 /// - B-field vector (T) at point (r, phi, z)
 ///
 /// # References
+///
 /// - Caciagli, Alessio, Roel J. Baars, Albert P. Philipse, and Bonny W. M. Kuipers. “Exact Expression for the Magnetic Field of a Finite Cylinder with Arbitrary Uniform Magnetization.” Journal of Magnetism and Magnetic Materials 456 (June 15, 2018): 423–32. <https://doi.org/10.1016/j.jmmm.2018.02.003>.
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[allow(non_snake_case)]
@@ -174,6 +180,7 @@ where
 /// <div class="warning">⚠️ Unstable feature. May subject to changes.</div>
 ///
 /// # Arguments
+///
 /// - `r`, `phi`, `z`: Observer positions in cylindrical CS (m, rad, m)
 /// - `radius`: Cylinder radius (m)
 /// - `height`: Cylinder height (m)
@@ -181,12 +188,15 @@ where
 /// - `pol_z`: Axial polarization (T)
 ///
 /// # Returns
+///
 /// - B-field vector (T) at point (r, phi, z)
 ///
 /// # Notes
+///
 /// - Zero vector is returned if the point is close to the cylindrical magnet's edge (rim).
 ///
 /// # References
+///
 /// - Caciagli, Alessio, Roel J. Baars, Albert P. Philipse, and Bonny W. M. Kuipers. “Exact Expression for the Magnetic Field of a Finite Cylinder with Arbitrary Uniform Magnetization.” Journal of Magnetism and Magnetic Materials 456 (June 15, 2018): 423–32. <https://doi.org/10.1016/j.jmmm.2018.02.003>.
 /// - Derby, Norman, and Stanislaw Olbert. “Cylindrical Magnets and Ideal Solenoids.” American Journal of Physics 78, no. 3 (March 1, 2010): 229–35. <https://doi.org/10.1119/1.3256157>.
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
@@ -233,15 +243,18 @@ pub fn cylinder_B_cyl<T: RealField + Copy + Float>(
 /// <div class="warning">⚠️ Unstable feature. May subject to changes.</div>
 ///
 /// # Arguments
+///
 /// - `point`: Observer position in local frame (m)
 /// - `polarization`: Polarization vector (T)
 /// - `radius`: Cylinder radius (m)
 /// - `height`: Cylinder height (m)
 ///
 /// # Returns
+///
 /// - B-field vector at the observer (T)
 ///
 /// # References
+///
 /// - Caciagli, Alessio, Roel J. Baars, Albert P. Philipse, and Bonny W. M. Kuipers. “Exact Expression for the Magnetic Field of a Finite Cylinder with Arbitrary Uniform Magnetization.” Journal of Magnetism and Magnetic Materials 456 (June 15, 2018): 423–32. <https://doi.org/10.1016/j.jmmm.2018.02.003>.
 /// - Derby, Norman, and Stanislaw Olbert. “Cylindrical Magnets and Ideal Solenoids.” American Journal of Physics 78, no. 3 (March 1, 2010): 229–35. <https://doi.org/10.1119/1.3256157>.
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
@@ -279,21 +292,8 @@ pub fn local_cylinder_B<T: RealField + Copy + Float>(
 ///
 /// <div class="warning">⚠️ Unstable feature. May subject to changes.</div>
 ///
-/// # Arguments
-/// - `point`: Observer position in local frame (m)
-/// - `position`: Magnet position (m)
-/// - `orientation`: Magnet orientation in unit quaternion
-/// - `polarization`: Polarization vector (T)
-/// - `radius`: Cylinder radius (m)
-/// - `height`: Cylinder height (m)
-///
-/// # Returns
-/// - B-field vector at the observer (T)
-///
-/// # References
-/// - Caciagli, Alessio, Roel J. Baars, Albert P. Philipse, and Bonny W. M. Kuipers. “Exact Expression for the Magnetic Field of a Finite Cylinder with Arbitrary Uniform Magnetization.” Journal of Magnetism and Magnetic Materials 456 (June 15, 2018): 423–32. <https://doi.org/10.1016/j.jmmm.2018.02.003>.
-/// - Derby, Norman, and Stanislaw Olbert. “Cylindrical Magnets and Ideal Solenoids.” American Journal of Physics 78, no. 3 (March 1, 2010): 229–35. <https://doi.org/10.1119/1.3256157>.
-/// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
+/// Wrapper of [local_cylinder_B].
+#[inline]
 #[allow(non_snake_case)]
 pub fn global_cylinder_B<T: RealField + Copy + Float>(
     point: &Point3<T>,
@@ -315,6 +315,7 @@ pub fn global_cylinder_B<T: RealField + Copy + Float>(
 /// Compute B-field at points in global frame for a single cylindrical magnet.
 ///
 /// # Arguments
+///
 /// - `points`: Observer positions in global frame (m)
 /// - `position`: Magnet position (m)
 /// - `orientation`: Magnet orientation as unit quaternion
@@ -323,9 +324,11 @@ pub fn global_cylinder_B<T: RealField + Copy + Float>(
 /// - `height`: Cylinder height (m)
 ///
 /// # Returns
+///
 /// - B-field vectors at each observer (T)
 ///
 /// # References
+///
 /// - Caciagli, Alessio, Roel J. Baars, Albert P. Philipse, and Bonny W. M. Kuipers. “Exact Expression for the Magnetic Field of a Finite Cylinder with Arbitrary Uniform Magnetization.” Journal of Magnetism and Magnetic Materials 456 (June 15, 2018): 423–32. <https://doi.org/10.1016/j.jmmm.2018.02.003>.
 /// - Derby, Norman, and Stanislaw Olbert. “Cylindrical Magnets and Ideal Solenoids.” American Journal of Physics 78, no. 3 (March 1, 2010): 229–35. <https://doi.org/10.1119/1.3256157>.
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
@@ -355,6 +358,7 @@ pub fn cylinder_B<T: RealField + Copy + Float>(
 /// Compute net B-field at each given point in global frame for multiple cylindrical magnets.
 ///
 /// # Arguments
+///
 /// - `points`: Observer positions in global frame (m)
 /// - `positions`: Magnet positions (m)
 /// - `orientations`: Magnet orientations as unit quaternions
@@ -363,9 +367,11 @@ pub fn cylinder_B<T: RealField + Copy + Float>(
 /// - `heights`: Cylinder heights (m)
 ///
 /// # Returns
+///
 /// - Net B-field vectors at each observer (T)
 ///
 /// # References
+///
 /// - Caciagli, Alessio, Roel J. Baars, Albert P. Philipse, and Bonny W. M. Kuipers. “Exact Expression for the Magnetic Field of a Finite Cylinder with Arbitrary Uniform Magnetization.” Journal of Magnetism and Magnetic Materials 456 (June 15, 2018): 423–32. <https://doi.org/10.1016/j.jmmm.2018.02.003>.
 /// - Derby, Norman, and Stanislaw Olbert. “Cylindrical Magnets and Ideal Solenoids.” American Journal of Physics 78, no. 3 (March 1, 2010): 229–35. <https://doi.org/10.1119/1.3256157>.
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.

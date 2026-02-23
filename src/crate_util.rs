@@ -161,7 +161,7 @@ macro_rules! impl_parallel {
     ($out:expr, $func:ident, $threshold:expr, $items:expr, $($func_args:expr),* $(,)?) => {
         {
             assert_eq!($out.len(), $items.len(), "Output slice length must match points length.");
-            
+
             #[cfg(feature = "rayon")]
             if $items.len() > $threshold {
                 use rayon::iter::{IndexedParallelIterator, IntoParallelRefIterator, IntoParallelRefMutIterator, ParallelIterator};
