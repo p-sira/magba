@@ -89,11 +89,12 @@ pub fn is_elem_close(vec1: &Vector3<f64>, vec2: &Vector3<f64>, rtol: f64) -> Opt
     if n_fail > 0 { Some(n_fail) } else { None }
 }
 
+#[cfg(feature = "std")]
 pub(crate) fn write_tree<'a, T: Float, S: Source<T> + 'a>(
-    f: &mut std::fmt::Formatter<'_>,
+    f: &mut core::fmt::Formatter<'_>,
     leafs: impl IntoIterator<Item = &'a S>,
     indent: &str,
-) -> std::fmt::Result {
+) -> core::fmt::Result {
     let mut iter = leafs.into_iter().enumerate().peekable();
 
     while let Some((i, leaf)) = iter.next() {
