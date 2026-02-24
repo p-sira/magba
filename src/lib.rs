@@ -50,7 +50,7 @@ cargo add magba --no-default-features --features libm
 
 ### Basic Features
 
-- Manipulating object positions and orientations
+- [Manipulating object positions and orientations](Transform#examples)
 - Creating magnets and computing fields
 - Using sensors
 - Grouping components as collections

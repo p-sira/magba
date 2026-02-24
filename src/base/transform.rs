@@ -11,6 +11,70 @@ use enum_dispatch::enum_dispatch;
 use nalgebra::RealField;
 
 /// Trait shared by objects that can return [Pose].
+///
+/// In addition to implementing this trait, all objects in Magba
+/// implement methods for position and orientation manipulation
+/// in 3D cartesian space. Please refer to any magnet structs (such as the [CuboidMagnet](CuboidMagnet#impl-CuboidMagnet<T>-2))
+/// for the full list of transformation methods.
+///
+/// # Examples
+///
+/// ```
+/// # use magba::*;
+/// # use approx::assert_relative_eq;
+/// # use nalgebra::*;
+/// # use std::f64::consts::PI;
+/// let mut magnet = CylinderMagnet::default()
+///     .with_polarization([0.0, 0.0, 0.9])
+///     .with_diameter(0.01)
+///     .with_height(0.02);
+/// # let observer = [point![0.0, 0.0, 0.05]];
+/// # assert_relative_eq!(
+/// #     magnet.get_B(&observer)[0],
+/// #     vector![0.0, 0.0, 0.0019205466890453442]
+/// # );
+///
+/// // Translating the magnet and getting its position
+///
+/// magnet.translate([0.0, 0.0, 0.01]);
+/// # assert_relative_eq!(
+/// #     magnet.get_B(&observer)[0],
+/// #     vector![0.0, 0.0, 0.0038894698700304275]
+/// # );
+/// assert_eq!(magnet.position(), point![0.0, 0.0, 0.01]);
+///
+/// magnet.set_position([0.0, 0.0, 0.02]);
+/// # assert_relative_eq!(
+/// #     magnet.get_B(&observer)[0],
+/// #     vector![0.0, 0.0, 0.00996091945575112]
+/// # );
+/// assert_eq!(magnet.position(), point![0.0, 0.0, 0.02]);
+///
+/// // Rotating the magnet and getting its orientation
+/// 
+/// let rotation = UnitQuaternion::from_scaled_axis([PI / 4.0, 0.0, 0.0].into());
+/// magnet.rotate(rotation);
+/// # assert_relative_eq!(
+/// #     magnet.get_B(&observer)[0],
+/// #     vector![
+/// #         3.9407500527173422e-19,
+/// #         0.0035238379945531874,
+/// #         0.005577663229073966
+/// #     ]
+/// # );
+/// assert_eq!(magnet.orientation(), rotation);
+///
+/// let rotation = UnitQuaternion::from_scaled_axis([PI / 2.0, 0.0, 0.0].into());
+/// magnet.set_orientation(rotation);
+/// # assert_relative_eq!(
+/// #     magnet.get_B(&observer)[0],
+/// #     vector![6.086025172136602e-35, 0.003642460886175623, 0.0]
+/// # );
+/// assert_eq!(magnet.orientation(), rotation);
+/// ```
+/// 
+/// Please refer to any magnet structs (such as the [CuboidMagnet](CuboidMagnet#impl-CuboidMagnet<T>-2))
+/// for the full list of transformation methods.
 #[enum_dispatch]
 pub trait Transform<T: RealField> {
     fn pose(&self) -> &Pose<T>;
@@ -88,3 +152,11 @@ macro_rules! impl_group_transform {
     };
 }
 pub(crate) use impl_group_transform;
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test() {
+
+    }
+}
