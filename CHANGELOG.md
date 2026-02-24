@@ -7,6 +7,7 @@
 **Core Architecture**
 - **Unified Collection:** `Collection` holds a `Vec<Component>` and handles both heap and stack-allocated items internally.
 - **MultiSourceCollection Removed:** Use `Collection` which now supports nested and mixed types.
+- **Field Trait Removed:** The `Field` trait is merged into the `Source` trait.
 
 **API Renames & Standardization**
 - `CylinderMagnet` accepts `diameter` instead of `radius`.
@@ -14,8 +15,10 @@
 
 **Codebase Restructure**
 - Remove the `util` module.
-- Remove the `transform` feature flag. Transformation capabilities are shipped with `sources`.
 - `Transform` trait now indicates the ability to return `Pose` object.
+
+**Feature Flag Reorganization**
+- Available feature flags are `std`, `rayon`, `libm`, `unstable`. To install for `no_std` environments, you must also enable `libm`.
 
 #### New Features
 
