@@ -35,16 +35,14 @@ The available feature flags are:
    Disable the flag to use Magba in `no_std` environments. Without `std`,
    you can still access the [fields] module to directly compute the fields.
 - `rayon`: Parallelization using [Rayon](https://github.com/rayon-rs/rayon).
+- `libm`: Use libm as the math backend. Must be enabled when compiling for `no_std`.
 - `unstable`: Enable unstable features. These features may change any time.
 
-To install only the specified feature flags, e.g. rayon and unstable, use:
+To install for `no_std` environments, use:
 
 ```bash
-cargo add magba --no-default-features --features rayon,unstable
+cargo add magba --no-default-features --features libm
 ```
-
-The command above will install Magba with `no_std` and parallelization,
-while allowing access to unstable features.
 
 ## User Guide
 

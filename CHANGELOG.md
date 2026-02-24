@@ -24,7 +24,7 @@
 **Stack Allocation & No-Std**
 - `SourceArray`: A fixed-size, stack-allocated, homogeneous collection of Sources.
 - `ZeroMagnet` and `zero_field` to serve as a placeholder in `SourceArray`.
-- Add `no_std` feature flag.
+- Add `no_std` and `libm` feature flag. 
 
 **Pose Struct**
 - Introduce `Pose` struct to handle position/orientation logic centrally. `Source` delegates transformation logic here.
@@ -37,7 +37,7 @@
 #### Improvements
 
 - **Relative Positioning:** Collections now store its children's positions relative to the collection's local coordinate, mitigating error accumulation during repeated transformations.
-- **Dependency Upgrade:** Update `ellip`, the internal math backend, to v1.0.4, improving performance and removing BulirschConst constraint from `magba::Float`.
+- **Dependency Upgrade:** Update `ellip`, the internal math backend, to v1.1.0, improving performance, removing BulirschConst constraint from `magba::Float`, and supporting `no_std`.
 - **Dependency Upgrade:** Update `nalgebra` to v0.34.1.
 
 **Documentations**
