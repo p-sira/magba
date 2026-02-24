@@ -32,8 +32,8 @@ By default, Magba installs with all stable features enabled.
 The available feature flags are:
 - `default`: Enable `std` and `rayon`.
 - `std`: Use std features, such as magnet and collection structs.
-   Disable the flag to use Magba in `no_std` environments. Without `std`,
-   you can still access the [fields] module to directly compute the fields.
+  Disable the flag to use Magba in `no_std` environments. Without `std`,
+  you can still access the [fields] module to directly compute the fields.
 - `rayon`: Parallelization using [Rayon](https://github.com/rayon-rs/rayon).
 - `libm`: Use libm as the math backend. Must be enabled when compiling for `no_std`.
 - `unstable`: Enable unstable features. These features may change any time.

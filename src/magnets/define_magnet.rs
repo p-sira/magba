@@ -112,6 +112,7 @@ macro_rules! define_magnet {
                     pub fn fn_name(&mut self, $arg: define_magnet!(@arg_type_decl $arg_type $(, $is_value)?)) {
                         let $arg: $arg_type = define_magnet!(@arg_into $arg $(, $is_value)?);
                         $(
+                            #[allow(clippy::neg_cmp_op_on_partial_ord)]
                             if !($validate) {
                                 panic!($error);
                             }
@@ -186,6 +187,7 @@ macro_rules! define_magnet {
                 // Run validation logic after conversion
                 $(
                     $(
+                        #[allow(clippy::neg_cmp_op_on_partial_ord)]
                         if !($validate) {
                             panic!($error);
                         }

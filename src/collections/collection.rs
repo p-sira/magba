@@ -126,7 +126,7 @@ macro_rules! collection {
 
 impl<T: Float> FromIterator<Component<T>> for Collection<T> {
     fn from_iter<I: IntoIterator<Item = Component<T>>>(iter: I) -> Self {
-        let children: Vec<Component<T>> = iter.into_iter().map(|c| c.into()).collect();
+        let children: Vec<Component<T>> = iter.into_iter().collect();
         let offsets: Vec<Pose<T>> = children.iter().map(|c| *c.pose()).collect();
 
         Self {
@@ -169,7 +169,7 @@ where
     S: Source<T> + Into<Component<T>>,
 {
     fn from(array: SourceArray<S, T, N>) -> Self {
-        Collection::new(array.position(), array.orientation(), array.into_iter())
+        Collection::new(array.position(), array.orientation(), array)
     }
 }
 
