@@ -82,11 +82,35 @@ pub fn global_dipole_B<T: RealField + num_traits::Float + Copy>(
 /// - `position`: Magnet position (m)
 /// - `orientation`: Magnet orientation in unit quaternion
 /// - `moment`: Magnetic dipole moment vector (A·m²)
+/// - `out`: Mutable slice to store the B-field vectors at each observer (T)
 ///
-/// # Returns
+/// # Examples
 ///
-/// - B-field vectors at each observer (T)
-///
+/// ```
+/// # use magba::assert_close_vec;
+/// # use magba::fields::dipole_B;
+/// # use nalgebra::*;
+/// let mut out = [Vector3::zeros(); 1];
+/// dipole_B(
+///     &[point![5.0, 6.0, 7.0]],
+///     &point![1.0, 2.0, 3.0],
+///     &UnitQuaternion::from_scaled_axis(
+///         [1.0471975511965976, 0.6283185307179586, 0.4487989505128276].into(),
+///     ),
+///     &vector![0.45, 0.3, 0.15],
+///     &mut out,
+/// );
+/// assert_close_vec!(
+///     out[0],
+///     vector![
+///         1.5509430032394472e-10,
+///         1.8780091679184128e-10,
+///         2.1982579999135383e-10
+///     ],
+///     2e-10
+/// );
+/// ```
+/// 
 /// # References
 ///
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
@@ -117,37 +141,7 @@ pub fn dipole_B<T: RealField + num_traits::Float + Copy>(
 /// - `positions`: Magnet positions (m)
 /// - `orientations`: Magnet orientations in unit quaternion
 /// - `moments`: Magnetic dipole moment vectors (A·m²)
-///
-/// # Returns
-///
-/// - Net B-field vectors (T) at each observer
-///
-/// # Examples
-///
-/// ```
-/// # use magba::assert_close_vec;
-/// # use magba::fields::dipole_B;
-/// # use nalgebra::*;
-/// let mut out = [Vector3::zeros(); 1];
-/// dipole_B(
-///     &[point![5.0, 6.0, 7.0]],
-///     &point![1.0, 2.0, 3.0],
-///     &UnitQuaternion::from_scaled_axis(
-///         [1.0471975511965976, 0.6283185307179586, 0.4487989505128276].into(),
-///     ),
-///     &vector![0.45, 0.3, 0.15],
-///     &mut out,
-/// );
-/// assert_close_vec!(
-///     out[0],
-///     vector![
-///         1.5509430032394472e-10,
-///         1.8780091679184128e-10,
-///         2.1982579999135383e-10
-///     ],
-///     2e-10
-/// );
-/// ```
+/// - `out`: Mutable slice to store the net B-field vectors at each observer (T)
 ///
 /// # References
 ///

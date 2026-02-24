@@ -6,6 +6,8 @@
 use nalgebra::{Point3, RealField, UnitQuaternion, Vector3};
 
 /// Return zero vectors for all points.
+///
+/// Stores the results in the mutable slice `out`.
 pub fn zero_field<T: RealField>(
     points: &[Point3<T>],
     _: &Point3<T>,

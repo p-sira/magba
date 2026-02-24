@@ -319,10 +319,7 @@ pub fn global_cylinder_B<T: RealField + Copy + Float>(
 /// - `polarization`: Polarization vector (T)
 /// - `diameter`: Cylinder diameter (m)
 /// - `height`: Cylinder height (m)
-///
-/// # Returns
-///
-/// - B-field vectors at each observer (T)
+/// - `out`: Mutable slice to store the B-field vectors at each observer (T)
 ///
 /// # Examples
 ///
@@ -352,7 +349,7 @@ pub fn global_cylinder_B<T: RealField + Copy + Float>(
 ///     1e-12
 /// );
 /// ```
-/// 
+///
 /// # References
 ///
 /// - Caciagli, Alessio, Roel J. Baars, Albert P. Philipse, and Bonny W. M. Kuipers. “Exact Expression for the Magnetic Field of a Finite Cylinder with Arbitrary Uniform Magnetization.” Journal of Magnetism and Magnetic Materials 456 (June 15, 2018): 423–32. <https://doi.org/10.1016/j.jmmm.2018.02.003>.
@@ -391,10 +388,7 @@ pub fn cylinder_B<T: RealField + Copy + Float>(
 /// - `polarizations`: Polarization vectors (T)
 /// - `diameters`: Cylinder diameters (m)
 /// - `heights`: Cylinder heights (m)
-///
-/// # Returns
-///
-/// - Net B-field vectors at each observer (T)
+/// - `out`: Mutable slice to store the net B-field vectors at each observer (T)
 ///
 /// # References
 ///

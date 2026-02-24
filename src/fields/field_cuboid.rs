@@ -202,10 +202,7 @@ pub fn global_cuboid_B<T: RealField + Copy>(
 /// - `orientation`: Magnet orientation in unit quaternion
 /// - `polarization`: Polarization vector (T)
 /// - `dimensions`: Cuboid side lengths (m)
-///
-/// # Returns
-///
-/// - B-field vectors at each observer (T)
+/// - `out`: Mutable slice to store the B-field vectors at each observer (T)
 ///
 /// # Examples
 ///
@@ -268,10 +265,7 @@ pub fn cuboid_B<T: RealField + Copy>(
 /// - `orientations`: Magnet orientations as unit quaternions
 /// - `polarizations`: Polarization vectors (T)
 /// - `dimensions`: Cuboid side lengths (m)
-///
-/// # Returns
-///
-/// - Net B-field vectors at each observer (T)
+/// - `out`: Mutable slice to store the net B-field vectors at each observer (T)
 ///
 /// # References
 ///
