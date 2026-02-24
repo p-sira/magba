@@ -7,7 +7,7 @@
 **Core Architecture**
 - **Unified Collection:** `Collection` holds a `Vec<Component>` and handles both heap and stack-allocated items internally.
 - **MultiSourceCollection Removed:** Use `Collection` which now supports nested and mixed types.
-- **Field Trait Removed:** The `Field` trait is merged into the `Source` trait.
+- **Field Trait Removed:** The `Field` trait is merged into the `Source` trait because the trait is redundant, and its name collides with nalgebra's `Field`.
 
 **API Renames & Standardization**
 - `CylinderMagnet` accepts `diameter` instead of `radius`.
