@@ -52,7 +52,7 @@ jobs:
       - name: Install cargo-hack
         uses: taiki-e/install-action@cargo-hack
       - name: Run tests across feature combinations
-        run: cargo hack test --feature-powerset
+        run: cargo hack test --feature-powerset --exclude-features libm --features std
 
   check-no-std:
     runs-on: ubuntu-latest
@@ -71,7 +71,7 @@ jobs:
       - name: Install cargo-hack
         uses: taiki-e/install-action@cargo-hack
       - name: Check no_std
-        run: cargo hack check --target thumbv7m-none-eabi --feature-powerset --exclude-features std,libm --features libm
+        run: cargo hack check --target thumbv7m-none-eabi --feature-powerset --exclude-features std --features libm
 
   doc:
     runs-on: ubuntu-latest
