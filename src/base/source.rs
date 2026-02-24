@@ -8,7 +8,6 @@ use std::fmt::{Debug, Display};
 use crate::{
     Component, Pose,
     base::{Float, Transform},
-    crate_util::need_std,
     magnets::*,
 };
 
@@ -17,12 +16,11 @@ use dyn_clone::{DynClone, clone_trait_object};
 use enum_dispatch::enum_dispatch;
 use nalgebra::{Point3, RealField, Vector3};
 
-// MARK: Field
+// MARK: Source
 
-/// Trait shared by objects that generate magnetic field.
 #[enum_dispatch]
-#[allow(non_snake_case)]
-pub trait Field<T: RealField = f64> {
+/// Physical representation of magnetic sources.
+pub trait Source<T: RealField>: Transform<T> + Send + Sync + DynClone {
     /// Compute the magnetic field (B) at the given points.
     ///
     /// # Arguments
@@ -30,15 +28,9 @@ pub trait Field<T: RealField = f64> {
     ///
     /// # Returns
     /// - B-field vectors at each observer.
+    #[allow(non_snake_case)]
     fn get_B(&self, points: &[Point3<T>]) -> Vec<Vector3<T>>;
-}
 
-// MARK: Source
-
-#[enum_dispatch]
-/// Physical representation of magnetic sources.
-pub trait Source<T: RealField>: Transform<T> + Field<T> + Send + Sync + DynClone {
-    #[cfg(feature = "std")]
     /// A default formatter that behaves like Display.
     /// Last argument is the indentation, which is for Collection support.
     /// Override this for custom printouts.
@@ -57,30 +49,26 @@ impl<T: RealField> std::fmt::Display for dyn Source<T> {
 
 // MARK: Box<dyn Source>
 
-need_std! {
-    impl<T: Float> Field<T> for Box<dyn Source<T>> {
-        fn get_B(&self, points: &[Point3<T>]) -> Vec<Vector3<T>> {
-            (**self).get_B(points)
+impl<T: Float> Transform<T> for Box<dyn Source<T>> {
+    delegate!(
+        to (**self) {
+            fn pose(&self) -> &Pose<T>;
+            fn pose_mut(&mut self) -> &mut Pose<T>;
+            fn set_pose(&mut self, pose: Pose<T>);
         }
+    );
+}
+
+clone_trait_object!(<T> Source<T> where T: Float);
+
+impl<T: Float> Debug for Box<dyn Source<T>> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        (**self).fmt(f)
     }
+}
 
-    impl<T: Float> Transform<T> for Box<dyn Source<T>> {
-        delegate!(
-            to (**self) {
-                fn pose(&self) -> &Pose<T>;
-                fn pose_mut(&mut self) -> &mut Pose<T>;
-                fn set_pose(&mut self, pose: Pose<T>);
-            }
-        );
+impl<T: Float> Source<T> for Box<dyn Source<T>> {
+    fn get_B(&self, points: &[Point3<T>]) -> Vec<Vector3<T>> {
+        (**self).get_B(points)
     }
-
-    clone_trait_object!(<T> Source<T> where T: Float);
-
-    impl<T: Float> Debug for Box<dyn Source<T>> {
-        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            (**self).fmt(f)
-        }
-    }
-
-    impl<T: Float> Source<T> for Box<dyn Source<T>> {}
 }

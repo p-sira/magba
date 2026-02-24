@@ -10,7 +10,7 @@ use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
 use crate::{
     SourceArray,
-    base::{Field, Float, Source, Transform, transform::impl_transform},
+    base::{Float, Source, Transform, transform::impl_transform},
     collections::component::Component,
     geometry::Pose,
     transform::impl_group_transform,
@@ -214,9 +214,9 @@ impl<T: Float> IndexMut<usize> for Collection<T> {
 impl_transform!(Collection<T> where T: Float);
 impl_group_transform!(Collection<T> where T: Float);
 
-// MARK: Field, Source
+// MARK: Source
 
-impl<T: Float> Field<T> for Collection<T> {
+impl<T: Float> Source<T> for Collection<T> {
     #[inline]
     fn get_B(&self, points: &[Point3<T>]) -> Vec<Vector3<T>> {
         let mut net_field = vec![Vector3::zeros(); points.len()];
@@ -250,6 +250,25 @@ impl<T: Float> Field<T> for Collection<T> {
         }
         net_field
     }
+
+    // MARK: Display
+
+    fn format(&self, f: &mut std::fmt::Formatter<'_>, indent: &str) -> std::fmt::Result {
+        writeln!(
+            f,
+            "Collection ({} children) at {}",
+            self.children.len(),
+            self.pose()
+        )?;
+
+        crate::collections::utils::write_tree(f, &self.children, indent)
+    }
+}
+
+impl<T: Float> Display for Collection<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.format(f, "")
+    }
 }
 
 // MARK: PartialEq
@@ -277,27 +296,6 @@ impl<T: Float> PartialEq for Collection<T> {
             }
         }
         true
-    }
-}
-
-// MARK: Display
-
-impl<T: Float> Source<T> for Collection<T> {
-    fn format(&self, f: &mut std::fmt::Formatter<'_>, indent: &str) -> std::fmt::Result {
-        writeln!(
-            f,
-            "Collection ({} children) at {}",
-            self.children.len(),
-            self.pose()
-        )?;
-
-        crate::collections::utils::write_tree(f, &self.children, indent)
-    }
-}
-
-impl<T: Float> Display for Collection<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.format(f, "")
     }
 }
 
