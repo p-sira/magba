@@ -10,7 +10,6 @@
 **Magba** is a performant analytical magnetic computation library for Rust.
 
 All physical quantities are assumed to be in SI units.
-Python bindings available via [Pymagba](https://github.com/p-sira/pymagba).
 
 ## Features
 
@@ -19,6 +18,7 @@ Python bindings available via [Pymagba](https://github.com/p-sira/pymagba).
 - [Move and rotate objects](#move-and-rotate-objects) in 3D space.
 - Increase performance using [parallelization](#installation) with [Rayon](https://docs.rs/crate/rayon/latest).
 - Support calculation with [f32] and [f64].
+- Python bindings available via [Pymagba](https://github.com/p-sira/pymagba).
 
 ## Installation
 
@@ -30,9 +30,9 @@ cargo add magba
 By default, Magba installs with all stable features enabled.
 
 The available feature flags are:
-- `default`: Enable `std` and `rayon`.
+- `default`: Enable std and rayon.
 - `std`: Use std features, such as magnet and collection structs.
-  Disable the flag to use Magba in `no_std` environments. Without `std`,
+  Disable the flag to use Magba in `no_std` environments. Without std,
   you can still access the [fields] module to directly compute the fields.
 - `rayon`: Parallelization using [Rayon](https://github.com/rayon-rs/rayon).
 - `libm`: Use libm as the math backend. Must be enabled when compiling for `no_std`.
