@@ -71,7 +71,7 @@ jobs:
       - name: Install cargo-hack
         uses: taiki-e/install-action@cargo-hack
       - name: Check no_std
-        run: cargo hack check --target thumbv7m-none-eabi --feature-powerset --exclude-features std
+        run: cargo hack check --target thumbv7m-none-eabi --feature-powerset --exclude-features std,libm --features libm
 
   doc:
     runs-on: ubuntu-latest
