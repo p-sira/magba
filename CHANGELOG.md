@@ -6,7 +6,7 @@
 
 **Core Architecture**
 - **Unified Collection:** `Collection` holds a `Vec<Component>` and handles both heap and stack-allocated items internally.
-* **MultiSourceCollection Removed:** Use `Collection` which now supports nested and mixed types.
+- **MultiSourceCollection Removed:** Use `Collection` which now supports nested and mixed types.
 
 **API Renames & Standardization**
 - `CylinderMagnet` accepts `diameter` instead of `radius`.
