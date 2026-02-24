@@ -5,8 +5,6 @@
 
 //! Internal utilities for Magba
 
-use nalgebra::{Point3, RealField, Vector3, distance};
-
 macro_rules! need_std {
     ($($body:item)*) => {
         $(
@@ -16,38 +14,6 @@ macro_rules! need_std {
     };
 }
 pub(crate) use need_std;
-
-/// Calculate the symmetric relative error
-pub fn relative_error(a: f64, b: f64) -> f64 {
-    if a == 0.0 && b == 0.0 {
-        return 0.0;
-    }
-    let difference = a - b;
-    let rel1 = (difference / a).abs();
-    let rel2 = (difference / b).abs();
-
-    if rel1.is_nan() {
-        return rel2;
-    }
-    if rel2.is_nan() {
-        return rel1;
-    }
-
-    rel1.max(rel2)
-}
-
-/// Check if two numbers are close
-#[allow(unused)]
-pub fn is_close(a: f64, b: f64, rtol: f64) -> bool {
-    relative_error(a, b) <= rtol
-}
-
-/// Calculate the relative Euclidean distance
-#[allow(unused)]
-pub fn relative_vec_distance<T: RealField + Copy>(a: Vector3<T>, b: Vector3<T>) -> T {
-    let dist = distance(&Point3::from(a), &Point3::from(b));
-    (dist / a.magnitude()).max(dist / b.magnitude())
-}
 
 macro_rules! format_float {
     ($v: expr) => {
