@@ -34,8 +34,8 @@ name = "bench"
 [dependencies]
 concat-idents = "1.1.5"
 delegate = "0.13.5"
-derive_more = { version = "2.1.1", default-features = false, features = ["display"] }
-dyn-clone = "1.0.20"
+derive_more = { version = "2.1.1", optional = true , features = ["display"] }
+dyn-clone = { version = "1.0.20", optional = true }
 ellip = { version = "1.1.0", default-features = false, features = ["unstable"] }
 enum_dispatch = "0.3.13"
 itertools = { version = "0.14.0", default-features = false }
@@ -52,7 +52,13 @@ regex = "1.12.2"
 
 [features]
 default = ["std", "rayon"]
-std = ["ellip/std", "num-traits/std", "nalgebra/std"]
+std = [
+    "ellip/std",
+    "num-traits/std",
+    "nalgebra/std",
+    "dep:derive_more",
+    "dep:dyn-clone",
+]
 rayon = ["std", "dep:rayon", "nalgebra/rayon"]
 libm = ["ellip/libm", "num-traits/libm", "nalgebra/libm"]
 unstable = []
