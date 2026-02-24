@@ -233,7 +233,18 @@ macro_rules! define_magnet {
         }
 
         impl<T: crate::base::Float> crate::base::Source<T> for $name<T> {
-            #[cfg(feature = "std")]
+            fn get_B(&self, points: &[nalgebra::Point3<T>]) -> Vec<nalgebra::Vector3<T>> {
+                let mut out = vec![nalgebra::Vector3::zeros(); points.len()];
+                crate::fields::$field_fn(
+                    points,
+                    &self.position(),
+                    &self.orientation(),
+                    $( define_magnet!(@pass_arg self.$arg $(, $is_value)?), )*
+                    &mut out,
+                );
+                out
+            }
+
             fn format(&self, f: &mut std::fmt::Formatter<'_>, _: &str) -> std::fmt::Result {
                 write!(
                     f,
@@ -251,21 +262,6 @@ macro_rules! define_magnet {
 
         crate::base::transform::impl_transform!($name<T> where T: crate::base::Float);
 
-        impl<T: crate::base::Float> crate::base::Field<T> for $name<T> {
-            fn get_B(&self, points: &[nalgebra::Point3<T>]) -> Vec<nalgebra::Vector3<T>> {
-                let mut out = vec![nalgebra::Vector3::zeros(); points.len()];
-                crate::fields::$field_fn(
-                    points,
-                    &self.position(),
-                    &self.orientation(),
-                    $( define_magnet!(@pass_arg self.$arg $(, $is_value)?), )*
-                    &mut out,
-                );
-                out
-            }
-        }
-
-        #[cfg(feature = "std")]
         impl<T: crate::base::Float> std::fmt::Display for $name<T> {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 <Self as crate::base::Source<T>>::format(self, f, "")

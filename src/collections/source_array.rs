@@ -9,7 +9,7 @@ use std::fmt::Display;
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
 use crate::{
-    base::{Field, Float, Source, Transform, transform::impl_transform},
+    base::{Float, Source, Transform, transform::impl_transform},
     geometry::Pose,
     transform::impl_group_transform,
 };
@@ -77,9 +77,9 @@ impl<S: Source<T> + Default, T: Float, const N: usize> Default for SourceArray<S
 impl_transform!(SourceArray<S, T, N> where S: Source<T>, T: Float, const N: usize);
 impl_group_transform!(SourceArray<S, T, N> where S: Source<T>, T: Float, const N: usize);
 
-// MARK: Field, Source
+// MARK: Source
 
-impl<S: Source<T>, T: Float, const N: usize> Field<T> for SourceArray<S, T, N> {
+impl<S: Source<T> + Clone, T: Float, const N: usize> Source<T> for SourceArray<S, T, N> {
     #[inline]
     fn get_B(&self, points: &[Point3<T>]) -> Vec<Vector3<T>> {
         let mut net_field = vec![Vector3::zeros(); points.len()];
@@ -111,8 +111,6 @@ impl<S: Source<T>, T: Float, const N: usize> Field<T> for SourceArray<S, T, N> {
         net_field
     }
 }
-
-impl<S: Source<T> + Clone, T: Float, const N: usize> Source<T> for SourceArray<S, T, N> {}
 
 // MARK: Index
 
