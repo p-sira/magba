@@ -40,7 +40,7 @@ The available feature flags are:
 
 ### No-std
 
-To install for `no_std` environments, use:
+To install for `no_std` environments, you must also enable `libm`, using:
 
 ```bash
 cargo add magba --no-default-features --features libm
