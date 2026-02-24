@@ -54,5 +54,5 @@ regex = "1.12.2"
 [features]
 default = ["std", "rayon"]
 std = ["nalgebra/std"]
-rayon = ["dep:rayon", "nalgebra/rayon"]
+rayon = ["std", "dep:rayon", "nalgebra/rayon"]
 unstable = []
