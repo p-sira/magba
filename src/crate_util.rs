@@ -7,16 +7,6 @@
 
 use nalgebra::{Point3, RealField, Vector3, distance};
 
-// macro_rules! need_feature {
-//     ($feature:literal, $($body:item)*) => {
-//         $(
-//             #[cfg(feature = $feature)]
-//             $body
-//         )*
-//     };
-// }
-// pub(crate) use need_feature;
-
 macro_rules! need_std {
     ($($body:item)*) => {
         $(
@@ -26,16 +16,6 @@ macro_rules! need_std {
     };
 }
 pub(crate) use need_std;
-
-macro_rules! eprint_if_std {
-    ($($args:expr),* $(,)?) => {
-        #[cfg(feature = "std")]
-        eprintln!(
-            $($args,)*
-        );
-    };
-}
-pub(crate) use eprint_if_std;
 
 /// Calculate the symmetric relative error
 pub fn relative_error(a: f64, b: f64) -> f64 {
@@ -68,42 +48,6 @@ pub fn relative_vec_distance<T: RealField + Copy>(a: Vector3<T>, b: Vector3<T>) 
     let dist = distance(&Point3::from(a), &Point3::from(b));
     (dist / a.magnitude()).max(dist / b.magnitude())
 }
-
-/// Return the number of failed elements if the elements of two vectors are not close.
-#[allow(unused)]
-pub fn is_elem_close(vec1: &Vector3<f64>, vec2: &Vector3<f64>, rtol: f64) -> Option<usize> {
-    let mut n_fail: usize = 0;
-    vec1.iter().zip(vec2).enumerate().for_each(|(n, (&a, &b))| {
-        if !is_close(a, b, rtol) {
-            eprint_if_std!(
-                "Element {} mismatch. actual={}, expected={}, relative={:e}, rtol={:e}",
-                n,
-                a,
-                b,
-                relative_error(a, b),
-                rtol
-            );
-            n_fail += 1
-        }
-    });
-    if n_fail > 0 { Some(n_fail) } else { None }
-}
-
-// need_std! {
-//     macro_rules! format_point3 {
-//         ($p: expr) => {
-//             format!("[{}, {}, {}]", $p[0], $p[1], $p[2])
-//         };
-//     }
-//     pub(crate) use format_point3;
-
-//     macro_rules! format_quat {
-//         ($q: expr) => {
-//             format!("[{}, {}, {}, {}]", $q[0], $q[1], $q[2], $q[3])
-//         };
-//     }
-//     pub(crate) use format_quat;
-// }
 
 macro_rules! format_float {
     ($v: expr) => {
