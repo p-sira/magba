@@ -4,8 +4,6 @@
  */
 
 //! Analytical B-field computation for cylindrical magnets.
-//!
-//! <div class="warning">⚠️ Unstable feature. May subject to changes.</div>
 
 use ellip::bulirsch::{DefaultPrecision, cel_with_const};
 use ellip::{ellipe, ellipk};
@@ -19,8 +17,6 @@ use num_traits::Float as NumFloat;
 
 /// Compute B-field of a cylindrical magnet with unit axial (z-axis) polarization
 /// at point (r, z) in cylindrical CS.
-///
-/// <div class="warning">⚠️ Unstable feature. May subject to changes.</div>
 ///
 /// # Arguments
 ///
@@ -66,8 +62,6 @@ pub fn unit_axial_cylinder_B_cyl<T: Float + Copy>(r: T, z: T, z0: T) -> Vector3<
 
 /// Compute B-field of a cylindrical magnet with unit diametrial (r-axis) polarization
 /// at point (r, phi, z) in cylindrical CS.
-///
-/// <div class="warning">⚠️ Unstable feature. May subject to changes.</div>
 ///
 /// # Arguments
 ///
@@ -173,8 +167,6 @@ where
 }
 
 /// Compute B-field of a cylindrical magnet at point (r, phi, z) in cylindrical CS.
-///
-/// <div class="warning">⚠️ Unstable feature. May subject to changes.</div>
 ///
 /// # Arguments
 ///

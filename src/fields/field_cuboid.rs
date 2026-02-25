@@ -4,8 +4,6 @@
  */
 
 //! Analytical B-field computation for cuboid magnets.
-//!
-//! <div class="warning">⚠️ Unstable feature. May subject to changes.</div>
 
 use nalgebra::{Matrix3, Point3, RealField, UnitQuaternion, Vector3, vector};
 use numeric_literals::replace_float_literals;
@@ -16,8 +14,6 @@ use crate::{
 };
 
 /// Compute B-field of a homogeneous cuboid magnet at point (x, y, z) in the local frame.
-///
-/// <div class="warning">⚠️ Unstable feature. May subject to changes.</div>
 ///
 /// # Arguments
 ///
@@ -171,8 +167,6 @@ pub fn local_cuboid_B<T: RealField + Copy>(
 }
 
 /// Compute B-field of a homogeneous cuboid magnet at point (x, y, z).
-///
-/// <div class="warning">⚠️ Unstable feature. May subject to changes.</div>
 ///
 /// Wrapper of [local_cuboid_B].
 #[allow(non_snake_case)]
