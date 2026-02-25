@@ -53,13 +53,13 @@ macro_rules! impl_parallel {
                 use rayon::iter::{IndexedParallelIterator, IntoParallelRefIterator, IntoParallelRefMutIterator, ParallelIterator};
                 $out.par_iter_mut()
                     .zip($items.par_iter())
-                    .for_each(|(o, p)| *o = $func(p, $($func_args),*));
+                    .for_each(|(o, p)| *o = $func(*p, $($func_args),*));
                 return;
             }
 
             $out.iter_mut()
                 .zip($items.iter())
-                .for_each(|(o, p)| *o = $func(p, $($func_args),*));
+                .for_each(|(o, p)| *o = $func(*p, $($func_args),*));
         }
     };
 }

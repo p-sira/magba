@@ -32,9 +32,9 @@ use crate::{
 #[inline]
 #[replace_float_literals(T::from_f64(literal).unwrap())]
 pub fn local_cuboid_B<T: RealField + Copy>(
-    point: &Point3<T>,
-    polarization: &Vector3<T>,
-    dimensions: &Vector3<T>,
+    point: Point3<T>,
+    polarization: Vector3<T>,
+    dimensions: Vector3<T>,
 ) -> Vector3<T> {
     let (mut x, mut y, mut z) = (point.x, point.y, point.z);
     let abc = dimensions / 2.0;
@@ -171,12 +171,12 @@ pub fn local_cuboid_B<T: RealField + Copy>(
 /// Wrapper of [local_cuboid_B].
 #[allow(non_snake_case)]
 #[inline]
-pub fn global_cuboid_B<T: RealField + Copy>(
-    point: &Point3<T>,
-    position: &Point3<T>,
-    orientation: &UnitQuaternion<T>,
-    polarization: &Vector3<T>,
-    dimensions: &Vector3<T>,
+pub fn cuboid_B<T: RealField + Copy>(
+    point: Point3<T>,
+    position: Point3<T>,
+    orientation: UnitQuaternion<T>,
+    polarization: Vector3<T>,
+    dimensions: Vector3<T>,
 ) -> Vector3<T> {
     compute_in_local!(
         local_cuboid_B,
@@ -230,17 +230,17 @@ pub fn global_cuboid_B<T: RealField + Copy>(
 ///
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[allow(non_snake_case)]
-pub fn cuboid_B<T: RealField + Copy>(
+pub fn cuboid_B_batch<T: RealField + Copy>(
     points: &[Point3<T>],
-    position: &Point3<T>,
-    orientation: &UnitQuaternion<T>,
-    polarization: &Vector3<T>,
-    dimensions: &Vector3<T>,
+    position: Point3<T>,
+    orientation: UnitQuaternion<T>,
+    polarization: Vector3<T>,
+    dimensions: Vector3<T>,
     out: &mut [Vector3<T>],
 ) {
     impl_parallel!(
         out,
-        global_cuboid_B,
+        cuboid_B,
         60,
         points,
         position,
@@ -278,6 +278,6 @@ pub fn sum_multiple_cuboid_B<T: RealField + Copy>(
         points,
         60,
         [positions, orientations, polarizations, dimensions],
-        |pos, p, o, pol, dim| global_cuboid_B(pos, p, o, pol, dim)
+        |pos, p, o, pol, dim| cuboid_B(*pos, *p, *o, *pol, *dim)
     )
 }

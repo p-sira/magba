@@ -7,13 +7,22 @@
 
 use nalgebra::{Point3, RealField, UnitQuaternion, Vector3};
 
+/// Return zero vectors.
+pub fn zero_field<T: RealField>(
+    _: Point3<T>,
+    _: Point3<T>,
+    _: UnitQuaternion<T>,
+) -> Vector3<T> {
+    Vector3::zeros()
+}
+
 /// Return zero vectors for all points.
 ///
 /// Stores the results in the mutable slice `out`.
-pub fn zero_field<T: RealField>(
+pub fn zero_field_batch<T: RealField>(
     points: &[Point3<T>],
-    _: &Point3<T>,
-    _: &UnitQuaternion<T>,
+    _: Point3<T>,
+    _: UnitQuaternion<T>,
     out: &mut [Vector3<T>],
 ) {
     assert_eq!(

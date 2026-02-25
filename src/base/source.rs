@@ -21,15 +21,29 @@ use nalgebra::{Point3, RealField, Vector3};
 #[enum_dispatch]
 /// Physical representation of magnetic sources.
 pub trait Source<T: RealField>: Transform<T> + Send + Sync + DynClone {
-    /// Compute the magnetic field (B) at the given points.
+    /// Compute the magnetic field (B) at the given point.
     ///
     /// # Arguments
+    ///
+    /// - `point`: Observer positions (m)
+    ///
+    /// # Returns
+    ///
+    /// - B-field vector
+    #[allow(non_snake_case)]
+    fn compute_B(&self, point: Point3<T>) -> Vector3<T>;
+
+    /// Compute the magnetic field (B) at the given points in batch.
+    ///
+    /// # Arguments
+    ///
     /// - `points`: Slice of observer positions (m)
     ///
     /// # Returns
+    ///
     /// - B-field vectors at each observer.
     #[allow(non_snake_case)]
-    fn get_B(&self, points: &[Point3<T>]) -> Vec<Vector3<T>>;
+    fn compute_B_batch(&self, points: &[Point3<T>]) -> Vec<Vector3<T>>;
 
     /// A default formatter that behaves like Display.
     /// Last argument is the indentation, which is for Collection support.
@@ -68,7 +82,10 @@ impl<T: Float> Debug for Box<dyn Source<T>> {
 }
 
 impl<T: Float> Source<T> for Box<dyn Source<T>> {
-    fn get_B(&self, points: &[Point3<T>]) -> Vec<Vector3<T>> {
-        (**self).get_B(points)
-    }
+    delegate!(
+        to (**self) {
+            fn compute_B(&self, point: Point3<T>) -> Vector3<T>;
+            fn compute_B_batch(&self, points: &[Point3<T>]) -> Vec<Vector3<T>>;
+        }
+    );
 }

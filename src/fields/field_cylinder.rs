@@ -250,8 +250,8 @@ pub fn cylinder_B_cyl<T: RealField + Copy + Float>(
 #[allow(non_snake_case)]
 #[inline]
 pub fn local_cylinder_B<T: RealField + Copy + Float>(
-    point: &Point3<T>,
-    polarization: &Vector3<T>,
+    point: Point3<T>,
+    polarization: Vector3<T>,
     radius: T,
     height: T,
 ) -> Vector3<T> {
@@ -284,20 +284,20 @@ pub fn local_cylinder_B<T: RealField + Copy + Float>(
 /// Wrapper of [local_cylinder_B].
 #[inline]
 #[allow(non_snake_case)]
-pub fn global_cylinder_B<T: RealField + Copy + Float>(
-    point: &Point3<T>,
-    position: &Point3<T>,
-    orientation: &UnitQuaternion<T>,
-    polarization: &Vector3<T>,
+pub fn cylinder_B<T: RealField + Copy + Float>(
+    point: Point3<T>,
+    position: Point3<T>,
+    orientation: UnitQuaternion<T>,
+    polarization: Vector3<T>,
     radius: T,
     height: T,
 ) -> Vector3<T> {
     compute_in_local!(
         local_cylinder_B,
-        &point,
-        &position,
-        &orientation,
-        (&polarization, radius, height),
+        point,
+        position,
+        orientation,
+        (polarization, radius, height),
     )
 }
 
@@ -348,18 +348,18 @@ pub fn global_cylinder_B<T: RealField + Copy + Float>(
 /// - Derby, Norman, and Stanislaw Olbert. “Cylindrical Magnets and Ideal Solenoids.” American Journal of Physics 78, no. 3 (March 1, 2010): 229–35. <https://doi.org/10.1119/1.3256157>.
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[allow(non_snake_case)]
-pub fn cylinder_B<T: RealField + Copy + Float>(
+pub fn cylinder_B_batch<T: RealField + Copy + Float>(
     points: &[Point3<T>],
-    position: &Point3<T>,
-    orientation: &UnitQuaternion<T>,
-    polarization: &Vector3<T>,
+    position: Point3<T>,
+    orientation: UnitQuaternion<T>,
+    polarization: Vector3<T>,
     diameter: T,
     height: T,
     out: &mut [Vector3<T>],
 ) {
     impl_parallel!(
         out,
-        global_cylinder_B,
+        cylinder_B,
         60,
         points,
         position,
@@ -402,6 +402,6 @@ pub fn sum_multiple_cylinder_B<T: RealField + Copy + Float>(
         points,
         60,
         [positions, orientations, polarizations, diameters, heights],
-        |pos, p, o, pol, d, h| global_cylinder_B(pos, p, o, pol, *d / T::from(2.0).unwrap(), *h)
+        |pos, p, o, pol, d, h| cylinder_B(*pos, *p, *o, *pol, *d / T::from(2.0).unwrap(), *h)
     )
 }

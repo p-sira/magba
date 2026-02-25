@@ -109,20 +109,20 @@ crate::crate_util::need_std!(
 pub mod unstable {
     /// Analytical B-field computation for cuboid magnets.
     pub mod field_cuboid {
-        pub use crate::fields::field_cuboid::{global_cuboid_B, local_cuboid_B};
+        pub use crate::fields::field_cuboid::{cuboid_B, local_cuboid_B};
     }
 
     /// Analytical B-field computation for cylindrical magnets.
     pub mod field_cylinder {
         pub use crate::fields::field_cylinder::{
-            cylinder_B_cyl, global_cylinder_B, local_cylinder_B, unit_axial_cylinder_B_cyl,
+            cylinder_B_cyl, cylinder_B, local_cylinder_B, unit_axial_cylinder_B_cyl,
             unit_diametric_cylinder_B_cyl,
         };
     }
 
     /// Analytical B-field computation for magnet dipole moment.
     pub mod field_dipole {
-        pub use crate::fields::field_dipole::{global_dipole_B, local_dipole_B};
+        pub use crate::fields::field_dipole::{dipole_B, local_dipole_B};
     }
 }
 
