@@ -62,3 +62,7 @@ std = [
 rayon = ["std", "dep:rayon", "nalgebra/rayon"]
 libm = ["ellip/libm", "num-traits/libm", "nalgebra/libm"]
 unstable = []
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
