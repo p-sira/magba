@@ -15,7 +15,6 @@ macro_rules! need_std {
 }
 pub(crate) use need_std;
 
-
 macro_rules! format_float {
     ($v: expr) => {
         $v.to_string()
