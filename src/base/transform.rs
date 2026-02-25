@@ -28,9 +28,9 @@ use nalgebra::RealField;
 ///     .with_polarization([0.0, 0.0, 0.9])
 ///     .with_diameter(0.01)
 ///     .with_height(0.02);
-/// # let observer = [point![0.0, 0.0, 0.05]];
+/// # let observer = point![0.0, 0.0, 0.05];
 /// # assert_relative_eq!(
-/// #     magnet.get_B(&observer)[0],
+/// #     magnet.compute_B(observer),
 /// #     vector![0.0, 0.0, 0.0019205466890453442]
 /// # );
 ///
@@ -38,14 +38,14 @@ use nalgebra::RealField;
 ///
 /// magnet.translate([0.0, 0.0, 0.01]);
 /// # assert_relative_eq!(
-/// #     magnet.get_B(&observer)[0],
+/// #     magnet.compute_B(observer),
 /// #     vector![0.0, 0.0, 0.0038894698700304275]
 /// # );
 /// assert_eq!(magnet.position(), point![0.0, 0.0, 0.01]);
 ///
 /// magnet.set_position([0.0, 0.0, 0.02]);
 /// # assert_relative_eq!(
-/// #     magnet.get_B(&observer)[0],
+/// #     magnet.compute_B(observer),
 /// #     vector![0.0, 0.0, 0.00996091945575112]
 /// # );
 /// assert_eq!(magnet.position(), point![0.0, 0.0, 0.02]);
@@ -55,7 +55,7 @@ use nalgebra::RealField;
 /// let rotation = UnitQuaternion::from_scaled_axis([PI / 4.0, 0.0, 0.0].into());
 /// magnet.rotate(rotation);
 /// # assert_relative_eq!(
-/// #     magnet.get_B(&observer)[0],
+/// #     magnet.compute_B(observer),
 /// #     vector![
 /// #         3.9407500527173422e-19,
 /// #         0.0035238379945531874,
@@ -67,7 +67,7 @@ use nalgebra::RealField;
 /// let rotation = UnitQuaternion::from_scaled_axis([PI / 2.0, 0.0, 0.0].into());
 /// magnet.set_orientation(rotation);
 /// # assert_relative_eq!(
-/// #     magnet.get_B(&observer)[0],
+/// #     magnet.compute_B(observer),
 /// #     vector![6.086025172136602e-35, 0.003642460886175623, 0.0]
 /// # );
 /// assert_eq!(magnet.orientation(), rotation);

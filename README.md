@@ -66,7 +66,7 @@ let points = [
 ];
 
 // Compute B-field (Magnetic flux density [T])
-let b_fields = collection.get_B(&points);
+let b_fields = collection.compute_B(&points);
 // [
 //      [ -2.7063724257464133e-5,  -3.533949646070574e-17,  0.4715809600578704  ],
 //      [ -3.381192498299282e-5 ,   0.0,                    0.4592848558923018  ],
@@ -77,7 +77,7 @@ let b_fields = collection.get_B(&points);
 collection.translate(&Translation3::new(0.0, 0.0, 0.010));
 collection.rotate(&UnitQuaternion::from_scaled_axis(vector![PI / 4.0, 0.0, 0.0]));
 
-let b_fields = collection.get_B(&points);
+let b_fields = collection.compute_B(&points);
 // [
 //     [ -9.575129388363597e-6 ,  -0.24516787434696088,  0.4573303607411665  ],
 //     [ -1.4358446356125264e-5,  -0.2948988353221851 ,  0.3578212873125478  ],

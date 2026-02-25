@@ -63,7 +63,7 @@
 /// 3. `Debug`, `Clone`, `PartialEq`.
 /// 4. `impl Default` using the provided `$arg_default` values.
 /// 5. `impl crate::Source`, `impl crate::geometry::Transform`.
-/// 6. `impl crate::Field` which maps `get_B` to the provided `$field_fn`.
+/// 6. `impl crate::Field` which maps `compute_B` to the provided `$field_fn`.
 /// 7. `impl std::fmt::Display` (if `no_std` is not active).
 ///
 /// # Rationale

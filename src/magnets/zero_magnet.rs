@@ -19,7 +19,7 @@ define_magnet! {
     /// # use magba::*;
     /// # use nalgebra::{Point3, Vector3};
     /// let zero: ZeroMagnet = ZeroMagnet::default();
-    /// assert_eq!(zero.get_B(&[Point3::origin()])[0], Vector3::zeros());
+    /// assert_eq!(zero.compute_B(Point3::origin()), Vector3::zeros());
     /// ```
     ZeroMagnet
     field_fn: zero_field

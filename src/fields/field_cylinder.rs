@@ -279,9 +279,40 @@ pub fn local_cylinder_B<T: RealField + Copy + Float>(
 
 /// Compute B-field at point (x, y, z) of a cylindrical magnet.
 ///
-/// <div class="warning">⚠️ Unstable feature. May subject to changes.</div>
+/// # Arguments
 ///
-/// Wrapper of [local_cylinder_B].
+/// - `point`: Observer positions in global frame (m)
+/// - `position`: Magnet position (m)
+/// - `orientation`: Magnet orientation as unit quaternion
+/// - `polarization`: Polarization vector (T)
+/// - `diameter`: Cylinder diameter (m)
+/// - `height`: Cylinder height (m)
+///
+/// # Examples
+///
+/// ```
+/// # use magba::assert_close_vec;
+/// # use magba::fields::cylinder_B;
+/// # use nalgebra::*;
+/// let b_field = cylinder_B(
+///     point![5.0, 6.0, 7.0],
+///     point![1.0, 2.0, 3.0],
+///     UnitQuaternion::from_scaled_axis(
+///         [1.0471975511965976, 0.6283185307179586, 0.4487989505128276].into(),
+///     ),
+///     vector![0.45, 0.3, 0.15],
+///     1.0,
+///     2.0,
+/// );
+/// let expected = vector![0.00018917835277408574, 0.00023329950084703265, 0.00027040129610630406];
+/// assert_close_vec!(b_field, expected, 1e-12);
+/// ```
+///
+/// # References
+///
+/// - Caciagli, Alessio, Roel J. Baars, Albert P. Philipse, and Bonny W. M. Kuipers. “Exact Expression for the Magnetic Field of a Finite Cylinder with Arbitrary Uniform Magnetization.” Journal of Magnetism and Magnetic Materials 456 (June 15, 2018): 423–32. <https://doi.org/10.1016/j.jmmm.2018.02.003>.
+/// - Derby, Norman, and Stanislaw Olbert. “Cylindrical Magnets and Ideal Solenoids.” American Journal of Physics 78, no. 3 (March 1, 2010): 229–35. <https://doi.org/10.1119/1.3256157>.
+/// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[inline]
 #[allow(non_snake_case)]
 pub fn cylinder_B<T: RealField + Copy + Float>(
@@ -289,7 +320,7 @@ pub fn cylinder_B<T: RealField + Copy + Float>(
     position: Point3<T>,
     orientation: UnitQuaternion<T>,
     polarization: Vector3<T>,
-    radius: T,
+    diameter: T,
     height: T,
 ) -> Vector3<T> {
     compute_in_local!(
@@ -297,7 +328,7 @@ pub fn cylinder_B<T: RealField + Copy + Float>(
         point,
         position,
         orientation,
-        (polarization, radius, height),
+        (polarization, diameter / T::from(2.0).unwrap(), height),
     )
 }
 
@@ -317,16 +348,16 @@ pub fn cylinder_B<T: RealField + Copy + Float>(
 ///
 /// ```
 /// # use magba::assert_close_vec;
-/// # use magba::fields::cylinder_B;
+/// # use magba::fields::cylinder_B_batch;
 /// # use nalgebra::*;
 /// let mut out = [Vector3::zeros(); 1];
-/// cylinder_B(
+/// cylinder_B_batch(
 ///     &[point![5.0, 6.0, 7.0]],
-///     &point![1.0, 2.0, 3.0],
-///     &UnitQuaternion::from_scaled_axis(
+///     point![1.0, 2.0, 3.0],
+///     UnitQuaternion::from_scaled_axis(
 ///         [1.0471975511965976, 0.6283185307179586, 0.4487989505128276].into(),
 ///     ),
-///     &vector![0.45, 0.3, 0.15],
+///     vector![0.45, 0.3, 0.15],
 ///     1.0,
 ///     2.0,
 ///     &mut out,
@@ -365,7 +396,7 @@ pub fn cylinder_B_batch<T: RealField + Copy + Float>(
         position,
         orientation,
         polarization,
-        diameter / T::from(2.0).unwrap(),
+        diameter,
         height,
     )
 }
