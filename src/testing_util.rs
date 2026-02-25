@@ -234,7 +234,7 @@ macro_rules! test_B_magnet {
 pub(crate) use test_B_magnet;
 
 /// Generate basic tests for magnetic sources.
-/// Tests get_B, get_B for small magnets, translate, and rotate.
+/// Tests compute_B, compute_B for small magnets, translate, and rotate.
 ///
 /// ```text
 /// generate_tests! {

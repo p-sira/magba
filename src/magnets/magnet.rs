@@ -23,7 +23,7 @@ use enum_dispatch::enum_dispatch;
 /// # use nalgebra::{point, vector};
 /// # use approx::assert_relative_eq;
 /// let magnet: Magnet = CylinderMagnet::default().into();
-/// let b_field = magnet.get_B(&[point![0.1, 0.2, 0.3]])[0];
+/// let b_field = magnet.compute_B(point![0.1, 0.2, 0.3]);
 /// assert_relative_eq!(b_field, vector![0.03358623061457353, 0.06717246122914705, 0.6376649834015807]);
 /// ```
 #[derive(Clone, Debug)]

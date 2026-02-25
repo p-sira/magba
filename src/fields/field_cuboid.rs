@@ -168,7 +168,43 @@ pub fn local_cuboid_B<T: RealField + Copy>(
 
 /// Compute B-field of a homogeneous cuboid magnet at point (x, y, z).
 ///
-/// Wrapper of [local_cuboid_B].
+/// # Arguments
+///
+/// - `point`: Observer positions (m)
+/// - `position`: Magnet position (m)
+/// - `orientation`: Magnet orientation in unit quaternion
+/// - `polarization`: Polarization vector (T)
+/// - `dimensions`: Cuboid side lengths (m)
+///
+/// # Examples
+///
+/// ```
+/// # use magba::assert_close_vec;
+/// # use magba::fields::cuboid_B;
+/// # use nalgebra::*;
+/// let b_field = cuboid_B(
+///     point![5.0, 6.0, 7.0],
+///     point![1.0, 2.0, 3.0],
+///     UnitQuaternion::from_scaled_axis(
+///         [1.0471975511965976, 0.6283185307179586, 0.4487989505128276].into(),
+///     ),
+///     vector![0.45, 0.3, 0.15],
+///     vector![1.0, 2.0, 3.0],
+/// );
+/// assert_close_vec!(
+///     b_field,
+///     vector![
+///         0.0007246145093594572,
+///         0.0008956704674508121,
+///         0.0010056854402183814
+///    ],
+///    5e-14
+/// );
+/// ```
+///
+/// # References
+///
+/// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[allow(non_snake_case)]
 #[inline]
 pub fn cuboid_B<T: RealField + Copy>(
@@ -202,28 +238,45 @@ pub fn cuboid_B<T: RealField + Copy>(
 ///
 /// ```
 /// # use magba::assert_close_vec;
-/// # use magba::fields::cuboid_B;
+/// # use magba::fields::cuboid_B_batch;
 /// # use nalgebra::*;
-/// let mut out = [Vector3::zeros(); 1];
-/// cuboid_B(
-///     &[point![5.0, 6.0, 7.0]],
-///     &point![1.0, 2.0, 3.0],
-///     &UnitQuaternion::from_scaled_axis(
+/// let mut out = [Vector3::zeros(); 3];
+/// cuboid_B_batch(
+///     &[
+///         point![5.0, 6.0, 7.0],
+///         point![4.0, 3.0, 2.0],
+///         point![0.5, 0.25, 0.125],
+///     ],
+///     point![1.0, 2.0, 3.0],
+///     UnitQuaternion::from_scaled_axis(
 ///         [1.0471975511965976, 0.6283185307179586, 0.4487989505128276].into(),
 ///     ),
-///     &vector![0.45, 0.3, 0.15],
-///     &vector![1.0, 2.0, 3.0],
+///     vector![0.45, 0.3, 0.15],
+///     vector![1.0, 2.0, 3.0],
 ///     &mut out,
 /// );
-/// assert_close_vec!(
-///     out[0],
+///
+/// let expected_fields = [
 ///     vector![
 ///         0.0007246145093594572,
 ///         0.0008956704674508121,
 ///         0.0010056854402183814
-///    ],
-///    5e-14
-/// );
+///     ],
+///     vector![
+///         0.007318657264531047,
+///         0.0013309418462993756,
+///         -0.006614791491997044
+///     ],
+///     vector![
+///         -0.002912635045339925,
+///         0.003374408702355898,
+///         0.009246801593396508
+///     ],
+/// ];
+///
+/// out.iter()
+///     .zip(expected_fields)
+///     .for_each(|(actual, expected)| assert_close_vec!(actual, expected, 5e-14));
 /// ```
 ///
 /// # References

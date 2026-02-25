@@ -233,7 +233,7 @@ mod parallel_overhead {
                     b.iter(|| {
                         let field = collection
                             .iter()
-                            .map(|magnet| magnet.get_B(&points))
+                            .map(|magnet| magnet.compute_B(&points))
                             .collect::<Vec<_>>();
                         assert!(!field.is_empty())
                     });
@@ -247,7 +247,7 @@ mod parallel_overhead {
                     b.iter(|| {
                         let field = collection
                             .par_iter()
-                            .map(|magnet| magnet.get_B(&points))
+                            .map(|magnet| magnet.compute_B(&points))
                             .collect::<Vec<_>>();
                         assert!(!field.is_empty())
                     });
