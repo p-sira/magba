@@ -5,11 +5,9 @@
 
 //! Analytical computation of magnetic fields for various source geometries.
 
-crate::crate_util::pub_on_feature! {
-    "unstable", mod {
-        field_cuboid, field_cylinder, field_dipole
-    }
-}
+pub(crate) mod field_cuboid;
+pub(crate) mod field_cylinder;
+pub(crate) mod field_dipole;
 
 mod field_zero;
 

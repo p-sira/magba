@@ -4,8 +4,6 @@
  */
 
 //! Analytical B-field computation for magnet dipole moment.
-//!
-//! <div class="warning">⚠️ Unstable features. May subject to changes.</div>
 
 use nalgebra::{Point3, RealField, UnitQuaternion, Vector3};
 use numeric_literals::replace_float_literals;
@@ -16,8 +14,6 @@ use crate::{
 };
 
 /// Compute B-field of a magnetic dipole moment at point (x, y, z) in local frame.
-///
-/// <div class="warning">⚠️ Unstable feature. May subject to changes.</div>
 ///
 /// # Arguments
 ///
@@ -59,8 +55,6 @@ pub fn local_dipole_B<T: RealField + num_traits::Float + Copy>(
 }
 
 /// Compute B-field of a magnetic dipole moment at point (x, y, z).
-///
-/// <div class="warning">⚠️ Unstable feature. May subject to changes.</div>
 ///
 /// Wrapper of [local_dipole_B].
 #[inline]
