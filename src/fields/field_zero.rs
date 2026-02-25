@@ -3,6 +3,8 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
+//! Zero field functions.
+
 use nalgebra::{Point3, RealField, UnitQuaternion, Vector3};
 
 /// Return zero vectors for all points.
