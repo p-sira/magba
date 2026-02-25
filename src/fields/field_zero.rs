@@ -8,11 +8,7 @@
 use nalgebra::{Point3, RealField, UnitQuaternion, Vector3};
 
 /// Return zero vectors.
-pub fn zero_field<T: RealField>(
-    _: Point3<T>,
-    _: Point3<T>,
-    _: UnitQuaternion<T>,
-) -> Vector3<T> {
+pub fn zero_field<T: RealField>(_: Point3<T>, _: Point3<T>, _: UnitQuaternion<T>) -> Vector3<T> {
     Vector3::zeros()
 }
 
