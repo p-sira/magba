@@ -19,7 +19,7 @@
 ///     args: {
 ///         polarization:Vector3<T>,
 ///         dimensions:Vector3<T>; where dimensions.iter().all(|&i| i > 0); else "Bad dim.",
-///         lucky_number: @val T
+///         lucky_number: T
 ///     }
 ///     arg_display: "pol={}, dim={}, lucky={}";
 ///     arg_fmt: [format_vector3, format_vector3, format_float]
@@ -35,9 +35,6 @@
 /// - **$field_fn**: The function identifier for magnetic field (B) calculation.
 ///   - Signature must be: `(points, position, orientation, fields...)`.
 /// - **$arg**: Name of a specific field/argument for the magnet (e.g., `polarization`, `length`).
-///   - `@val`: If the optional keyword is placed before the type (e.g., `radius: @val f64`),
-///     the argument is passed by value and strictly typed. If omitted, the argument uses `Into<T>`
-///     generic conversion and is passed by reference to the calculation function.
 /// - **$arg_type**: The concrete type of the argument.
 /// - **$arg_default**: The default value (used in `Default::default()`).
 /// - **where $validate:expr; else $error:literal**: Optional pattern for argument validation. If $validate is false, the macros will panic with $error.    
@@ -83,8 +80,6 @@ macro_rules! define_magnet {
     (@arg_type_decl $arg_type:ty) => { impl Into<$arg_type> };
     (@arg_type_decl $arg_type:ty, val) => { $arg_type };
     (@pass_arg $arg:expr) => { $arg };
-    (@pass_arg $arg:expr, ref) => { &$arg };
-    (@pass_arg $arg:expr, deref) => { *$arg };
 
     // MARK: Get, Set, With
     (@getters $struct_name:ident, $(($arg:ident, $arg_type:ty))*) => {
@@ -255,10 +250,10 @@ macro_rules! define_magnet {
                         &mut out,
                     );
                 });
-                
+
                 out
             }
-                
+
             fn format(&self, f: &mut std::fmt::Formatter<'_>, _: &str) -> std::fmt::Result {
                 write!(
                     f,
