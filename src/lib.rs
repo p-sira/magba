@@ -58,7 +58,7 @@ cargo add magba --no-default-features --features libm
 ### Advanced Features
 
 - Grouping magnets and sensors using stack-allocated arrays
-- Calculating field directly
+- Calculating fields directly
 - Unstable features
 
 ## Acknowledgment
