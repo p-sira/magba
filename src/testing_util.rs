@@ -199,7 +199,7 @@ pub fn compare_B_with_file<S: Source<T>, T: RealField + Copy + LowerExp + FromSt
     let expected = matrix_to_vector_vec(&load_matrix_from_csv(ref_path));
     let points = matrix_to_point_vec(&load_matrix_from_csv(points_path));
 
-    let b_fields = source.get_B(&points);
+    let b_fields = source.compute_B_batch(&points);
 
     assert_close_vec_vector(&b_fields, &expected, rtol);
 }

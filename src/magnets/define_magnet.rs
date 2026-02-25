@@ -82,8 +82,9 @@ macro_rules! define_magnet {
     (@arg_into $arg:expr, val) => { $arg };
     (@arg_type_decl $arg_type:ty) => { impl Into<$arg_type> };
     (@arg_type_decl $arg_type:ty, val) => { $arg_type };
-    (@pass_arg $arg:expr) => { &$arg };
-    (@pass_arg $arg:expr, val) => { $arg };
+    (@pass_arg $arg:expr) => { $arg };
+    (@pass_arg $arg:expr, ref) => { &$arg };
+    (@pass_arg $arg:expr, deref) => { *$arg };
 
     // MARK: Get, Set, With
     (@getters $struct_name:ident, $(($arg:ident, $arg_type:ty))*) => {
@@ -233,18 +234,31 @@ macro_rules! define_magnet {
         }
 
         impl<T: crate::base::Float> crate::base::Source<T> for $name<T> {
-            fn get_B(&self, points: &[nalgebra::Point3<T>]) -> Vec<nalgebra::Vector3<T>> {
-                let mut out = vec![nalgebra::Vector3::zeros(); points.len()];
+            fn compute_B(&self, point: nalgebra::Point3<T>) -> nalgebra::Vector3<T> {
                 crate::fields::$field_fn(
-                    points,
-                    &self.position(),
-                    &self.orientation(),
+                    point,
+                    self.position(),
+                    self.orientation(),
                     $( define_magnet!(@pass_arg self.$arg $(, $is_value)?), )*
-                    &mut out,
-                );
-                out
+                )
             }
 
+            fn compute_B_batch(&self, points: &[nalgebra::Point3<T>]) -> Vec<nalgebra::Vector3<T>> {
+                let mut out = vec![nalgebra::Vector3::zeros(); points.len()];
+
+                concat_idents::concat_idents!(fn_name = $field_fn, _batch {
+                    crate::fields::fn_name(
+                        points,
+                        self.position(),
+                        self.orientation(),
+                        $( define_magnet!(@pass_arg self.$arg $(, $is_value)?), )*
+                        &mut out,
+                    );
+                });
+                
+                out
+            }
+                
             fn format(&self, f: &mut std::fmt::Formatter<'_>, _: &str) -> std::fmt::Result {
                 write!(
                     f,

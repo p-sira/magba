@@ -80,16 +80,27 @@ impl_group_transform!(SourceArray<S, T, N> where S: Source<T>, T: Float, const N
 // MARK: Source
 
 impl<S: Source<T> + Clone, T: Float, const N: usize> Source<T> for SourceArray<S, T, N> {
+#[inline]
+    fn compute_B(&self, point: Point3<T>) -> Vector3<T> {
+        let mut net_field = Vector3::zeros();
+        for source in &self.children {
+            net_field += source.compute_B(point);
+        }
+        net_field
+    }
+
     #[inline]
-    fn get_B(&self, points: &[Point3<T>]) -> Vec<Vector3<T>> {
+    fn compute_B_batch(&self, points: &[Point3<T>]) -> Vec<Vector3<T>> {
         let mut net_field = vec![Vector3::zeros(); points.len()];
+
         #[cfg(feature = "rayon")]
         {
             use rayon::prelude::*;
+
             let b_fields: Vec<_> = self
                 .children
                 .par_iter()
-                .map(|source| source.get_B(points))
+                .map(|source| source.compute_B_batch(points))
                 .collect();
             b_fields.iter().for_each(|child_b_field| {
                 net_field
@@ -98,10 +109,11 @@ impl<S: Source<T> + Clone, T: Float, const N: usize> Source<T> for SourceArray<S
                     .for_each(|(sum, b)| *sum += b)
             });
         }
+
         #[cfg(not(feature = "rayon"))]
         {
             for source in &self.children {
-                let b_fields = source.get_B(points);
+                let b_fields = source.compute_B_batch(points);
                 net_field
                     .iter_mut()
                     .zip(b_fields)

@@ -29,7 +29,7 @@ macro_rules! compute_in_local {
         {
             use crate::geometry::{local_point, global_vector};
 
-            global_vector(&$func(&local_point($point, $position, $orientation), $($func_args),*), $orientation)
+            global_vector($func(local_point($point, $position, $orientation), $($func_args),*), $orientation)
         }
     };
 }
@@ -37,17 +37,17 @@ pub(crate) use compute_in_local;
 
 /// Transform global point to the local frame of the object.
 pub fn local_point<T: RealField + Copy>(
-    point: &Point3<T>,
-    position: &Point3<T>,
-    orientation: &UnitQuaternion<T>,
+    point: Point3<T>,
+    position: Point3<T>,
+    orientation: UnitQuaternion<T>,
 ) -> Point3<T> {
     orientation.inverse() * Point3::from(point.coords - position.coords)
 }
 
 /// Transform local vector to the global frame.
 pub fn global_vector<T: RealField + Copy>(
-    vector: &Vector3<T>,
-    orientation: &UnitQuaternion<T>,
+    vector: Vector3<T>,
+    orientation: UnitQuaternion<T>,
 ) -> Vector3<T> {
     orientation * vector
 }

@@ -31,8 +31,8 @@ use crate::{
 #[allow(non_snake_case)]
 #[replace_float_literals(T::from_f64(literal).unwrap())]
 pub fn local_dipole_B<T: RealField + num_traits::Float + Copy>(
-    point: &Point3<T>,
-    moment: &Vector3<T>,
+    point: Point3<T>,
+    moment: Vector3<T>,
 ) -> Vector3<T> {
     let p = Vector3::from(point.coords);
     let r = p.norm();
@@ -59,11 +59,11 @@ pub fn local_dipole_B<T: RealField + num_traits::Float + Copy>(
 /// Wrapper of [local_dipole_B].
 #[inline]
 #[allow(non_snake_case)]
-pub fn global_dipole_B<T: RealField + num_traits::Float + Copy>(
-    point: &Point3<T>,
-    position: &Point3<T>,
-    orientation: &UnitQuaternion<T>,
-    moment: &Vector3<T>,
+pub fn dipole_B<T: RealField + num_traits::Float + Copy>(
+    point: Point3<T>,
+    position: Point3<T>,
+    orientation: UnitQuaternion<T>,
+    moment: Vector3<T>,
 ) -> Vector3<T> {
     compute_in_local!(local_dipole_B, point, position, orientation, (moment),)
 }
@@ -109,16 +109,16 @@ pub fn global_dipole_B<T: RealField + num_traits::Float + Copy>(
 ///
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[allow(non_snake_case)]
-pub fn dipole_B<T: RealField + num_traits::Float + Copy>(
+pub fn dipole_B_batch<T: RealField + num_traits::Float + Copy>(
     points: &[Point3<T>],
-    position: &Point3<T>,
-    orientation: &UnitQuaternion<T>,
-    moment: &Vector3<T>,
+    position: Point3<T>,
+    orientation: UnitQuaternion<T>,
+    moment: Vector3<T>,
     out: &mut [Vector3<T>],
 ) {
     impl_parallel!(
         out,
-        global_dipole_B,
+        dipole_B,
         60,
         points,
         position,
@@ -153,6 +153,6 @@ pub fn sum_multiple_dipole_B<T: RealField + num_traits::Float + Copy>(
         points,
         60,
         [positions, orientations, moments],
-        |pos, p, o, m| global_dipole_B(pos, p, o, m)
+        |pos, p, o, m| dipole_B(*pos, *p, *o, *m)
     )
 }

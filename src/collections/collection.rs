@@ -218,7 +218,16 @@ impl_group_transform!(Collection<T> where T: Float);
 
 impl<T: Float> Source<T> for Collection<T> {
     #[inline]
-    fn get_B(&self, points: &[Point3<T>]) -> Vec<Vector3<T>> {
+    fn compute_B(&self, point: Point3<T>) -> Vector3<T> {
+        let mut net_field = Vector3::zeros();
+        for source in &self.children {
+            net_field += source.compute_B(point);
+        }
+        net_field
+    }
+
+    #[inline]
+    fn compute_B_batch(&self, points: &[Point3<T>]) -> Vec<Vector3<T>> {
         let mut net_field = vec![Vector3::zeros(); points.len()];
 
         #[cfg(feature = "rayon")]
@@ -228,7 +237,7 @@ impl<T: Float> Source<T> for Collection<T> {
             let b_fields: Vec<_> = self
                 .children
                 .par_iter()
-                .map(|source| source.get_B(points))
+                .map(|source| source.compute_B_batch(points))
                 .collect();
             b_fields.iter().for_each(|child_b_field| {
                 net_field
@@ -241,7 +250,7 @@ impl<T: Float> Source<T> for Collection<T> {
         #[cfg(not(feature = "rayon"))]
         {
             for source in &self.children {
-                let b_fields = source.get_B(points);
+                let b_fields = source.compute_B_batch(points);
                 net_field
                     .iter_mut()
                     .zip(b_fields)
