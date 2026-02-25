@@ -115,7 +115,7 @@ pub mod unstable {
     /// Analytical B-field computation for cylindrical magnets.
     pub mod field_cylinder {
         pub use crate::fields::field_cylinder::{
-            cylinder_B_cyl, cylinder_B, local_cylinder_B, unit_axial_cylinder_B_cyl,
+            cylinder_B, cylinder_B_cyl, local_cylinder_B, unit_axial_cylinder_B_cyl,
             unit_diametric_cylinder_B_cyl,
         };
     }
