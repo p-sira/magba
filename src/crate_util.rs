@@ -57,7 +57,7 @@ macro_rules! impl_parallel {
 
             #[cfg(feature = "rayon")]
             if $items.len() > $threshold {
-                use rayon::iter::{IndexedParallelIterator, IntoParallelRefIterator, IntoParallelRefMutIterator, ParallelIterator};
+                use rayon::iter::*;
                 $out.par_iter_mut()
                     .zip($items.par_iter())
                     .for_each(|(o, p)| *o = $func(*p, $($func_args),*));
