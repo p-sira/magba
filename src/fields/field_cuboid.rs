@@ -179,7 +179,7 @@ pub fn local_cuboid_B<T: RealField + Copy>(
 /// # Examples
 ///
 /// ```
-/// # use magba::assert_close_vec;
+/// # use approx::assert_relative_eq;
 /// # use magba::fields::cuboid_B;
 /// # use nalgebra::*;
 /// let b_field = cuboid_B(
@@ -191,15 +191,8 @@ pub fn local_cuboid_B<T: RealField + Copy>(
 ///     vector![0.45, 0.3, 0.15],
 ///     vector![1.0, 2.0, 3.0],
 /// );
-/// assert_close_vec!(
-///     b_field,
-///     vector![
-///         0.0007246145093594572,
-///         0.0008956704674508121,
-///         0.0010056854402183814
-///    ],
-///    5e-14
-/// );
+/// let expected = vector![0.0007246145093594572, 0.0008956704674508121, 0.0010056854402183814];
+/// assert_relative_eq!(b_field, expected, epsilon = 5e-14);
 /// ```
 ///
 /// # References
@@ -237,7 +230,7 @@ pub fn cuboid_B<T: RealField + Copy>(
 /// # Examples
 ///
 /// ```
-/// # use magba::assert_close_vec;
+/// # use approx::assert_relative_eq;
 /// # use magba::fields::cuboid_B_batch;
 /// # use nalgebra::*;
 /// let mut out = [Vector3::zeros(); 3];
@@ -275,8 +268,8 @@ pub fn cuboid_B<T: RealField + Copy>(
 /// ];
 ///
 /// out.iter()
-///     .zip(expected_fields)
-///     .for_each(|(actual, expected)| assert_close_vec!(actual, expected, 5e-14));
+///     .zip(expected_fields.iter())
+///     .for_each(|(actual, expected)| assert_relative_eq!(actual, expected, epsilon = 5e-14));
 /// ```
 ///
 /// # References

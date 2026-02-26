@@ -291,7 +291,7 @@ pub fn local_cylinder_B<T: RealField + Copy + Float>(
 /// # Examples
 ///
 /// ```
-/// # use magba::assert_close_vec;
+/// # use approx::assert_relative_eq;
 /// # use magba::fields::cylinder_B;
 /// # use nalgebra::*;
 /// let b_field = cylinder_B(
@@ -305,7 +305,7 @@ pub fn local_cylinder_B<T: RealField + Copy + Float>(
 ///     2.0,
 /// );
 /// let expected = vector![0.00018917835277408574, 0.00023329950084703265, 0.00027040129610630406];
-/// assert_close_vec!(b_field, expected, 1e-12);
+/// assert_relative_eq!(b_field, expected, epsilon = 1e-12);
 /// ```
 ///
 /// # References
@@ -347,12 +347,16 @@ pub fn cylinder_B<T: RealField + Copy + Float>(
 /// # Examples
 ///
 /// ```
-/// # use magba::assert_close_vec;
+/// # use approx::assert_relative_eq;
 /// # use magba::fields::cylinder_B_batch;
 /// # use nalgebra::*;
-/// let mut out = [Vector3::zeros(); 1];
+/// let mut out = [Vector3::zeros(); 3];
 /// cylinder_B_batch(
-///     &[point![5.0, 6.0, 7.0]],
+///     &[
+///         point![5.0, 6.0, 7.0],
+///         point![4.0, 3.0, 2.0],
+///         point![0.5, 0.25, 0.125],
+///     ],
 ///     point![1.0, 2.0, 3.0],
 ///     UnitQuaternion::from_scaled_axis(
 ///         [1.0471975511965976, 0.6283185307179586, 0.4487989505128276].into(),
@@ -362,15 +366,28 @@ pub fn cylinder_B<T: RealField + Copy + Float>(
 ///     2.0,
 ///     &mut out,
 /// );
-/// assert_close_vec!(
-///     out[0],
+///
+/// let expected_fields = [
 ///     vector![
 ///         0.00018917835277408574,
 ///         0.00023329950084703265,
-///         0.00027040129610630406
+///         0.00027040129610630406,
 ///     ],
-///     1e-12
-/// );
+///     vector![
+///         0.0022094649753594976,
+///         0.00025744482630791175,
+///         -0.0019561148824707958,
+///     ],
+///     vector![
+///         -0.0007627329318442827,
+///         0.0008631764371268399,
+///         0.00236800766196815,
+///     ],
+/// ];
+///
+/// out.iter()
+///     .zip(expected_fields.iter())
+///     .for_each(|(actual, expected)| assert_relative_eq!(actual, expected, epsilon = 1e-12));
 /// ```
 ///
 /// # References

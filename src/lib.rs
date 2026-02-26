@@ -125,24 +125,3 @@ pub mod unstable {
         pub use crate::fields::field_dipole::{dipole_B, local_dipole_B};
     }
 }
-
-/// Check if two vectors are close using relative Euclidean distance
-#[doc(hidden)]
-#[macro_export]
-macro_rules! assert_close_vec {
-    ($a:expr, $b:expr, $rtol:expr) => {{
-        use nalgebra::{Point3, distance};
-
-        let dist = distance(&Point3::from($a.clone()), &Point3::from($b.clone()));
-
-        let rel_a: f64 = dist / $a.magnitude();
-        let rel_b: f64 = dist / $b.magnitude();
-        let rel = rel_a.max(rel_b);
-        if rel > $rtol {
-            panic!(
-                "Assertion failed: a={}, b={}, dist = {:e}, rel = {:e}, rtol = {:e}",
-                $a, $b, dist, rel, $rtol
-            );
-        }
-    }};
-}
