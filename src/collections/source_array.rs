@@ -9,9 +9,7 @@ use std::fmt::Display;
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
 use crate::{
-    base::{Float, Source, Transform, transform::impl_transform},
-    geometry::Pose,
-    transform::impl_group_transform,
+    base::{Float, Source, Transform, transform::impl_transform}, collections::utils::impl_group_compute_B, geometry::Pose, transform::impl_group_transform
 };
 
 #[macro_export]
@@ -80,48 +78,7 @@ impl_group_transform!(SourceArray<S, T, N> where S: Source<T>, T: Float, const N
 // MARK: Source
 
 impl<S: Source<T> + Clone, T: Float, const N: usize> Source<T> for SourceArray<S, T, N> {
-#[inline]
-    fn compute_B(&self, point: Point3<T>) -> Vector3<T> {
-        let mut net_field = Vector3::zeros();
-        for source in &self.children {
-            net_field += source.compute_B(point);
-        }
-        net_field
-    }
-
-    #[inline]
-    fn compute_B_batch(&self, points: &[Point3<T>]) -> Vec<Vector3<T>> {
-        let mut net_field = vec![Vector3::zeros(); points.len()];
-
-        #[cfg(feature = "rayon")]
-        {
-            use rayon::prelude::*;
-
-            let b_fields: Vec<_> = self
-                .children
-                .par_iter()
-                .map(|source| source.compute_B_batch(points))
-                .collect();
-            b_fields.iter().for_each(|child_b_field| {
-                net_field
-                    .iter_mut()
-                    .zip(child_b_field)
-                    .for_each(|(sum, b)| *sum += b)
-            });
-        }
-
-        #[cfg(not(feature = "rayon"))]
-        {
-            for source in &self.children {
-                let b_fields = source.compute_B_batch(points);
-                net_field
-                    .iter_mut()
-                    .zip(b_fields)
-                    .for_each(|(sum, b)| *sum += b);
-            }
-        }
-        net_field
-    }
+    impl_group_compute_B!();
 }
 
 // MARK: Index
