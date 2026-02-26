@@ -67,7 +67,7 @@ pub fn local_dipole_B<T: RealField + num_traits::Float + Copy>(
 /// # Examples
 ///
 /// ```
-/// # use magba::assert_close_vec;
+/// # use approx::assert_relative_eq;
 /// # use magba::fields::dipole_B;
 /// # use nalgebra::*;
 /// let b_field = dipole_B(
@@ -79,7 +79,7 @@ pub fn local_dipole_B<T: RealField + num_traits::Float + Copy>(
 ///     vector![0.45, 0.3, 0.15],
 /// );
 /// let expected = vector![1.5509430032394472e-10, 1.8780091679184128e-10, 2.1982579999135383e-10];
-/// assert_close_vec!(b_field, expected, 2e-10);
+/// assert_relative_eq!(b_field, expected, epsilon = 2e-10);
 /// ```
 ///
 /// # References
@@ -109,12 +109,16 @@ pub fn dipole_B<T: RealField + num_traits::Float + Copy>(
 /// # Examples
 ///
 /// ```
-/// # use magba::assert_close_vec;
+/// # use approx::assert_relative_eq;
 /// # use magba::fields::dipole_B_batch;
 /// # use nalgebra::*;
-/// let mut out = [Vector3::zeros(); 1];
+/// let mut out = [Vector3::zeros(); 3];
 /// dipole_B_batch(
-///     &[point![5.0, 6.0, 7.0]],
+///     &[
+///         point![5.0, 6.0, 7.0],
+///         point![4.0, 3.0, 2.0],
+///         point![0.5, 0.25, 0.125],
+///     ],
 ///     point![1.0, 2.0, 3.0],
 ///     UnitQuaternion::from_scaled_axis(
 ///         [1.0471975511965976, 0.6283185307179586, 0.4487989505128276].into(),
@@ -122,15 +126,28 @@ pub fn dipole_B<T: RealField + num_traits::Float + Copy>(
 ///     vector![0.45, 0.3, 0.15],
 ///     &mut out,
 /// );
-/// assert_close_vec!(
-///     out[0],
+///
+/// let expected_fields = [
 ///     vector![
 ///         1.5509430032394472e-10,
 ///         1.8780091679184128e-10,
-///         2.1982579999135383e-10
+///         2.1982579999135383e-10,
 ///     ],
-///     2e-10
-/// );
+///     vector![
+///         1.912964350397969e-9,
+///         1.6848048132752178e-10,
+///         -1.5822176176441132e-9,
+///     ],
+///     vector![
+///         -6.242720907089988e-10,
+///         7.557286976901354e-10,
+///         1.912964350397969e-9,
+///     ],
+/// ];
+///
+/// out.iter()
+///     .zip(expected_fields.iter())
+///     .for_each(|(actual, expected)| assert_relative_eq!(actual, expected, epsilon = 2e-10));
 /// ```
 ///
 /// # References
