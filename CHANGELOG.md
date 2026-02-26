@@ -40,6 +40,7 @@
 #### Improvements
 
 - **Relative Positioning:** Collections now store its children's positions relative to the collection's local coordinate, mitigating error accumulation during repeated transformations.
+- **Field Computation:** Use Rust's fold idiom for LLVM auto-vectorization and Rayon's fold and reduce for better parallelization.
 - **Dependency Upgrade:** Update `ellip`, the internal math backend, to v1.1.0, improving performance, removing BulirschConst constraint from `magba::Float`, and supporting `no_std`.
 - **Dependency Upgrade:** Update `nalgebra` to v0.34.1.
 
