@@ -82,25 +82,27 @@ macro_rules! impl_parallel_sum {
         #[cfg(feature = "rayon")]
         if $points.len() > $threshold {
             use rayon::iter::{IndexedParallelIterator, IntoParallelRefIterator, IntoParallelRefMutIterator, ParallelIterator};
-            $out.par_iter_mut().zip($points.par_iter()).for_each(|(o, p_ref)| {
-                let mut sum = nalgebra::Vector3::zeros();
-                for ($($args),*) in itertools::izip!($($vecs),+) {
+            $out.par_iter_mut()
+                .zip($points.par_iter())
+                .for_each(|(o, p_ref)| {
                     let $p = p_ref;
-                    sum += $calc;
-                }
-                *o = sum;
-            });
+                    *o = itertools::izip!($($vecs),+)
+                        .fold(nalgebra::Vector3::zeros(), |acc, ($($args),*)| {
+                            acc + $calc
+                        });
+                });
             return;
         }
 
-        $out.iter_mut().zip($points.iter()).for_each(|(o, p_ref)| {
-            let mut sum = nalgebra::Vector3::zeros();
-            for ($($args),*) in itertools::izip!($($vecs),+) {
+        $out.iter_mut()
+            .zip($points.iter())
+            .for_each(|(o, p_ref)| {
                 let $p = p_ref;
-                sum += $calc;
-            }
-            *o = sum;
-        });
+                *o = itertools::izip!($($vecs),+)
+                    .fold(nalgebra::Vector3::zeros(), |acc, ($($args),*)| {
+                        acc + $calc
+                    });
+            });
     }};
 }
 pub(crate) use impl_parallel_sum;
