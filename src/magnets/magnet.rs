@@ -59,7 +59,7 @@ mod tests {
         let magnet: Magnet = CylinderMagnet::default().into();
         assert_eq!(
             format!("{}", magnet),
-            "CylinderMagnet (pol=[0, 0, 1], d=1, h=1) at pos=[0.0, 0.0, 0.0], rot=[0.0, 0.0, 0.0]"
+            "CylinderMagnet (pol=[0.0, 0.0, 1.0], d=1.0, h=1.0) at pos=[0.0, 0.0, 0.0], rot=[0.0, 0.0, 0.0]"
         );
     }
 }

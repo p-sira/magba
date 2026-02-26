@@ -5,6 +5,9 @@
 
 //! Internal utilities for Magba
 
+use nalgebra::Vector3;
+use std::fmt::Formatter;
+
 macro_rules! need_std {
     ($($body:item)*) => {
         $(
@@ -15,19 +18,21 @@ macro_rules! need_std {
 }
 pub(crate) use need_std;
 
-macro_rules! format_float {
-    ($v: expr) => {
-        $v.to_string()
-    };
+pub(crate) fn format_float<T: Float>(f: &mut Formatter, v: T) -> String {
+    if let Some(p) = f.precision() {
+        format!("{:.p$}", v, p = p)
+    } else {
+        format!("{:?}", v)
+    }
 }
-pub(crate) use format_float;
 
-macro_rules! format_vector3 {
-    ($v: expr) => {
-        format!("[{}, {}, {}]", $v[0], $v[1], $v[2])
-    };
+pub(crate) fn format_vector3<T: Float>(f: &mut Formatter, v: Vector3<T>) -> String {
+    if let Some(p) = f.precision() {
+        format!("[{:.p$}, {:.p$}, {:.p$}]", v.x, v.y, v.z, p = p)
+    } else {
+        format!("[{:?}, {:?}, {:?}]", v.x, v.y, v.z)
+    }
 }
-pub(crate) use format_vector3;
 
 macro_rules! assert_eq_lens {
     ($str_err:expr, [$ref_vec:expr $(, $vec:expr)+]) => {
@@ -98,3 +103,5 @@ macro_rules! impl_parallel_sum {
     }};
 }
 pub(crate) use impl_parallel_sum;
+
+use crate::Float;
