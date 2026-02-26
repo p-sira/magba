@@ -83,7 +83,7 @@ macro_rules! impl_parallel_sum {
 
         #[cfg(feature = "rayon")]
         if $points.len() > $threshold {
-            use rayon::iter::{IndexedParallelIterator, IntoParallelRefIterator, IntoParallelRefMutIterator, ParallelIterator};
+            use rayon::iter::*;
             $out.par_iter_mut()
                 .zip($points.par_iter())
                 .for_each(|(o, p_ref)| {
