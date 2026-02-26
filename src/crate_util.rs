@@ -16,6 +16,7 @@ macro_rules! need_std {
 pub(crate) use need_std;
 
 need_std!(
+    use crate::Float;
     use nalgebra::Vector3;
     use std::fmt::Formatter;
 
@@ -108,5 +109,3 @@ macro_rules! impl_parallel_sum {
     }};
 }
 pub(crate) use impl_parallel_sum;
-
-use crate::Float;
