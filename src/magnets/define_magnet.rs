@@ -167,6 +167,7 @@ macro_rules! define_magnet {
         )*);
 
         impl<T: crate::base::Float> $name<T> {
+            // MARK: New
             pub fn new(
                 position: impl Into<nalgebra::Point3<T>>,
                 orientation: nalgebra::UnitQuaternion<T>,
@@ -228,6 +229,7 @@ macro_rules! define_magnet {
             }
         }
 
+        // MARK: Field
         impl<T: crate::base::Float> crate::base::Source<T> for $name<T> {
             fn compute_B(&self, point: nalgebra::Point3<T>) -> nalgebra::Vector3<T> {
                 crate::fields::$field_fn(
@@ -254,6 +256,7 @@ macro_rules! define_magnet {
                 out
             }
 
+            // MARK: Display
             fn format(&self, f: &mut std::fmt::Formatter<'_>, _: &str) -> std::fmt::Result {
                 $(
                     let $arg = crate::crate_util::$arg_fmt(&mut *f, self.$arg);
