@@ -27,7 +27,6 @@
 
 **Stack Allocation & No-Std**
 - `SourceArray`: A fixed-size, stack-allocated, homogeneous collection of Sources.
-- `ZeroMagnet` and `zero_field` to serve as a placeholder in `SourceArray`.
 - Add `no_std` and `libm` feature flag. 
 
 **Pose Struct**

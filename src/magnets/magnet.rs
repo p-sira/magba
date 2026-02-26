@@ -6,7 +6,7 @@
 use crate::{
     Source,
     base::*,
-    magnets::{CuboidMagnet, CylinderMagnet, Dipole, ZeroMagnet},
+    magnets::{CuboidMagnet, CylinderMagnet, Dipole},
 };
 
 #[cfg(feature = "std")]
@@ -33,7 +33,6 @@ pub enum Magnet<T: Float = f64> {
     Cylinder(CylinderMagnet<T>),
     Cuboid(CuboidMagnet<T>),
     Dipole(Dipole<T>),
-    Zero(ZeroMagnet<T>),
 
     Custom(Box<dyn Source<T>>),
 }
@@ -44,7 +43,6 @@ impl<T: Float> PartialEq for Magnet<T> {
             (Self::Cylinder(l0), Self::Cylinder(r0)) => l0 == r0,
             (Self::Cuboid(l0), Self::Cuboid(r0)) => l0 == r0,
             (Self::Dipole(l0), Self::Dipole(r0)) => l0 == r0,
-            (Self::Zero(l0), Self::Zero(r0)) => l0 == r0,
             (Self::Custom(_), Self::Custom(_)) => false,
             _ => false,
         }
