@@ -9,45 +9,48 @@ macro_rules! impl_group_compute_B {
     () => {
         #[inline]
         fn compute_B(&self, point: Point3<T>) -> Vector3<T> {
-            let mut net_field = Vector3::zeros();
-            for source in &self.children {
-                net_field += source.compute_B(point);
-            }
-            net_field
+            self.children.iter().fold(Vector3::zeros(), |acc, source| {
+                acc + source.compute_B(point)
+            })
         }
 
         #[inline]
         fn compute_B_batch(&self, points: &[Point3<T>]) -> Vec<Vector3<T>> {
-            let mut net_field = vec![Vector3::zeros(); points.len()];
-
             #[cfg(feature = "rayon")]
             {
                 use rayon::prelude::*;
 
-                let b_fields: Vec<_> = self
-                    .children
+                self.children
                     .par_iter()
+                    // 1. Compute B contributed by each source on different threads
                     .map(|source| source.compute_B_batch(points))
-                    .collect();
-                b_fields.iter().for_each(|child_b_field| {
-                    net_field
-                        .iter_mut()
-                        .zip(child_b_field)
-                        .for_each(|(sum, b)| *sum += b)
-                });
+                    // 2. Reduce all contributions on each thread into one
+                    .reduce(
+                        || vec![Vector3::zeros(); points.len()],
+                        |mut acc, child_batch| {
+                            // In each thread, we accumulate the contributions of the source in the zero vector.
+                            acc.iter_mut()
+                                .zip(child_batch)
+                                .for_each(|(sum, b)| *sum += b);
+                            acc
+                        },
+                    )
             }
 
             #[cfg(not(feature = "rayon"))]
             {
-                for source in &self.children {
-                    let b_fields = source.compute_B_batch(points);
-                    net_field
-                        .iter_mut()
-                        .zip(b_fields)
-                        .for_each(|(sum, b)| *sum += b);
-                }
+                // Standard sequential fold
+                self.children.iter().fold(
+                    vec![Vector3::zeros(); points.len()],
+                    |mut acc, source| {
+                        let child_batch = source.compute_B_batch(points);
+                        acc.iter_mut()
+                            .zip(child_batch)
+                            .for_each(|(sum, b)| *sum += b);
+                        acc
+                    },
+                )
             }
-            net_field
         }
     };
 }
