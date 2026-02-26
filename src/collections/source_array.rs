@@ -235,10 +235,10 @@ mod display_tests {
         let collection = sources!(m1, m2, m3);
 
         assert_eq!(
-            "Source Array (3 children) at pos=[0.0, 0.0, 0.0], r=[0.0, 0.0, 0.0]
- ├── 0: CylinderMagnet (pol=[1, 2, 3], d=1, h=1) at pos=[0.0, 0.0, 0.0], r=[0.0, 0.0, 0.0]
- ├── 1: CylinderMagnet (pol=[0, 0, 1], d=0.1, h=0.3) at pos=[0.0, 0.0, 0.0], r=[0.0, 0.0, 0.0]
- └── 2: CylinderMagnet (pol=[0, 0, 1], d=1, h=1) at pos=[4.0, 5.0, 6.0], r=[<float>, 0.0, 0.0]",
+            "Source Array (3 children) at pos=[0.0, 0.0, 0.0], rot=[0.0, 0.0, 0.0]
+ ├── 0: CylinderMagnet (pol=[1, 2, 3], d=1, h=1) at pos=[0.0, 0.0, 0.0], rot=[0.0, 0.0, 0.0]
+ ├── 1: CylinderMagnet (pol=[0, 0, 1], d=0.1, h=0.3) at pos=[0.0, 0.0, 0.0], rot=[0.0, 0.0, 0.0]
+ └── 2: CylinderMagnet (pol=[0, 0, 1], d=1, h=1) at pos=[4.0, 5.0, 6.0], rot=[<float>, 0.0, 0.0]",
             mask_long_floats(&format!("{}", collection))
         )
     }
