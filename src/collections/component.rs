@@ -8,7 +8,7 @@ use enum_dispatch::enum_dispatch;
 use crate::{
     Collection,
     base::*,
-    magnets::{CuboidMagnet, CylinderMagnet, Dipole, Magnet, ZeroMagnet},
+    magnets::{CuboidMagnet, CylinderMagnet, Dipole, Magnet},
 };
 
 #[derive(Debug, Clone, PartialEq)]
@@ -41,6 +41,6 @@ macro_rules! impl_transitive_from {
     };
 }
 
-impl_transitive_from!(CylinderMagnet, CuboidMagnet, Dipole, ZeroMagnet);
+impl_transitive_from!(CylinderMagnet, CuboidMagnet, Dipole);
 
 impl<T: Float> Eq for Component<T> {}

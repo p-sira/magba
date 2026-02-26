@@ -8,12 +8,10 @@
 mod cuboid;
 mod cylinder;
 mod dipole;
-mod zero_magnet;
 
 pub use cuboid::CuboidMagnet;
 pub use cylinder::CylinderMagnet;
 pub use dipole::Dipole;
-pub use zero_magnet::ZeroMagnet;
 
 mod magnet;
 pub use magnet::Magnet;

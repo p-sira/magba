@@ -331,7 +331,7 @@ mod display_tests {
 
         let dipole: Dipole = Dipole::default();
         let mut nested_collection = collection!(dipole.clone(), dipole);
-        let deep_collection = collection!(ZeroMagnet::default());
+        let deep_collection = collection!(CuboidMagnet::default());
         nested_collection.push(deep_collection);
 
         let collection = collection!(cylinder, nested_collection, cuboid);
@@ -343,7 +343,7 @@ mod display_tests {
  │   ├── 0: Dipole (m=[0, 0, 1]) at pos=[0.0, 0.0, 0.0], r=[0.0, 0.0, 0.0]
  │   ├── 1: Dipole (m=[0, 0, 1]) at pos=[0.0, 0.0, 0.0], r=[0.0, 0.0, 0.0]
  │   └── 2: Collection (1 children) at pos=[0.0, 0.0, 0.0], r=[0.0, 0.0, 0.0]
- │       └── 0: ZeroMagnet (Placeholder) at pos=[0.0, 0.0, 0.0], r=[0.0, 0.0, 0.0]
+ │       └── 0: CuboidMagnet (pol=[0, 0, 1], dim=[1, 1, 1]) at pos=[0.0, 0.0, 0.0], r=[0.0, 0.0, 0.0]
  └── 2: CuboidMagnet (pol=[0, 0, 1], dim=[1, 1, 1]) at pos=[4.0, 5.0, 6.0], r=[<float>, 0.0, 0.0]",
             mask_long_floats(&format!("{}", collection))
         )
