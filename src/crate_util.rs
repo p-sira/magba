@@ -73,9 +73,10 @@ pub(crate) use impl_parallel;
 // TODO: compare par_bridge with zip -> par_iter
 macro_rules! impl_parallel_sum {
     ($out:expr, $points:expr, $threshold:expr, [$($vecs:expr),+], |$p:ident, $($args:ident),*| $calc:expr) => {{
+        assert_eq!($out.len(), $points.len(), "Output slice length must match points length.");
         crate::crate_util::assert_eq_lens!(
-            "Lengths of inputs must be equal.",
-            [$out, $points, $($vecs),+]
+            "Lengths of input vectors must be equal.",
+            [$($vecs),+]
         );
 
         #[cfg(feature = "rayon")]
