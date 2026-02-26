@@ -255,6 +255,10 @@ macro_rules! define_magnet {
             }
 
             fn format(&self, f: &mut std::fmt::Formatter<'_>, _: &str) -> std::fmt::Result {
+                $(
+                    let $arg = crate::crate_util::$arg_fmt(&mut *f, self.$arg);
+                )*
+
                 write!(
                     f,
                     concat!(
@@ -263,7 +267,7 @@ macro_rules! define_magnet {
                         $arg_display,
                         ") at {}"
                     ),
-                    $(crate::crate_util::$arg_fmt!(&self.$arg),)*
+                    $( $arg, )*
                     self.pose
                 )
             }
