@@ -16,7 +16,7 @@ pub fn relative_vec_distance<T: RealField + Copy>(a: Vector3<T>, b: Vector3<T>) 
     (dist / a.magnitude()).max(dist / b.magnitude())
 }
 
-pub fn quat_from_rotvec<T: RealField + Copy>(x: T, y: T, z: T) -> UnitQuaternion<T> {
+pub fn quat_from_rotvec<T: RealField>(x: T, y: T, z: T) -> UnitQuaternion<T> {
     UnitQuaternion::from_scaled_axis(vector![x, y, z])
 }
 
