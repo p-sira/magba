@@ -1,3 +1,0 @@
-- Make magnet parameter display consistent (e.g., the floating points)
-- Add sensors
-- Replace implemented test functions with approx
