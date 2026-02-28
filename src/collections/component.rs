@@ -11,7 +11,7 @@ use crate::{
     magnets::{CuboidMagnet, CylinderMagnet, Dipole, Magnet},
 };
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 #[enum_dispatch(Source<T>, Transform<T>, Field<T>)]
 /// Components that can be grouped into collections.
 ///
@@ -22,8 +22,19 @@ use crate::{
 /// ```
 pub enum Component<T: Float = f64> {
     Magnet(Magnet<T>),
-
     Collection(Collection<T>),
+    Custom(Box<dyn Source<T>>),
+}
+
+impl<T: Float> PartialEq for Component<T> {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Magnet(l0), Self::Magnet(r0)) => l0 == r0,
+            (Self::Collection(l0), Self::Collection(r0)) => l0 == r0,
+            (Self::Custom(_), Self::Custom(_)) => false,
+            _ => false,
+        }
+    }
 }
 
 macro_rules! impl_transitive_from {
