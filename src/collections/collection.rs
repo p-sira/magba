@@ -11,7 +11,7 @@ use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 use crate::{
     SourceArray,
     base::*,
-    collections::{component::Component, utils::impl_group_compute_B},
+    collections::{component::Component, node::Node, utils::impl_group_compute_B},
     geometry::Pose,
     transform::{impl_group_transform, impl_transform},
 };
@@ -33,8 +33,7 @@ use crate::{
 #[derive(Debug, Clone)]
 pub struct Collection<T: Float = f64> {
     pose: Pose<T>,
-    children: Vec<Component<T>>,
-    offsets: Vec<Pose<T>>,
+    nodes: Vec<Node<Component<T>, T>>,
 }
 
 impl<T: Float> Collection<T> {
@@ -47,18 +46,20 @@ impl<T: Float> Collection<T> {
         let pose = Pose::new(position, orientation);
         let pose_inv = pose.as_isometry().inverse();
 
-        let children: Vec<Component<T>> = components.into_iter().map(|c| c.into()).collect();
-
-        let offsets = children
-            .iter()
-            .map(|c| (pose_inv * c.pose().as_isometry()).into())
+        let nodes = components
+            .into_iter()
+            .map(|c| {
+                let component: Component<T> = c.into();
+                let local_offset = (pose_inv * component.pose().as_isometry()).into();
+                Node::new(component, local_offset)
+            })
             .collect();
 
-        Self {
-            pose,
-            children,
-            offsets,
-        }
+        Self { pose, nodes }
+    }
+
+    pub fn components(&self) -> impl Iterator<Item = &Component<T>> {
+        self.nodes.iter().map(|n| &n.component)
     }
 
     /// ```
@@ -71,8 +72,8 @@ impl<T: Float> Collection<T> {
     /// let collection = Collection::from(components.clone());
     /// collection.iter().enumerate().for_each(|(i, component)| assert_eq!(*component, components[i]));
     /// ```
-    pub fn iter(&self) -> std::slice::Iter<'_, Component<T>> {
-        self.children.iter()
+    pub fn iter(&self) -> impl Iterator<Item = &Component<T>> {
+        self.components()
     }
 }
 
@@ -80,8 +81,7 @@ impl<T: Float> Default for Collection<T> {
     fn default() -> Self {
         Self {
             pose: Pose::default(),
-            children: Vec::new(),
-            offsets: Vec::new(),
+            nodes: Vec::new(),
         }
     }
 }
@@ -126,13 +126,17 @@ macro_rules! collection {
 
 impl<T: Float> FromIterator<Component<T>> for Collection<T> {
     fn from_iter<I: IntoIterator<Item = Component<T>>>(iter: I) -> Self {
-        let children: Vec<Component<T>> = iter.into_iter().collect();
-        let offsets: Vec<Pose<T>> = children.iter().map(|c| *c.pose()).collect();
+        let nodes = iter
+            .into_iter()
+            .map(|c| {
+                let local_offset = *c.pose();
+                Node::new(c, local_offset)
+            })
+            .collect();
 
         Self {
             pose: Pose::default(),
-            children,
-            offsets,
+            nodes,
         }
     }
 }
@@ -157,10 +161,13 @@ impl<T: Float> From<&[Component<T>]> for Collection<T> {
 
 impl<'a, T: Float> IntoIterator for &'a Collection<T> {
     type Item = &'a Component<T>;
-    type IntoIter = std::slice::Iter<'a, Component<T>>;
+    type IntoIter = std::iter::Map<
+        std::slice::Iter<'a, Node<Component<T>, T>>,
+        fn(&'a Node<Component<T>, T>) -> &'a Component<T>,
+    >;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.children.iter()
+        self.nodes.iter().map(|n| &n.component)
     }
 }
 
@@ -178,10 +185,9 @@ where
 impl<T: Float> Collection<T> {
     pub fn push(&mut self, component: impl Into<Component<T>>) {
         let component: Component<T> = component.into();
-        let relative_pose = self.pose.as_isometry().inverse() * component.pose().as_isometry();
-
-        self.offsets.push(relative_pose.into());
-        self.children.push(component);
+        let local_offset =
+            (self.pose.as_isometry().inverse() * component.pose().as_isometry()).into();
+        self.nodes.push(Node::new(component, local_offset));
     }
 }
 
@@ -199,13 +205,13 @@ impl<T: Float> Index<usize> for Collection<T> {
     type Output = Component<T>;
 
     fn index(&self, index: usize) -> &Self::Output {
-        &self.children[index]
+        &self.nodes[index].component
     }
 }
 
 impl<T: Float> IndexMut<usize> for Collection<T> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        &mut self.children[index]
+        &mut self.nodes[index].component
     }
 }
 
@@ -225,11 +231,11 @@ impl<T: Float> Source<T> for Collection<T> {
         writeln!(
             f,
             "Collection ({} children) at {}",
-            self.children.len(),
+            self.nodes.len(),
             self.pose()
         )?;
 
-        crate::collections::utils::write_tree(f, &self.children, indent)
+        crate::collections::utils::write_tree(f, self.components(), indent)
     }
 }
 
@@ -245,18 +251,17 @@ impl<T: Float> PartialEq for Collection<T> {
     fn eq(&self, other: &Self) -> bool {
         if self.position() != other.position()
             || self.orientation() != other.orientation()
-            || self.children.len() != other.children.len()
+            || self.nodes.len() != other.nodes.len()
         {
             return false;
         }
 
-        let mut matched = vec![false; other.children.len()];
-        for source in &self.children {
-            let found = other
-                .children
-                .iter()
-                .enumerate()
-                .find(|(idx, other_source)| !matched[*idx] && *source == **other_source);
+        let mut matched = vec![false; other.nodes.len()];
+        for node in &self.nodes {
+            let found =
+                other.nodes.iter().enumerate().find(|(idx, other_node)| {
+                    !matched[*idx] && node.component == other_node.component
+                });
 
             match found {
                 Some((idx, _)) => matched[idx] = true,

@@ -106,9 +106,9 @@ macro_rules! impl_group_transform {
         impl< $( $bounds )* > $name< $( $args ),*> {
             pub fn set_pose(&mut self, new_pose: impl Into<Pose<T>>) {
                 self.pose = new_pose.into();
-                for (child, offset) in self.children.iter_mut().zip(&self.offsets) {
-                    let global_isometry = self.pose.as_isometry() * offset.as_isometry();
-                    child.set_pose(global_isometry.into());
+                for node in self.nodes.iter_mut() {
+                    let global_isometry = self.pose.as_isometry() * node.local_offset.as_isometry();
+                    node.component.set_pose(global_isometry.into());
                 }
             }
 

@@ -5,7 +5,7 @@
 #### BREAKING CHANGES
 
 **Core Architecture**
-- **Unified Collection:** `Collection` holds a `Vec<Component>` and handles both heap and stack-allocated items internally.
+- **Unified Collection:** `Collection` holds a `Vec<Node>` and handles both heap and stack-allocated items internally. See the New Features section for more information about `Node`.
 - **MultiSourceCollection Removed:** Use `Collection` which now supports nested and mixed types.
 - **Field Trait Removed:** The `Field` trait is merged into the `Source` trait because the trait is redundant, and its name collides with nalgebra's `Field`.
 
@@ -23,7 +23,10 @@
 
 #### New Features
 
-**Magnets and Components**
+**Components Design**
+- **Node Struct:** Collections now store `Node`, which holds the component's local position and the relative offset with respect to the collection's local coordinate, mitigating error accumulation during repeated transformations.
+- **Component Enum:** The variants can be `Magnet`, `Sensor`, `Collection`, or `Custom`. Components can be grouped into collections.
+- **Magnet and Sensor Enums** 
 
 **Stack Allocation & No-Std**
 - `SourceArray`: A fixed-size, stack-allocated, homogeneous collection of Sources.
@@ -39,7 +42,6 @@
 
 #### Improvements
 
-- **Relative Positioning:** Collections now store its children's positions relative to the collection's local coordinate, mitigating error accumulation during repeated transformations.
 - **Field Computation:** Use Rust's fold idiom for LLVM auto-vectorization and Rayon's fold and reduce for better parallelization.
 - **Dependency Upgrade:** Update `ellip`, the internal math backend, to v1.1.0, improving performance, removing BulirschConst constraint from `magba::Float`, and supporting `no_std`.
 - **Dependency Upgrade:** Update `nalgebra` to v0.34.1.
