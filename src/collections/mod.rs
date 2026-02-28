@@ -7,10 +7,12 @@
 
 mod collection;
 mod component;
+mod node;
 mod source_array;
 
 pub use collection::Collection;
 pub use component::Component;
+pub use node::Node;
 pub use source_array::SourceArray;
 
 mod utils;

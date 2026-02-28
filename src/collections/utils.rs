@@ -9,7 +9,7 @@ macro_rules! impl_group_compute_B {
     () => {
         #[inline]
         fn compute_B(&self, point: Point3<T>) -> Vector3<T> {
-            self.children.iter().fold(Vector3::zeros(), |acc, source| {
+            self.components().fold(Vector3::zeros(), |acc, source| {
                 acc + source.compute_B(point)
             })
         }
@@ -20,15 +20,13 @@ macro_rules! impl_group_compute_B {
             {
                 use rayon::prelude::*;
 
-                self.children
+                // Parallel iterate over nodes directly to avoid collecting into a Vec
+                self.nodes
                     .par_iter()
-                    // 1. Compute B contributed by each source on different threads
-                    .map(|source| source.compute_B_batch(points))
-                    // 2. Reduce all contributions on each thread into one
+                    .map(|node| node.component.compute_B_batch(points))
                     .reduce(
                         || vec![Vector3::zeros(); points.len()],
                         |mut acc, child_batch| {
-                            // In each thread, we accumulate the contributions of the source in the zero vector.
                             acc.iter_mut()
                                 .zip(child_batch)
                                 .for_each(|(sum, b)| *sum += b);
@@ -40,16 +38,14 @@ macro_rules! impl_group_compute_B {
             #[cfg(not(feature = "rayon"))]
             {
                 // Standard sequential fold
-                self.children.iter().fold(
-                    vec![Vector3::zeros(); points.len()],
-                    |mut acc, source| {
+                self.nodes()
+                    .fold(vec![Vector3::zeros(); points.len()], |mut acc, source| {
                         let child_batch = source.compute_B_batch(points);
                         acc.iter_mut()
                             .zip(child_batch)
                             .for_each(|(sum, b)| *sum += b);
                         acc
-                    },
-                )
+                    })
             }
         }
     };

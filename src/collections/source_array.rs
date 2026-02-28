@@ -9,7 +9,10 @@ use std::fmt::Display;
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
 use crate::{
-    base::{Float, Source, Transform, transform::impl_transform}, collections::utils::impl_group_compute_B, geometry::Pose, transform::impl_group_transform
+    base::{Float, Source, Transform, transform::impl_transform},
+    collections::{node::Node, utils::impl_group_compute_B},
+    geometry::Pose,
+    transform::impl_group_transform,
 };
 
 #[macro_export]
@@ -33,8 +36,7 @@ macro_rules! sources {
 #[derive(Debug, Clone)]
 pub struct SourceArray<S: Source<T>, T: Float, const N: usize> {
     pose: Pose<T>,
-    children: [S; N],
-    offsets: [Pose<T>; N],
+    nodes: [Node<S, T>; N],
 }
 
 impl<S: Source<T>, T: Float, const N: usize> SourceArray<S, T, N> {
@@ -46,17 +48,22 @@ impl<S: Source<T>, T: Float, const N: usize> SourceArray<S, T, N> {
         let pose = Pose::new(position.into(), orientation);
         let pose_inv = pose.as_isometry().inverse();
 
-        let offsets = core::array::from_fn(|i| (pose_inv * sources[i].pose().as_isometry()).into());
+        let mut into_iter = sources.into_iter();
+        let nodes = core::array::from_fn(|_| {
+            let component = into_iter.next().unwrap();
+            let local_offset = (pose_inv * component.pose().as_isometry()).into();
+            Node::new(component, local_offset)
+        });
 
-        Self {
-            pose,
-            children: sources,
-            offsets,
-        }
+        Self { pose, nodes }
     }
 
-    pub fn iter(&self) -> std::slice::Iter<'_, S> {
-        self.children.iter()
+    pub fn components(&self) -> impl Iterator<Item = &S> {
+        self.nodes.iter().map(|n| &n.component)
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = &S> {
+        self.components()
     }
 }
 
@@ -64,8 +71,7 @@ impl<S: Source<T> + Default, T: Float, const N: usize> Default for SourceArray<S
     fn default() -> Self {
         Self {
             pose: Pose::default(),
-            children: core::array::from_fn(|_| S::default()),
-            offsets: [Pose::default(); N],
+            nodes: core::array::from_fn(|_| Node::default()),
         }
     }
 }
@@ -87,13 +93,13 @@ impl<S: Source<T>, T: Float, const N: usize> Index<usize> for SourceArray<S, T, 
     type Output = S;
 
     fn index(&self, index: usize) -> &Self::Output {
-        &self.children[index]
+        &self.nodes[index].component
     }
 }
 
 impl<S: Source<T>, T: Float, const N: usize> IndexMut<usize> for SourceArray<S, T, N> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        &mut self.children[index]
+        &mut self.nodes[index].component
     }
 }
 
@@ -101,31 +107,35 @@ impl<S: Source<T>, T: Float, const N: usize> IndexMut<usize> for SourceArray<S, 
 
 impl<S: Source<T>, T: Float, const N: usize> From<[S; N]> for SourceArray<S, T, N> {
     fn from(sources: [S; N]) -> Self {
-        let offsets = core::array::from_fn(|i| *sources[i].pose());
+        let mut into_iter = sources.into_iter();
+        let nodes = core::array::from_fn(|_| {
+            let component = into_iter.next().unwrap();
+            let local_offset = *component.pose();
+            Node::new(component, local_offset)
+        });
 
         Self {
             pose: Pose::default(),
-            children: sources,
-            offsets,
+            nodes,
         }
     }
 }
 
 impl<'a, S: Source<T>, T: Float, const N: usize> IntoIterator for &'a SourceArray<S, T, N> {
     type Item = &'a S;
-    type IntoIter = std::slice::Iter<'a, S>;
+    type IntoIter = std::iter::Map<std::slice::Iter<'a, Node<S, T>>, fn(&'a Node<S, T>) -> &'a S>;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.children.iter()
+        self.nodes.iter().map(|n| &n.component)
     }
 }
 
 impl<S: Source<T>, T: Float, const N: usize> IntoIterator for SourceArray<S, T, N> {
     type Item = S;
-    type IntoIter = std::array::IntoIter<S, N>;
+    type IntoIter = std::iter::Map<std::array::IntoIter<Node<S, T>, N>, fn(Node<S, T>) -> S>;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.children.into_iter()
+        self.nodes.into_iter().map(|n| n.component)
     }
 }
 
@@ -139,12 +149,10 @@ impl<S: Source<T> + PartialEq, T: Float, const N: usize> PartialEq for SourceArr
 
         // Order-independent comparison
         let mut matched = [false; N];
-        for source in &self.children {
-            let found = other
-                .children
-                .iter()
-                .enumerate()
-                .find(|(idx, other_source)| !matched[*idx] && *source == **other_source);
+        for node in &self.nodes {
+            let found = other.nodes.iter().enumerate().find(|(idx, other_node)| {
+                !matched[*idx] && node.component == other_node.component
+            });
 
             match found {
                 Some((idx, _)) => matched[idx] = true,
@@ -162,11 +170,11 @@ impl<S: Source<T>, T: Float, const N: usize> Display for SourceArray<S, T, N> {
         writeln!(
             f,
             "Source Array ({} children) at {}",
-            self.children.len(),
+            self.nodes.len(),
             self.pose()
         )?;
 
-        crate::collections::utils::write_tree(f, &self.children, "")
+        crate::collections::utils::write_tree(f, self.components(), "")
     }
 }
 
