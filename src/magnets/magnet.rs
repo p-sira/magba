@@ -4,7 +4,6 @@
  */
 
 use crate::{
-    Source,
     base::*,
     magnets::{CuboidMagnet, CylinderMagnet, Dipole},
 };
@@ -26,29 +25,14 @@ use enum_dispatch::enum_dispatch;
 /// let b_field = magnet.compute_B(point![0.1, 0.2, 0.3]);
 /// assert_relative_eq!(b_field, vector![0.03358623061457353, 0.06717246122914705, 0.6376649834015807]);
 /// ```
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "std", derive(Display))]
 #[enum_dispatch(Source<T>, Transform<T>, Field<T>)]
 pub enum Magnet<T: Float = f64> {
     Cylinder(CylinderMagnet<T>),
     Cuboid(CuboidMagnet<T>),
     Dipole(Dipole<T>),
-
-    Custom(Box<dyn Source<T>>),
 }
-
-impl<T: Float> PartialEq for Magnet<T> {
-    fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (Self::Cylinder(l0), Self::Cylinder(r0)) => l0 == r0,
-            (Self::Cuboid(l0), Self::Cuboid(r0)) => l0 == r0,
-            (Self::Dipole(l0), Self::Dipole(r0)) => l0 == r0,
-            (Self::Custom(_), Self::Custom(_)) => false,
-            _ => false,
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
