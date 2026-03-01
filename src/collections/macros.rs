@@ -11,7 +11,7 @@ macro_rules! sources {
     };
     // sources!(magnet1, magnet2, ...)
     ($($items:expr),* $(,)?) => {{
-        let c: [Component<_>; _] = [$($items.into()),*];
+        let c: [SourceComponent<_>; _] = [$($items.into()),*];
         SourceAssembly::from(c)
     }};
     () => { SourceAssembly::default() };

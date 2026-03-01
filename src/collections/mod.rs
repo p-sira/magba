@@ -9,12 +9,12 @@ mod macros;
 #[cfg(test)]
 pub(crate) use macros::sources;
 
-mod component;
+mod source_component;
 mod node;
 mod source_array;
 mod source_assembly;
 
-pub use component::Component;
+pub use source_component::SourceComponent;
 pub use node::Node;
 pub use source_array::SourceArray;
 pub use source_assembly::SourceAssembly;

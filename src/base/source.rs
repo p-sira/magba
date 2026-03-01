@@ -6,7 +6,7 @@
 use std::fmt::{Debug, Display};
 
 use crate::{
-    Component, Pose,
+    SourceComponent, Pose,
     base::{Float, Transform},
     magnets::*,
 };
