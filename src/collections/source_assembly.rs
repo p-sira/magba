@@ -283,7 +283,7 @@ mod display_tests {
 
         let dipole: Dipole = Dipole::default();
         let mut nested_collection = sources!(dipole.clone(), dipole);
-        let deep_collection = sources!(CuboidMagnet::default());
+        let deep_collection = sources!([CuboidMagnet::default()]);
         nested_collection.push(deep_collection);
 
         let sources = sources!(cylinder, nested_collection, cuboid);
