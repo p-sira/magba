@@ -52,21 +52,21 @@ macro_rules! assert_eq_lens {
 pub(crate) use assert_eq_lens;
 
 macro_rules! impl_parallel {
-    ($out:expr, $func:ident, $threshold:expr, $items:expr, $($func_args:expr),* $(,)?) => {
+    ($func:ident, rayon_threshold: $threshold:expr, input: $inputs:expr, output: $out:expr, args: [$($func_args:expr),* $(,)?]) => {
         {
-            assert_eq!($out.len(), $items.len(), "Output slice length must match points length.");
+            assert_eq!($out.len(), $inputs.len(), "Output slice length must match input vectors length.");
 
             #[cfg(feature = "rayon")]
-            if $items.len() > $threshold {
+            if $inputs.len() > $threshold {
                 use rayon::iter::*;
                 $out.par_iter_mut()
-                    .zip($items.par_iter())
+                    .zip($inputs.par_iter())
                     .for_each(|(o, p)| *o = $func(*p, $($func_args),*));
                 return;
             }
 
             $out.iter_mut()
-                .zip($items.iter())
+                .zip($inputs.iter())
                 .for_each(|(o, p)| *o = $func(*p, $($func_args),*));
         }
     };

@@ -285,14 +285,11 @@ pub fn cuboid_B_batch<T: RealField + Copy>(
     out: &mut [Vector3<T>],
 ) {
     impl_parallel!(
-        out,
         cuboid_B,
-        60,
-        points,
-        position,
-        orientation,
-        polarization,
-        dimensions,
+        rayon_threshold: 60,
+        input: points,
+        output: out,
+        args: [position, orientation, polarization, dimensions]
     )
 }
 

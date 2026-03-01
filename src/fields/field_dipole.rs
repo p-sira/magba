@@ -161,7 +161,9 @@ pub fn dipole_B_batch<T: RealField + num_traits::Float + Copy>(
     moment: Vector3<T>,
     out: &mut [Vector3<T>],
 ) {
-    impl_parallel!(out, dipole_B, 60, points, position, orientation, moment)
+    impl_parallel!(
+        dipole_B, rayon_threshold: 60, input: points, output: out, args: [position, orientation, moment]
+    )
 }
 
 /// Compute B-field at each given points in global frame for multiple magnetic dipole moments.

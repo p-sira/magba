@@ -406,15 +406,11 @@ pub fn cylinder_B_batch<T: RealField + Copy + Float>(
     out: &mut [Vector3<T>],
 ) {
     impl_parallel!(
-        out,
         cylinder_B,
-        60,
-        points,
-        position,
-        orientation,
-        polarization,
-        diameter,
-        height,
+        rayon_threshold: 60,
+        input: points,
+        output: out,
+        args: [position, orientation, polarization, diameter, height]
     )
 }
 
