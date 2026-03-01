@@ -83,6 +83,7 @@ pub mod constants;
 pub mod conversion;
 pub mod fields;
 pub mod geometry;
+pub mod measurement;
 
 pub use constants::MagneticConstants;
 
