@@ -15,7 +15,7 @@ All physical quantities are assumed to be in SI units.
 ## Features
 
 - Compute [magnetic fields](#field-computation) analytically for various source geometries.
-- Create [Magnets](Magnet) and group them as [Collection].
+- Create [Magnets](Magnet) and group them as [SourceAssembly].
 - [Move and rotate objects](#move-and-rotate-objects) in 3D space.
 - Increase performance using parallelization with [Rayon](https://docs.rs/crate/rayon/latest).
 - Support calculation with [f32] and [f64].
@@ -32,7 +32,7 @@ By default, Magba installs with all stable features enabled, including paralleli
 
 The available feature flags are:
 - `default`: Enable std and rayon.
-- `std`: Use std features, such as magnet and collection structs.
+- `std`: Use std features, such as magnet and sources structs.
   Disable the flag to use Magba in `no_std` environments. Without std,
   you can still access the [fields] module to directly compute the fields.
 - `rayon`: Parallelization using [Rayon](https://github.com/rayon-rs/rayon).

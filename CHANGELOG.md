@@ -5,14 +5,14 @@
 #### BREAKING CHANGES
 
 **Core Architecture**
-- **Unified Collection:** `Collection` holds a `Vec<Node>` and handles both heap and stack-allocated items internally. See the New Features section for more information about `Node`.
-- **MultiSourceCollection Removed:** Use `Collection` which now supports nested and mixed types.
+- **Unified Collection:** `SourceAssembly` holds a `Vec<Node>` and handles both heap and stack-allocated items internally. See the New Features section for more information about `Node`.
+- **MultiSourceCollection Removed:** Use `SourceAssembly` which now supports nested and mixed types.
 - **Field Trait Removed:** The `Field` trait is merged into the `Source` trait because the trait is redundant, and its name collides with nalgebra's `Field`.
 
 **API Renames & Standardization**
 - `compute_B` and `compute_B_batch`: The word "compute" suggests numerical evaluation rather than returning pre-computed values.
 - `CylinderMagnet` accepts `diameter` instead of `radius`.
-- `Collection`: Rename the methods `add` to `push` and `add_sources` to `extend`.
+- `SourceAssembly`: Rename the methods `add` to `push` and `add_sources` to `extend`.
 
 **Codebase Restructure**
 - Remove the `util` module.

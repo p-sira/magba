@@ -15,13 +15,6 @@ use crate::{
     transform::impl_group_transform,
 };
 
-#[macro_export]
-macro_rules! sources {
-    ($($items:expr),*) => {
-        SourceArray::new([0.0; 3], nalgebra::UnitQuaternion::identity(), [$($items),*])
-    };
-}
-
 /// Stack-allocated data structure for grouping homogeneous [Source].
 ///
 /// ### Examples
@@ -183,7 +176,7 @@ impl<S: Source<T>, T: Float, const N: usize> Display for SourceArray<S, T, N> {
 #[cfg(test)]
 mod display_tests {
     use super::*;
-    use crate::{magnets::*, testing_util::*};
+    use crate::{magnets::*, testing_util::*, collections::sources};
 
     #[test]
     fn test_source_array_display() {
@@ -197,14 +190,14 @@ mod display_tests {
                 [std::f64::consts::FRAC_PI_2, 0.0, 0.0].into(),
             ));
 
-        let collection = sources!(m1, m2, m3);
+        let sources = sources!([m1, m2, m3]);
 
         assert_eq!(
             "Source Array (3 children) at pos=[0.0, 0.0, 0.0], rot=[0.0, 0.0, 0.0]
  ├── 0: CylinderMagnet (pol=[1.0, 2.0, 3.0], d=1.0, h=1.0) at pos=[0.0, 0.0, 0.0], rot=[0.0, 0.0, 0.0]
  ├── 1: CylinderMagnet (pol=[0.0, 0.0, 1.0], d=0.1, h=0.3) at pos=[0.0, 0.0, 0.0], rot=[0.0, 0.0, 0.0]
  └── 2: CylinderMagnet (pol=[0.0, 0.0, 1.0], d=1.0, h=1.0) at pos=[4.0, 5.0, 6.0], rot=[<float>, 0.0, 0.0]",
-            mask_long_floats(&format!("{}", collection))
+            mask_long_floats(&format!("{}", sources))
         )
     }
 }
@@ -247,7 +240,7 @@ mod fielde_tests {
     #[test]
     fn test_static() {
         let arr = array();
-        test_B_magnet!(@small, &arr, "cylinder-collection.csv", 5e-9);
+        test_B_magnet!(@small, &arr, "cylinder-sources.csv", 5e-9);
     }
 
     #[test]
@@ -255,11 +248,11 @@ mod fielde_tests {
         let mut arr = array();
         let translation = Translation3::new(0.01, 0.015, 0.02);
         arr.translate(translation);
-        test_B_magnet!(@small, &arr, "cylinder-collection-translate.csv", 1e-8);
+        test_B_magnet!(@small, &arr, "cylinder-sources-translate.csv", 1e-8);
 
         arr.translate(translation.inverse());
         arr.set_position([0.01, 0.015, 0.02]);
-        test_B_magnet!(@small, &arr, "cylinder-collection-translate.csv", 1e-8);
+        test_B_magnet!(@small, &arr, "cylinder-sources-translate.csv", 1e-8);
     }
 
     #[test]
@@ -267,13 +260,13 @@ mod fielde_tests {
         let mut arr = array();
         let rotation = UnitQuaternion::from_scaled_axis([PI / 3.0, PI / 4.0, PI / 5.0].into());
         arr.rotate(rotation);
-        test_B_magnet!(@small, &arr, "cylinder-collection-rotate.csv", 1e-9);
+        test_B_magnet!(@small, &arr, "cylinder-sources-rotate.csv", 1e-9);
 
         arr.rotate(rotation.inverse());
         arr.set_orientation(rotation);
-        test_B_magnet!(@small, &arr, "cylinder-collection-rotate.csv", 5e-8);
+        test_B_magnet!(@small, &arr, "cylinder-sources-rotate.csv", 5e-8);
 
         arr.set_position(point![0.01, 0.015, 0.02]);
-        test_B_magnet!(@small, &arr, "cylinder-collection-translate-rotate.csv", 5e-8);
+        test_B_magnet!(@small, &arr, "cylinder-sources-translate-rotate.csv", 5e-8);
     }
 }

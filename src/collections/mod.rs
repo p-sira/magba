@@ -5,14 +5,18 @@
 
 //! Data structures for grouping and management of magnetic components.
 
-mod collection;
+mod macros;
+#[cfg(test)]
+pub(crate) use macros::sources;
+
 mod component;
 mod node;
 mod source_array;
+mod source_assembly;
 
-pub use collection::Collection;
 pub use component::Component;
 pub use node::Node;
 pub use source_array::SourceArray;
+pub use source_assembly::SourceAssembly;
 
 mod utils;

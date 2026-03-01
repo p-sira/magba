@@ -6,7 +6,7 @@
 use enum_dispatch::enum_dispatch;
 
 use crate::{
-    Collection,
+    SourceAssembly,
     base::*,
     magnets::{CuboidMagnet, CylinderMagnet, Dipole, Magnet},
 };
@@ -18,11 +18,11 @@ use crate::{
 /// ```
 /// # use magba::*;
 /// let magnet: Component = CylinderMagnet::default().into();
-/// let collection = collection!(magnet);
+/// let sources = sources!(magnet);
 /// ```
 pub enum Component<T: Float = f64> {
     Magnet(Magnet<T>),
-    Collection(Collection<T>),
+    SourceAssembly(SourceAssembly<T>),
     Custom(Box<dyn Source<T>>),
 }
 
@@ -30,7 +30,7 @@ impl<T: Float> PartialEq for Component<T> {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (Self::Magnet(l0), Self::Magnet(r0)) => l0 == r0,
-            (Self::Collection(l0), Self::Collection(r0)) => l0 == r0,
+            (Self::SourceAssembly(l0), Self::SourceAssembly(r0)) => l0 == r0,
             (Self::Custom(_), Self::Custom(_)) => false,
             _ => false,
         }
