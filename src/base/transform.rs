@@ -152,11 +152,3 @@ macro_rules! impl_group_transform {
     };
 }
 pub(crate) use impl_group_transform;
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn test() {
-
-    }
-}
