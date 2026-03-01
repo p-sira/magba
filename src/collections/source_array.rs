@@ -9,6 +9,7 @@ use std::fmt::Display;
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
 use crate::{
+    SourceAssembly, SourceComponent,
     base::{Float, Source, Transform, transform::impl_transform},
     collections::{node::Node, utils::impl_group_compute_B},
     geometry::Pose,
@@ -132,6 +133,15 @@ impl<S: Source<T>, T: Float, const N: usize> IntoIterator for SourceArray<S, T, 
     }
 }
 
+impl<S: Source<T>, T: Float, const N: usize> Into<SourceComponent<T>> for SourceArray<S, T, N>
+where
+    SourceComponent<T>: From<S>,
+{
+    fn into(self) -> SourceComponent<T> {
+        SourceAssembly::from(self).into()
+    }
+}
+
 // MARK: PartialEq
 
 impl<S: Source<T> + PartialEq, T: Float, const N: usize> PartialEq for SourceArray<S, T, N> {
@@ -143,9 +153,10 @@ impl<S: Source<T> + PartialEq, T: Float, const N: usize> PartialEq for SourceArr
         // Order-independent comparison
         let mut matched = [false; N];
         for node in &self.nodes {
-            let found = other.nodes.iter().enumerate().find(|(idx, other_node)| {
-                !matched[*idx] && node.component == other_node.component
-            });
+            let found =
+                other.nodes.iter().enumerate().find(|(idx, other_node)| {
+                    !matched[*idx] && node.component == other_node.component
+                });
 
             match found {
                 Some((idx, _)) => matched[idx] = true,
@@ -176,7 +187,7 @@ impl<S: Source<T>, T: Float, const N: usize> Display for SourceArray<S, T, N> {
 #[cfg(test)]
 mod display_tests {
     use super::*;
-    use crate::{magnets::*, testing_util::*, collections::sources};
+    use crate::{collections::sources, magnets::*, testing_util::*};
 
     #[test]
     fn test_source_array_display() {
