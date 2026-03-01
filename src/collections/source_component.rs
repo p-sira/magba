@@ -22,7 +22,7 @@ use crate::{
 /// ```
 pub enum SourceComponent<T: Float = f64> {
     Magnet(Magnet<T>),
-    SourceAssembly(SourceAssembly<T>),
+    Assembly(SourceAssembly<T>),
     Custom(Box<dyn Source<T>>),
 }
 
@@ -30,7 +30,7 @@ impl<T: Float> PartialEq for SourceComponent<T> {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (Self::Magnet(l0), Self::Magnet(r0)) => l0 == r0,
-            (Self::SourceAssembly(l0), Self::SourceAssembly(r0)) => l0 == r0,
+            (Self::Assembly(l0), Self::Assembly(r0)) => l0 == r0,
             (Self::Custom(_), Self::Custom(_)) => false,
             _ => false,
         }
