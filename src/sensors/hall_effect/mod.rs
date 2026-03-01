@@ -3,6 +3,6 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-//! Sensors for measuring magnetic fields.
+mod linear_hall_sensor;
 
-pub mod hall_effect;
+pub use linear_hall_sensor::LinearHallSensor;

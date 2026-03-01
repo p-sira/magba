@@ -3,5 +3,6 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-/// Trait shared by objects that generate magnetic field.
-/// TODO
+mod linear_hall;
+
+pub use linear_hall::{linear_hall_voltage, linear_hall_voltage_batch};
