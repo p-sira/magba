@@ -46,7 +46,7 @@ pub trait Source<T: RealField>: Transform<T> + Send + Sync + DynClone {
     fn compute_B_batch(&self, points: &[Point3<T>]) -> Vec<Vector3<T>>;
 
     /// A default formatter that behaves like Display.
-    /// Last argument is the indentation, which is for Collection support.
+    /// Last argument is the indentation, which is for SourceAssembly support.
     /// Override this for custom printouts.
     fn format(&self, f: &mut std::fmt::Formatter<'_>, _: &str) -> std::fmt::Result {
         write!(f, "Source at {}", self.pose())

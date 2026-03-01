@@ -9,7 +9,7 @@ use crate::{base::Float, geometry::Pose};
 
 /// A node pairing a component with its local pose offset.
 ///
-/// Used by [crate::Collection] and [crate::SourceArray] to keep each child
+/// Used by [crate::SourceAssembly] and [crate::SourceArray] to keep each child
 /// and its offset in one place so they stay synchronized.
 #[derive(Debug, Clone)]
 pub struct Node<S, T: Float = f64> {

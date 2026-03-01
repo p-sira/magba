@@ -28,16 +28,16 @@ use crate::{
 /// let cuboid = CuboidMagnet::default();
 /// let dipole = Dipole::default();
 ///
-/// let collection: Collection = collection!(cylinder, cuboid, dipole);
+/// let sources: SourceAssembly = sources!(cylinder, cuboid, dipole);
 /// ```
 #[derive(Debug, Clone)]
-pub struct Collection<T: Float = f64> {
+pub struct SourceAssembly<T: Float = f64> {
     pose: Pose<T>,
     nodes: Vec<Node<Component<T>, T>>,
 }
 
-impl<T: Float> Collection<T> {
-    /// Initialize a new collection, keeping the components' coordinates as GLOBAL.
+impl<T: Float> SourceAssembly<T> {
+    /// Initialize a new sources, keeping the components' coordinates as GLOBAL.
     pub fn new(
         position: Point3<T>,
         orientation: UnitQuaternion<T>,
@@ -69,15 +69,15 @@ impl<T: Float> Collection<T> {
     /// let dipole = Dipole::default();
     ///
     /// let components: [Component; _] = [cylinder.into(), cuboid.into(), dipole.into()];
-    /// let collection = Collection::from(components.clone());
-    /// collection.iter().enumerate().for_each(|(i, component)| assert_eq!(*component, components[i]));
+    /// let sources = SourceAssembly::from(components.clone());
+    /// sources.iter().enumerate().for_each(|(i, component)| assert_eq!(*component, components[i]));
     /// ```
     pub fn iter(&self) -> impl Iterator<Item = &Component<T>> {
         self.components()
     }
 }
 
-impl<T: Float> Default for Collection<T> {
+impl<T: Float> Default for SourceAssembly<T> {
     fn default() -> Self {
         Self {
             pose: Pose::default(),
@@ -88,7 +88,7 @@ impl<T: Float> Default for Collection<T> {
 
 // MARK: With builders
 
-impl<T: Float> Collection<T> {
+impl<T: Float> SourceAssembly<T> {
     pub fn with(mut self, component: impl Into<Component<T>>) -> Self {
         self.push(component);
         self
@@ -110,21 +110,9 @@ impl<T: Float> Collection<T> {
     }
 }
 
-// MARK: Macro
-
-#[macro_export]
-macro_rules! collection {
-    // collection!(magnet1, magnet2, ...)
-    ($($items:expr),* $(,)?) => {{
-        let c: [Component<_>; _] = [$($items.into()),*];
-        Collection::from(c)
-    }};
-    () => { Collection::default() };
-}
-
 // MARK: From, Into
 
-impl<T: Float> FromIterator<Component<T>> for Collection<T> {
+impl<T: Float> FromIterator<Component<T>> for SourceAssembly<T> {
     fn from_iter<I: IntoIterator<Item = Component<T>>>(iter: I) -> Self {
         let nodes = iter
             .into_iter()
@@ -141,25 +129,25 @@ impl<T: Float> FromIterator<Component<T>> for Collection<T> {
     }
 }
 
-impl<T: Float, I: Into<Component<T>>, const N: usize> From<[I; N]> for Collection<T> {
+impl<T: Float, I: Into<Component<T>>, const N: usize> From<[I; N]> for SourceAssembly<T> {
     fn from(components: [I; N]) -> Self {
         components.into_iter().map(Into::into).collect()
     }
 }
 
-impl<T: Float, I: Into<Component<T>>> From<Vec<I>> for Collection<T> {
+impl<T: Float, I: Into<Component<T>>> From<Vec<I>> for SourceAssembly<T> {
     fn from(components: Vec<I>) -> Self {
         components.into_iter().map(Into::into).collect()
     }
 }
 
-impl<T: Float> From<&[Component<T>]> for Collection<T> {
+impl<T: Float> From<&[Component<T>]> for SourceAssembly<T> {
     fn from(components: &[Component<T>]) -> Self {
         components.iter().cloned().collect()
     }
 }
 
-impl<'a, T: Float> IntoIterator for &'a Collection<T> {
+impl<'a, T: Float> IntoIterator for &'a SourceAssembly<T> {
     type Item = &'a Component<T>;
     type IntoIter = std::iter::Map<
         std::slice::Iter<'a, Node<Component<T>, T>>,
@@ -171,18 +159,18 @@ impl<'a, T: Float> IntoIterator for &'a Collection<T> {
     }
 }
 
-impl<S, T: Float, const N: usize> From<SourceArray<S, T, N>> for Collection<T>
+impl<S, T: Float, const N: usize> From<SourceArray<S, T, N>> for SourceAssembly<T>
 where
     S: Source<T> + Into<Component<T>>,
 {
     fn from(array: SourceArray<S, T, N>) -> Self {
-        Collection::new(array.position(), array.orientation(), array)
+        SourceAssembly::new(array.position(), array.orientation(), array)
     }
 }
 
 // MARK: Extend, Push
 
-impl<T: Float> Collection<T> {
+impl<T: Float> SourceAssembly<T> {
     pub fn push(&mut self, component: impl Into<Component<T>>) {
         let component: Component<T> = component.into();
         let local_offset =
@@ -191,7 +179,7 @@ impl<T: Float> Collection<T> {
     }
 }
 
-impl<T: Float> Extend<Component<T>> for Collection<T> {
+impl<T: Float> Extend<Component<T>> for SourceAssembly<T> {
     fn extend<I: IntoIterator<Item = Component<T>>>(&mut self, iter: I) {
         for component in iter {
             self.push(component);
@@ -201,7 +189,7 @@ impl<T: Float> Extend<Component<T>> for Collection<T> {
 
 // MARK: Index
 
-impl<T: Float> Index<usize> for Collection<T> {
+impl<T: Float> Index<usize> for SourceAssembly<T> {
     type Output = Component<T>;
 
     fn index(&self, index: usize) -> &Self::Output {
@@ -209,7 +197,7 @@ impl<T: Float> Index<usize> for Collection<T> {
     }
 }
 
-impl<T: Float> IndexMut<usize> for Collection<T> {
+impl<T: Float> IndexMut<usize> for SourceAssembly<T> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.nodes[index].component
     }
@@ -217,12 +205,12 @@ impl<T: Float> IndexMut<usize> for Collection<T> {
 
 // MARK: Transform
 
-impl_transform!(Collection<T> where T: Float);
-impl_group_transform!(Collection<T> where T: Float);
+impl_transform!(SourceAssembly<T> where T: Float);
+impl_group_transform!(SourceAssembly<T> where T: Float);
 
 // MARK: Source
 
-impl<T: Float> Source<T> for Collection<T> {
+impl<T: Float> Source<T> for SourceAssembly<T> {
     impl_group_compute_B!();
 
     // MARK: Display
@@ -230,7 +218,7 @@ impl<T: Float> Source<T> for Collection<T> {
     fn format(&self, f: &mut std::fmt::Formatter<'_>, indent: &str) -> std::fmt::Result {
         writeln!(
             f,
-            "Collection ({} children) at {}",
+            "SourceAssembly ({} children) at {}",
             self.nodes.len(),
             self.pose()
         )?;
@@ -239,7 +227,7 @@ impl<T: Float> Source<T> for Collection<T> {
     }
 }
 
-impl<T: Float> Display for Collection<T> {
+impl<T: Float> Display for SourceAssembly<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.format(f, "")
     }
@@ -247,7 +235,7 @@ impl<T: Float> Display for Collection<T> {
 
 // MARK: PartialEq
 
-impl<T: Float> PartialEq for Collection<T> {
+impl<T: Float> PartialEq for SourceAssembly<T> {
     fn eq(&self, other: &Self) -> bool {
         if self.position() != other.position()
             || self.orientation() != other.orientation()
@@ -279,7 +267,7 @@ mod display_tests {
     use std::f64::consts::FRAC_PI_2;
 
     use super::*;
-    use crate::{magnets::*, testing_util::*};
+    use crate::{collections::sources, magnets::*, testing_util::*};
 
     #[test]
     fn test_collection_display() {
@@ -294,22 +282,22 @@ mod display_tests {
             ));
 
         let dipole: Dipole = Dipole::default();
-        let mut nested_collection = collection!(dipole.clone(), dipole);
-        let deep_collection = collection!(CuboidMagnet::default());
+        let mut nested_collection = sources!(dipole.clone(), dipole);
+        let deep_collection = sources!(CuboidMagnet::default());
         nested_collection.push(deep_collection);
 
-        let collection = collection!(cylinder, nested_collection, cuboid);
+        let sources = sources!(cylinder, nested_collection, cuboid);
 
         assert_eq!(
-            "Collection (3 children) at pos=[0.0, 0.0, 0.0], rot=[0.0, 0.0, 0.0]
+            "SourceAssembly (3 children) at pos=[0.0, 0.0, 0.0], rot=[0.0, 0.0, 0.0]
  ├── 0: CylinderMagnet (pol=[1.0, 2.0, 3.0], d=0.1, h=0.3) at pos=[0.0, 0.0, 0.0], rot=[0.0, 0.0, 0.0]
- ├── 1: Collection (3 children) at pos=[0.0, 0.0, 0.0], rot=[0.0, 0.0, 0.0]
+ ├── 1: SourceAssembly (3 children) at pos=[0.0, 0.0, 0.0], rot=[0.0, 0.0, 0.0]
  │   ├── 0: Dipole (m=[0.0, 0.0, 1.0]) at pos=[0.0, 0.0, 0.0], rot=[0.0, 0.0, 0.0]
  │   ├── 1: Dipole (m=[0.0, 0.0, 1.0]) at pos=[0.0, 0.0, 0.0], rot=[0.0, 0.0, 0.0]
- │   └── 2: Collection (1 children) at pos=[0.0, 0.0, 0.0], rot=[0.0, 0.0, 0.0]
+ │   └── 2: SourceAssembly (1 children) at pos=[0.0, 0.0, 0.0], rot=[0.0, 0.0, 0.0]
  │       └── 0: CuboidMagnet (pol=[0.0, 0.0, 1.0], dim=[1.0, 1.0, 1.0]) at pos=[0.0, 0.0, 0.0], rot=[0.0, 0.0, 0.0]
  └── 2: CuboidMagnet (pol=[0.0, 0.0, 1.0], dim=[1.0, 1.0, 1.0]) at pos=[4.0, 5.0, 6.0], rot=[<float>, 0.0, 0.0]",
-            mask_long_floats(&format!("{}", collection))
+            mask_long_floats(&format!("{}", sources))
         )
     }
 }
@@ -321,7 +309,7 @@ mod partial_eq_tests {
     use std::f64::consts::FRAC_PI_2;
 
     use super::*;
-    use crate::magnets::*;
+    use crate::{collections::sources, magnets::*};
 
     fn magnet1() -> CylinderMagnet<f64> {
         CylinderMagnet::default()
@@ -340,15 +328,15 @@ mod partial_eq_tests {
 
     #[test]
     fn test_equal() {
-        let c = collection!(magnet1(), magnet2());
+        let c = sources!(magnet1(), magnet2());
         assert_eq!(c, c.clone());
     }
 
     #[test]
     fn test_different_transformation() {
-        let c1 = collection!().with(magnet1());
-        let c2 = collection!(magnet1()).with_position([1.0, 0.0, 0.0]);
-        let c3 = collection!(magnet1())
+        let c1 = sources!().with(magnet1());
+        let c2 = sources!(magnet1()).with_position([1.0, 0.0, 0.0]);
+        let c3 = sources!(magnet1())
             .with_orientation(UnitQuaternion::from_quaternion([1.0, 0.0, 0.0, 0.0].into()));
         assert_ne!(c1, c2);
         assert_ne!(c1, c3);
@@ -356,32 +344,32 @@ mod partial_eq_tests {
 
     #[test]
     fn test_different_children() {
-        let c1 = collection!(magnet1());
-        let c2 = collection!(magnet2());
-        let c3 = collection!(magnet1(), magnet2());
+        let c1 = sources!(magnet1());
+        let c2 = sources!(magnet2());
+        let c3 = sources!(magnet1(), magnet2());
         assert_ne!(c1, c2);
         assert_ne!(c1, c3);
     }
 
     #[test]
     fn test_different_types() {
-        let c1 = collection!(magnet1(), magnet2());
-        let c2 = collection!(magnet1(), CuboidMagnet::default());
+        let c1 = sources!(magnet1(), magnet2());
+        let c2 = sources!(magnet1(), CuboidMagnet::default());
         assert_ne!(c1, c2);
     }
 
     #[test]
     fn test_order_independent() {
-        let c1 = collection!(magnet1(), magnet2());
-        let c2 = collection!(magnet2(), magnet1());
+        let c1 = sources!(magnet1(), magnet2());
+        let c2 = sources!(magnet2(), magnet1());
         assert_eq!(c1, c2);
     }
 
     #[test]
     fn test_duplicates() {
-        let c1 = collection!(magnet1(), magnet1());
-        let c2 = collection!(magnet1(), magnet2());
-        let mut c3 = collection!(magnet1(), magnet1());
+        let c1 = sources!(magnet1(), magnet1());
+        let c2 = sources!(magnet1(), magnet2());
+        let mut c3 = sources!(magnet1(), magnet1());
         assert_ne!(c1, c2);
         assert_eq!(c1, c3);
         c3.push(magnet2());
@@ -391,9 +379,9 @@ mod partial_eq_tests {
 
     #[test]
     fn test_empty() {
-        let c1: Collection = collection!();
-        let c2: Collection = collection!();
-        let c3 = collection!(magnet1());
+        let c1: SourceAssembly = sources!();
+        let c2: SourceAssembly = sources!();
+        let c3 = sources!(magnet1());
         assert_eq!(c1, c2);
         assert_ne!(c1, c3);
     }
@@ -409,7 +397,7 @@ mod field_tests {
     use crate::{magnets::*, testing_util::*};
     use nalgebra::Translation3;
 
-    fn collection() -> Collection {
+    fn assembly() -> SourceAssembly {
         let base_magnet = CuboidMagnet::default()
             .with_polarization([0.1, 0.2, 0.3])
             .with_dimensions([0.02, 0.02, 0.03]);
@@ -425,40 +413,40 @@ mod field_tests {
             .with_orientation(UnitQuaternion::from_scaled_axis(
                 [0.0, 0.0, FRAC_PI_3].into(),
             ));
-        Collection::from([m1, m2, m3])
+        SourceAssembly::from([m1, m2, m3])
     }
 
     #[test]
     fn test_static() {
-        let collection = collection();
-        test_B_magnet!(@small, &collection, "cuboid-collection.csv", 2e-13);
+        let sources = assembly();
+        test_B_magnet!(@small, &sources, "cuboid-sources.csv", 2e-13);
     }
 
     #[test]
     fn test_translate() {
-        let mut collection = collection();
+        let mut sources = assembly();
         let translation = Translation3::new(0.01, 0.015, 0.02);
-        collection.translate(translation);
-        test_B_magnet!(@small, &collection, "cuboid-collection-translate.csv", 2e-13);
+        sources.translate(translation);
+        test_B_magnet!(@small, &sources, "cuboid-sources-translate.csv", 2e-13);
 
-        collection.translate(translation.inverse());
-        collection.set_position([0.01, 0.015, 0.02]);
-        test_B_magnet!(@small, &collection, "cuboid-collection-translate.csv", 2e-13);
+        sources.translate(translation.inverse());
+        sources.set_position([0.01, 0.015, 0.02]);
+        test_B_magnet!(@small, &sources, "cuboid-sources-translate.csv", 2e-13);
     }
 
     #[test]
     fn test_collection_rotate() {
-        let mut collection = collection();
+        let mut sources = assembly();
         let rotation = UnitQuaternion::from_scaled_axis([PI / 3.0, PI / 4.0, PI / 5.0].into());
-        collection.rotate(rotation);
-        test_B_magnet!(@small, &collection, "cuboid-collection-rotate.csv", 2e-13);
+        sources.rotate(rotation);
+        test_B_magnet!(@small, &sources, "cuboid-sources-rotate.csv", 2e-13);
 
-        collection.rotate(rotation.inverse());
-        collection.set_orientation(rotation);
-        test_B_magnet!(@small, &collection, "cuboid-collection-rotate.csv", 2e-13);
+        sources.rotate(rotation.inverse());
+        sources.set_orientation(rotation);
+        test_B_magnet!(@small, &sources, "cuboid-sources-rotate.csv", 2e-13);
 
-        collection.set_position([0.01, 0.015, 0.02]);
-        test_B_magnet!(@small, &collection, "cuboid-collection-translate-rotate.csv", 2e-13);
+        sources.set_position([0.01, 0.015, 0.02]);
+        test_B_magnet!(@small, &sources, "cuboid-sources-translate-rotate.csv", 2e-13);
     }
 }
 
@@ -467,9 +455,9 @@ mod heterogeneous_collection_tests {
     use std::f64::consts::{FRAC_PI_2, FRAC_PI_3, PI};
 
     use super::*;
-    use crate::{magnets::*, testing_util::*};
+    use crate::{collections::sources, magnets::*, testing_util::*};
 
-    fn collection() -> Collection {
+    fn sources() -> SourceAssembly {
         let m1 = CylinderMagnet::new(
             [0.005, 0.01, 0.015],
             UnitQuaternion::identity(),
@@ -488,39 +476,39 @@ mod heterogeneous_collection_tests {
                 [0.0, FRAC_PI_2, FRAC_PI_2].into(),
             ))
             .with_moment([0.4, 0.5, 0.6]);
-        collection!(m1, m2, m3)
+        sources!(m1, m2, m3)
     }
 
     #[test]
     fn test_static() {
-        let collection = collection();
-        test_B_magnet!(@small, &collection, "multi-collection.csv", 1e-10);
+        let sources = sources();
+        test_B_magnet!(@small, &sources, "multi-sources.csv", 1e-10);
     }
 
     #[test]
     fn test_translate() {
-        let mut collection = collection();
+        let mut sources = sources();
         let translation = Translation3::new(0.01, 0.015, 0.02);
-        collection.translate(translation);
-        test_B_magnet!(@small, &collection, "multi-collection-translate.csv", 5e-10);
+        sources.translate(translation);
+        test_B_magnet!(@small, &sources, "multi-sources-translate.csv", 5e-10);
 
-        collection.translate(translation.inverse());
-        collection.set_position([0.01, 0.015, 0.02]);
-        test_B_magnet!(@small, &collection, "multi-collection-translate.csv", 5e-10);
+        sources.translate(translation.inverse());
+        sources.set_position([0.01, 0.015, 0.02]);
+        test_B_magnet!(@small, &sources, "multi-sources-translate.csv", 5e-10);
     }
 
     #[test]
     fn test_rotate() {
-        let mut collection = collection();
+        let mut sources = sources();
         let rotation = UnitQuaternion::from_scaled_axis([PI / 3.0, PI / 4.0, PI / 5.0].into());
-        collection.rotate(rotation);
-        test_B_magnet!(@small, &collection, "multi-collection-rotate.csv", 2e-10);
+        sources.rotate(rotation);
+        test_B_magnet!(@small, &sources, "multi-sources-rotate.csv", 2e-10);
 
-        collection.rotate(rotation.inverse());
-        collection.set_orientation(rotation);
-        test_B_magnet!(@small, &collection, "multi-collection-rotate.csv", 2e-10);
+        sources.rotate(rotation.inverse());
+        sources.set_orientation(rotation);
+        test_B_magnet!(@small, &sources, "multi-sources-rotate.csv", 2e-10);
 
-        collection.set_position([0.01, 0.015, 0.02]);
-        test_B_magnet!(@small, &collection, "multi-collection-translate-rotate.csv", 2e-10);
+        sources.set_position([0.01, 0.015, 0.02]);
+        test_B_magnet!(@small, &sources, "multi-sources-translate-rotate.csv", 2e-10);
     }
 }
