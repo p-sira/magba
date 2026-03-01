@@ -17,16 +17,16 @@ use crate::{
 ///
 /// ```
 /// # use magba::*;
-/// let magnet: Component = CylinderMagnet::default().into();
+/// let magnet: SourceComponent = CylinderMagnet::default().into();
 /// let sources = sources!(magnet);
 /// ```
-pub enum Component<T: Float = f64> {
+pub enum SourceComponent<T: Float = f64> {
     Magnet(Magnet<T>),
     SourceAssembly(SourceAssembly<T>),
     Custom(Box<dyn Source<T>>),
 }
 
-impl<T: Float> PartialEq for Component<T> {
+impl<T: Float> PartialEq for SourceComponent<T> {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (Self::Magnet(l0), Self::Magnet(r0)) => l0 == r0,
@@ -40,11 +40,11 @@ impl<T: Float> PartialEq for Component<T> {
 macro_rules! impl_transitive_from {
     ($($primitive:ident),*) => {
         $(
-            impl<T: Float> From<$primitive<T>> for Component<T> {
+            impl<T: Float> From<$primitive<T>> for SourceComponent<T> {
                 fn from(p: $primitive<T>) -> Self {
                     // 1. Wrap primitive in Magnet
                     let intermediate: Magnet<T> = p.into();
-                    // 2. Wrap Magnet in Component
+                    // 2. Wrap Magnet in SourceComponent
                     intermediate.into()
                 }
             }
@@ -54,4 +54,4 @@ macro_rules! impl_transitive_from {
 
 impl_transitive_from!(CylinderMagnet, CuboidMagnet, Dipole);
 
-impl<T: Float> Eq for Component<T> {}
+impl<T: Float> Eq for SourceComponent<T> {}

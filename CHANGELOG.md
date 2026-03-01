@@ -25,7 +25,7 @@
 
 **Components Design**
 - **Node Struct:** Collections now store `Node`, which holds the component's local position and the relative offset with respect to the collection's local coordinate, mitigating error accumulation during repeated transformations.
-- **Component Enum:** The variants can be `Magnet`, `Sensor`, `Collection`, or `Custom`. Components can be grouped into collections.
+- **SourceComponent Enum:** The variants can be `Magnet`, `Collection`, or `Custom`. Components can be grouped into `SourceAssembly`.
 - **Magnet and Sensor Enums** 
 
 **Stack Allocation & No-Std**

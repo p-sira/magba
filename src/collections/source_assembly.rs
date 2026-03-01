@@ -11,14 +11,14 @@ use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 use crate::{
     SourceArray,
     base::*,
-    collections::{component::Component, node::Node, utils::impl_group_compute_B},
+    collections::{source_component::SourceComponent, node::Node, utils::impl_group_compute_B},
     geometry::Pose,
     transform::{impl_group_transform, impl_transform},
 };
 
 // MARK: Base
 
-/// Heap-allocated data structure for grouping [Component].
+/// Heap-allocated data structure for grouping [SourceComponent].
 ///
 /// ### Examples
 ///
@@ -33,7 +33,7 @@ use crate::{
 #[derive(Debug, Clone)]
 pub struct SourceAssembly<T: Float = f64> {
     pose: Pose<T>,
-    nodes: Vec<Node<Component<T>, T>>,
+    nodes: Vec<Node<SourceComponent<T>, T>>,
 }
 
 impl<T: Float> SourceAssembly<T> {
@@ -41,7 +41,7 @@ impl<T: Float> SourceAssembly<T> {
     pub fn new(
         position: Point3<T>,
         orientation: UnitQuaternion<T>,
-        components: impl IntoIterator<Item = impl Into<Component<T>>>,
+        components: impl IntoIterator<Item = impl Into<SourceComponent<T>>>,
     ) -> Self {
         let pose = Pose::new(position, orientation);
         let pose_inv = pose.as_isometry().inverse();
@@ -49,7 +49,7 @@ impl<T: Float> SourceAssembly<T> {
         let nodes = components
             .into_iter()
             .map(|c| {
-                let component: Component<T> = c.into();
+                let component: SourceComponent<T> = c.into();
                 let local_offset = (pose_inv * component.pose().as_isometry()).into();
                 Node::new(component, local_offset)
             })
@@ -58,7 +58,7 @@ impl<T: Float> SourceAssembly<T> {
         Self { pose, nodes }
     }
 
-    pub fn components(&self) -> impl Iterator<Item = &Component<T>> {
+    pub fn components(&self) -> impl Iterator<Item = &SourceComponent<T>> {
         self.nodes.iter().map(|n| &n.component)
     }
 
@@ -68,11 +68,11 @@ impl<T: Float> SourceAssembly<T> {
     /// let cuboid = CuboidMagnet::default();
     /// let dipole = Dipole::default();
     ///
-    /// let components: [Component; _] = [cylinder.into(), cuboid.into(), dipole.into()];
+    /// let components: [SourceComponent; _] = [cylinder.into(), cuboid.into(), dipole.into()];
     /// let sources = SourceAssembly::from(components.clone());
     /// sources.iter().enumerate().for_each(|(i, component)| assert_eq!(*component, components[i]));
     /// ```
-    pub fn iter(&self) -> impl Iterator<Item = &Component<T>> {
+    pub fn iter(&self) -> impl Iterator<Item = &SourceComponent<T>> {
         self.components()
     }
 }
@@ -89,7 +89,7 @@ impl<T: Float> Default for SourceAssembly<T> {
 // MARK: With builders
 
 impl<T: Float> SourceAssembly<T> {
-    pub fn with(mut self, component: impl Into<Component<T>>) -> Self {
+    pub fn with(mut self, component: impl Into<SourceComponent<T>>) -> Self {
         self.push(component);
         self
     }
@@ -112,8 +112,8 @@ impl<T: Float> SourceAssembly<T> {
 
 // MARK: From, Into
 
-impl<T: Float> FromIterator<Component<T>> for SourceAssembly<T> {
-    fn from_iter<I: IntoIterator<Item = Component<T>>>(iter: I) -> Self {
+impl<T: Float> FromIterator<SourceComponent<T>> for SourceAssembly<T> {
+    fn from_iter<I: IntoIterator<Item = SourceComponent<T>>>(iter: I) -> Self {
         let nodes = iter
             .into_iter()
             .map(|c| {
@@ -129,29 +129,29 @@ impl<T: Float> FromIterator<Component<T>> for SourceAssembly<T> {
     }
 }
 
-impl<T: Float, I: Into<Component<T>>, const N: usize> From<[I; N]> for SourceAssembly<T> {
+impl<T: Float, I: Into<SourceComponent<T>>, const N: usize> From<[I; N]> for SourceAssembly<T> {
     fn from(components: [I; N]) -> Self {
         components.into_iter().map(Into::into).collect()
     }
 }
 
-impl<T: Float, I: Into<Component<T>>> From<Vec<I>> for SourceAssembly<T> {
+impl<T: Float, I: Into<SourceComponent<T>>> From<Vec<I>> for SourceAssembly<T> {
     fn from(components: Vec<I>) -> Self {
         components.into_iter().map(Into::into).collect()
     }
 }
 
-impl<T: Float> From<&[Component<T>]> for SourceAssembly<T> {
-    fn from(components: &[Component<T>]) -> Self {
+impl<T: Float> From<&[SourceComponent<T>]> for SourceAssembly<T> {
+    fn from(components: &[SourceComponent<T>]) -> Self {
         components.iter().cloned().collect()
     }
 }
 
 impl<'a, T: Float> IntoIterator for &'a SourceAssembly<T> {
-    type Item = &'a Component<T>;
+    type Item = &'a SourceComponent<T>;
     type IntoIter = std::iter::Map<
-        std::slice::Iter<'a, Node<Component<T>, T>>,
-        fn(&'a Node<Component<T>, T>) -> &'a Component<T>,
+        std::slice::Iter<'a, Node<SourceComponent<T>, T>>,
+        fn(&'a Node<SourceComponent<T>, T>) -> &'a SourceComponent<T>,
     >;
 
     fn into_iter(self) -> Self::IntoIter {
@@ -161,7 +161,7 @@ impl<'a, T: Float> IntoIterator for &'a SourceAssembly<T> {
 
 impl<S, T: Float, const N: usize> From<SourceArray<S, T, N>> for SourceAssembly<T>
 where
-    S: Source<T> + Into<Component<T>>,
+    S: Source<T> + Into<SourceComponent<T>>,
 {
     fn from(array: SourceArray<S, T, N>) -> Self {
         SourceAssembly::new(array.position(), array.orientation(), array)
@@ -171,16 +171,16 @@ where
 // MARK: Extend, Push
 
 impl<T: Float> SourceAssembly<T> {
-    pub fn push(&mut self, component: impl Into<Component<T>>) {
-        let component: Component<T> = component.into();
+    pub fn push(&mut self, component: impl Into<SourceComponent<T>>) {
+        let component: SourceComponent<T> = component.into();
         let local_offset =
             (self.pose.as_isometry().inverse() * component.pose().as_isometry()).into();
         self.nodes.push(Node::new(component, local_offset));
     }
 }
 
-impl<T: Float> Extend<Component<T>> for SourceAssembly<T> {
-    fn extend<I: IntoIterator<Item = Component<T>>>(&mut self, iter: I) {
+impl<T: Float> Extend<SourceComponent<T>> for SourceAssembly<T> {
+    fn extend<I: IntoIterator<Item = SourceComponent<T>>>(&mut self, iter: I) {
         for component in iter {
             self.push(component);
         }
@@ -190,7 +190,7 @@ impl<T: Float> Extend<Component<T>> for SourceAssembly<T> {
 // MARK: Index
 
 impl<T: Float> Index<usize> for SourceAssembly<T> {
-    type Output = Component<T>;
+    type Output = SourceComponent<T>;
 
     fn index(&self, index: usize) -> &Self::Output {
         &self.nodes[index].component

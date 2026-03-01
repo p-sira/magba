@@ -5,7 +5,7 @@
 
 //! Provides the [`Transform`] trait and macros for implementing it.
 
-use crate::{SourceAssembly, Component, Float, Source, geometry::Pose, magnets::*};
+use crate::{SourceAssembly, SourceComponent, Float, Source, geometry::Pose, magnets::*};
 
 use enum_dispatch::enum_dispatch;
 use nalgebra::RealField;
