@@ -38,7 +38,7 @@ macro_rules! impl_group_compute_B {
             #[cfg(not(feature = "rayon"))]
             {
                 // Standard sequential fold
-                self.nodes()
+                self.components()
                     .fold(vec![Vector3::zeros(); points.len()], |mut acc, source| {
                         let child_batch = source.compute_B_batch(points);
                         acc.iter_mut()
