@@ -32,7 +32,7 @@ pub struct LinearHallSensor<T: Float = f64> {
 impl_transform!(LinearHallSensor<T> where T: Float);
 
 impl<T: Float> LinearHallSensor<T> {
-    /// Creates a new Hall effect sensor and automatically computes the ADC bit-step.
+    /// Create a new Hall effect sensor and automatically computes the ADC bit-step.
     pub fn new(
         position: impl Into<Point3<T>>,
         orientation: UnitQuaternion<T>,
@@ -59,7 +59,7 @@ impl<T: Float> LinearHallSensor<T> {
         }
     }
 
-    /// Computes the analog output voltage (V) in the presence of a magnetic source.
+    /// Compute the analog output voltage (V) in the presence of a magnetic source.
     pub fn get_voltage(&self, source: &impl Source<T>) -> T {
         // 1. Get the local field at the sensor's position
         let b_field = source.compute_B(self.pose.position());
@@ -78,12 +78,12 @@ impl<T: Float> LinearHallSensor<T> {
         )
     }
 
-    /// Computes the continuous (unrounded) digital ADC reading.
+    /// Compute the continuous (unrounded) digital ADC reading.
     pub fn get_readings(&self, source: &impl Source<T>) -> T {
         (self.get_voltage(source) * self.bit_step) - self.offset
     }
 
-    /// Computes the quantized (integer) digital ADC reading.
+    /// Compute the quantized (integer) digital ADC reading.
     pub fn get_readings_quantized(&self, source: &impl Source<T>) -> i64 {
         let continuous = self.get_readings(source);
         num_traits::Float::round(continuous).to_i64().unwrap_or(0)
