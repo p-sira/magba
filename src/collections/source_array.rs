@@ -206,7 +206,7 @@ mod display_tests {
 // MARK: Test Field
 
 #[cfg(test)]
-mod fielde_tests {
+mod field_tests {
     use std::f64::consts::PI;
 
     use super::*;
