@@ -21,7 +21,7 @@ use nalgebra::{Point3, RealField, Vector3};
 #[enum_dispatch]
 /// Physical representation of magnetic sources.
 pub trait Source<T: RealField>: Transform<T> + Send + Sync + DynClone {
-    /// Compute the magnetic field (B) at the given point.
+    /// Computes the magnetic field (B) at the given point.
     ///
     /// # Arguments
     ///
@@ -33,7 +33,7 @@ pub trait Source<T: RealField>: Transform<T> + Send + Sync + DynClone {
     #[allow(non_snake_case)]
     fn compute_B(&self, point: Point3<T>) -> Vector3<T>;
 
-    /// Compute the magnetic field (B) at the given points in batch.
+    /// Computes the magnetic field (B) at the given points in batch.
     ///
     /// # Arguments
     ///
