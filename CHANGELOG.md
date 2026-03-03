@@ -5,10 +5,10 @@
 #### BREAKING CHANGES
 
 **Core Architecture**
-- **Unified Collection:** `SourceAssembly` holds a `Vec<Node>` and handles both heap and stack-allocated items internally. See the New Features section for more information about `Node`.
+- **Assembly Types:** Assembly holds a `Vec` of `Node` and handles both heap and stack-allocated items internally. For `SourceAssembly`, each node contains a `SourceComponent`. Likewise, the nodes of `SensorAssembly` hold `SensorComponent`. See the New Features section for more information about `Node` and the Component structs.
 - **MultiSourceCollection Removed:** Use `SourceAssembly` which now supports nested and mixed types.
 - **Field Trait Removed:** The `Field` trait is merged into the `Source` trait because the trait is redundant, and its name collides with nalgebra's `Field`.
-
+e
 **API Renames & Standardization**
 - `compute_B` and `compute_B_batch`: The word "compute" suggests numerical evaluation rather than returning pre-computed values.
 - `CylinderMagnet` accepts `diameter` instead of `radius`.
@@ -24,18 +24,24 @@
 #### New Features
 
 **Components Design**
-- **Node Struct:** Collections now store `Node`, which holds the component's local position and the relative offset with respect to the collection's local coordinate, mitigating error accumulation during repeated transformations.
+- **Node Struct:** Assemblies now store `Node`, which holds the component's local position and the relative offset with respect to the collection's local coordinate, mitigating error accumulation during repeated transformations.
 - **SourceComponent Enum:** The variants can be `Magnet`, `Collection`, or `Custom`. Components can be grouped into `SourceAssembly`.
-- **Magnet and Sensor Enums** 
+- **SensorComponent Enum:** The variants can be `Sensor` or `Custom`. Likewise, they can be grouped into `SensorAssembly`.
+- **Magnet and Sensor Enums:** The variants are all structs defined in `magba::magnets` and `magba::sensors`, respectively.
 
 **Stack Allocation & No-Std**
-- `SourceArray`: A fixed-size, stack-allocated, homogeneous collection of Sources.
+- `SourceArray` and `SensorArray`: A fixed-size, stack-allocated, homogeneous collection of `Source` and `Observer`, respectively.
 - Add `no_std` and `libm` feature flag. 
+
+**Sensors**
+- `SensorOutput` for unified sensor output typing.
+- Implement `LinearHallSensor` and its read function.
 
 **Pose Struct**
 - Introduce `Pose` struct to handle position/orientation logic centrally. `Source` delegates transformation logic here.
 
 **Developer Experience**
+- `sources!` and `sensors!` macros for convenient declaration of composite Arrays and Assemblies.
 - Most arguments now implement Into for automatic conversion from `std` types to `nalgebra` types.
 - Add builder methods (`with_*`) to all magnet and collection structs.
 - Add input validation for all constructors and setters.
