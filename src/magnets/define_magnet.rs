@@ -14,6 +14,7 @@
 ///
 /// ```text
 /// define_magnet!{
+///     /// Struct docs goes here
 ///     Magnet
 ///     field_fn: magnet_B
 ///     args: {
@@ -23,6 +24,8 @@
 ///     }
 ///     arg_display: "pol={}, dim={}, lucky={}";
 ///     arg_fmt: [format_vector3, format_vector3, format_float]
+///     /// new() docs goes here
+///     /// Document the arguments
 ///     on_new: [
 ///         if lucky_number != T::from_f64(42.0).unwrap() { panic!() }
 ///     ]
@@ -143,7 +146,10 @@ macro_rules! define_magnet {
         }
         arg_display: $arg_display:expr;
         arg_fmt: [ $($arg_fmt:ident),* $(,)? ]
-        $(on_new: [ $($on_new:tt)* ])?
+
+        docs: {
+            new: { $(#[$new_docs:meta])* }
+        }
     } => {
         $(#[$meta])*
         #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -168,6 +174,7 @@ macro_rules! define_magnet {
 
         impl<T: crate::base::Float> $name<T> {
             // MARK: New
+            $(#[$new_docs])*
             pub fn new(
                 position: impl Into<nalgebra::Point3<T>>,
                 orientation: nalgebra::UnitQuaternion<T>,
@@ -191,7 +198,6 @@ macro_rules! define_magnet {
                     )?
                 )*
 
-                $($($on_new)*)?
                 $name {
                     pose,
                     $($arg),*
