@@ -56,11 +56,11 @@ impl_transitive_from!(CylinderMagnet, CuboidMagnet, Dipole);
 
 impl<T: Float> Eq for SourceComponent<T> {}
 
-impl<S: Source<T>, T: Float, const N: usize> From<SourceArray<S, T, N>> for SourceComponent<T>
+impl<S: Source<T>, const N: usize, T: Float> From<SourceArray<S, N, T>> for SourceComponent<T>
 where
     SourceComponent<T>: From<S>,
 {
-    fn from(value: SourceArray<S, T, N>) -> Self {
+    fn from(value: SourceArray<S, N, T>) -> Self {
         SourceAssembly::from(value).into()
     }
 }
