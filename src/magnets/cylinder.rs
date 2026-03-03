@@ -19,8 +19,12 @@ define_magnet! {
     field_fn: cylinder_B
     args: {
         polarization: Vector3<T> = Vector3::z(),
-        diameter: T = T::one(); where diameter > T::zero(); else "Diameter cannot be negative.",
-        height: T = T::one(); where height > T::zero(); else "Height cannot be negative.",
+        diameter: T = T::one();
+            validate diameter > T::zero();
+            error "Diameter cannot be negative.",
+        height: T = T::one();
+            validate height > T::zero();
+            error "Height cannot be negative.",
     }
     arg_display: "pol={}, d={}, h={}";
     arg_fmt: [format_vector3, format_float, format_float]
