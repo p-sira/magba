@@ -19,7 +19,9 @@
 ///     field_fn: magnet_B
 ///     args: {
 ///         polarization:Vector3<T>,
-///         dimensions:Vector3<T>; where dimensions.iter().all(|&i| i > 0); else "Bad dim.",
+///         dimensions:Vector3<T>; 
+///             validate dimensions.iter().all(|&i| i > 0); 
+///             error "Bad dim.",
 ///         lucky_number: T
 ///     }
 ///     arg_display: "pol={}, dim={}, lucky={}";
@@ -140,7 +142,7 @@ macro_rules! define_magnet {
         args: {
             $(
                 $arg:ident : $(@$is_value:ident)? $arg_type:ty = $arg_default:expr
-                $(; where $validate:expr; else $error:literal)?
+                $(; validate $validate:expr; error $error:literal)?
             ),* $(,)?
         }
         arg_display: $arg_display:expr;

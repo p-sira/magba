@@ -17,7 +17,8 @@ define_magnet! {
     args: {
         polarization:Vector3<T> = Vector3::z(),
         dimensions:Vector3<T> = Vector3::from_element(T::one());
-            where dimensions.iter().all(|&elem| elem >= T::zero()); else "Dimensions must be non-negative."
+            validate dimensions.iter().all(|&elem| elem >= T::zero()); 
+            error "Dimensions must be non-negative."
     }
     arg_display: "pol={}, dim={}";
     arg_fmt: [format_vector3, format_vector3]
