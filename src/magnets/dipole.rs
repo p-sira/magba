@@ -10,24 +10,6 @@ use crate::magnets::define_magnet;
 define_magnet! {
     /// Magnetic dipole.
     ///
-    /// # Fields
-    ///
-    /// - `position`: Position of the dipole (m)
-    /// - `orientation`: Orientation as unit quaternion
-    /// - `moment`: Magnetic dipole moment vector (A·m²)
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use magba::Dipole;
-    /// # use nalgebra::UnitQuaternion;
-    /// let dipole = Dipole::new(
-    ///     [0.0, 0.0, 0.0],              // position (m)
-    ///     UnitQuaternion::identity(),   // orientation
-    ///     [0.0, 0.0, 1.0],              // moment (A·m²)
-    /// );
-    /// ```
-    ///
     /// # References
     ///
     /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
@@ -36,6 +18,23 @@ define_magnet! {
     args: { moment:Vector3<T> = Vector3::z() }
     arg_display: "m={}";
     arg_fmt: [format_vector3]
+    docs: {
+        new: {
+            /// Construct a magnetic [Dipole].
+            ///
+            /// # Examples
+            ///
+            /// ```
+            /// # use magba::Dipole;
+            /// # use nalgebra::UnitQuaternion;
+            /// let dipole = Dipole::new(
+            ///     [0.0, 0.0, 0.0],              // position (m)
+            ///     UnitQuaternion::identity(),   // orientation as unit quaternion
+            ///     [0.0, 0.0, 1.0],              // moment: Magnetic dipole moment vector (A·m²)
+            /// );
+            /// ```
+        }
+    }
 }
 
 #[cfg(test)]

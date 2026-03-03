@@ -10,28 +10,6 @@ use crate::magnets::define_magnet;
 define_magnet! {
     /// Uniformly magnetized cylindrical magnet.
     ///
-    /// # Fields
-    ///
-    /// - `position`: Center of the cylinder (m)
-    /// - `orientation`: Orientation as unit quaternion
-    /// - `polarization`: Polarization vector (T)
-    /// - `diameter`: Cylinder diameter (m)
-    /// - `height`: Cylinder height (m)
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use magba::CylinderMagnet;
-    /// # use nalgebra::*;
-    /// let magnet = CylinderMagnet::new(
-    ///     [0.0, 0.0, 0.0],              // position (m)
-    ///     UnitQuaternion::identity(),   // orientation
-    ///     [0.0, 0.0, 1.0],              // polarization (T)
-    ///     0.01,                         // diameter (m)
-    ///     0.02,                         // height (m)
-    /// );
-    /// ```
-    ///
     /// # References
     ///
     /// - Caciagli, Alessio, Roel J. Baars, Albert P. Philipse, and Bonny W. M. Kuipers. “Exact Expression for the Magnetic Field of a Finite Cylinder with Arbitrary Uniform Magnetization.” Journal of Magnetism and Magnetic Materials 456 (June 15, 2018): 423–32. <https://doi.org/10.1016/j.jmmm.2018.02.003>.
@@ -46,6 +24,25 @@ define_magnet! {
     }
     arg_display: "pol={}, d={}, h={}";
     arg_fmt: [format_vector3, format_float, format_float]
+    docs: {
+        new: {
+            /// Construct a [CylinderMagnet].
+            ///
+            /// # Examples
+            ///
+            /// ```
+            /// # use magba::CylinderMagnet;
+            /// # use nalgebra::*;
+            /// let magnet = CylinderMagnet::new(
+            ///     [0.0, 0.0, 0.0],              // position: Center of the cylinder (m)
+            ///     UnitQuaternion::identity(),   // orientation as unit quaternion
+            ///     [0.0, 0.0, 1.0],              // polarization (T)
+            ///     0.01,                         // diameter (m)
+            ///     0.02,                         // height (m)
+            /// );
+            /// ```
+        }
+    }
 }
 
 #[cfg(test)]
