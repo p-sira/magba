@@ -24,11 +24,11 @@
 ///     }
 ///     arg_display: "pol={}, dim={}, lucky={}";
 ///     arg_fmt: [format_vector3, format_vector3, format_float]
-///     /// new() docs goes here
-///     /// Document the arguments
-///     on_new: [
-///         if lucky_number != T::from_f64(42.0).unwrap() { panic!() }
-///     ]
+///     docs: {
+///         new: {
+///             /// new() docs goes here
+///         }
+///     }
 /// }
 /// ```
 ///
@@ -43,7 +43,6 @@
 /// - **where $validate:expr; else $error:literal**: Optional pattern for argument validation. If $validate is false, the macros will panic with $error.    
 /// - **$arg_display**: A format string used in `std::fmt::Display` (e.g., `"pol={}, len={}"`).
 /// - **$arg_fmt**: A list of macros used to format each argument (e.g., `format_vector3`).
-/// - **$on_new**: Custom validation logic to run inside the `new()` constructor.
 ///
 /// # Internal Pattern Matching
 ///
