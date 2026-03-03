@@ -17,7 +17,7 @@
 /// let assembly: SourceAssembly = sources!(cylinder, cuboid, dipole);
 ///
 /// let homogenous_array: SourceArray<Dipole, _> = sources!([dipole, dipole2]);
-/// let heterogenous_array: SourceArray<Magnet, _> = 
+/// let heterogenous_array: SourceArray<Magnet, _> =
 ///     sources!([cylinder.into(), cuboid.into(), dipole.into()]);
 /// ```
 #[macro_export]
@@ -35,3 +35,18 @@ macro_rules! sources {
 }
 #[cfg(test)]
 pub(crate) use sources;
+
+#[macro_export]
+macro_rules! sensors {
+    // sensors!([sensor1, sensor2, ...])
+    ([$($items:expr),*]) => {
+        SensorArray::new([0.0; 3], nalgebra::UnitQuaternion::identity(), [$($items),*])
+    };
+    // sensors!(sensor1, sensor2, ...)
+    ($($items:expr),* $(,)?) => {{
+        let c: [SensorComponent<_>; _] = [$($items.into()),*];
+        SensorAssembly::from(c)
+    }};
+    () => {};
+}
+// pub(crate) use sensors;

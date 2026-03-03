@@ -11,7 +11,7 @@ use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 use crate::{
     SourceArray,
     base::*,
-    collections::{source_component::SourceComponent, node::Node, utils::impl_group_compute_B},
+    collections::{node::Node, source_component::SourceComponent, utils::impl_group_compute_B},
     geometry::Pose,
     transform::{impl_group_transform, impl_transform},
 };
@@ -223,7 +223,9 @@ impl<T: Float> Source<T> for SourceAssembly<T> {
             self.pose()
         )?;
 
-        crate::collections::utils::write_tree(f, self.components(), indent)
+        crate::collections::utils::write_tree(f, self.components(), indent, |leaf, f, ind| {
+            leaf.format(f, ind)
+        })
     }
 }
 

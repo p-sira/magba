@@ -3,89 +3,171 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
+use std::fmt::Display;
+
+use getset::Getters;
 use nalgebra::{Point3, UnitQuaternion, Vector3};
 
 use crate::{
+    Observer, SensorOutput,
     base::{Float, Source},
-    geometry::Pose,
+    geometry::{Pose, pose::impl_pose_methods},
     measurement::hall_effect::linear_hall_voltage,
     transform::impl_transform,
 };
 
 /// A physical representation of a linear Hall effect sensor.
-#[derive(Clone, Debug, PartialEq)]
+///
+/// # Fields
+///
+/// - `position`: Center of the cylinder (m)
+/// - `orientation`: Orientation as unit quaternion
+/// - `polarization`: Polarization vector (T)
+/// - `diameter`: Cylinder diameter (m)
+/// - `height`: Cylinder height (m)
+///
+#[derive(Clone, Debug, PartialEq, Eq, Getters)]
+#[getset(get = "pub")]
 pub struct LinearHallSensor<T: Float = f64> {
-    pub pose: Pose<T>,
-
-    // Sensor hardware characteristics
-    pub local_sensitive_axis: Vector3<T>,
-    pub sensitivity: T,
-    pub quiescent_voltage: T,
-    pub min_voltage: T,
-    pub max_voltage: T,
-
-    // Digital conversion properties
-    pub bit_step: T, // bit/V
-    pub offset: T,
+    pose: Pose<T>,
+    sensitivity_vector: Vector3<T>,
+    quiescent_voltage: T,
+    min_voltage: T,
+    max_voltage: T,
 }
 
 impl_transform!(LinearHallSensor<T> where T: Float);
 
 impl<T: Float> LinearHallSensor<T> {
-    /// Create a new Hall effect sensor and automatically computes the ADC bit-step.
+    // MARK: New
     pub fn new(
         position: impl Into<Point3<T>>,
         orientation: UnitQuaternion<T>,
-        local_sensitive_axis: Vector3<T>,
+        sensitive_axis: Vector3<T>,
         sensitivity: T,
-        voltage_supply: T,
-        bit: u32,
-        offset: T,
+        supply_voltage: T,
     ) -> Self {
         let two = T::from_f64(2.0).unwrap();
-
-        let levels = T::from_u64((1_u64 << bit) - 1).unwrap();
-        let bit_step = levels / voltage_supply;
+        let sensitivity_vector = sensitive_axis.normalize() * sensitivity;
 
         Self {
             pose: Pose::new(position.into(), orientation),
-            local_sensitive_axis: local_sensitive_axis.normalize(),
-            sensitivity,
-            quiescent_voltage: voltage_supply / two,
+            sensitivity_vector,
+            quiescent_voltage: supply_voltage / two,
             min_voltage: T::zero(),
-            max_voltage: voltage_supply,
-            bit_step,
-            offset,
+            max_voltage: supply_voltage,
         }
     }
 
-    /// Compute the analog output voltage (V) in the presence of a magnetic source.
-    pub fn get_voltage(&self, source: &impl Source<T>) -> T {
-        // 1. Get the local field at the sensor's position
+    impl_pose_methods!();
+
+    // MARK: Read
+
+    /// Computes the analog output voltage (V) in the presence of a magnetic source.
+    ///
+    /// # Arguments
+    ///
+    /// - `source`: Magnetic [Source]
+    ///
+    /// # Returns
+    ///
+    /// - ADC voltage (V)
+    #[inline]
+    pub fn read_voltage(&self, source: &dyn Source<T>) -> T {
         let b_field = source.compute_B(self.pose.position());
+        let global_sensitivity_vector = self.pose.orientation() * self.sensitivity_vector;
 
-        // 2. Compute the global sensitivity vector dynamically.
-        let global_axis = self.pose.orientation() * self.local_sensitive_axis;
-        let sensitivity_vector = global_axis * self.sensitivity;
-
-        // 3. Delegate pure math to the measurement module
         linear_hall_voltage(
             b_field,
-            sensitivity_vector,
+            global_sensitivity_vector,
             self.quiescent_voltage,
             self.min_voltage,
             self.max_voltage,
         )
     }
 
-    /// Compute the continuous (unrounded) digital ADC reading.
-    pub fn get_readings(&self, source: &impl Source<T>) -> T {
-        (self.get_voltage(source) * self.bit_step) - self.offset
+    // MARK: Getters
+
+    #[inline]
+    pub fn sensitivity(&self) -> T {
+        self.sensitivity_vector.magnitude()
     }
 
-    /// Compute the quantized (integer) digital ADC reading.
-    pub fn get_readings_quantized(&self, source: &impl Source<T>) -> i64 {
-        let continuous = self.get_readings(source);
-        num_traits::Float::round(continuous).to_i64().unwrap_or(0)
+    #[inline]
+    pub fn sensitive_axis(&self) -> Vector3<T> {
+        self.sensitivity_vector.normalize()
+    }
+
+    #[inline]
+    pub fn supply_voltage(&self) -> T {
+        self.quiescent_voltage * T::from(2.0).unwrap()
+    }
+
+    // MARK: Setters
+
+    #[inline]
+    pub fn set_sensitivity(&mut self, sensitivity: T) {
+        self.sensitivity_vector = self.sensitive_axis() * sensitivity;
+    }
+
+    #[inline]
+    pub fn set_supply_voltage(&mut self, supply_voltage: T) {
+        let two = T::from_f64(2.0).unwrap();
+        self.max_voltage = supply_voltage;
+        self.quiescent_voltage = supply_voltage / two;
+    }
+
+    // MARK: With setters
+
+    #[inline]
+    pub fn with_sensitivity(mut self, sensitivity: T) -> Self {
+        self.set_sensitivity(sensitivity);
+        self
+    }
+
+    #[inline]
+    pub fn with_supply_voltage(mut self, supply_voltage: T) -> Self {
+        self.set_supply_voltage(supply_voltage);
+        self
+    }
+}
+
+impl<T: Float> Default for LinearHallSensor<T> {
+    fn default() -> Self {
+        Self {
+            pose: Default::default(),
+            sensitivity_vector: Vector3::z(),
+            quiescent_voltage: T::from(2.5).unwrap(),
+            min_voltage: T::zero(),
+            max_voltage: T::from(5.0).unwrap(),
+        }
+    }
+}
+
+impl<T: Float> Observer<T> for LinearHallSensor<T> {
+    /// Alias of [LinearHallSensor::read_voltage].
+    fn read(&self, source: &dyn Source<T>) -> SensorOutput<T> {
+        SensorOutput::Scalar(self.read_voltage(source))
+    }
+
+    // MARK: Display
+    fn format(&self, f: &mut std::fmt::Formatter<'_>, _: &str) -> std::fmt::Result {
+        let sensitive_axis = self.sensitive_axis();
+        write!(
+            f,
+            "LinearHallSensor (sensitive_axis=[{:?}, {:?}, {:?}], sensitivity={:?}, supply_voltage={:?}) at {}",
+            sensitive_axis.x,
+            sensitive_axis.y,
+            sensitive_axis.z,
+            self.sensitivity(),
+            self.supply_voltage(),
+            self.pose
+        )
+    }
+}
+
+impl<T: Float> Display for LinearHallSensor<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        <Self as Observer<T>>::format(self, f, "")
     }
 }

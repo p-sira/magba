@@ -6,3 +6,7 @@
 //! Sensors for measuring magnetic fields.
 
 pub mod hall_effect;
+mod sensor;
+
+pub use sensor::Sensor;
+pub use hall_effect::*;

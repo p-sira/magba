@@ -7,9 +7,11 @@
 
 crate::crate_util::need_std!(
     mod source;
+    mod observer;
     pub(crate) mod transform;
 
     pub use source::*;
+    pub use observer::*;
     pub use transform::Transform;
 );
 

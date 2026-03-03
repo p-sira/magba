@@ -3,8 +3,6 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-use crate::{Float, Source};
-
 macro_rules! impl_group_compute_B {
     () => {
         #[inline]
@@ -52,10 +50,11 @@ macro_rules! impl_group_compute_B {
 }
 pub(crate) use impl_group_compute_B;
 
-pub(crate) fn write_tree<'a, T: Float, S: Source<T> + 'a>(
+pub(crate) fn write_tree<'a, I: 'a>(
     f: &mut core::fmt::Formatter<'_>,
-    leafs: impl IntoIterator<Item = &'a S>,
+    leafs: impl IntoIterator<Item = &'a I>,
     indent: &str,
+    mut format_leaf: impl FnMut(&'a I, &mut core::fmt::Formatter<'_>, &str) -> core::fmt::Result,
 ) -> core::fmt::Result {
     let mut iter = leafs.into_iter().enumerate().peekable();
 
@@ -67,7 +66,9 @@ pub(crate) fn write_tree<'a, T: Float, S: Source<T> + 'a>(
 
         let extension = if is_last { "    " } else { "│   " };
         let next_indent = format!("{}{}", indent, extension);
-        leaf.format(f, &next_indent)?;
+
+        // Delegate to the provided closure
+        format_leaf(leaf, f, &next_indent)?;
 
         if !is_last {
             writeln!(f)?;
