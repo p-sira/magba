@@ -9,14 +9,20 @@ mod macros;
 #[cfg(test)]
 pub(crate) use macros::sources;
 
-mod source_component;
 mod node;
+mod sensor_array;
+mod sensor_assembly;
+mod sensor_component;
 mod source_array;
 mod source_assembly;
+mod source_component;
 
-pub use source_component::SourceComponent;
 pub use node::Node;
+pub use sensor_array::SensorArray;
+pub use sensor_assembly::SensorAssembly;
+pub use sensor_component::SensorComponent;
 pub use source_array::SourceArray;
 pub use source_assembly::SourceAssembly;
+pub use source_component::SourceComponent;
 
 mod utils;

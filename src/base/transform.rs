@@ -5,7 +5,12 @@
 
 //! Provides the [`Transform`] trait and macros for implementing it.
 
-use crate::{SourceAssembly, SourceComponent, Float, Source, geometry::Pose, magnets::*};
+use crate::{
+    Float, Observer, SensorComponent, Source, SourceAssembly, SourceComponent,
+    geometry::Pose,
+    magnets::*,
+    sensors::{Sensor, hall_effect::*},
+};
 
 use enum_dispatch::enum_dispatch;
 use nalgebra::RealField;
@@ -51,7 +56,7 @@ use nalgebra::RealField;
 /// assert_eq!(magnet.position(), point![0.0, 0.0, 0.02]);
 ///
 /// // Rotating the magnet and getting its orientation
-/// 
+///
 /// let rotation = UnitQuaternion::from_scaled_axis([PI / 4.0, 0.0, 0.0].into());
 /// magnet.rotate(rotation);
 /// # assert_relative_eq!(
@@ -72,7 +77,7 @@ use nalgebra::RealField;
 /// # );
 /// assert_eq!(magnet.orientation(), rotation);
 /// ```
-/// 
+///
 /// Please refer to any magnet structs (such as the [CuboidMagnet](CuboidMagnet#impl-CuboidMagnet<T>-2))
 /// for the full list of transformation methods.
 #[enum_dispatch]

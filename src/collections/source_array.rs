@@ -9,7 +9,7 @@ use std::fmt::Display;
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
 use crate::{
-    base::{*, transform::impl_transform},
+    base::{transform::impl_transform, *},
     collections::{node::Node, utils::impl_group_compute_B},
     geometry::Pose,
     transform::impl_group_transform,
@@ -20,22 +20,22 @@ use crate::{
 /// # Examples
 ///
 /// Grouping the same type of magnets:
-/// 
+///
 /// ```
 /// # use magba::*;
 /// let cuboid1 = CuboidMagnet::default();
 /// let cuboid2 = cuboid1.clone().with_position([0.0, 1.0, 0.0]);
-/// 
+///
 /// let source_array = sources!([cuboid1, cuboid2]);
 /// ```
-/// 
+///
 /// Grouping different types of magnets using [Magnet](crate::Magnet) as a wrapper:
-/// 
+///
 /// ```
 /// # use magba::*;
 /// let cylinder: Magnet = CylinderMagnet::default().into();
 /// let dipole: Magnet = Dipole::default().into();
-/// 
+///
 /// let source_array = sources!([cylinder, dipole]);
 /// ```
 #[derive(Debug, Clone)]
@@ -180,7 +180,9 @@ impl<S: Source<T>, const N: usize, T: Float> Display for SourceArray<S, N, T> {
             self.pose()
         )?;
 
-        crate::collections::utils::write_tree(f, self.components(), "")
+        crate::collections::utils::write_tree(f, self.components(), "", |leaf, f, ind| {
+            leaf.format(f, ind)
+        })
     }
 }
 
