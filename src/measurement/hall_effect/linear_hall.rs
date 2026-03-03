@@ -7,7 +7,7 @@ use nalgebra::{RealField, Vector3};
 
 use crate::crate_util::impl_parallel;
 
-/// Compute analog voltage output of a linear Hall effect sensor.
+/// Computes analog voltage output of a linear Hall effect sensor.
 ///
 /// # Arguments
 ///
@@ -32,7 +32,7 @@ pub fn linear_hall_voltage<T: RealField + Copy>(
     raw_voltage.clamp(min_voltage, max_voltage)
 }
 
-/// Compute analog voltage output of a linear Hall effect sensor for multiple points.
+/// Computes analog voltage output of a linear Hall effect sensor for multiple points.
 ///
 /// # Arguments
 ///
