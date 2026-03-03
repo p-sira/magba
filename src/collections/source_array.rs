@@ -27,12 +27,12 @@ use crate::{
 /// let source_array = sources!(cuboid1, cuboid2);
 /// ```
 #[derive(Debug, Clone)]
-pub struct SourceArray<S: Source<T>, T: Float, const N: usize> {
+pub struct SourceArray<S: Source<T>, const N: usize, T: Float = f64> {
     pose: Pose<T>,
     nodes: [Node<S, T>; N],
 }
 
-impl<S: Source<T>, T: Float, const N: usize> SourceArray<S, T, N> {
+impl<S: Source<T>, const N: usize, T: Float> SourceArray<S, N, T> {
     pub fn new(
         position: impl Into<Point3<T>>,
         orientation: UnitQuaternion<T>,
@@ -60,7 +60,7 @@ impl<S: Source<T>, T: Float, const N: usize> SourceArray<S, T, N> {
     }
 }
 
-impl<S: Source<T> + Default, T: Float, const N: usize> Default for SourceArray<S, T, N> {
+impl<S: Source<T> + Default, T: Float, const N: usize> Default for SourceArray<S, N, T> {
     fn default() -> Self {
         Self {
             pose: Pose::default(),
@@ -71,18 +71,18 @@ impl<S: Source<T> + Default, T: Float, const N: usize> Default for SourceArray<S
 
 // MARK: Transform
 
-impl_transform!(SourceArray<S, T, N> where S: Source<T>, T: Float, const N: usize);
-impl_group_transform!(SourceArray<S, T, N> where S: Source<T>, T: Float, const N: usize);
+impl_transform!(SourceArray<S, N, T> where S: Source<T>, const N: usize, T: Float);
+impl_group_transform!(SourceArray<S, N, T> where S: Source<T>, const N: usize, T: Float);
 
 // MARK: Source
 
-impl<S: Source<T> + Clone, T: Float, const N: usize> Source<T> for SourceArray<S, T, N> {
+impl<S: Source<T> + Clone, T: Float, const N: usize> Source<T> for SourceArray<S, N, T> {
     impl_group_compute_B!();
 }
 
 // MARK: Index
 
-impl<S: Source<T>, T: Float, const N: usize> Index<usize> for SourceArray<S, T, N> {
+impl<S: Source<T>, const N: usize, T: Float> Index<usize> for SourceArray<S, N, T> {
     type Output = S;
 
     fn index(&self, index: usize) -> &Self::Output {
@@ -90,7 +90,7 @@ impl<S: Source<T>, T: Float, const N: usize> Index<usize> for SourceArray<S, T, 
     }
 }
 
-impl<S: Source<T>, T: Float, const N: usize> IndexMut<usize> for SourceArray<S, T, N> {
+impl<S: Source<T>, const N: usize, T: Float> IndexMut<usize> for SourceArray<S, N, T> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.nodes[index].component
     }
@@ -98,7 +98,7 @@ impl<S: Source<T>, T: Float, const N: usize> IndexMut<usize> for SourceArray<S, 
 
 // MARK: From, Into
 
-impl<S: Source<T>, T: Float, const N: usize> From<[S; N]> for SourceArray<S, T, N> {
+impl<S: Source<T>, const N: usize, T: Float> From<[S; N]> for SourceArray<S, N, T> {
     fn from(sources: [S; N]) -> Self {
         let mut into_iter = sources.into_iter();
         let nodes = core::array::from_fn(|_| {
@@ -114,7 +114,7 @@ impl<S: Source<T>, T: Float, const N: usize> From<[S; N]> for SourceArray<S, T, 
     }
 }
 
-impl<'a, S: Source<T>, T: Float, const N: usize> IntoIterator for &'a SourceArray<S, T, N> {
+impl<'a, S: Source<T>, const N: usize, T: Float> IntoIterator for &'a SourceArray<S, N, T> {
     type Item = &'a S;
     type IntoIter = std::iter::Map<std::slice::Iter<'a, Node<S, T>>, fn(&'a Node<S, T>) -> &'a S>;
 
@@ -123,7 +123,7 @@ impl<'a, S: Source<T>, T: Float, const N: usize> IntoIterator for &'a SourceArra
     }
 }
 
-impl<S: Source<T>, T: Float, const N: usize> IntoIterator for SourceArray<S, T, N> {
+impl<S: Source<T>, const N: usize, T: Float> IntoIterator for SourceArray<S, N, T> {
     type Item = S;
     type IntoIter = std::iter::Map<std::array::IntoIter<Node<S, T>, N>, fn(Node<S, T>) -> S>;
 
@@ -134,7 +134,7 @@ impl<S: Source<T>, T: Float, const N: usize> IntoIterator for SourceArray<S, T, 
 
 // MARK: PartialEq
 
-impl<S: Source<T> + PartialEq, T: Float, const N: usize> PartialEq for SourceArray<S, T, N> {
+impl<S: Source<T> + PartialEq, T: Float, const N: usize> PartialEq for SourceArray<S, N, T> {
     fn eq(&self, other: &Self) -> bool {
         if self.position() != other.position() || self.orientation() != other.orientation() {
             return false;
@@ -159,7 +159,7 @@ impl<S: Source<T> + PartialEq, T: Float, const N: usize> PartialEq for SourceArr
 
 // MARK: Display
 
-impl<S: Source<T>, T: Float, const N: usize> Display for SourceArray<S, T, N> {
+impl<S: Source<T>, const N: usize, T: Float> Display for SourceArray<S, N, T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(
             f,
@@ -213,7 +213,7 @@ mod fielde_tests {
     use crate::{magnets::*, testing_util::*};
     use nalgebra::{Translation3, point};
 
-    fn array() -> SourceArray<CylinderMagnet, f64, 3> {
+    fn array() -> SourceArray<CylinderMagnet, 3, f64> {
         let m1 = CylinderMagnet::new(
             [0.0094, 0.0, -0.006],
             UnitQuaternion::from_scaled_axis([1.2092, 1.2092, 1.2092].into()),

@@ -159,11 +159,11 @@ impl<'a, T: Float> IntoIterator for &'a SourceAssembly<T> {
     }
 }
 
-impl<S, T: Float, const N: usize> From<SourceArray<S, T, N>> for SourceAssembly<T>
+impl<S, T: Float, const N: usize> From<SourceArray<S, N, T>> for SourceAssembly<T>
 where
     S: Source<T> + Into<SourceComponent<T>>,
 {
-    fn from(array: SourceArray<S, T, N>) -> Self {
+    fn from(array: SourceArray<S, N, T>) -> Self {
         SourceAssembly::new(array.position(), array.orientation(), array)
     }
 }
