@@ -13,7 +13,7 @@ use crate::{
     geometry::compute_in_local,
 };
 
-/// Compute B-field of a homogeneous cuboid magnet at point (x, y, z) in the local frame.
+/// Computes B-field of a homogeneous cuboid magnet at point (x, y, z) in the local frame.
 ///
 /// # Arguments
 ///
@@ -166,7 +166,7 @@ pub fn local_cuboid_B<T: RealField + Copy>(
     vector![bx_tot, by_tot, bz_tot] / (4.0 * T::pi())
 }
 
-/// Compute B-field of a homogeneous cuboid magnet at point (x, y, z).
+/// Computes B-field of a homogeneous cuboid magnet at point (x, y, z).
 ///
 /// # Arguments
 ///
@@ -216,7 +216,7 @@ pub fn cuboid_B<T: RealField + Copy>(
     )
 }
 
-/// Compute B-field at points in global frame for a single cuboid magnet.
+/// Computes B-field at points in global frame for a single cuboid magnet.
 ///
 /// # Arguments
 ///
@@ -293,7 +293,7 @@ pub fn cuboid_B_batch<T: RealField + Copy>(
     )
 }
 
-/// Compute net B-field at each given point in global frame for multiple cuboid magnets.
+/// Computes net B-field at each given point in global frame for multiple cuboid magnets.
 ///
 /// # Arguments
 ///

@@ -37,7 +37,7 @@ pub struct SourceAssembly<T: Float = f64> {
 }
 
 impl<T: Float> SourceAssembly<T> {
-    /// Initialize a new sources, keeping the components' coordinates as GLOBAL.
+    /// Constructs a [SourceAssembly], keeping the components' coordinates as GLOBAL.
     pub fn new(
         position: Point3<T>,
         orientation: UnitQuaternion<T>,

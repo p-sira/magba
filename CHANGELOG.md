@@ -67,8 +67,8 @@
 
 **New Features**
 - Support both `f32` and `f64`.
-- `fields::field_cuboid`: Compute magnetic field for cuboid magnets.
-- `fields::field_dipole`: Compute magnetic field for magnetic dipole moments.
+- `fields::field_cuboid`: Computes magnetic field for cuboid magnets.
+- `fields::field_dipole`: Computes magnetic field for magnetic dipole moments.
 - `CuboidMagnet`: Struct for cuboid magnet.
 - `Dipole`: Struct for magnetic dipole moment.
 - Add `from_sources` method for `SourceCollection` and `MultiSourceCollection`.
@@ -104,7 +104,7 @@
 
 ### 0.1.0
 **New Features**
-- `fields::field_cylinder`: Compute magnetic field for cylindrical magnets.
+- `fields::field_cylinder`: Computes magnetic field for cylindrical magnets.
 - `CylinderMagnet`: Struct for cylindrical magnet.
 - `SourceCollection`: Struct for homogeneous source collection.
 - `MultiSourceCollection`: Struct for heterogeneous source collection.

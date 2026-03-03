@@ -13,7 +13,7 @@ use crate::{
     geometry::compute_in_local,
 };
 
-/// Compute B-field of a magnetic dipole moment at point (x, y, z) in local frame.
+/// Computes B-field of a magnetic dipole moment at point (x, y, z) in local frame.
 ///
 /// # Arguments
 ///
@@ -54,7 +54,7 @@ pub fn local_dipole_B<T: RealField + num_traits::Float + Copy>(
         * 1e-7
 }
 
-/// Compute B-field of a magnetic dipole moment at point (x, y, z).
+/// Computes B-field of a magnetic dipole moment at point (x, y, z).
 ///
 /// # Arguments
 ///
@@ -96,7 +96,7 @@ pub fn dipole_B<T: RealField + num_traits::Float + Copy>(
     compute_in_local!(local_dipole_B, point, position, orientation, (moment),)
 }
 
-/// Compute B-field at points in global frame for a magnetic dipole moment.
+/// Computes B-field at points in global frame for a magnetic dipole moment.
 ///
 /// # Arguments
 ///
@@ -166,7 +166,7 @@ pub fn dipole_B_batch<T: RealField + num_traits::Float + Copy>(
     )
 }
 
-/// Compute B-field at each given points in global frame for multiple magnetic dipole moments.
+/// Computes B-field at each given points in global frame for multiple magnetic dipole moments.
 ///
 /// # Arguments
 ///

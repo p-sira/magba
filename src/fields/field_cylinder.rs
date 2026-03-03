@@ -15,7 +15,7 @@ use crate::crate_util::{impl_parallel, impl_parallel_sum};
 use crate::geometry::{cart2cyl, compute_in_local, vec_cyl2cart};
 use num_traits::Float as NumFloat;
 
-/// Compute B-field of a cylindrical magnet with unit axial (z-axis) polarization
+/// Computes B-field of a cylindrical magnet with unit axial (z-axis) polarization
 /// at point (r, z) in cylindrical CS.
 ///
 /// # Arguments
@@ -60,7 +60,7 @@ pub fn unit_axial_cylinder_B_cyl<T: Float + Copy>(r: T, z: T, z0: T) -> Vector3<
     vector![br, 0.0, bz]
 }
 
-/// Compute B-field of a cylindrical magnet with unit diametrial (r-axis) polarization
+/// Computes B-field of a cylindrical magnet with unit diametrial (r-axis) polarization
 /// at point (r, phi, z) in cylindrical CS.
 ///
 /// # Arguments
@@ -137,7 +137,7 @@ where
         (-4.0 * r / rm2, 1.0 / rm)
     };
 
-    // Compute elliptics
+    // Computes elliptics
     let (ellk_p, ellk_m) = (ellipk(argp).unwrap(), ellipk(argm).unwrap());
     let (elle_p, elle_m) = (ellipe(argp).unwrap(), ellipe(argm).unwrap());
     let (ellpi_p, ellpi_m) = (
@@ -147,7 +147,7 @@ where
             .unwrap(),
     );
 
-    // Compute the fields
+    // Computes the fields
     let br = -NumFloat::cos(phi) / (4.0 * T::pi() * r2)
         * (-zm * am * elle_m + zp * ap * elle_p + zm / am * (2.0 + zm2) * ellk_m
             - zp / ap * (2.0 + zp2) * ellk_p
@@ -166,7 +166,7 @@ where
     vector![br, bphi, bz]
 }
 
-/// Compute B-field of a cylindrical magnet at point (r, phi, z) in cylindrical CS.
+/// Computes B-field of a cylindrical magnet at point (r, phi, z) in cylindrical CS.
 ///
 /// # Arguments
 ///
@@ -227,7 +227,7 @@ pub fn cylinder_B_cyl<T: RealField + Copy + Float>(
     b
 }
 
-/// Compute B-field at point (x, y, z) of a cylindrical magnet in local frame.
+/// Computes B-field at point (x, y, z) of a cylindrical magnet in local frame.
 ///
 /// <div class="warning">⚠️ Unstable feature. May subject to changes.</div>
 ///
@@ -277,7 +277,7 @@ pub fn local_cylinder_B<T: RealField + Copy + Float>(
     vector![bx, by, b_cyl.z]
 }
 
-/// Compute B-field at point (x, y, z) of a cylindrical magnet.
+/// Computes B-field at point (x, y, z) of a cylindrical magnet.
 ///
 /// # Arguments
 ///
@@ -332,7 +332,7 @@ pub fn cylinder_B<T: RealField + Copy + Float>(
     )
 }
 
-/// Compute B-field at points in global frame for a single cylindrical magnet.
+/// Computes B-field at points in global frame for a single cylindrical magnet.
 ///
 /// # Arguments
 ///
@@ -414,7 +414,7 @@ pub fn cylinder_B_batch<T: RealField + Copy + Float>(
     )
 }
 
-/// Compute net B-field at each given point in global frame for multiple cylindrical magnets.
+/// Computes net B-field at each given point in global frame for multiple cylindrical magnets.
 ///
 /// # Arguments
 ///
