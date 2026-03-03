@@ -15,7 +15,10 @@ use enum_dispatch::enum_dispatch;
 
 /// Magnetic source variants.
 ///
-/// ### Examples
+/// The Magnet enum is useful for wrapping different magnet structs before using them
+/// in stack-allocated composites. See [SourceArray](crate::SourceArray#examples).
+///
+/// # Examples
 ///
 /// ```
 /// # use magba::*;
