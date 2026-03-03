@@ -36,6 +36,7 @@ pub enum Magnet<T: Float = f64> {
     Cuboid(CuboidMagnet<T>),
     Dipole(Dipole<T>),
 }
+
 #[cfg(test)]
 mod tests {
     use super::*;
