@@ -9,7 +9,6 @@ use std::fmt::Display;
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
 use crate::{
-    SourceAssembly, SourceComponent,
     base::{Float, Source, Transform, transform::impl_transform},
     collections::{node::Node, utils::impl_group_compute_B},
     geometry::Pose,
@@ -130,15 +129,6 @@ impl<S: Source<T>, T: Float, const N: usize> IntoIterator for SourceArray<S, T, 
 
     fn into_iter(self) -> Self::IntoIter {
         self.nodes.into_iter().map(|n| n.component)
-    }
-}
-
-impl<S: Source<T>, T: Float, const N: usize> Into<SourceComponent<T>> for SourceArray<S, T, N>
-where
-    SourceComponent<T>: From<S>,
-{
-    fn into(self) -> SourceComponent<T> {
-        SourceAssembly::from(self).into()
     }
 }
 

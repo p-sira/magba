@@ -6,7 +6,7 @@
 use enum_dispatch::enum_dispatch;
 
 use crate::{
-    SourceAssembly,
+    SourceArray, SourceAssembly,
     base::*,
     magnets::{CuboidMagnet, CylinderMagnet, Dipole, Magnet},
 };
@@ -55,3 +55,12 @@ macro_rules! impl_transitive_from {
 impl_transitive_from!(CylinderMagnet, CuboidMagnet, Dipole);
 
 impl<T: Float> Eq for SourceComponent<T> {}
+
+impl<S: Source<T>, T: Float, const N: usize> From<SourceArray<S, T, N>> for SourceComponent<T>
+where
+    SourceComponent<T>: From<S>,
+{
+    fn from(value: SourceArray<S, T, N>) -> Self {
+        SourceAssembly::from(value).into()
+    }
+}
