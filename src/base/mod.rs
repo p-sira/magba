@@ -40,6 +40,6 @@ impl Float for f32 {
 impl Float for f64 {
     #[inline]
     fn mu0() -> Self {
-        MU0 as f64
+        MU0
     }
 }
