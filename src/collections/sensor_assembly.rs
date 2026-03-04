@@ -18,7 +18,7 @@ use crate::{
 
 // MARK: Base
 
-/// Heap-allocated data structure for grouping [Sensor].
+/// Heap-allocated data structure for grouping [crate::sensors::Sensor].
 #[derive(Debug, Clone)]
 pub struct SensorAssembly<T: Float = f64> {
     pose: Pose<T>,

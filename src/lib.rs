@@ -17,7 +17,7 @@ Python bindings available via [Pymagba](https://github.com/p-sira/pymagba).
 
 ### Basic Features
 
-- [Manipulating object positions and orientations](Transform#examples)
+- [Manipulating object positions and orientations](crate::base::Transform#examples)
 - Creating magnets and computing fields
 - Using sensors
 - Grouping components as assembly

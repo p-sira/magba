@@ -31,7 +31,7 @@ use crate::{
 /// let source_array = sources!([cuboid1, cuboid2]);
 /// ```
 ///
-/// Grouping different types of magnets using [Magnet](crate::Magnet) as a wrapper:
+/// Grouping different types of magnets using [Magnet](crate::magnets::Magnet) as a wrapper:
 ///
 /// ```
 /// # use magba::sources;

@@ -16,7 +16,7 @@ use crate::{
 /// Magnetic source variants.
 ///
 /// The Magnet enum is useful for wrapping different magnet structs before using them
-/// in stack-allocated composites. See [SourceArray](crate::SourceArray#examples).
+/// in stack-allocated composites. See [SourceArray](crate::collections::SourceArray#examples).
 ///
 /// # Examples
 ///
