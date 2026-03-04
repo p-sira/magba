@@ -7,8 +7,15 @@
 
 use csv::ReaderBuilder;
 use nalgebra::{DMatrix, Point3, RealField, UnitQuaternion, Vector3, distance, point, vector};
+use std::{
+    fmt::{Debug, LowerExp},
+    fs::File,
+    io::BufReader,
+    path::Path,
+    str::FromStr,
+};
 
-use crate::Source;
+use crate::base::Source;
 
 /// Calculate the relative Euclidean distance
 pub fn relative_vec_distance<T: RealField + Copy>(a: Vector3<T>, b: Vector3<T>) -> T {
@@ -19,14 +26,6 @@ pub fn relative_vec_distance<T: RealField + Copy>(a: Vector3<T>, b: Vector3<T>) 
 pub fn quat_from_rotvec<T: RealField>(x: T, y: T, z: T) -> UnitQuaternion<T> {
     UnitQuaternion::from_scaled_axis(vector![x, y, z])
 }
-
-use std::{
-    fmt::{Debug, LowerExp},
-    fs::File,
-    io::BufReader,
-    path::Path,
-    str::FromStr,
-};
 
 pub fn load_matrix_from_csv<T: RealField + FromStr + Debug>(path: &Path) -> DMatrix<T> {
     let file =

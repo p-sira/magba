@@ -16,7 +16,7 @@ macro_rules! need_std {
 pub(crate) use need_std;
 
 need_std!(
-    use crate::Float;
+    use crate::base::Float;
     use nalgebra::Vector3;
     use std::fmt::Formatter;
 

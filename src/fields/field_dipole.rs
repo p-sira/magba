@@ -9,8 +9,8 @@ use nalgebra::{Point3, RealField, UnitQuaternion, Vector3};
 use numeric_literals::replace_float_literals;
 
 use crate::{
+    base::coordinate::compute_in_local,
     crate_util::{impl_parallel, impl_parallel_sum},
-    geometry::compute_in_local,
 };
 
 /// Computes B-field of a magnetic dipole moment at point (x, y, z) in local frame.

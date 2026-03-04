@@ -178,9 +178,9 @@ pub(crate) use delegate_to_pose;
 
 macro_rules! impl_pose_methods {
     () => {
-        crate::geometry::pose::delegate_to_pose!();
+        crate::base::pose::delegate_to_pose!();
 
-        pub fn set_pose(&mut self, pose: crate::Pose<T>) {
+        pub fn set_pose(&mut self, pose: crate::base::Pose<T>) {
             self.pose = pose;
         }
 
@@ -194,7 +194,7 @@ macro_rules! impl_pose_methods {
             self
         }
 
-        pub fn with_pose(mut self, pose: crate::Pose<T>) -> Self {
+        pub fn with_pose(mut self, pose: crate::base::Pose<T>) -> Self {
             self.set_pose(pose);
             self
         }

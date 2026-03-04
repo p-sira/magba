@@ -9,11 +9,11 @@ use getset::Getters;
 use nalgebra::{Point3, UnitQuaternion, Vector3};
 
 use crate::{
-    Observer, SensorOutput,
-    base::{Float, Source},
-    geometry::{Pose, pose::impl_pose_methods},
+    base::{
+        Float, Observer, Pose, SensorOutput, Source, pose::impl_pose_methods,
+        transform::impl_transform,
+    },
     measurement::hall_effect::linear_hall_voltage,
-    transform::impl_transform,
 };
 
 /// A physical representation of a linear Hall effect sensor.

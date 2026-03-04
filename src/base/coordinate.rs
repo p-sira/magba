@@ -27,7 +27,7 @@ pub fn vec_cyl2cart<T: RealField + Copy>(r: T, phi: T, theta: T) -> (T, T) {
 macro_rules! compute_in_local {
     ($func: ident, $point: expr, $position: expr, $orientation: expr, ($($func_args:expr),*),) => {
         {
-            use crate::geometry::{local_point, global_vector};
+            use crate::base::coordinate::{local_point, global_vector};
 
             global_vector($func(local_point($point, $position, $orientation), $($func_args),*), $orientation)
         }

@@ -4,15 +4,15 @@
  */
 
 use core::ops::{Index, IndexMut};
+use nalgebra::{Point3, Translation3, UnitQuaternion};
 use std::fmt::Display;
 
-use nalgebra::{Point3, Translation3, UnitQuaternion};
-
 use crate::{
-    base::*,
+    base::{
+        Float, Observer, Pose, SensorOutput, Source, Transform,
+        transform::{impl_group_transform, impl_transform},
+    },
     collections::node::Node,
-    geometry::Pose,
-    transform::{impl_group_transform, impl_transform},
 };
 
 /// Stack-allocated data structure for grouping [Observer].

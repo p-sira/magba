@@ -62,61 +62,18 @@ Most of the field computation used in Magba is based on [MagpyLib](https://githu
 We would like to thank MagpyLib contributors their hard work and contributions to the scientific community.
 */
 
-#![cfg_attr(
-    not(feature = "default"),
-    allow(
-        rustdoc::broken_intra_doc_links,
-        rustdoc::private_intra_doc_links,
-        unused,
-    )
-)]
-
 mod crate_util;
 
-pub mod constants;
+pub mod base;
 pub mod conversion;
 pub mod fields;
-pub mod geometry;
 pub mod measurement;
-
-pub use constants::MagneticConstants;
-
-pub mod base;
-pub use base::*;
-pub use geometry::Pose;
 
 crate::crate_util::need_std!(
     pub mod collections;
     pub mod magnets;
     pub mod sensors;
 
-    pub use magnets::*;
-    pub use collections::*;
-
     #[cfg(test)]
     pub mod testing_util;
 );
-
-/// Unstable Magba features
-///
-/// <div class="warning">⚠️ Unstable feature. May subject to changes.</div>
-#[cfg(feature = "unstable")]
-pub mod unstable {
-    /// Analytical B-field computation for cuboid magnets.
-    pub mod field_cuboid {
-        pub use crate::fields::field_cuboid::{cuboid_B, local_cuboid_B};
-    }
-
-    /// Analytical B-field computation for cylindrical magnets.
-    pub mod field_cylinder {
-        pub use crate::fields::field_cylinder::{
-            cylinder_B, cylinder_B_cyl, local_cylinder_B, unit_axial_cylinder_B_cyl,
-            unit_diametric_cylinder_B_cyl,
-        };
-    }
-
-    /// Analytical B-field computation for magnet dipole moment.
-    pub mod field_dipole {
-        pub use crate::fields::field_dipole::{dipole_B, local_dipole_B};
-    }
-}

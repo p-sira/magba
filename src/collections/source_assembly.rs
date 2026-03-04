@@ -9,11 +9,11 @@ use std::fmt::Display;
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
 use crate::{
-    SourceArray,
+    base::transform::{impl_group_transform, impl_transform},
     base::*,
-    collections::{node::Node, source_component::SourceComponent, utils::impl_group_compute_B},
-    geometry::Pose,
-    transform::{impl_group_transform, impl_transform},
+    collections::{
+        SourceArray, node::Node, source_component::SourceComponent, utils::impl_group_compute_B,
+    },
 };
 
 // MARK: Base

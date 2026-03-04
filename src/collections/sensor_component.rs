@@ -16,6 +16,7 @@ use crate::{
 ///
 /// ```
 /// # use magba::*;
+/// # use magba::collections::*;
 /// # use magba::sensors::LinearHallSensor;
 /// let sensor: SensorComponent = LinearHallSensor::default().into();
 /// let sensors = sensors!(sensor);

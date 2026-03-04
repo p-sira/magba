@@ -155,7 +155,7 @@ macro_rules! define_magnet {
         $(#[$meta])*
         #[derive(Debug, Clone, Copy, PartialEq, Eq)]
         pub struct $name<T: crate::base::Float = f64> {
-            pose: crate::geometry::Pose<T>,
+            pose: crate::base::Pose<T>,
             $(
                 $arg: $arg_type,
             )*
@@ -183,7 +183,7 @@ macro_rules! define_magnet {
                     $arg: define_magnet!(@arg_type_decl $arg_type $(, $is_value)?)
                 ),*
             ) -> Self {
-                let pose = crate::geometry::Pose::new(position.into(), orientation.into());
+                let pose = crate::base::Pose::new(position.into(), orientation.into());
 
                 $(
                     let $arg: $arg_type = define_magnet!(@arg_into $arg $(, $is_value)?);
@@ -205,7 +205,7 @@ macro_rules! define_magnet {
                 }
             }
 
-            crate::geometry::pose::impl_pose_methods!();
+            crate::base::pose::impl_pose_methods!();
         }
 
         impl<T: crate::base::Float> Default for $name<T> {
