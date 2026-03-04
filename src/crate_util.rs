@@ -23,7 +23,6 @@ macro_rules! need_alloc {
         )*
     };
 }
-pub(crate) use need_alloc;
 
 need_alloc! {
     use crate::base::Float;
