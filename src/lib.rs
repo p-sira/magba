@@ -84,7 +84,10 @@ pub mod prelude {
     pub use base::{Float, Source, Transform};
 
     need_std!(
-        pub use collections::{SourceComponent, SourceAssembly, SensorComponent, SensorAssembly};
+        pub use collections::{
+            SourceComponent, SourceAssembly, SensorComponent, SensorAssembly, SourceArray,
+            SensorArray,
+        };
         pub use magnets::{CylinderMagnet, CuboidMagnet, Dipole, Magnet};
         pub use sensors::{Sensor, LinearHallSensor};
     );
