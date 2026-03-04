@@ -10,7 +10,7 @@ use enum_dispatch::enum_dispatch;
 use nalgebra::Vector3;
 
 use crate::{
-    base::{DynClone, Float, Pose, Source, Transform},
+    base::{DynClone, Float, Source, Transform},
     crate_util::need_std,
 };
 
@@ -51,6 +51,7 @@ impl<T: Float> core::fmt::Display for dyn Observer<T> {
 
 need_std!(
     use core::fmt::Display;
+    use crate::base::Pose;
 
     impl<T: Float> Transform<T> for Box<dyn Observer<T>> {
         delegate!(

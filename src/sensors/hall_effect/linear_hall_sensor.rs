@@ -3,7 +3,7 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-use std::fmt::Display;
+use core::fmt::Display;
 
 use getset::Getters;
 use nalgebra::{Point3, UnitQuaternion, Vector3};
@@ -151,7 +151,7 @@ impl<T: Float> Observer<T> for LinearHallSensor<T> {
     }
 
     // MARK: Display
-    fn format(&self, f: &mut std::fmt::Formatter<'_>, _: &str) -> std::fmt::Result {
+    fn format(&self, f: &mut core::fmt::Formatter<'_>, _: &str) -> core::fmt::Result {
         let sensitive_axis = self.sensitive_axis();
         write!(
             f,
@@ -167,7 +167,7 @@ impl<T: Float> Observer<T> for LinearHallSensor<T> {
 }
 
 impl<T: Float> Display for LinearHallSensor<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         <Self as Observer<T>>::format(self, f, "")
     }
 }

@@ -20,11 +20,10 @@ pub enum Sensor<T: Float = f64> {
     LinearHall(LinearHallSensor<T>),
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "std"))]
 mod tests {
     use super::*;
 
-    #[cfg(feature = "std")]
     #[test]
     fn test_display() {
         let sensor: Sensor = LinearHallSensor::default().into();
