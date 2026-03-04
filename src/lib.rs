@@ -41,6 +41,7 @@ By default, Magba installs with all stable features enabled, including paralleli
 
 The available feature flags are:
 - `default`: Enable std and rayon.
+- `alloc`: Enable heap allocations, allowing collections and batch processing without the full `std` library.
 - `std`: Use std features, such as magnet and sources structs.
   Disable the flag to use Magba in `no_std` environments. Without std,
   you can still access the [fields] module to directly compute the fields.
@@ -62,6 +63,7 @@ Most of the field computation used in Magba is based on [MagpyLib](https://githu
 We would like to thank MagpyLib contributors their hard work and contributions to the scientific community.
 */
 
+#[cfg(feature = "alloc")]
 extern crate alloc;
 
 mod crate_util;

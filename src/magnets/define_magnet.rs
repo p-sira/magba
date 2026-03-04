@@ -228,6 +228,7 @@ macro_rules! define_magnet {
                 )
             }
 
+            #[cfg(feature = "alloc")]
             fn compute_B_batch(&self, points: &[nalgebra::Point3<T>]) -> alloc::vec::Vec<nalgebra::Vector3<T>> {
                 let mut out = alloc::vec![nalgebra::Vector3::zeros(); points.len()];
 
@@ -245,6 +246,7 @@ macro_rules! define_magnet {
             }
 
             // MARK: Display
+            #[cfg(feature = "alloc")]
             fn format(&self, f: &mut core::fmt::Formatter<'_>, _: &str) -> core::fmt::Result {
                 $(
                     let $arg = crate::crate_util::$arg_fmt(&mut *f, self.$arg);
