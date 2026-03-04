@@ -10,7 +10,7 @@ use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
 use crate::{
     base::transform::{impl_group_transform, impl_transform},
-    base::*,
+    base::{Float, Pose, Source, Transform},
     collections::{
         SourceArray, node::Node, source_component::SourceComponent, utils::impl_group_compute_B,
     },

@@ -6,7 +6,7 @@
 use enum_dispatch::enum_dispatch;
 
 use crate::{
-    base::*,
+    base::{Float, Observer},
     sensors::{Sensor, hall_effect::LinearHallSensor},
 };
 

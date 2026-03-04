@@ -4,8 +4,9 @@
  */
 
 use core::ops::{Index, IndexMut};
-use nalgebra::{Point3, Translation3, UnitQuaternion};
 use std::fmt::Display;
+
+use nalgebra::{Point3, Translation3, UnitQuaternion};
 
 use crate::{
     base::{

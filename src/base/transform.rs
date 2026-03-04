@@ -5,15 +5,15 @@
 
 //! Provides the [`Transform`] trait and macros for implementing it.
 
+use enum_dispatch::enum_dispatch;
+use nalgebra::RealField;
+
 use crate::{
     base::{Float, Observer, Pose, Source},
     collections::{SensorComponent, SourceAssembly, SourceComponent},
     magnets::{CuboidMagnet, CylinderMagnet, Dipole, Magnet},
     sensors::{LinearHallSensor, Sensor},
 };
-
-use enum_dispatch::enum_dispatch;
-use nalgebra::RealField;
 
 /// Trait shared by objects that can return [Pose].
 ///

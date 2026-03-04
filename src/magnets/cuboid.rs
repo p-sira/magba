@@ -3,8 +3,9 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-use crate::magnets::define_magnet;
 use nalgebra::Vector3;
+
+use crate::magnets::define_magnet;
 
 define_magnet! {
     /// Uniformly magnetized cuboid magnet.
@@ -17,7 +18,7 @@ define_magnet! {
     args: {
         polarization:Vector3<T> = Vector3::z(),
         dimensions:Vector3<T> = Vector3::from_element(T::one());
-            validate dimensions.iter().all(|&elem| elem >= T::zero()); 
+            validate dimensions.iter().all(|&elem| elem >= T::zero());
             error "Dimensions must be non-negative."
     }
     arg_display: "pol={}, dim={}";
