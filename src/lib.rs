@@ -81,9 +81,10 @@ need_std!(
 
 pub mod prelude {
     use super::*;
-    pub use base::{Float, Source, Transform};
+    pub use base::Float;
 
     need_std!(
+        pub use base::{Source, Transform};
         pub use collections::{
             SourceComponent, SourceAssembly, SensorComponent, SensorAssembly, SourceArray,
             SensorArray,
