@@ -5,9 +5,9 @@
 
 //! Conversion utilities for magnetic field-related quantities.
 
-use nalgebra::{RealField, Vector3};
+use nalgebra::Vector3;
 
-use crate::{constants::MagneticConstants, crate_util::need_std};
+use crate::{base::Float, crate_util::need_std};
 
 /// Convert B-field vector to H-field vector.
 ///
@@ -19,7 +19,7 @@ use crate::{constants::MagneticConstants, crate_util::need_std};
 ///
 /// - Magnetic field strength vector (A/m)
 #[allow(non_snake_case)]
-pub fn B_to_H<T: RealField + MagneticConstants>(B_vector: Vector3<T>) -> Vector3<T> {
+pub fn B_to_H<T: Float>(B_vector: Vector3<T>) -> Vector3<T> {
     B_vector.scale(T::mu0())
 }
 
@@ -32,7 +32,7 @@ pub fn B_to_H<T: RealField + MagneticConstants>(B_vector: Vector3<T>) -> Vector3
 /// # Returns
 ///
 /// - Polarization vector (T)
-pub fn mag_to_pol<T: RealField + MagneticConstants>(mag_vector: Vector3<T>) -> Vector3<T> {
+pub fn mag_to_pol<T: Float>(mag_vector: Vector3<T>) -> Vector3<T> {
     mag_vector.scale(T::one() / T::mu0())
 }
 
@@ -47,7 +47,7 @@ need_std! {
     ///
     /// - Magnetic field strength vectors (A/m)
     #[allow(non_snake_case)]
-    pub fn B_to_H_batch<T: RealField + MagneticConstants>(B_vectors: &[Vector3<T>]) -> Vec<Vector3<T>> {
+    pub fn B_to_H_batch<T: Float>(B_vectors: &[Vector3<T>]) -> Vec<Vector3<T>> {
         B_vectors
             .iter()
             .map(|vector| vector.scale(T::mu0()))
@@ -63,7 +63,7 @@ need_std! {
     /// # Returns
     ///
     /// - Polarization vectors (T)
-    pub fn mag_to_pol_batch<T: RealField + MagneticConstants>(
+    pub fn mag_to_pol_batch<T: Float>(
         mag_vectors: &[Vector3<T>],
     ) -> Vec<Vector3<T>> {
         mag_vectors

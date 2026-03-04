@@ -6,9 +6,9 @@
 use std::fmt::{Debug, Display};
 
 use crate::{
-    SourceComponent, Pose,
-    base::{Float, Transform},
-    magnets::*,
+    base::{Float, Pose, Transform},
+    collections::SourceComponent,
+    magnets::Magnet,
 };
 
 use delegate::delegate;

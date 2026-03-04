@@ -6,10 +6,10 @@
 //! Provides the [`Transform`] trait and macros for implementing it.
 
 use crate::{
-    Float, Observer, SensorComponent, Source, SourceAssembly, SourceComponent,
-    geometry::Pose,
-    magnets::*,
-    sensors::{Sensor, hall_effect::*},
+    base::{Float, Observer, Pose, Source},
+    collections::{SensorComponent, SourceAssembly, SourceComponent},
+    magnets::{CuboidMagnet, CylinderMagnet, Dipole, Magnet},
+    sensors::{LinearHallSensor, Sensor},
 };
 
 use enum_dispatch::enum_dispatch;
@@ -94,11 +94,11 @@ pub trait Transform<T: RealField> {
 macro_rules! impl_transform {
     ($name:ident < $( $args:ty ),* > where $( $bounds:tt )* ) => {
         impl< $( $bounds )* > crate::base::transform::Transform<T> for $name< $( $args ),* > {
-            fn pose(&self) -> &crate::geometry::Pose<T> {
+            fn pose(&self) -> &crate::base::Pose<T> {
                 &self.pose
             }
 
-            fn pose_mut(&mut self) -> &mut crate::geometry::Pose<T> {
+            fn pose_mut(&mut self) -> &mut crate::base::Pose<T> {
                 &mut self.pose
             }
         }

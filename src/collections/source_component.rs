@@ -6,8 +6,8 @@
 use enum_dispatch::enum_dispatch;
 
 use crate::{
-    SourceArray, SourceAssembly,
     base::*,
+    collections::{SourceArray, SourceAssembly},
     magnets::{CuboidMagnet, CylinderMagnet, Dipole, Magnet},
 };
 

@@ -5,7 +5,7 @@
 
 //! Node pairs a component with its local offset for synchronized hierarchy storage.
 
-use crate::{base::Float, geometry::Pose};
+use crate::base::{Float, Pose};
 
 /// A node pairing a component with its local pose offset.
 ///

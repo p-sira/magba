@@ -11,8 +11,8 @@ use enum_dispatch::enum_dispatch;
 use nalgebra::Vector3;
 
 use crate::{
-    Pose, SensorComponent,
-    base::{Float, Source, Transform},
+    base::{Float, Pose, Source, Transform},
+    collections::SensorComponent,
     sensors::Sensor,
 };
 

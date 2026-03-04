@@ -10,7 +10,7 @@ use numeric_literals::replace_float_literals;
 
 use crate::{
     crate_util::{impl_parallel, impl_parallel_sum},
-    geometry::compute_in_local,
+    base::coordinate::compute_in_local,
 };
 
 /// Computes B-field of a homogeneous cuboid magnet at point (x, y, z) in the local frame.

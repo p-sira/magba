@@ -5,15 +5,21 @@
 
 //! Analytical B-field computation for cylindrical magnets.
 
-use ellip::bulirsch::{DefaultPrecision, cel_with_const};
-use ellip::{ellipe, ellipk};
+use ellip::{
+    bulirsch::{DefaultPrecision, cel_with_const},
+    ellipe, ellipk,
+};
 use nalgebra::{Point3, RealField, UnitQuaternion, Vector3, vector};
+use num_traits::Float as NumFloat;
 use numeric_literals::replace_float_literals;
 
-use crate::base::Float;
-use crate::crate_util::{impl_parallel, impl_parallel_sum};
-use crate::geometry::{cart2cyl, compute_in_local, vec_cyl2cart};
-use num_traits::Float as NumFloat;
+use crate::{
+    base::{
+        Float,
+        coordinate::{cart2cyl, compute_in_local, vec_cyl2cart},
+    },
+    crate_util::{impl_parallel, impl_parallel_sum},
+};
 
 /// Computes B-field of a cylindrical magnet with unit axial (z-axis) polarization
 /// at point (r, z) in cylindrical CS.
