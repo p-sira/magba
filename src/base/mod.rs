@@ -18,6 +18,16 @@ pub use observer::{Observer, SensorOutput};
 pub use source::Source;
 pub use transform::Transform;
 
+#[cfg(feature = "std")]
+pub trait DynClone: dyn_clone::DynClone {}
+#[cfg(feature = "std")]
+impl<T: dyn_clone::DynClone> DynClone for T {}
+
+#[cfg(not(feature = "std"))]
+pub trait DynClone {}
+#[cfg(not(feature = "std"))]
+impl<T> DynClone for T {}
+
 const MU0: f64 = 1.2566370614359173e-6;
 
 /// Generic trait for floating point numbers compatible with all [Magba](crate) implementations.

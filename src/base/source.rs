@@ -3,35 +3,23 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-use core::fmt::{Debug, Display};
-
 #[cfg(feature = "std")]
-use dyn_clone::{DynClone, clone_trait_object};
+use dyn_clone::clone_trait_object;
 
 use delegate::delegate;
 use enum_dispatch::enum_dispatch;
 use nalgebra::{Point3, RealField, Vector3};
 
 use crate::{
-    base::{Float, Pose, Transform},
+    base::{DynClone, Float, Pose, Transform},
     crate_util::need_std,
 };
 
 // MARK: Source
 
-#[cfg(feature = "std")]
-pub trait DynCloneBound: DynClone {}
-#[cfg(feature = "std")]
-impl<T: DynClone> DynCloneBound for T {}
-
-#[cfg(not(feature = "std"))]
-pub trait DynCloneBound {}
-#[cfg(not(feature = "std"))]
-impl<T> DynCloneBound for T {}
-
 #[enum_dispatch]
 /// Physical representation of magnetic sources.
-pub trait Source<T: RealField>: Transform<T> + Send + Sync + DynCloneBound {
+pub trait Source<T: RealField>: Transform<T> + Send + Sync + DynClone {
     /// Computes the magnetic field (B) at the given point.
     ///
     /// # Arguments
@@ -74,6 +62,8 @@ impl<T: RealField> core::fmt::Display for dyn Source<T> {
 
 // MARK: Box<dyn Source>
 need_std!(
+    use core::fmt::Display;
+
     impl<T: Float> Transform<T> for Box<dyn Source<T>> {
         delegate!(
             to (**self) {
@@ -86,7 +76,7 @@ need_std!(
 
     clone_trait_object!(<T> Source<T> where T: Float);
 
-    impl<T: Float> Debug for Box<dyn Source<T>> {
+    impl<T: Float> core::fmt::Debug for Box<dyn Source<T>> {
         fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
             (**self).fmt(f)
         }

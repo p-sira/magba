@@ -3,16 +3,14 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-use core::fmt::Display;
-
 use delegate::delegate;
 #[cfg(feature = "std")]
-use dyn_clone::{DynClone, clone_trait_object};
+use dyn_clone::clone_trait_object;
 use enum_dispatch::enum_dispatch;
 use nalgebra::Vector3;
 
 use crate::{
-    base::{Float, Pose, Source, Transform},
+    base::{DynClone, Float, Pose, Source, Transform},
     crate_util::need_std,
 };
 
@@ -27,19 +25,9 @@ pub enum SensorOutput<T: Float = f64> {
     Digital(i64),
 }
 
-#[cfg(feature = "std")]
-pub trait ObserverDynCloneBound: DynClone {}
-#[cfg(feature = "std")]
-impl<T: DynClone> ObserverDynCloneBound for T {}
-
-#[cfg(not(feature = "std"))]
-pub trait ObserverDynCloneBound {}
-#[cfg(not(feature = "std"))]
-impl<T> ObserverDynCloneBound for T {}
-
 #[enum_dispatch]
 /// Physical representation of magnetic sensors.
-pub trait Observer<T: Float>: Transform<T> + Send + Sync + ObserverDynCloneBound {
+pub trait Observer<T: Float>: Transform<T> + Send + Sync + DynClone {
     /// Acquires a reading from the sensor given a magnetic source environment.
     fn read(&self, source: &dyn Source<T>) -> SensorOutput<T>;
 
@@ -62,6 +50,8 @@ impl<T: Float> core::fmt::Display for dyn Observer<T> {
 // MARK: Box<dyn Sensor>
 
 need_std!(
+    use core::fmt::Display;
+
     impl<T: Float> Transform<T> for Box<dyn Observer<T>> {
         delegate!(
             to (**self) {
