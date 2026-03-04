@@ -3,4 +3,6 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
+//! Functions for computing magnetic field measurements.
+
 pub mod hall_effect;
