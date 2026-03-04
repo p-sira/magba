@@ -43,12 +43,12 @@ impl<T: Float> LinearHallSensor<T> {
     pub fn new(
         position: impl Into<Point3<T>>,
         orientation: UnitQuaternion<T>,
-        sensitive_axis: Vector3<T>,
+        sensitive_axis: impl Into<Vector3<T>>,
         sensitivity: T,
         supply_voltage: T,
     ) -> Self {
         let two = T::from_f64(2.0).unwrap();
-        let sensitivity_vector = sensitive_axis.normalize() * sensitivity;
+        let sensitivity_vector = sensitive_axis.into().normalize() * sensitivity;
 
         Self {
             pose: Pose::new(position.into(), orientation),
