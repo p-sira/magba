@@ -7,13 +7,11 @@
 mod parallel_overhead {
     use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
 
-    use magba::{
-        field_cylinder::global_cylinder_B,
-        sources::{CylinderMagnet, Field},
-    };
-    use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
+    use magba::{base::Source, fields::cylinder_B, magnets::CylinderMagnet};
+    use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3, point, vector};
     use rayon::prelude::*;
 
+    #[allow(dead_code)]
     struct CylinderTestData {
         points: Vec<Point3<f64>>,
         position: Point3<f64>,
@@ -23,7 +21,7 @@ mod parallel_overhead {
         polarization: Vector3<f64>,
     }
 
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, dead_code)]
     fn generate_global_cylinder_B_test_data(size: usize) -> CylinderTestData {
         let test_points = [
             point![1.0, -1.0, 1.5],
@@ -31,7 +29,7 @@ mod parallel_overhead {
             point![0.0, 0.0, 0.0],
         ];
         let points = (0..size)
-            .map(|n| test_points[n % test_points.len()].clone())
+            .map(|n| test_points[n % test_points.len()])
             .collect();
         CylinderTestData {
             points,
@@ -44,7 +42,7 @@ mod parallel_overhead {
     }
 
     /// Found that parallel is better slightly above 50
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, dead_code)]
     fn bench_cylinder_B_parallel_vs_serial(c: &mut Criterion) {
         let mut group = c.benchmark_group("parallel_overhead");
         for size in [10, 20, 50, 60, 100].iter() {
@@ -59,11 +57,11 @@ mod parallel_overhead {
                             .points
                             .iter()
                             .map(|p| {
-                                global_cylinder_B(
-                                    p,
-                                    &test_data.position,
-                                    &test_data.orientation,
-                                    &test_data.polarization,
+                                cylinder_B(
+                                    *p,
+                                    test_data.position,
+                                    test_data.orientation,
+                                    test_data.polarization,
                                     test_data.radius,
                                     test_data.height,
                                 )
@@ -83,11 +81,11 @@ mod parallel_overhead {
                             .points
                             .par_iter()
                             .map(|p| {
-                                global_cylinder_B(
-                                    p,
-                                    &test_data.position,
-                                    &test_data.orientation,
-                                    &test_data.polarization,
+                                cylinder_B(
+                                    *p,
+                                    test_data.position,
+                                    test_data.orientation,
+                                    test_data.polarization,
                                     test_data.radius,
                                     test_data.height,
                                 )
@@ -124,7 +122,7 @@ mod parallel_overhead {
                 b.iter(|| {
                     let results = points
                         .iter()
-                        .map(|point| translation.transform_point(&point))
+                        .map(|point| translation.transform_point(point))
                         .collect::<Vec<_>>();
                     assert!(!results.is_empty())
                 });
@@ -137,7 +135,7 @@ mod parallel_overhead {
                     b.iter(|| {
                         let results = points
                             .par_iter()
-                            .map(|point| translation.transform_point(&point))
+                            .map(|point| translation.transform_point(point))
                             .collect::<Vec<_>>();
                         assert!(!results.is_empty())
                     });
@@ -148,6 +146,7 @@ mod parallel_overhead {
     }
 
     /// Serial is mostly faster, except at very large collection size like 5000+
+    #[allow(dead_code)]
     fn bench_rotate_parallel_vs_serial(c: &mut Criterion) {
         let mut group = c.benchmark_group("parallel_overhead");
 
@@ -175,7 +174,7 @@ mod parallel_overhead {
                     let results = points
                         .iter()
                         .map(|point| {
-                            rotate_anchor(&point, &current_orientation, &rotation, &anchor);
+                            rotate_anchor(point, &current_orientation, &rotation, &anchor);
                         })
                         .collect::<Vec<_>>();
                     assert!(!results.is_empty())
@@ -187,7 +186,7 @@ mod parallel_overhead {
                     let results = points
                         .par_iter()
                         .map(|point| {
-                            rotate_anchor(&point, &current_orientation, &rotation, &anchor);
+                            rotate_anchor(point, &current_orientation, &rotation, &anchor);
                         })
                         .collect::<Vec<_>>();
                     assert!(!results.is_empty())
@@ -233,7 +232,7 @@ mod parallel_overhead {
                     b.iter(|| {
                         let field = collection
                             .iter()
-                            .map(|magnet| magnet.compute_B(&points))
+                            .map(|magnet| magnet.compute_B_batch(&points))
                             .collect::<Vec<_>>();
                         assert!(!field.is_empty())
                     });
@@ -247,7 +246,7 @@ mod parallel_overhead {
                     b.iter(|| {
                         let field = collection
                             .par_iter()
-                            .map(|magnet| magnet.compute_B(&points))
+                            .map(|magnet| magnet.compute_B_batch(&points))
                             .collect::<Vec<_>>();
                         assert!(!field.is_empty())
                     });
