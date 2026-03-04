@@ -43,7 +43,7 @@ define_magnet! {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "std"))]
 crate::testing_util::generate_tests! {
     CuboidMagnet
     filename: cuboid

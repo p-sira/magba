@@ -6,10 +6,11 @@
 use enum_dispatch::enum_dispatch;
 
 use crate::{
-    base::{Float, Source},
+    base::{Float, Pose, Source, Transform},
     collections::{SourceArray, SourceAssembly},
     magnets::{CuboidMagnet, CylinderMagnet, Dipole, Magnet},
 };
+use nalgebra::{Point3, Vector3};
 
 #[derive(Debug, Clone)]
 #[enum_dispatch(Source<T>, Transform<T>,)]

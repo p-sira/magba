@@ -49,7 +49,7 @@ define_magnet! {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "std"))]
 crate::testing_util::generate_tests! {
     CylinderMagnet
     filename: cylinder

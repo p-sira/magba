@@ -15,27 +15,25 @@ macro_rules! need_std {
 }
 pub(crate) use need_std;
 
-need_std!(
-    use crate::base::Float;
-    use nalgebra::Vector3;
-    use std::fmt::Formatter;
+use crate::base::Float;
+use core::fmt::Formatter;
+use nalgebra::Vector3;
 
-    pub(crate) fn format_float<T: Float>(f: &mut Formatter, v: T) -> String {
-        if let Some(p) = f.precision() {
-            format!("{:.p$}", v, p = p)
-        } else {
-            format!("{:?}", v)
-        }
+pub(crate) fn format_float<T: Float>(f: &mut Formatter, v: T) -> alloc::string::String {
+    if let Some(p) = f.precision() {
+        alloc::format!("{:.p$}", v, p = p)
+    } else {
+        alloc::format!("{:?}", v)
     }
+}
 
-    pub(crate) fn format_vector3<T: Float>(f: &mut Formatter, v: Vector3<T>) -> String {
-        if let Some(p) = f.precision() {
-            format!("[{:.p$}, {:.p$}, {:.p$}]", v.x, v.y, v.z, p = p)
-        } else {
-            format!("[{:?}, {:?}, {:?}]", v.x, v.y, v.z)
-        }
+pub(crate) fn format_vector3<T: Float>(f: &mut Formatter, v: Vector3<T>) -> alloc::string::String {
+    if let Some(p) = f.precision() {
+        alloc::format!("[{:.p$}, {:.p$}, {:.p$}]", v.x, v.y, v.z, p = p)
+    } else {
+        alloc::format!("[{:?}, {:?}, {:?}]", v.x, v.y, v.z)
     }
-);
+}
 
 macro_rules! assert_eq_lens {
     ($str_err:expr, [$ref_vec:expr $(, $vec:expr)+]) => {

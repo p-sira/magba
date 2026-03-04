@@ -9,9 +9,10 @@ use derive_more::Display;
 use enum_dispatch::enum_dispatch;
 
 use crate::{
-    base::Float,
+    base::{Float, Pose, Source, Transform},
     magnets::{CuboidMagnet, CylinderMagnet, Dipole},
 };
+use nalgebra::{Point3, Vector3};
 
 /// Magnetic source variants.
 ///
@@ -37,11 +38,10 @@ pub enum Magnet<T: Float = f64> {
     Dipole(Dipole<T>),
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "std"))]
 mod tests {
     use super::*;
 
-    #[cfg(feature = "std")]
     #[test]
     fn test_display() {
         let magnet: Magnet = CylinderMagnet::default().into();
