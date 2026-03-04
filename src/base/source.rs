@@ -42,6 +42,7 @@ pub trait Source<T: RealField>: Transform<T> + Send + Sync + DynClone {
     ///
     /// - B-field vectors at each observer.
     #[allow(non_snake_case)]
+    #[cfg(feature = "alloc")]
     fn compute_B_batch(&self, points: &[Point3<T>]) -> alloc::vec::Vec<Vector3<T>>;
 
     /// A default formatter that behaves like Display.
@@ -86,6 +87,7 @@ need_std!(
         delegate!(
             to (**self) {
                 fn compute_B(&self, point: Point3<T>) -> Vector3<T>;
+                #[cfg(feature = "alloc")]
                 fn compute_B_batch(&self, points: &[Point3<T>]) -> Vec<Vector3<T>>;
             }
         );

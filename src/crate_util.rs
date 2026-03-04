@@ -19,6 +19,7 @@ use crate::base::Float;
 use core::fmt::Formatter;
 use nalgebra::Vector3;
 
+#[cfg(feature = "alloc")]
 pub(crate) fn format_float<T: Float>(f: &mut Formatter, v: T) -> alloc::string::String {
     if let Some(p) = f.precision() {
         alloc::format!("{:.p$}", v, p = p)
@@ -27,6 +28,7 @@ pub(crate) fn format_float<T: Float>(f: &mut Formatter, v: T) -> alloc::string::
     }
 }
 
+#[cfg(feature = "alloc")]
 pub(crate) fn format_vector3<T: Float>(f: &mut Formatter, v: Vector3<T>) -> alloc::string::String {
     if let Some(p) = f.precision() {
         alloc::format!("[{:.p$}, {:.p$}, {:.p$}]", v.x, v.y, v.z, p = p)
