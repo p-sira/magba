@@ -58,7 +58,7 @@ macro_rules! impl_parallel {
 
             #[cfg(feature = "rayon")]
             if $inputs.len() > $threshold {
-                use rayon::iter::*;
+                use rayon::prelude::*;
                 $out.par_iter_mut()
                     .zip($inputs.par_iter())
                     .for_each(|(o, p)| *o = $func(*p, $($func_args),*));
@@ -84,7 +84,7 @@ macro_rules! impl_parallel_sum {
 
         #[cfg(feature = "rayon")]
         if $points.len() > $threshold {
-            use rayon::iter::*;
+            use rayon::prelude::*;
             $out.par_iter_mut()
                 .zip($points.par_iter())
                 .for_each(|(o, p_ref)| {
