@@ -3,11 +3,6 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-#[cfg(feature = "std")]
-use dyn_clone::clone_trait_object;
-
-#[cfg(feature = "std")]
-use delegate::delegate;
 use enum_dispatch::enum_dispatch;
 use nalgebra::{Point3, RealField, Vector3};
 
@@ -65,6 +60,10 @@ impl<T: RealField> core::fmt::Display for dyn Source<T> {
 // MARK: Box<dyn Source>
 need_std!(
     use core::fmt::Display;
+
+    use dyn_clone::clone_trait_object;
+    use delegate::delegate;
+
     use crate::base::{Float, Pose};
 
     impl<T: Float> Transform<T> for Box<dyn Source<T>> {
