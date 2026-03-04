@@ -101,6 +101,7 @@ macro_rules! impl_transform {
 }
 pub(crate) use impl_transform;
 
+#[cfg(feature = "std")]
 macro_rules! impl_group_transform {
     ($name:ident < $( $args:ty ),* > where $( $bounds:tt )* ) => {
         impl< $( $bounds )* > $name< $( $args ),*> {
@@ -151,4 +152,5 @@ macro_rules! impl_group_transform {
         }
     };
 }
+#[cfg(feature = "std")]
 pub(crate) use impl_group_transform;
