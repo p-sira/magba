@@ -9,7 +9,7 @@ use ellip::{
     bulirsch::{DefaultPrecision, cel_with_const},
     ellipe, ellipk,
 };
-use nalgebra::{Point3, RealField, UnitQuaternion, Vector3, vector};
+use nalgebra::{Point3, UnitQuaternion, Vector3, vector};
 use num_traits::Float as NumFloat;
 use numeric_literals::replace_float_literals;
 
@@ -40,7 +40,7 @@ use crate::{
 #[allow(non_snake_case)]
 #[inline]
 #[replace_float_literals(T::from_f64(literal).unwrap())]
-pub fn unit_axial_cylinder_B_cyl<T: Float + Copy>(r: T, z: T, z0: T) -> Vector3<T> {
+pub fn unit_axial_cylinder_B_cyl<T: Float>(r: T, z: T, z0: T) -> Vector3<T> {
     let (zp, zm) = (z + z0, z - z0);
     let (rp, rm) = (1.0 + r, 1.0 - r);
 
@@ -85,10 +85,7 @@ pub fn unit_axial_cylinder_B_cyl<T: Float + Copy>(r: T, z: T, z0: T) -> Vector3<
 #[allow(non_snake_case)]
 #[inline]
 #[replace_float_literals(T::from_f64(literal).unwrap())]
-pub fn unit_diametric_cylinder_B_cyl<T>(r: T, phi: T, z: T, z0: T) -> Vector3<T>
-where
-    T: RealField + Copy + Float,
-{
+pub fn unit_diametric_cylinder_B_cyl<T: Float>(r: T, phi: T, z: T, z0: T) -> Vector3<T> {
     let (zp, zm) = (z + z0, z - z0);
     let (zp2, zm2) = (zp * zp, zm * zm);
     let r2 = r * r;
@@ -198,7 +195,7 @@ where
 #[allow(non_snake_case)]
 #[inline]
 #[replace_float_literals(T::from_f64(literal).unwrap())]
-pub fn cylinder_B_cyl<T: RealField + Copy + Float>(
+pub fn cylinder_B_cyl<T: Float>(
     r: T,
     phi: T,
     z: T,
@@ -255,7 +252,7 @@ pub fn cylinder_B_cyl<T: RealField + Copy + Float>(
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[allow(non_snake_case)]
 #[inline]
-pub fn local_cylinder_B<T: RealField + Copy + Float>(
+pub fn local_cylinder_B<T: Float>(
     point: Point3<T>,
     polarization: Vector3<T>,
     radius: T,
@@ -321,7 +318,7 @@ pub fn local_cylinder_B<T: RealField + Copy + Float>(
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[inline]
 #[allow(non_snake_case)]
-pub fn cylinder_B<T: RealField + Copy + Float>(
+pub fn cylinder_B<T: Float>(
     point: Point3<T>,
     position: Point3<T>,
     orientation: UnitQuaternion<T>,
@@ -402,7 +399,7 @@ pub fn cylinder_B<T: RealField + Copy + Float>(
 /// - Derby, Norman, and Stanislaw Olbert. “Cylindrical Magnets and Ideal Solenoids.” American Journal of Physics 78, no. 3 (March 1, 2010): 229–35. <https://doi.org/10.1119/1.3256157>.
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[allow(non_snake_case)]
-pub fn cylinder_B_batch<T: RealField + Copy + Float>(
+pub fn cylinder_B_batch<T: Float>(
     points: &[Point3<T>],
     position: Point3<T>,
     orientation: UnitQuaternion<T>,
@@ -438,7 +435,7 @@ pub fn cylinder_B_batch<T: RealField + Copy + Float>(
 /// - Derby, Norman, and Stanislaw Olbert. “Cylindrical Magnets and Ideal Solenoids.” American Journal of Physics 78, no. 3 (March 1, 2010): 229–35. <https://doi.org/10.1119/1.3256157>.
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[allow(non_snake_case)]
-pub fn sum_multiple_cylinder_B<T: RealField + Copy + Float>(
+pub fn sum_multiple_cylinder_B<T: Float>(
     points: &[Point3<T>],
     positions: &[Point3<T>],
     orientations: &[UnitQuaternion<T>],
