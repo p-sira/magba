@@ -29,9 +29,11 @@ e
 - **SensorComponent Enum:** The variants can be `Sensor` or `Custom`. Likewise, they can be grouped into `SensorAssembly`.
 - **Magnet and Sensor Enums:** The variants are all structs defined in `magba::magnets` and `magba::sensors`, respectively.
 
-**Stack Allocation & No-Std**
+**Stack Allocation**
 - `SourceArray` and `SensorArray`: A fixed-size, stack-allocated, homogeneous collection of `Source` and `Observer`, respectively.
-- Add `no_std` and `libm` feature flag. 
+
+**New Feature Flags**
+- Add `no_std`, `libm`, and `alloc` feature flags.
 
 **Sensors**
 - `SensorOutput` for unified sensor output typing.
