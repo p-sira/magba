@@ -23,7 +23,8 @@ use crate::{
 /// ### Examples
 ///
 /// ```
-/// # use magba::*;
+/// # use magba::sources;
+/// # use magba::prelude::*;
 /// let cylinder = CylinderMagnet::default();
 /// let cuboid = CuboidMagnet::default();
 /// let dipole = Dipole::default();
@@ -63,7 +64,7 @@ impl<T: Float> SourceAssembly<T> {
     }
 
     /// ```
-    /// # use magba::*;
+    /// # use magba::prelude::*;
     /// let cylinder = CylinderMagnet::default();
     /// let cuboid = CuboidMagnet::default();
     /// let dipole = Dipole::default();

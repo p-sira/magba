@@ -16,7 +16,8 @@ use crate::{
 /// Components that can be grouped into collections.
 ///
 /// ```
-/// # use magba::*;
+/// # use magba::sources;
+/// # use magba::prelude::*;
 /// let magnet: SourceComponent = CylinderMagnet::default().into();
 /// let sources = sources!(magnet);
 /// ```

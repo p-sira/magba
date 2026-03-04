@@ -21,7 +21,7 @@ use crate::{
 /// # Examples
 ///
 /// ```
-/// # use magba::*;
+/// # use magba::prelude::*;
 /// # use nalgebra::{point, vector};
 /// # use approx::assert_relative_eq;
 /// let magnet: Magnet = CylinderMagnet::default().into();

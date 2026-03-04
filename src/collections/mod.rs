@@ -8,6 +8,8 @@
 mod macros;
 #[cfg(test)]
 pub(crate) use macros::sources;
+#[cfg(test)]
+pub(crate) use macros::sensors;
 
 mod node;
 mod sensor_array;

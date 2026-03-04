@@ -41,7 +41,7 @@ Learn more at [docs.rs/magba](https://docs.rs/magba).
 To install, simply: `cargo add magba`.
 
 ```rust
-use magba::*;
+use magba::prelude::*;
 use nalgebra::*;
 use std::f64::consts::PI;
 

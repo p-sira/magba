@@ -8,7 +8,9 @@
 /// # Examples
 ///
 /// ```
-/// # use magba::*;
+/// # use magba::sources;
+/// # use magba::prelude::*;
+/// # use magba::collections::SourceArray;
 /// let cylinder = CylinderMagnet::default();
 /// let cuboid = CuboidMagnet::default();
 /// let dipole = Dipole::default();
@@ -49,4 +51,5 @@ macro_rules! sensors {
     }};
     () => {};
 }
-// pub(crate) use sensors;
+#[cfg(test)]
+pub(crate) use sensors;

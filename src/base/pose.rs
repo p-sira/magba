@@ -10,7 +10,7 @@ use nalgebra::{Isometry3, Point3, RealField, Translation3, UnitQuaternion};
 /// ### Examples
 ///
 /// ```
-/// # use magba::*;
+/// # use magba::base::Pose;
 /// # use nalgebra::Point3;
 /// let mut pose: Pose = Pose::default();
 /// pose.translate([1.0, 2.0, 3.0]);
@@ -91,7 +91,7 @@ impl<T: RealField> From<Isometry3<T>> for Pose<T> {
 #[cfg(feature = "std")]
 impl<T: RealField> std::fmt::Display for Pose<T> {
     /// ```
-    /// # use magba::*;
+    /// # use magba::base::Pose;
     /// let mut pose: Pose = Pose::default();
     /// assert_eq!(format!("{}", pose), "pos=[0.0, 0.0, 0.0], rot=[0.0, 0.0, 0.0]");
     ///
@@ -126,7 +126,7 @@ impl<T: RealField> std::fmt::Display for Pose<T> {
 #[cfg(feature = "std")]
 impl<T: RealField + std::fmt::LowerExp> std::fmt::LowerExp for Pose<T> {
     /// ```
-    /// # use magba::*;
+    /// # use magba::base::Pose;
     /// # use nalgebra::UnitQuaternion;
     /// let mut pose: Pose = Pose::default();
     /// pose.translate([0.0, 0.0, 1e5]);
