@@ -79,6 +79,7 @@ need_std!(
     pub mod testing_util;
 );
 
+/// Re-exports of commonly used Magba structs, traits, and methods.
 pub mod prelude {
     use super::*;
     pub use base::Float;
