@@ -9,8 +9,8 @@ use nalgebra::{Matrix3, Point3, RealField, UnitQuaternion, Vector3, vector};
 use numeric_literals::replace_float_literals;
 
 use crate::{
-    crate_util::{impl_parallel, impl_parallel_sum},
     base::coordinate::compute_in_local,
+    crate_util::{impl_parallel, impl_parallel_sum},
 };
 
 /// Computes B-field of a homogeneous cuboid magnet at point (x, y, z) in the local frame.
