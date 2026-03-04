@@ -63,13 +63,14 @@ We would like to thank MagpyLib contributors their hard work and contributions t
 */
 
 mod crate_util;
+use crate::crate_util::need_std;
 
 pub mod base;
 pub mod conversion;
 pub mod fields;
 pub mod measurement;
 
-crate::crate_util::need_std!(
+need_std!(
     pub mod collections;
     pub mod magnets;
     pub mod sensors;
@@ -77,3 +78,14 @@ crate::crate_util::need_std!(
     #[cfg(test)]
     pub mod testing_util;
 );
+
+pub mod prelude {
+    use super::*;
+    pub use base::{Float, Source, Transform};
+
+    need_std!(
+        pub use collections::{SourceComponent, SourceAssembly, SensorComponent, SensorAssembly};
+        pub use magnets::{CylinderMagnet, CuboidMagnet, Dipole, Magnet};
+        pub use sensors::{Sensor, LinearHallSensor};
+    );
+}
