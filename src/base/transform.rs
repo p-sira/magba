@@ -14,7 +14,7 @@ use crate::base::Pose;
 ///
 /// In addition to implementing this trait, all objects in Magba
 /// implement methods for position and orientation manipulation
-/// in 3D cartesian space. Please refer to any magnet structs (such as the [CuboidMagnet](CuboidMagnet#impl-CuboidMagnet<T>-2))
+/// in 3D cartesian space. Please refer to any magnet structs (such as the [CuboidMagnet](crate::magnets::CuboidMagnet#impl-CuboidMagnet<T>-2))
 /// for the full list of transformation methods.
 ///
 /// # Examples
@@ -73,7 +73,7 @@ use crate::base::Pose;
 /// assert_eq!(magnet.orientation(), rotation);
 /// ```
 ///
-/// Please refer to any magnet structs (such as the [CuboidMagnet](CuboidMagnet#impl-CuboidMagnet<T>-2))
+/// Please refer to any magnet structs (such as the [CuboidMagnet](crate::magnets::CuboidMagnet#impl-CuboidMagnet<T>-2))
 /// for the full list of transformation methods.
 #[enum_dispatch]
 pub trait Transform<T: RealField> {
