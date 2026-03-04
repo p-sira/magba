@@ -252,6 +252,6 @@ mod tests {
     fn test_todo() {
         use crate::collections::sensors;
         use crate::prelude::*;
-        let _: SensorAssembly = sensors!();
+        let _: SensorAssembly = observers!();
     }
 }

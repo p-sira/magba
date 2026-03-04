@@ -43,7 +43,7 @@ e
 - Introduce `Pose` struct to handle position/orientation logic centrally. `Source` delegates transformation logic here.
 
 **Developer Experience**
-- `sources!` and `sensors!` macros for convenient declaration of composite Arrays and Assemblies.
+- `sources!` and `observers!` macros for convenient declaration of composite Arrays and Assemblies.
 - Most arguments now implement Into for automatic conversion from `std` types to `nalgebra` types.
 - Add builder methods (`with_*`) to all magnet and collection structs.
 - Add input validation for all constructors and setters.

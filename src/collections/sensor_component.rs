@@ -19,7 +19,7 @@ use crate::{
 /// # use magba::prelude::*;
 /// # use magba::sensors::LinearHallSensor;
 /// let sensor: SensorComponent = LinearHallSensor::default().into();
-/// let sensors = sensors!(sensor);
+/// let sensors = observers!(sensor);
 /// ```
 pub enum SensorComponent<T: Float = f64> {
     Sensor(Sensor<T>),

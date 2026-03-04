@@ -39,12 +39,12 @@ macro_rules! sources {
 pub(crate) use sources;
 
 #[macro_export]
-macro_rules! sensors {
-    // sensors!([sensor1, sensor2, ...])
+macro_rules! observers {
+    // observers!([sensor1, sensor2, ...])
     ([$($items:expr),*]) => {
         SensorArray::new([0.0; 3], nalgebra::UnitQuaternion::identity(), [$($items),*])
     };
-    // sensors!(sensor1, sensor2, ...)
+    // observers!(sensor1, sensor2, ...)
     ($($items:expr),* $(,)?) => {{
         let c: [SensorComponent<_>; _] = [$($items.into()),*];
         SensorAssembly::from(c)
@@ -52,4 +52,4 @@ macro_rules! sensors {
     () => {};
 }
 #[cfg(test)]
-pub(crate) use sensors;
+pub(crate) use observers;
