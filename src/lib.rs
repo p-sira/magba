@@ -88,7 +88,7 @@ need_std!(
 pub mod prelude {
     use super::*;
 
-    pub use base::{Float, Source, Transform};
+    pub use base::{Float, Observer, SensorOutput, Source, Transform};
     pub use magnets::{CuboidMagnet, CylinderMagnet, Dipole, Magnet};
     pub use sensors::{LinearHallSensor, Sensor};
 
