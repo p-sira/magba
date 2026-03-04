@@ -75,10 +75,10 @@ pub mod fields;
 pub mod measurement;
 
 pub mod magnets;
+pub mod sensors;
 
 need_std!(
     pub mod collections;
-    pub mod sensors;
 
     #[cfg(test)]
     pub mod testing_util;
@@ -87,16 +87,15 @@ need_std!(
 /// Re-exports of commonly used Magba structs, traits, and methods.
 pub mod prelude {
     use super::*;
-    pub use base::Float;
 
-    pub use base::{Source, Transform};
+    pub use base::{Float, Source, Transform};
     pub use magnets::{CuboidMagnet, CylinderMagnet, Dipole, Magnet};
+    pub use sensors::{LinearHallSensor, Sensor};
 
     need_std!(
         pub use collections::{
             SourceComponent, SourceAssembly, SensorComponent, SensorAssembly, SourceArray,
             SensorArray,
         };
-        pub use sensors::{Sensor, LinearHallSensor};
     );
 }
