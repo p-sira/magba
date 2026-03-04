@@ -5,16 +5,16 @@
 
 use std::fmt::{Debug, Display};
 
+use delegate::delegate;
+use dyn_clone::{DynClone, clone_trait_object};
+use enum_dispatch::enum_dispatch;
+use nalgebra::{Point3, RealField, Vector3};
+
 use crate::{
     base::{Float, Pose, Transform},
     collections::SourceComponent,
     magnets::Magnet,
 };
-
-use delegate::delegate;
-use dyn_clone::{DynClone, clone_trait_object};
-use enum_dispatch::enum_dispatch;
-use nalgebra::{Point3, RealField, Vector3};
 
 // MARK: Source
 

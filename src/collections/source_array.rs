@@ -10,8 +10,8 @@ use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
 use crate::{
     base::{
+        Float, Pose, Source, Transform,
         transform::{impl_group_transform, impl_transform},
-        *,
     },
     collections::{node::Node, utils::impl_group_compute_B},
 };

@@ -15,8 +15,8 @@ crate::crate_util::need_std!(
     mod observer;
     pub(crate) mod transform;
 
-    pub use source::*;
-    pub use observer::*;
+    pub use source::Source;
+    pub use observer::{Observer, SensorOutput};
     pub use transform::Transform;
 );
 
