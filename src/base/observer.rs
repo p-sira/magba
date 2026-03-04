@@ -3,9 +3,6 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-use delegate::delegate;
-#[cfg(feature = "std")]
-use dyn_clone::clone_trait_object;
 use enum_dispatch::enum_dispatch;
 use nalgebra::Vector3;
 
@@ -51,6 +48,10 @@ impl<T: Float> core::fmt::Display for dyn Observer<T> {
 
 need_std!(
     use core::fmt::Display;
+
+    use delegate::delegate;
+    use dyn_clone::clone_trait_object;
+
     use crate::base::Pose;
 
     impl<T: Float> Transform<T> for Box<dyn Observer<T>> {

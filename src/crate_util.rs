@@ -15,25 +15,35 @@ macro_rules! need_std {
 }
 pub(crate) use need_std;
 
-use crate::base::Float;
-use core::fmt::Formatter;
-use nalgebra::Vector3;
-
-#[cfg(feature = "alloc")]
-pub(crate) fn format_float<T: Float>(f: &mut Formatter, v: T) -> alloc::string::String {
-    if let Some(p) = f.precision() {
-        alloc::format!("{:.p$}", v, p = p)
-    } else {
-        alloc::format!("{:?}", v)
-    }
+macro_rules! need_alloc {
+    ($($body:item)*) => {
+        $(
+            #[cfg(feature = "alloc")]
+            $body
+        )*
+    };
 }
+pub(crate) use need_alloc;
 
-#[cfg(feature = "alloc")]
-pub(crate) fn format_vector3<T: Float>(f: &mut Formatter, v: Vector3<T>) -> alloc::string::String {
-    if let Some(p) = f.precision() {
-        alloc::format!("[{:.p$}, {:.p$}, {:.p$}]", v.x, v.y, v.z, p = p)
-    } else {
-        alloc::format!("[{:?}, {:?}, {:?}]", v.x, v.y, v.z)
+need_alloc! {
+    use crate::base::Float;
+    use core::fmt::Formatter;
+    use nalgebra::Vector3;
+
+    pub(crate) fn format_float<T: Float>(f: &mut Formatter, v: T) -> alloc::string::String {
+        if let Some(p) = f.precision() {
+            alloc::format!("{:.p$}", v, p = p)
+        } else {
+            alloc::format!("{:?}", v)
+        }
+    }
+
+    pub(crate) fn format_vector3<T: Float>(f: &mut Formatter, v: Vector3<T>) -> alloc::string::String {
+        if let Some(p) = f.precision() {
+            alloc::format!("[{:.p$}, {:.p$}, {:.p$}]", v.x, v.y, v.z, p = p)
+        } else {
+            alloc::format!("[{:?}, {:?}, {:?}]", v.x, v.y, v.z)
+        }
     }
 }
 

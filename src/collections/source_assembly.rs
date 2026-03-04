@@ -285,7 +285,7 @@ mod display_tests {
             ));
 
         let dipole: Dipole = Dipole::default();
-        let mut nested_collection = sources!(dipole.clone(), dipole);
+        let mut nested_collection = sources!(dipole, dipole);
         let deep_collection = sources!([CuboidMagnet::default()]);
         nested_collection.push(deep_collection);
 
@@ -404,9 +404,8 @@ mod field_tests {
         let base_magnet = CuboidMagnet::default()
             .with_polarization([0.1, 0.2, 0.3])
             .with_dimensions([0.02, 0.02, 0.03]);
-        let m1 = base_magnet.clone().with_position([0.005, 0.01, 0.015]);
+        let m1 = base_magnet.with_position([0.005, 0.01, 0.015]);
         let m2 = base_magnet
-            .clone()
             .with_position([0.015, 0.005, 0.01])
             .with_orientation(UnitQuaternion::from_scaled_axis(
                 [0.0, FRAC_PI_3, 0.0].into(),
