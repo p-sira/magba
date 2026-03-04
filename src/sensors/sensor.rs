@@ -7,7 +7,10 @@
 use derive_more::Display;
 use enum_dispatch::enum_dispatch;
 
-use crate::{base::Float, sensors::hall_effect::LinearHallSensor};
+use crate::{
+    base::{Float, Observer, Pose, SensorOutput, Source, Transform},
+    sensors::hall_effect::LinearHallSensor,
+};
 
 /// Sensor variants
 #[derive(Clone, Debug, PartialEq, Eq)]

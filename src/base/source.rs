@@ -3,24 +3,35 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-use std::fmt::{Debug, Display};
+use core::fmt::{Debug, Display};
+
+#[cfg(feature = "std")]
+use dyn_clone::{DynClone, clone_trait_object};
 
 use delegate::delegate;
-use dyn_clone::{DynClone, clone_trait_object};
 use enum_dispatch::enum_dispatch;
 use nalgebra::{Point3, RealField, Vector3};
 
 use crate::{
     base::{Float, Pose, Transform},
-    collections::SourceComponent,
-    magnets::Magnet,
+    crate_util::need_std,
 };
 
 // MARK: Source
 
+#[cfg(feature = "std")]
+pub trait DynCloneBound: DynClone {}
+#[cfg(feature = "std")]
+impl<T: DynClone> DynCloneBound for T {}
+
+#[cfg(not(feature = "std"))]
+pub trait DynCloneBound {}
+#[cfg(not(feature = "std"))]
+impl<T> DynCloneBound for T {}
+
 #[enum_dispatch]
 /// Physical representation of magnetic sources.
-pub trait Source<T: RealField>: Transform<T> + Send + Sync + DynClone {
+pub trait Source<T: RealField>: Transform<T> + Send + Sync + DynCloneBound {
     /// Computes the magnetic field (B) at the given point.
     ///
     /// # Arguments
@@ -43,49 +54,50 @@ pub trait Source<T: RealField>: Transform<T> + Send + Sync + DynClone {
     ///
     /// - B-field vectors at each observer.
     #[allow(non_snake_case)]
-    fn compute_B_batch(&self, points: &[Point3<T>]) -> Vec<Vector3<T>>;
+    fn compute_B_batch(&self, points: &[Point3<T>]) -> alloc::vec::Vec<Vector3<T>>;
 
     /// A default formatter that behaves like Display.
     /// Last argument is the indentation, which is for SourceAssembly support.
     /// Override this for custom printouts.
-    fn format(&self, f: &mut std::fmt::Formatter<'_>, _: &str) -> std::fmt::Result {
+    fn format(&self, f: &mut core::fmt::Formatter<'_>, _: &str) -> core::fmt::Result {
         write!(f, "Source at {}", self.pose())
     }
 }
 
 #[cfg(feature = "std")]
-impl<T: RealField> std::fmt::Display for dyn Source<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl<T: RealField> core::fmt::Display for dyn Source<T> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         // Delegate to the trait method
         self.format(f, "")
     }
 }
 
 // MARK: Box<dyn Source>
-
-impl<T: Float> Transform<T> for Box<dyn Source<T>> {
-    delegate!(
-        to (**self) {
-            fn pose(&self) -> &Pose<T>;
-            fn pose_mut(&mut self) -> &mut Pose<T>;
-            fn set_pose(&mut self, pose: Pose<T>);
-        }
-    );
-}
-
-clone_trait_object!(<T> Source<T> where T: Float);
-
-impl<T: Float> Debug for Box<dyn Source<T>> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        (**self).fmt(f)
+need_std!(
+    impl<T: Float> Transform<T> for Box<dyn Source<T>> {
+        delegate!(
+            to (**self) {
+                fn pose(&self) -> &Pose<T>;
+                fn pose_mut(&mut self) -> &mut Pose<T>;
+                fn set_pose(&mut self, pose: Pose<T>);
+            }
+        );
     }
-}
 
-impl<T: Float> Source<T> for Box<dyn Source<T>> {
-    delegate!(
-        to (**self) {
-            fn compute_B(&self, point: Point3<T>) -> Vector3<T>;
-            fn compute_B_batch(&self, points: &[Point3<T>]) -> Vec<Vector3<T>>;
+    clone_trait_object!(<T> Source<T> where T: Float);
+
+    impl<T: Float> Debug for Box<dyn Source<T>> {
+        fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+            (**self).fmt(f)
         }
-    );
-}
+    }
+
+    impl<T: Float> Source<T> for Box<dyn Source<T>> {
+        delegate!(
+            to (**self) {
+                fn compute_B(&self, point: Point3<T>) -> Vector3<T>;
+                fn compute_B_batch(&self, points: &[Point3<T>]) -> Vec<Vector3<T>>;
+            }
+        );
+    }
+);

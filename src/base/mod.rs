@@ -10,15 +10,13 @@ pub(crate) mod coordinate;
 pub(crate) mod pose;
 pub use pose::Pose;
 
-crate::crate_util::need_std!(
-    mod source;
-    mod observer;
-    pub(crate) mod transform;
+mod observer;
+mod source;
+pub(crate) mod transform;
 
-    pub use source::Source;
-    pub use observer::{Observer, SensorOutput};
-    pub use transform::Transform;
-);
+pub use observer::{Observer, SensorOutput};
+pub use source::Source;
+pub use transform::Transform;
 
 const MU0: f64 = 1.2566370614359173e-6;
 

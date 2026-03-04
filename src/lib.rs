@@ -62,6 +62,8 @@ Most of the field computation used in Magba is based on [MagpyLib](https://githu
 We would like to thank MagpyLib contributors their hard work and contributions to the scientific community.
 */
 
+extern crate alloc;
+
 mod crate_util;
 use crate::crate_util::need_std;
 
@@ -70,9 +72,10 @@ pub mod conversion;
 pub mod fields;
 pub mod measurement;
 
+pub mod magnets;
+
 need_std!(
     pub mod collections;
-    pub mod magnets;
     pub mod sensors;
 
     #[cfg(test)]
@@ -84,13 +87,14 @@ pub mod prelude {
     use super::*;
     pub use base::Float;
 
+    pub use base::{Source, Transform};
+    pub use magnets::{CuboidMagnet, CylinderMagnet, Dipole, Magnet};
+
     need_std!(
-        pub use base::{Source, Transform};
         pub use collections::{
             SourceComponent, SourceAssembly, SensorComponent, SensorAssembly, SourceArray,
             SensorArray,
         };
-        pub use magnets::{CylinderMagnet, CuboidMagnet, Dipole, Magnet};
         pub use sensors::{Sensor, LinearHallSensor};
     );
 }

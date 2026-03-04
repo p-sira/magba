@@ -8,12 +8,7 @@
 use enum_dispatch::enum_dispatch;
 use nalgebra::RealField;
 
-use crate::{
-    base::{Float, Observer, Pose, Source},
-    collections::{SensorComponent, SourceAssembly, SourceComponent},
-    magnets::{CuboidMagnet, CylinderMagnet, Dipole, Magnet},
-    sensors::{LinearHallSensor, Sensor},
-};
+use crate::base::Pose;
 
 /// Trait shared by objects that can return [Pose].
 ///

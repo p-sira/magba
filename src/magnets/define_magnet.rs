@@ -19,8 +19,8 @@
 ///     field_fn: magnet_B
 ///     args: {
 ///         polarization:Vector3<T>,
-///         dimensions:Vector3<T>; 
-///             validate dimensions.iter().all(|&i| i > 0); 
+///         dimensions:Vector3<T>;
+///             validate dimensions.iter().all(|&i| i > 0);
 ///             error "Bad dim.",
 ///         lucky_number: T
 ///     }
@@ -228,8 +228,8 @@ macro_rules! define_magnet {
                 )
             }
 
-            fn compute_B_batch(&self, points: &[nalgebra::Point3<T>]) -> Vec<nalgebra::Vector3<T>> {
-                let mut out = vec![nalgebra::Vector3::zeros(); points.len()];
+            fn compute_B_batch(&self, points: &[nalgebra::Point3<T>]) -> alloc::vec::Vec<nalgebra::Vector3<T>> {
+                let mut out = alloc::vec![nalgebra::Vector3::zeros(); points.len()];
 
                 concat_idents::concat_idents!(fn_name = $field_fn, _batch {
                     crate::fields::fn_name(
@@ -245,7 +245,7 @@ macro_rules! define_magnet {
             }
 
             // MARK: Display
-            fn format(&self, f: &mut std::fmt::Formatter<'_>, _: &str) -> std::fmt::Result {
+            fn format(&self, f: &mut core::fmt::Formatter<'_>, _: &str) -> core::fmt::Result {
                 $(
                     let $arg = crate::crate_util::$arg_fmt(&mut *f, self.$arg);
                 )*
@@ -266,8 +266,8 @@ macro_rules! define_magnet {
 
         crate::base::transform::impl_transform!($name<T> where T: crate::base::Float);
 
-        impl<T: crate::base::Float> std::fmt::Display for $name<T> {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        impl<T: crate::base::Float> core::fmt::Display for $name<T> {
+            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
                 <Self as crate::base::Source<T>>::format(self, f, "")
             }
         }
