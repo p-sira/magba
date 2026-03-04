@@ -23,7 +23,8 @@ use crate::{
 /// Grouping the same type of magnets:
 ///
 /// ```
-/// # use magba::*;
+/// # use magba::sources;
+/// # use magba::prelude::*;
 /// let cuboid1 = CuboidMagnet::default();
 /// let cuboid2 = cuboid1.clone().with_position([0.0, 1.0, 0.0]);
 ///
@@ -33,7 +34,8 @@ use crate::{
 /// Grouping different types of magnets using [Magnet](crate::Magnet) as a wrapper:
 ///
 /// ```
-/// # use magba::*;
+/// # use magba::sources;
+/// # use magba::prelude::*;
 /// let cylinder: Magnet = CylinderMagnet::default().into();
 /// let dipole: Magnet = Dipole::default().into();
 ///

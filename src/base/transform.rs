@@ -25,7 +25,7 @@ use crate::{
 /// # Examples
 ///
 /// ```
-/// # use magba::*;
+/// # use magba::prelude::*;
 /// # use approx::assert_relative_eq;
 /// # use nalgebra::*;
 /// # use std::f64::consts::PI;

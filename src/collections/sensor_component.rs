@@ -15,8 +15,8 @@ use crate::{
 /// Components that can be grouped into collections.
 ///
 /// ```
-/// # use magba::*;
-/// # use magba::collections::*;
+/// # use magba::sensors;
+/// # use magba::prelude::*;
 /// # use magba::sensors::LinearHallSensor;
 /// let sensor: SensorComponent = LinearHallSensor::default().into();
 /// let sensors = sensors!(sensor);

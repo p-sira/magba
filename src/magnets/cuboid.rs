@@ -30,7 +30,7 @@ define_magnet! {
             /// # Examples
             ///
             /// ```
-            /// # use magba::CuboidMagnet;
+            /// # use magba::magnets::CuboidMagnet;
             /// # use nalgebra::UnitQuaternion;
             /// let magnet = CuboidMagnet::new(
             ///     [0.0, 0.0, 0.0],              // position: Center of the cuboid (m)

@@ -35,7 +35,7 @@ define_magnet! {
             /// # Examples
             ///
             /// ```
-            /// # use magba::CylinderMagnet;
+            /// # use magba::magnets::CylinderMagnet;
             /// # use nalgebra::*;
             /// let magnet = CylinderMagnet::new(
             ///     [0.0, 0.0, 0.0],              // position: Center of the cylinder (m)

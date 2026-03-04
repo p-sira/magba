@@ -25,7 +25,7 @@ define_magnet! {
             /// # Examples
             ///
             /// ```
-            /// # use magba::Dipole;
+            /// # use magba::magnets::Dipole;
             /// # use nalgebra::UnitQuaternion;
             /// let dipole = Dipole::new(
             ///     [0.0, 0.0, 0.0],              // position (m)
