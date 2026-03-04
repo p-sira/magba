@@ -244,3 +244,14 @@ impl<T: Float> PartialEq for SensorAssembly<T> {
         true
     }
 }
+
+#[cfg(test)]
+mod tests {
+    // TODO
+    #[test]
+    fn test_todo() {
+        use crate::collections::sensors;
+        use crate::prelude::*;
+        let _: SensorAssembly = sensors!();
+    }
+}
