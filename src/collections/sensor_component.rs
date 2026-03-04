@@ -11,7 +11,7 @@ use crate::{
 };
 
 #[derive(Debug, Clone)]
-#[enum_dispatch(Observer<T>, Transform<T>, Field<T>)]
+#[enum_dispatch(Observer<T>, Transform<T>)]
 /// Components that can be grouped into collections.
 ///
 /// ```

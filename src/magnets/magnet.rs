@@ -30,7 +30,7 @@ use crate::{
 /// ```
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "std", derive(Display))]
-#[enum_dispatch(Source<T>, Transform<T>, Field<T>)]
+#[enum_dispatch(Source<T>, Transform<T>,)]
 pub enum Magnet<T: Float = f64> {
     Cylinder(CylinderMagnet<T>),
     Cuboid(CuboidMagnet<T>),

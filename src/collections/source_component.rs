@@ -12,7 +12,7 @@ use crate::{
 };
 
 #[derive(Debug, Clone)]
-#[enum_dispatch(Source<T>, Transform<T>, Field<T>)]
+#[enum_dispatch(Source<T>, Transform<T>,)]
 /// Components that can be grouped into collections.
 ///
 /// ```

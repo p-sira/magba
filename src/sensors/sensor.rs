@@ -12,7 +12,7 @@ use crate::{base::Float, sensors::hall_effect::LinearHallSensor};
 /// Sensor variants
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "std", derive(Display))]
-#[enum_dispatch(Observer<T>, Transform<T>, Field<T>)]
+#[enum_dispatch(Observer<T>, Transform<T>)]
 pub enum Sensor<T: Float = f64> {
     LinearHall(LinearHallSensor<T>),
 }
