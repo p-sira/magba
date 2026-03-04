@@ -88,78 +88,77 @@ impl<T: RealField> From<Isometry3<T>> for Pose<T> {
     }
 }
 
-#[cfg(feature = "std")]
-impl<T: RealField> std::fmt::Display for Pose<T> {
-    /// ```
-    /// # use magba::base::Pose;
-    /// let mut pose: Pose = Pose::default();
-    /// assert_eq!(format!("{}", pose), "pos=[0.0, 0.0, 0.0], rot=[0.0, 0.0, 0.0]");
-    ///
-    /// pose.translate([1.23456, 0.0, 0.0]);
-    /// assert_eq!(format!("{:.3}", pose), "pos=[1.235, 0.000, 0.000], rot=[0.000, 0.000, 0.000]");
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let t = &self.isometry.translation.vector;
-        let r = self.isometry.rotation.scaled_axis();
+crate::crate_util::need_std!(
+    impl<T: RealField> std::fmt::Display for Pose<T> {
+        /// ```
+        /// # use magba::base::Pose;
+        /// let mut pose: Pose = Pose::default();
+        /// assert_eq!(format!("{}", pose), "pos=[0.0, 0.0, 0.0], rot=[0.0, 0.0, 0.0]");
+        ///
+        /// pose.translate([1.23456, 0.0, 0.0]);
+        /// assert_eq!(format!("{:.3}", pose), "pos=[1.235, 0.000, 0.000], rot=[0.000, 0.000, 0.000]");
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            let t = &self.isometry.translation.vector;
+            let r = self.isometry.rotation.scaled_axis();
 
-        if let Some(p) = f.precision() {
-            write!(
-                f,
-                "pos=[{:.p$}, {:.p$}, {:.p$}], rot=[{:.p$}, {:.p$}, {:.p$}]",
-                t.x,
-                t.y,
-                t.z,
-                r.x,
-                r.y,
-                r.z,
-                p = p
-            )
-        } else {
-            write!(
-                f,
-                "pos=[{:?}, {:?}, {:?}], rot=[{:?}, {:?}, {:?}]",
-                t.x, t.y, t.z, r.x, r.y, r.z
-            )
+            if let Some(p) = f.precision() {
+                write!(
+                    f,
+                    "pos=[{:.p$}, {:.p$}, {:.p$}], rot=[{:.p$}, {:.p$}, {:.p$}]",
+                    t.x,
+                    t.y,
+                    t.z,
+                    r.x,
+                    r.y,
+                    r.z,
+                    p = p
+                )
+            } else {
+                write!(
+                    f,
+                    "pos=[{:?}, {:?}, {:?}], rot=[{:?}, {:?}, {:?}]",
+                    t.x, t.y, t.z, r.x, r.y, r.z
+                )
+            }
         }
     }
-}
 
-#[cfg(feature = "std")]
-impl<T: RealField + std::fmt::LowerExp> std::fmt::LowerExp for Pose<T> {
-    /// ```
-    /// # use magba::base::Pose;
-    /// # use nalgebra::UnitQuaternion;
-    /// let mut pose: Pose = Pose::default();
-    /// pose.translate([0.0, 0.0, 1e5]);
-    /// pose.rotate(UnitQuaternion::from_scaled_axis([0.0, std::f64::consts::PI, 0.0].into()));
-    /// assert_eq!(format!("{:.3e}", pose), "pos=[0.000e0, 0.000e0, 1.000e5], rot=[0.000e0, 3.142e0, 0.000e0]");
-    /// ```
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let t = &self.isometry.translation.vector;
-        let r = self.isometry.rotation.scaled_axis();
+    impl<T: RealField + std::fmt::LowerExp> std::fmt::LowerExp for Pose<T> {
+        /// ```
+        /// # use magba::base::Pose;
+        /// # use nalgebra::UnitQuaternion;
+        /// let mut pose: Pose = Pose::default();
+        /// pose.translate([0.0, 0.0, 1e5]);
+        /// pose.rotate(UnitQuaternion::from_scaled_axis([0.0, std::f64::consts::PI, 0.0].into()));
+        /// assert_eq!(format!("{:.3e}", pose), "pos=[0.000e0, 0.000e0, 1.000e5], rot=[0.000e0, 3.142e0, 0.000e0]");
+        /// ```
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            let t = &self.isometry.translation.vector;
+            let r = self.isometry.rotation.scaled_axis();
 
-        if let Some(p) = f.precision() {
-            write!(
-                f,
-                "pos=[{:.p$e}, {:.p$e}, {:.p$e}], rot=[{:.p$e}, {:.p$e}, {:.p$e}]",
-                t.x,
-                t.y,
-                t.z,
-                r.x,
-                r.y,
-                r.z,
-                p = p
-            )
-        } else {
-            write!(
-                f,
-                "pos=[{:e}, {:e}, {:e}], rot=[{:e}, {:e}, {:e}]",
-                t.x, t.y, t.z, r.x, r.y, r.z
-            )
+            if let Some(p) = f.precision() {
+                write!(
+                    f,
+                    "pos=[{:.p$e}, {:.p$e}, {:.p$e}], rot=[{:.p$e}, {:.p$e}, {:.p$e}]",
+                    t.x,
+                    t.y,
+                    t.z,
+                    r.x,
+                    r.y,
+                    r.z,
+                    p = p
+                )
+            } else {
+                write!(
+                    f,
+                    "pos=[{:e}, {:e}, {:e}], rot=[{:e}, {:e}, {:e}]",
+                    t.x, t.y, t.z, r.x, r.y, r.z
+                )
+            }
         }
     }
-}
 
-macro_rules! delegate_to_pose {
+    macro_rules! delegate_to_pose {
     () => {
         delegate::delegate! {
             to self.pose {
@@ -174,30 +173,31 @@ macro_rules! delegate_to_pose {
         }
     };
 }
-pub(crate) use delegate_to_pose;
+    pub(crate) use delegate_to_pose;
 
-macro_rules! impl_pose_methods {
-    () => {
-        crate::base::pose::delegate_to_pose!();
+    macro_rules! impl_pose_methods {
+        () => {
+            crate::base::pose::delegate_to_pose!();
 
-        pub fn set_pose(&mut self, pose: crate::base::Pose<T>) {
-            self.pose = pose;
-        }
+            pub fn set_pose(&mut self, pose: crate::base::Pose<T>) {
+                self.pose = pose;
+            }
 
-        pub fn with_position(mut self, position: impl Into<nalgebra::Point3<T>>) -> Self {
-            self.set_position(position.into());
-            self
-        }
+            pub fn with_position(mut self, position: impl Into<nalgebra::Point3<T>>) -> Self {
+                self.set_position(position.into());
+                self
+            }
 
-        pub fn with_orientation(mut self, orientation: nalgebra::UnitQuaternion<T>) -> Self {
-            self.set_orientation(orientation);
-            self
-        }
+            pub fn with_orientation(mut self, orientation: nalgebra::UnitQuaternion<T>) -> Self {
+                self.set_orientation(orientation);
+                self
+            }
 
-        pub fn with_pose(mut self, pose: crate::base::Pose<T>) -> Self {
-            self.set_pose(pose);
-            self
-        }
-    };
-}
-pub(crate) use impl_pose_methods;
+            pub fn with_pose(mut self, pose: crate::base::Pose<T>) -> Self {
+                self.set_pose(pose);
+                self
+            }
+        };
+    }
+    pub(crate) use impl_pose_methods;
+);
