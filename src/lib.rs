@@ -17,18 +17,26 @@ Python bindings available via [Pymagba](https://github.com/p-sira/pymagba).
 
 ### Basic Features
 
-- [Manipulating object positions and orientations](crate::base::Transform#examples)
-- Creating magnets and computing fields
-- Using sensors
-- Grouping components as assembly
-- Parallelization using Rayon (enabled by default)
+- [Manipulating object positions and orientations](base::Transform#examples)
+- [Creating magnets and computing fields](magnets)
+- [Using sensors to measure magnetic fields](sensors)
+- [Grouping components as assembly](collections::SourceAssembly)
+- Parallelization using [Rayon](https://github.com/rayon-rs/rayon) (enabled by default)
 
 ### Advanced Features
 
-- Grouping magnets and sensors using stack-allocated arrays
-- Calculating fields directly
+- [Grouping magnets and sensors using stack-allocated arrays](collections::SourceArray#examples)
+- [Calculating fields directly](fields)
+
 - Using f32
+
+  Magba supports generic `<T: Float>`, defaulting to `f64`. You can explicitly
+  use `f32` for better performance at the cost of precision.
+
 - Unstable features
+
+  The `unstable` cargo feature flag enables experimental field calculation
+  functions such as `local_cuboid_B` in [fields::unstable].
 
 ## Installation
 

@@ -4,6 +4,24 @@
  */
 
 //! Magnets and physical objects that generate magnetic fields.
+//!
+//! # Examples
+//!
+//! ```rust
+//! use magba::prelude::*;
+//! use nalgebra::{UnitQuaternion, point};
+//!
+//! // Create a cuboid magnet
+//! let magnet = CuboidMagnet::new(
+//!     [0.0, 0.0, 0.0],              // position (m)
+//!     UnitQuaternion::identity(),   // orientation as unit quaternion
+//!     [0.0, 0.0, 1.0],              // polarization (T)
+//!     [0.01, 0.01, 0.02],           // dimensions (m)
+//! );
+//!
+//! // Compute the B-field at a specific point
+//! let b_field = magnet.compute_B(point![0.0, 0.0, 0.02]);
+//! ```
 
 mod cuboid;
 mod cylinder;

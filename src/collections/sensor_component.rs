@@ -12,10 +12,10 @@ use crate::{
 
 #[derive(Debug, Clone)]
 #[enum_dispatch(Observer<T>, Transform<T>)]
-/// Components that can be grouped into collections.
+/// [Sensor] components that can be grouped into collections.
 ///
 /// ```
-/// # use magba::sensors;
+/// # use magba::observers;
 /// # use magba::prelude::*;
 /// # use magba::sensors::LinearHallSensor;
 /// let sensor: SensorComponent = LinearHallSensor::default().into();

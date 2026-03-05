@@ -14,7 +14,7 @@ use nalgebra::{Point3, Vector3};
 
 #[derive(Debug, Clone)]
 #[enum_dispatch(Source<T>, Transform<T>,)]
-/// Components that can be grouped into collections.
+/// [Source] components that can be grouped into collections.
 ///
 /// ```
 /// # use magba::sources;

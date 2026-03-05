@@ -7,9 +7,9 @@
 
 mod macros;
 #[cfg(test)]
-pub(crate) use macros::sources;
+pub(crate) use macros::observers;
 #[cfg(test)]
-pub(crate) use macros::sensors;
+pub(crate) use macros::sources;
 
 mod node;
 mod sensor_array;
