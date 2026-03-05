@@ -129,3 +129,79 @@ impl<T: Float> Display for HallSwitch<T> {
         <Self as Observer<T>>::format(self, f, "")
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use nalgebra::{Point3, UnitQuaternion, Vector3};
+
+    use crate::base::{Float, Pose, Source};
+
+    #[derive(Clone)]
+    struct MockSource<T: Float = f64> {
+        pose: Pose<T>,
+        b_field: Vector3<T>,
+    }
+
+    impl<T: Float> MockSource<T> {
+        fn new(b_field: Vector3<T>) -> Self {
+            Self {
+                pose: Default::default(),
+                b_field,
+            }
+        }
+    }
+
+    crate::base::transform::impl_transform!(MockSource<T> where T: Float);
+
+    impl<T: Float> Source<T> for MockSource<T> {
+        #[allow(non_snake_case)]
+        fn compute_B(&self, _point: Point3<T>) -> Vector3<T> {
+            self.b_field
+        }
+
+        #[allow(non_snake_case)]
+        #[cfg(feature = "alloc")]
+        fn compute_B_batch(&self, points: &[Point3<T>]) -> alloc::vec::Vec<Vector3<T>> {
+            points.iter().map(|_| self.b_field).collect()
+        }
+    }
+
+    #[test]
+    fn test_hall_switch() {
+        use crate::base::SensorOutput;
+
+        let mut sensor = HallSwitch::default();
+        sensor.set_b_op(0.010);
+        sensor.set_sensitive_axis([0.0, 0.0, 1.0]);
+
+        // Field below B_OP
+        let source_off = MockSource::new(Vector3::new(0.0, 0.0, 0.005));
+        assert_eq!(sensor.read_state(&source_off), false);
+        assert_eq!(sensor.read(&source_off), SensorOutput::Digital(0));
+
+        // Field above B_OP
+        let source_on = MockSource::new(Vector3::new(0.0, 0.0, 0.015));
+        assert_eq!(sensor.read_state(&source_on), true);
+        assert_eq!(sensor.read(&source_on), SensorOutput::Digital(1));
+
+        // Field pointing in wrong direction (perpendicular)
+        let source_perp = MockSource::new(Vector3::new(0.050, 0.0, 0.0));
+        assert_eq!(sensor.read_state(&source_perp), false);
+
+        // Field pointing in opposite direction
+        let source_opp = MockSource::new(Vector3::new(0.0, 0.0, -0.015));
+        assert_eq!(sensor.read_state(&source_opp), false);
+
+        // Sensor rotated 180 deg around X, sensitive axis is now -Z.
+        // It points its Z-axis downwards.
+        let rot_quat = UnitQuaternion::from_axis_angle(&Vector3::x_axis(), core::f64::consts::PI);
+        sensor.set_orientation(rot_quat);
+
+        // Same source_on, but now sensor sensitivity is opposite, so perceived field is negative.
+        assert_eq!(sensor.read_state(&source_on), false);
+
+        // Source opposite should now trigger it
+        assert_eq!(sensor.read_state(&source_opp), true);
+    }
+}
