@@ -8,7 +8,7 @@ documentation = "https://docs.rs/magba"
 homepage = "https://github.com/p-sira/magba"
 repository = "https://github.com/p-sira/magba"
 license = "BSD-3-Clause"
-keywords = ["analytical", "magnetism", "magnetic field", "simulation", "physics"]
+keywords = ["analytical", "magnetism", "magnetic-field", "simulation", "physics"]
 categories = ["science", "simulation", "no-std"]
 
 [package]
