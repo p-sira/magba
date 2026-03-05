@@ -46,17 +46,20 @@ use nalgebra::*;
 use std::f64::consts::PI;
 
 // Define magnetic sources
-let cylinder = Box::new(CylinderMagnet::default());
-let cuboid = Box::new(CuboidMagnet::new(
-    point![1.0, 0.0, 0.0],  // position (m)
-    UnitQuaternion::identity(),  // orientation
-    Vector3::z(),                // polarization (T)
-    vector![0.1, 0.2, 0.3], // dimensions (m)
-));
+let cylinder = CylinderMagnet::default();
+let cuboid = CuboidMagnet::new(
+    [1.0, 0.0, 0.0],              // position (m)
+    UnitQuaternion::identity(),   // orientation
+    [0.0, 0.0, 1.0],              // polarization (T)
+    [0.1, 0.2, 0.3],              // dimensions (m)
+);
 
 // Grouping sources as collection
-let mut collection = MultiSourceCollection::from_sources(vec![cylinder, cuboid]);
-collection.add(Box::new(Dipole::default()));
+let mut collection = SourceAssembly::from([
+    SourceComponent::from(cylinder),
+    SourceComponent::from(cuboid),
+]);
+collection.push(Dipole::default());
 
 // Observer positions
 let points = [
@@ -74,8 +77,8 @@ let b_fields = collection.compute_B(&points);
 // ]
 
 // Move and Rotate
-collection.translate(&Translation3::new(0.0, 0.0, 0.010));
-collection.rotate(&UnitQuaternion::from_scaled_axis(vector![PI / 4.0, 0.0, 0.0]));
+collection.translate(Translation3::new(0.0, 0.0, 0.010));
+collection.rotate(UnitQuaternion::from_scaled_axis(vector![PI / 4.0, 0.0, 0.0]));
 
 let b_fields = collection.compute_B(&points);
 // [

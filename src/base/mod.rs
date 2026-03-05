@@ -18,13 +18,16 @@ pub use observer::{Observer, SensorOutput};
 pub use source::Source;
 pub use transform::Transform;
 
+/// Wrapper trait for optional [dyn_clone::DynClone](https://docs.rs/dyn-clone/latest/dyn_clone/trait.DynClone.html).
+///
+/// No-op if the `std` feature is disabled.
 #[cfg(feature = "std")]
 pub trait DynClone: dyn_clone::DynClone {}
-#[cfg(feature = "std")]
-impl<T: dyn_clone::DynClone> DynClone for T {}
-
 #[cfg(not(feature = "std"))]
 pub trait DynClone {}
+
+#[cfg(feature = "std")]
+impl<T: dyn_clone::DynClone> DynClone for T {}
 #[cfg(not(feature = "std"))]
 impl<T> DynClone for T {}
 

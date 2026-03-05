@@ -4,9 +4,29 @@
  */
 
 //! Sensors for measuring magnetic fields.
+//!
+//! # Examples
+//!
+//! ```rust
+//! use magba::prelude::*;
+//! use nalgebra::{UnitQuaternion, point};
+//! # let magnet = CuboidMagnet::default();
+//!
+//! // Create a linear Hall effect sensor
+//! let sensor = LinearHallSensor::new(
+//!     [0.0, 0.0, 0.02],             // position (m)
+//!     UnitQuaternion::identity(),   // orientation as unit quaternion
+//!     [0.0, 0.0, 1.0],              // sensitive axis (automatically normalized)
+//!     0.05,                         // sensitivity (V/T)
+//!     5.0,                          // supply voltage (V)
+//! );
+//!
+//! // Read the voltage output of the sensor in the presence of the magnet
+//! let voltage = sensor.read(&magnet);
+//! ```
 
 pub mod hall_effect;
 mod sensor;
 
-pub use hall_effect::*;
+pub use hall_effect::LinearHallSensor;
 pub use sensor::Sensor;

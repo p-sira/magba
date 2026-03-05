@@ -18,7 +18,7 @@ use crate::{
 
 // MARK: Base
 
-/// Heap-allocated data structure for grouping [crate::sensors::Sensor].
+/// Heap-allocated data structure for grouping [SensorComponent].
 #[derive(Debug, Clone)]
 pub struct SensorAssembly<T: Float = f64> {
     pose: Pose<T>,
@@ -250,7 +250,7 @@ mod tests {
     // TODO
     #[test]
     fn test_todo() {
-        use crate::collections::sensors;
+        use crate::collections::observers;
         use crate::prelude::*;
         let _: SensorAssembly = observers!();
     }
