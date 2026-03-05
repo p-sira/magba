@@ -27,12 +27,7 @@ Python bindings available via [Pymagba](https://github.com/p-sira/pymagba).
 ### Advanced Features
 
 - [Calculating fields directly](fields)
-
-- Using f32
-
-  Magba supports generic `<T: Float>`, defaulting to `f64`. You can explicitly
-  use `f32` for better performance at the cost of precision.
-
+- [Using f32](base::Float)
 - Unstable features
 
   The `unstable` cargo feature flag enables experimental field calculation
