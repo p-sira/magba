@@ -153,7 +153,7 @@ macro_rules! define_magnet {
         }
     } => {
         $(#[$meta])*
-        #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+        #[derive(Debug, Clone, PartialEq, Eq)]
         pub struct $name<T: crate::base::Float = f64> {
             pose: crate::base::Pose<T>,
             $(
