@@ -8,8 +8,8 @@ documentation = "https://docs.rs/magba"
 homepage = "https://github.com/p-sira/magba"
 repository = "https://github.com/p-sira/magba"
 license = "BSD-3-Clause"
-keywords = ["analytical", "field", "magnet", "magnetic", "simulation", "no_std"]
-categories = ["science", "simulation"]
+keywords = ["analytical", "magnetism", "magnetic field", "simulation", "physics"]
+categories = ["science", "simulation", "no-std"]
 
 [package]
 name = "magba"
@@ -40,7 +40,9 @@ ellip = { version = "1.1.0", default-features = false, features = ["unstable"] }
 enum_dispatch = "0.3.13"
 getset = "0.1.6"
 itertools = { version = "0.14.0", default-features = false }
-nalgebra = { version = "0.34.1", default-features = false, features = ["macros"] }
+nalgebra = { version = "0.34.1", default-features = false, features = [
+    "macros",
+] }
 num-traits = { version = "0.2.19", default-features = false }
 numeric_literals = "0.2.0"
 rayon = { version = "1.10.0", optional = true }
