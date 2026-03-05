@@ -101,8 +101,8 @@ pub mod prelude {
 
     need_std!(
         pub use collections::{
-            SourceComponent, SourceAssembly, SensorComponent, SensorAssembly, SourceArray,
-            SensorArray,
+            SourceComponent, SourceAssembly, ObserverComponent, ObserverAssembly, SourceArray,
+            ObserverArray,
         };
     );
 }

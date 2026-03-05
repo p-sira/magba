@@ -7,7 +7,10 @@ use enum_dispatch::enum_dispatch;
 
 use crate::{
     base::{Float, Observer, Pose, SensorOutput, Source, Transform},
-    sensors::{Sensor, hall_effect::LinearHallSensor},
+    sensors::{
+        Sensor,
+        hall_effect::{HallLatch, HallSwitch, LinearHallSensor},
+    },
 };
 
 #[derive(Debug, Clone)]
@@ -18,15 +21,15 @@ use crate::{
 /// # use magba::observers;
 /// # use magba::prelude::*;
 /// # use magba::sensors::hall_effect::LinearHallSensor;
-/// let sensor: SensorComponent = LinearHallSensor::default().into();
+/// let sensor: ObserverComponent = LinearHallSensor::default().into();
 /// let sensors = observers!(sensor);
 /// ```
-pub enum SensorComponent<T: Float = f64> {
+pub enum ObserverComponent<T: Float = f64> {
     Sensor(Sensor<T>),
     Custom(Box<dyn Observer<T>>),
 }
 
-impl<T: Float> PartialEq for SensorComponent<T> {
+impl<T: Float> PartialEq for ObserverComponent<T> {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (Self::Sensor(l0), Self::Sensor(r0)) => l0 == r0,
@@ -39,7 +42,7 @@ impl<T: Float> PartialEq for SensorComponent<T> {
 macro_rules! impl_transitive_from {
     ($($primitive:ident),*) => {
         $(
-            impl<T: Float> From<$primitive<T>> for SensorComponent<T> {
+            impl<T: Float> From<$primitive<T>> for ObserverComponent<T> {
                 fn from(p: $primitive<T>) -> Self {
                     let intermediate: Sensor<T> = p.into();
                     intermediate.into()
@@ -49,6 +52,6 @@ macro_rules! impl_transitive_from {
     };
 }
 
-impl_transitive_from!(LinearHallSensor);
+impl_transitive_from!(LinearHallSensor, HallLatch, HallSwitch);
 
-impl<T: Float> Eq for SensorComponent<T> {}
+impl<T: Float> Eq for ObserverComponent<T> {}

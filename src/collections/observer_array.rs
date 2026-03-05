@@ -18,12 +18,12 @@ use crate::{
 
 /// Stack-allocated data structure for grouping [Observer].
 #[derive(Debug, Clone)]
-pub struct SensorArray<S: Observer<T>, const N: usize, T: Float = f64> {
+pub struct ObserverArray<S: Observer<T>, const N: usize, T: Float = f64> {
     pose: Pose<T>,
     nodes: [Node<S, T>; N],
 }
 
-impl<S: Observer<T>, const N: usize, T: Float> SensorArray<S, N, T> {
+impl<S: Observer<T>, const N: usize, T: Float> ObserverArray<S, N, T> {
     pub fn new(
         position: impl Into<Point3<T>>,
         orientation: UnitQuaternion<T>,
@@ -56,7 +56,7 @@ impl<S: Observer<T>, const N: usize, T: Float> SensorArray<S, N, T> {
     }
 }
 
-impl<S: Observer<T> + Default, T: Float, const N: usize> Default for SensorArray<S, N, T> {
+impl<S: Observer<T> + Default, T: Float, const N: usize> Default for ObserverArray<S, N, T> {
     fn default() -> Self {
         Self {
             pose: Pose::default(),
@@ -67,12 +67,12 @@ impl<S: Observer<T> + Default, T: Float, const N: usize> Default for SensorArray
 
 // MARK: Transform
 
-impl_transform!(SensorArray<S, N, T> where S: Observer<T>, const N: usize, T: Float);
-impl_group_transform!(SensorArray<S, N, T> where S: Observer<T>, const N: usize, T: Float);
+impl_transform!(ObserverArray<S, N, T> where S: Observer<T>, const N: usize, T: Float);
+impl_group_transform!(ObserverArray<S, N, T> where S: Observer<T>, const N: usize, T: Float);
 
 // MARK: Index
 
-impl<S: Observer<T>, const N: usize, T: Float> Index<usize> for SensorArray<S, N, T> {
+impl<S: Observer<T>, const N: usize, T: Float> Index<usize> for ObserverArray<S, N, T> {
     type Output = S;
 
     fn index(&self, index: usize) -> &Self::Output {
@@ -80,7 +80,7 @@ impl<S: Observer<T>, const N: usize, T: Float> Index<usize> for SensorArray<S, N
     }
 }
 
-impl<S: Observer<T>, const N: usize, T: Float> IndexMut<usize> for SensorArray<S, N, T> {
+impl<S: Observer<T>, const N: usize, T: Float> IndexMut<usize> for ObserverArray<S, N, T> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.nodes[index].component
     }
@@ -88,7 +88,7 @@ impl<S: Observer<T>, const N: usize, T: Float> IndexMut<usize> for SensorArray<S
 
 // MARK: From, Into
 
-impl<S: Observer<T>, const N: usize, T: Float> From<[S; N]> for SensorArray<S, N, T> {
+impl<S: Observer<T>, const N: usize, T: Float> From<[S; N]> for ObserverArray<S, N, T> {
     fn from(sensors: [S; N]) -> Self {
         let mut into_iter = sensors.into_iter();
         let nodes = core::array::from_fn(|_| {
@@ -104,7 +104,7 @@ impl<S: Observer<T>, const N: usize, T: Float> From<[S; N]> for SensorArray<S, N
     }
 }
 
-impl<'a, S: Observer<T>, const N: usize, T: Float> IntoIterator for &'a SensorArray<S, N, T> {
+impl<'a, S: Observer<T>, const N: usize, T: Float> IntoIterator for &'a ObserverArray<S, N, T> {
     type Item = &'a S;
     type IntoIter = std::iter::Map<std::slice::Iter<'a, Node<S, T>>, fn(&'a Node<S, T>) -> &'a S>;
 
@@ -113,7 +113,7 @@ impl<'a, S: Observer<T>, const N: usize, T: Float> IntoIterator for &'a SensorAr
     }
 }
 
-impl<S: Observer<T>, const N: usize, T: Float> IntoIterator for SensorArray<S, N, T> {
+impl<S: Observer<T>, const N: usize, T: Float> IntoIterator for ObserverArray<S, N, T> {
     type Item = S;
     type IntoIter = std::iter::Map<std::array::IntoIter<Node<S, T>, N>, fn(Node<S, T>) -> S>;
 
@@ -124,7 +124,7 @@ impl<S: Observer<T>, const N: usize, T: Float> IntoIterator for SensorArray<S, N
 
 // MARK: PartialEq
 
-impl<S: Observer<T> + PartialEq, T: Float, const N: usize> PartialEq for SensorArray<S, N, T> {
+impl<S: Observer<T> + PartialEq, T: Float, const N: usize> PartialEq for ObserverArray<S, N, T> {
     fn eq(&self, other: &Self) -> bool {
         if self.position() != other.position() || self.orientation() != other.orientation() {
             return false;
@@ -148,11 +148,11 @@ impl<S: Observer<T> + PartialEq, T: Float, const N: usize> PartialEq for SensorA
 
 // MARK: Display
 
-impl<S: Observer<T>, const N: usize, T: Float> Display for SensorArray<S, N, T> {
+impl<S: Observer<T>, const N: usize, T: Float> Display for ObserverArray<S, N, T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(
             f,
-            "Sensor Array ({} children) at {}",
+            "Observer Array ({} children) at {}",
             self.nodes.len(),
             self.pose()
         )?;
