@@ -201,7 +201,7 @@ impl<T: Float> ObserverAssembly<T> {
     pub fn format(&self, f: &mut std::fmt::Formatter<'_>, indent: &str) -> std::fmt::Result {
         writeln!(
             f,
-            "Observer Assembly ({} children) at {}",
+            "ObserverAssembly ({} children) at {}",
             self.nodes.len(),
             self.pose()
         )?;

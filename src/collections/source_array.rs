@@ -178,7 +178,7 @@ impl<S: Source<T>, const N: usize, T: Float> Display for SourceArray<S, N, T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(
             f,
-            "Source Array ({} children) at {}",
+            "SourceArray ({} children) at {}",
             self.nodes.len(),
             self.pose()
         )?;
@@ -211,7 +211,7 @@ mod display_tests {
         let sources = sources!([m1, m2, m3]);
 
         assert_eq!(
-            "Source Array (3 children) at pos=[0.0, 0.0, 0.0], rot=[0.0, 0.0, 0.0]
+            "SourceArray (3 children) at pos=[0.0, 0.0, 0.0], rot=[0.0, 0.0, 0.0]
  ├── 0: CylinderMagnet (pol=[1.0, 2.0, 3.0], d=1.0, h=1.0) at pos=[0.0, 0.0, 0.0], rot=[0.0, 0.0, 0.0]
  ├── 1: CylinderMagnet (pol=[0.0, 0.0, 1.0], d=0.1, h=0.3) at pos=[0.0, 0.0, 0.0], rot=[0.0, 0.0, 0.0]
  └── 2: CylinderMagnet (pol=[0.0, 0.0, 1.0], d=1.0, h=1.0) at pos=[4.0, 5.0, 6.0], rot=[<float>, 0.0, 0.0]",
