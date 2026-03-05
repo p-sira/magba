@@ -17,12 +17,12 @@ Python bindings available via [Pymagba](https://github.com/p-sira/pymagba).
 
 ### Basic Features
 
-- [Installing Magba](https://github.com/p-sira/magba?tab=readme-ov-file#installation)
-- [Manipulating object positions and orientations](base::Transform#examples)
-- [Creating magnets and computing fields](magnets)
-- [Using sensors to measure magnetic fields](sensors)
-- [Grouping magnets and sensors into collections](collections)
-- Parallelization using [Rayon](https://github.com/rayon-rs/rayon) (enabled by default)
+- [**Installing Magba** and controlling feature flags](https://github.com/p-sira/magba?tab=readme-ov-file#installation)
+- [Manipulating object **positions and orientations**](base::Transform#examples)
+- [Creating **magnets and computing fields**](magnets)
+- [**Using sensors** to measure magnetic fields](sensors)
+- [Grouping magnets and sensors into **collections**](collections)
+- [**Parallelization** using Rayon (enabled by default)](magnets#computing-b-field)
 
 ### Advanced Features
 
