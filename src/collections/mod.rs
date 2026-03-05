@@ -19,7 +19,7 @@ mod source_array;
 mod source_assembly;
 mod source_component;
 
-pub use node::Node;
+use node::Node;
 pub use sensor_array::SensorArray;
 pub use sensor_assembly::SensorAssembly;
 pub use sensor_component::SensorComponent;
