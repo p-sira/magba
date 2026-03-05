@@ -7,7 +7,7 @@
 //!
 //! # Examples
 //!
-//! ```rust
+//! ```
 //! use magba::prelude::*;
 //! use nalgebra::{UnitQuaternion, point};
 //! # let magnet = CuboidMagnet::default();
