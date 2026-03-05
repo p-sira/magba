@@ -17,15 +17,6 @@ use crate::{
 };
 
 /// A physical representation of a linear Hall effect sensor.
-///
-/// # Fields
-///
-/// - `position`: Center of the cylinder (m)
-/// - `orientation`: Orientation as unit quaternion
-/// - `polarization`: Polarization vector (T)
-/// - `diameter`: Cylinder diameter (m)
-/// - `height`: Cylinder height (m)
-///
 #[derive(Clone, Debug, PartialEq, Eq, Getters)]
 #[getset(get = "pub")]
 pub struct LinearHallSensor<T: Float = f64> {

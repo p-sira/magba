@@ -9,7 +9,7 @@ use enum_dispatch::enum_dispatch;
 
 use crate::{
     base::{Float, Observer, Pose, SensorOutput, Source, Transform},
-    sensors::hall_effect::LinearHallSensor,
+    sensors::hall_effect::{HallLatch, HallSwitch, LinearHallSensor},
 };
 
 /// Sensor variants
@@ -18,6 +18,8 @@ use crate::{
 #[enum_dispatch(Observer<T>, Transform<T>)]
 pub enum Sensor<T: Float = f64> {
     LinearHall(LinearHallSensor<T>),
+    HallSwitch(HallSwitch<T>),
+    HallLatch(HallLatch<T>),
 }
 
 #[cfg(all(test, feature = "std"))]

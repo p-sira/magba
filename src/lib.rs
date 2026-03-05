@@ -20,12 +20,11 @@ Python bindings available via [Pymagba](https://github.com/p-sira/pymagba).
 - [Manipulating object positions and orientations](base::Transform#examples)
 - [Creating magnets and computing fields](magnets)
 - [Using sensors to measure magnetic fields](sensors)
-- [Grouping magnets and sensors as assemblies](collections::SourceAssembly)
+- [Grouping magnets and sensors into collections](collections)
 - Parallelization using [Rayon](https://github.com/rayon-rs/rayon) (enabled by default)
 
 ### Advanced Features
 
-- [Grouping magnets and sensors using stack-allocated arrays](collections::SourceArray#examples)
 - [Calculating fields directly](fields)
 
 - Using f32
@@ -98,7 +97,7 @@ pub mod prelude {
 
     pub use base::{Float, Observer, SensorOutput, Source, Transform};
     pub use magnets::{CuboidMagnet, CylinderMagnet, Dipole, Magnet};
-    pub use sensors::{LinearHallSensor, Sensor};
+    pub use sensors::{Sensor, hall_effect};
 
     need_std!(
         pub use collections::{

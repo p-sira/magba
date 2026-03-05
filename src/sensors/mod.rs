@@ -9,6 +9,7 @@
 //!
 //! ```
 //! use magba::prelude::*;
+//! use magba::sensors::hall_effect::LinearHallSensor;
 //! use nalgebra::{UnitQuaternion, point};
 //! # let magnet = CuboidMagnet::default();
 //!
@@ -27,6 +28,4 @@
 
 pub mod hall_effect;
 mod sensor;
-
-pub use hall_effect::LinearHallSensor;
 pub use sensor::Sensor;

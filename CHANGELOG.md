@@ -37,7 +37,7 @@ e
 
 **Sensors**
 - `SensorOutput` for unified sensor output typing.
-- Implement `LinearHallSensor` and its read function.
+- **`magba::sensors::hall_effect`:** `LinearHallSensor`, `HallSwitch`, `HallLatch` and their corresponding read function in `magba::measurement`.
 
 **Pose Struct**
 - Introduce `Pose` struct to handle position/orientation logic centrally. `Source` delegates transformation logic here.
