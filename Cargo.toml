@@ -25,7 +25,7 @@ license.workspace = true
 edition = "2024"
 readme = "README.md"
 description = "Magnetic computation library for Rust"
-include = ["/src", "/tests/README.md", "/LICENSE"]
+include = ["/src", "/LICENSE"]
 
 [[bench]]
 harness = false
