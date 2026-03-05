@@ -5,22 +5,50 @@
 
 //! Magnets and physical objects that generate magnetic fields.
 //!
-//! # Examples
+//! # Declaring Magnets
 //!
-//! ```rust
-//! use magba::prelude::*;
-//! use nalgebra::{UnitQuaternion, point};
-//!
-//! // Create a cuboid magnet
+//! Using constructor:
+//! ```
+//! # use magba::prelude::*;
+//! # use nalgebra::{UnitQuaternion, point};
 //! let magnet = CuboidMagnet::new(
 //!     [0.0, 0.0, 0.0],              // position (m)
 //!     UnitQuaternion::identity(),   // orientation as unit quaternion
 //!     [0.0, 0.0, 1.0],              // polarization (T)
 //!     [0.01, 0.01, 0.02],           // dimensions (m)
 //! );
+//! ```
 //!
+//! Using builder pattern:
+//! ```
+//! # use magba::magnets::CuboidMagnet;
+//! let magnet = CuboidMagnet::default()
+//!     .with_position([0.0, 0.0, 0.0])
+//!     .with_orientation(UnitQuaternion::identity())
+//!     .with_polarization([0.0, 0.0, 1.0])
+//!     .with_dimensions([0.01, 0.01, 0.02]);
+//! ```
+//!
+//! # Computing B-field
+//!
+//! ```
+//! # use magba::prelude::*;
+//! # let magnet = CuboidMagnet::default();
 //! // Compute the B-field at a specific point
 //! let b_field = magnet.compute_B(point![0.0, 0.0, 0.02]);
+//!
+//! // Compute the B-field at multiple points
+//! let points = vec![point![0.0, 0.0, 0.02], point![0.0, 0.0, 0.03]];
+//! let b_fields = magnet.compute_B_batch(&points);
+//! ```
+//!
+//! With the `rayon` feature (default), `compute_B_batch` automatically parallelizes the magnetic
+//! field computation using [Rayon](https://github.com/rayon-rs/rayon) if the number of input
+//! points is greater than the threshold to overcome the parallelization overhead. The `rayon`
+//! feature requires `std`. You can disable the feature and fallback to sequential computation by:
+//!
+//! ```bash
+//! cargo add magba --no-default-features --features "std"
 //! ```
 
 mod cuboid;
