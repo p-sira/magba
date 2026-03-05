@@ -17,7 +17,7 @@ use crate::{
 /// ```
 /// # use magba::observers;
 /// # use magba::prelude::*;
-/// # use magba::sensors::LinearHallSensor;
+/// # use magba::sensors::hall_effect::LinearHallSensor;
 /// let sensor: SensorComponent = LinearHallSensor::default().into();
 /// let sensors = observers!(sensor);
 /// ```
