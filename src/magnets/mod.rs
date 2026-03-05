@@ -10,7 +10,7 @@
 //! Using constructor:
 //! ```
 //! # use magba::prelude::*;
-//! # use nalgebra::{UnitQuaternion, point};
+//! # use nalgebra::UnitQuaternion;
 //! let magnet = CuboidMagnet::new(
 //!     [0.0, 0.0, 0.0],              // position (m)
 //!     UnitQuaternion::identity(),   // orientation as unit quaternion
@@ -22,6 +22,7 @@
 //! Using builder pattern:
 //! ```
 //! # use magba::magnets::CuboidMagnet;
+//! # use nalgebra::UnitQuaternion;
 //! let magnet = CuboidMagnet::default()
 //!     .with_position([0.0, 0.0, 0.0])
 //!     .with_orientation(UnitQuaternion::identity())
@@ -33,6 +34,7 @@
 //!
 //! ```
 //! # use magba::prelude::*;
+//! # use nalgebra::point;
 //! # let magnet = CuboidMagnet::default();
 //! // Compute the B-field at a specific point
 //! let b_field = magnet.compute_B(point![0.0, 0.0, 0.02]);
