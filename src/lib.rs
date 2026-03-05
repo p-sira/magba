@@ -18,6 +18,7 @@ Python bindings available via [Pymagba](https://github.com/p-sira/pymagba).
 
 ### Basic Features
 
+- [Installing Magba](https://github.com/p-sira/magba?tab=readme-ov-file#installation)
 - [Manipulating object positions and orientations](base::Transform#examples)
 - [Creating magnets and computing fields](magnets)
 - [Using sensors to measure magnetic fields](sensors)
@@ -37,33 +38,6 @@ Python bindings available via [Pymagba](https://github.com/p-sira/pymagba).
 
   The `unstable` cargo feature flag enables experimental field calculation
   functions such as `local_cuboid_B` in [fields::unstable].
-
-## Installation
-
-To install Magba using `cargo`, run:
-```bash
-cargo add magba
-```
-
-By default, Magba installs with all stable features enabled, including parallelization with Rayon.
-
-The available feature flags are:
-- `default`: Enable std and rayon.
-- `alloc`: Enable heap allocations, allowing collections and batch processing without the full `std` library.
-- `std`: Use std features, such as magnet and sources structs.
-  Disable the flag to use Magba in `no_std` environments. Without std,
-  you can still access the [fields] module to directly compute the fields.
-- `rayon`: Parallelization using [Rayon](https://github.com/rayon-rs/rayon).
-- `libm`: Use libm as the math backend. Must be enabled when compiling for `no_std`.
-- `unstable`: Enable unstable features. These features may change any time.
-
-### No-std
-
-To install for `no_std` environments, you must also enable `libm`, using:
-
-```bash
-cargo add magba --no-default-features --features libm
-```
 
 ## Acknowledgment
 
