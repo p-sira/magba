@@ -44,12 +44,8 @@
 //!
 //! With the `rayon` feature (default), `compute_B_batch` automatically parallelizes the magnetic
 //! field computation using [Rayon](https://github.com/rayon-rs/rayon) if the number of input
-//! points is greater than the threshold to overcome the parallelization overhead. The `rayon`
-//! feature requires `std`. You can disable the feature and fallback to sequential computation by:
-//!
-//! ```bash
-//! cargo add magba --no-default-features --features "std"
-//! ```
+//! points is greater than the threshold to overcome the parallelization overhead.
+//! If you disable the `rayon` feature, it will fallback to sequential computation.
 
 mod cuboid;
 mod cylinder;
