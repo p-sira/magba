@@ -28,10 +28,7 @@ Python bindings available via [Pymagba](https://github.com/p-sira/pymagba).
 
 - [Calculating fields directly](fields)
 - [Using f32](base::Float)
-- Unstable features
-
-  The `unstable` cargo feature flag enables experimental field calculation
-  functions such as `local_cuboid_B` in [fields::unstable].
+- [Unstable features](fields#internal-functions-unstable)
 
 ## Acknowledgment
 
