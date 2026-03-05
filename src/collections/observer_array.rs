@@ -152,7 +152,7 @@ impl<S: Observer<T>, const N: usize, T: Float> Display for ObserverArray<S, N, T
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(
             f,
-            "Observer Array ({} children) at {}",
+            "ObserverArray ({} children) at {}",
             self.nodes.len(),
             self.pose()
         )?;
