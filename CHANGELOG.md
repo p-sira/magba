@@ -8,7 +8,7 @@
 - **Assembly Types:** Assembly holds a `Vec` of `Node` and handles both heap and stack-allocated items internally. For `SourceAssembly`, each node contains a `SourceComponent`. Likewise, the nodes of `SensorAssembly` hold `SensorComponent`. See the New Features section for more information about `Node` and the Component structs.
 - **MultiSourceCollection Removed:** Use `SourceAssembly` which now supports nested and mixed types.
 - **Field Trait Removed:** The `Field` trait is merged into the `Source` trait because the trait is redundant, and its name collides with nalgebra's `Field`.
-e
+
 **API Renames & Standardization**
 - `compute_B` and `compute_B_batch`: The word "compute" suggests numerical evaluation rather than returning pre-computed values.
 - `CylinderMagnet` accepts `diameter` instead of `radius`.
