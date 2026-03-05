@@ -36,7 +36,7 @@ impl_transform!(HallLatch<T> where T: Float);
 impl<T: Float> Clone for HallLatch<T> {
     fn clone(&self) -> Self {
         Self {
-            pose: self.pose.clone(),
+            pose: self.pose,
             sensitive_axis: self.sensitive_axis,
             b_op: self.b_op,
             b_rp: self.b_rp,
