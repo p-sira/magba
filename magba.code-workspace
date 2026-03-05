@@ -5,9 +5,7 @@
         }
     ],
     "settings": {
-        "rust-analyzer.cargo.features": [
-            "sources"
-        ],
+        "rust-analyzer.cargo.features": [],
         "psi-header.variables": [
             [
                 "project",
