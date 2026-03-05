@@ -4,6 +4,18 @@
  */
 
 //! Data structures for grouping and management of magnetic components.
+//!
+//! This module provides two primary types of collections for both magnetic sources and sensors: **Arrays** and **Assemblies**.
+//!
+//! # Arrays vs. Assemblies
+//!
+//! | Feature | Array (`SourceArray`, `SensorArray`) | Assembly (`SourceAssembly`, `SensorAssembly`) |
+//! |---------|--------------------------------------|-----------------------------------------------|
+//! | **Allocation** | Stack-allocated | Heap-allocated |
+//! | **Capacity** | Fixed-size (`const N: usize`) | Dynamically-sized (`Vec`) |
+//! | **Components** | Uniform type (unless wrapped in an enum like `Magnet`) | Naturally heterogeneous |
+//! | **Nesting** | Not supported | Supported (only for `SourceAssembly`) |
+//! | **Custom Types** | Not supported | Supported |
 
 mod macros;
 #[cfg(test)]
