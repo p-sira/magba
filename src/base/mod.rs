@@ -7,6 +7,9 @@
 
 pub(crate) mod coordinate;
 
+pub(crate) mod math;
+pub use math::Float;
+
 pub(crate) mod pose;
 pub use pose::Pose;
 
@@ -30,37 +33,3 @@ pub trait DynClone {}
 impl<T: dyn_clone::DynClone> DynClone for T {}
 #[cfg(not(feature = "std"))]
 impl<T> DynClone for T {}
-
-const MU0: f64 = 1.2566370614359173e-6;
-
-/// Generic trait for floating point numbers compatible with all [Magba](crate) implementations.
-///
-/// Supports [f32] and [f64].
-/// 
-/// # Examples
-/// ```
-/// use magba::prelude::*;
-/// use nalgebra::*;
-/// 
-/// let x: f64 = 1.0;
-/// assert!(x.is_finite());
-/// assert_eq!(x.mu0(), 1.2566370614359173e-6);
-/// ```
-pub trait Float: nalgebra::RealField + num_traits::Float + Copy {
-    /// Permeability of free space (μ₀) = 4π × 10⁻⁷ H/m.
-    fn mu0() -> Self;
-}
-
-impl Float for f32 {
-    #[inline]
-    fn mu0() -> Self {
-        MU0 as f32
-    }
-}
-
-impl Float for f64 {
-    #[inline]
-    fn mu0() -> Self {
-        MU0
-    }
-}
