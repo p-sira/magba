@@ -54,7 +54,7 @@ pub use field_cylinder::{cylinder_B, cylinder_B_batch, sum_multiple_cylinder_B};
 pub use field_dipole::{dipole_B, dipole_B_batch, sum_multiple_dipole_B};
 
 #[cfg(feature = "unstable")]
-pub mod unstable {
+mod unstable {
     use super::*;
     pub use field_cuboid::local_cuboid_B;
     pub use field_cylinder::{
