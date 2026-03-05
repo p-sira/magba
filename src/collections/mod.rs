@@ -13,7 +13,7 @@
 //! |---------|--------------------------------------|-----------------------------------------------|
 //! | **Allocation** | Stack-allocated | Heap-allocated |
 //! | **Capacity** | Fixed-size (`const N: usize`) | Dynamically-sized (`Vec`) |
-//! | **Components** | Uniform type (unless wrapped in an enum like `Magnet`) | Naturally heterogeneous |
+//! | **Components** | Uniform type (unless wrapped in an enum like `Magnet`) | Heterogeneous |
 //! | **Nesting** | Not supported | Supported (only for `SourceAssembly`) |
 //! | **Custom Types** | Not supported | Supported |
 //!
@@ -21,11 +21,6 @@
 //!
 //! Instead of manually creating collections, you can use the [`sources!`](crate::sources) and [`observers!`](crate::observers) macros.
 //! These macros provide a familiar, `vec!`-like syntax to quickly build up arrays and assemblies.
-//!
-//! - **Arrays**: Use bracket syntax (e.g., `sources!([m1, m2])`) to instantiate a fixed-size `SourceArray` or `ObserverArray`.
-//! - **Assemblies**: Use comma-separated arguments (e.g., `sources!(m1, m2)`) to instantiate a dynamically-sized `SourceAssembly` or `ObserverAssembly`.
-//!
-//! Note that the macros are exported at the root of the crate (`magba::sources!`, `magba::observers!`).
 
 mod macros;
 #[cfg(test)]

@@ -49,8 +49,8 @@
 //! # Internal Functions (`unstable`)
 //!
 //! The following functions with `unstable` badges are internal
-//! functions. They are subject to change without prior notice. However, you can access them via
-//! the `unstable` feature flag:
+//! functions. They are subject to change without prior notice.
+//! However, you can access them via the `unstable` feature flag:
 //!
 //! ```bash
 //! cargo add magba --features unstable
