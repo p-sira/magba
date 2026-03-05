@@ -22,62 +22,84 @@
 
 **Magba** is a performant analytical magnetic computation library for Rust.
 
+Python bindings available via [PyMagba](https://github.com/p-sira/pymagba).
+
 ```bash
->> cargo add magba
+cargo add magba
 ```
 
 Learn more at [docs.rs/magba](https://docs.rs/magba).
 
 ## Features
-- Compute [magnetic fields](#field-computation) analytically for various source geometries.
-- Create [magnetic sources](Source) and group them as [source collections](#sources-and-collections).
-- [Move and rotate objects](#move-and-rotate-objects) in 3D space.
-- Increase performance using [parallelization](#installation) with [Rayon](https://docs.rs/crate/rayon/latest).
-- Support calculation with [f32] and [f64].
-- Python bindings available via [Pymagba](https://github.com/p-sira/pymagba)
+
+- Creating magnets and computing fields.
+- Manipulating object positions and orientations.
+- Using sensors to measure magnetic fields.
+- Grouping magnets and sensors into collections.
+- Parallelization using [Rayon](https://docs.rs/crate/rayon/latest) (enabled by default).
+- Support calculation with `f32` and `f64`.
+
+## Installation
+
+To install Magba using `cargo`, run:
+```bash
+cargo add magba
+```
+
+By default, Magba installs with all stable features enabled, including parallelization with Rayon.
+
+### Feature Flags
+
+The available feature flags are:
+- `default`: Enable std and rayon.
+- `alloc`: Enable heap allocations, allowing collections and batch processing without the full `std` library.
+- `std`: Use std features, such as magnet and sources structs.
+  Disable the flag to use Magba in `no_std` environments. Without std,
+  you can still access the `fields` module to directly compute the fields.
+- `rayon`: Parallelization using [Rayon](https://github.com/rayon-rs/rayon).
+- `libm`: Use libm as the math backend. Must be enabled when compiling for `no_std`.
+- `unstable`: Enable unstable features. These features may change any time.
 
 ## Quick Start
 
-To install, simply: `cargo add magba`.
-
 ```rust
-use magba::*;
+use magba::prelude::*;
 use nalgebra::*;
 use std::f64::consts::PI;
 
 // Define magnetic sources
-let cylinder = Box::new(CylinderMagnet::default());
-let cuboid = Box::new(CuboidMagnet::new(
-    Point3::new(1.0, 0.0, 0.0),  // position (m)
-    UnitQuaternion::identity(),  // orientation
-    Vector3::z(),                // polarization (T)
-    Vector3::new(0.1, 0.2, 0.3), // dimensions (m)
-));
-//!
+let cylinder = CylinderMagnet::default();
+let cuboid = CuboidMagnet::new(
+    [1.0, 0.0, 0.0],              // position (m)
+    UnitQuaternion::identity(),   // orientation
+    [0.0, 0.0, 1.0],              // polarization (T)
+    [0.1, 0.2, 0.3],              // dimensions (m)
+);
+
 // Grouping sources as collection
-let mut collection = MultiSourceCollection::from_sources(vec![cylinder, cuboid]);
-collection.add(Box::new(Dipole::default()));
+let mut source_assembly = sources!(cylinder, cuboid);
+source_assembly.push(Dipole::default());
 
 // Observer positions
 let points = [
-    Point3::new(0.0, 0.0, 0.020),
-    Point3::new(0.0, 0.0, 0.025),
-    Point3::new(0.0, 0.0, 0.030),
+    point![0.0, 0.0, 0.020],
+    point![0.0, 0.0, 0.025],
+    point![0.0, 0.0, 0.030],
 ];
 
 // Compute B-field (Magnetic flux density [T])
-let b_fields = collection.get_B(&points);
+let b_fields = source_assembly.compute_B_batch(&points);
 // [
-//      [ -2.7063724257464133e-5,  -3.533949646070574e-17,  0.4715809600578704  ],
-//      [ -3.381192498299282e-5 ,   0.0,                    0.4592848558923018  ],
-//      [ -4.0548326050340215e-5,   0.0,                    0.45377483361434284 ],
+//     [ -2.7063724257464133e-5,  -3.533949646070574e-17,  0.7312215044902747  ],
+//     [ -3.381192498299282e-5 ,   0.0,                    0.7187831955877858  ],
+//     [ -4.0548326050340215e-5,   0.0,                    0.7130992758498962  ],
 // ]
 
 // Move and Rotate
-collection.translate(&Translation3::new(0.0, 0.0, 0.010));
-collection.rotate(&UnitQuaternion::from_scaled_axis(Vector3::new(PI / 4.0, 0.0, 0.0)));
+source_assembly.translate([0.0, 0.0, 0.010]);
+source_assembly.rotate(UnitQuaternion::from_scaled_axis([PI / 4.0, 0.0, 0.0].into()));
 
-let b_fields = collection.get_B(&points);
+let b_fields = source_assembly.compute_B_batch(&points);
 // [
 //     [ -9.575129388363597e-6 ,  -0.24516787434696088,  0.4573303607411665  ],
 //     [ -1.4358446356125264e-5,  -0.2948988353221851 ,  0.3578212873125478  ],
@@ -89,6 +111,13 @@ let b_fields = collection.get_B(&points);
 
 Results are validated against MagpyLib and reference data.
 See `/tests/test-data` and the accuracy report for details.
+
+---
+
+## Acknowledgment
+
+Most of the field computation used in Magba is based on [MagpyLib](https://github.com/magpylib/magpylib).
+We would like to thank MagpyLib contributors for their hard work and contributions to the scientific community.
 
 ---
 

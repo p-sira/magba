@@ -1,4 +1,68 @@
 # Changelog
+## 0.3
+### 0.3.0
+
+#### BREAKING CHANGES
+
+**Core Architecture**
+- **Assembly Types:** Assembly holds a `Vec` of `Node` and handles both heap and stack-allocated items internally. For `SourceAssembly`, each node contains a `SourceComponent`. Likewise, the nodes of `SensorAssembly` hold `SensorComponent`. See the New Features section for more information about `Node` and the Component structs.
+- **MultiSourceCollection Removed:** Use `SourceAssembly` which now supports nested and mixed types.
+- **Field Trait Removed:** The `Field` trait is merged into the `Source` trait because the trait is redundant, and its name collides with nalgebra's `Field`.
+e
+**API Renames & Standardization**
+- `compute_B` and `compute_B_batch`: The word "compute" suggests numerical evaluation rather than returning pre-computed values.
+- `CylinderMagnet` accepts `diameter` instead of `radius`.
+- `SourceAssembly`: Rename the methods `add` to `push` and `add_sources` to `extend`.
+
+**Codebase Restructure**
+- Remove the `util` module.
+- `Transform` trait now indicates the ability to return `Pose` object.
+
+**Feature Flag Reorganization**
+- Available feature flags are `std`, `rayon`, `libm`, `unstable`. To install for `no_std` environments, you must also enable `libm`.
+
+#### New Features
+
+**Components Design**
+- **Node Struct:** Assemblies now store `Node`, which holds the component's local position and the relative offset with respect to the collection's local coordinate, mitigating error accumulation during repeated transformations.
+- **SourceComponent Enum:** The variants can be `Magnet`, `Assembly`, or `Custom`. Components can be grouped into `SourceAssembly`.
+- **ObserverComponent Enum:** The variants can be `Sensor` or `Custom`. Likewise, they can be grouped into `ObserverAssembly`.
+- **Magnet and Sensor Enums:** The variants are all structs defined in `magba::magnets` and `magba::sensors`, respectively.
+
+**Stack Allocation**
+- `SourceArray` and `ObserverArray`: A fixed-size, stack-allocated, homogeneous collection of `Source` and `Observer`, respectively.
+
+**New Feature Flags**
+- Add `no_std`, `libm`, and `alloc` feature flags.
+
+**Sensors**
+- `SensorOutput` for unified sensor output typing.
+- **`magba::sensors::hall_effect`:** `LinearHallSensor`, `HallSwitch`, `HallLatch` and their corresponding read function in `magba::measurement`.
+
+**Pose Struct**
+- Introduce `Pose` struct to handle position/orientation logic centrally. `Source` delegates transformation logic here.
+
+**Developer Experience**
+- `sources!` and `observers!` macros for convenient declaration of composite Arrays and Assemblies.
+- Most arguments now implement Into for automatic conversion from `std` types to `nalgebra` types.
+- Add builder methods (`with_*`) to all magnet and collection structs.
+- Add input validation for all constructors and setters.
+
+#### Improvements
+
+- **Field Computation:** Use Rust's fold idiom for LLVM auto-vectorization and Rayon's fold and reduce for better parallelization.
+- **Dependency Upgrade:** Update `ellip`, the internal math backend, to v1.1.0, improving performance, removing BulirschConst constraint from `magba::Float`, and supporting `no_std`.
+- **Dependency Upgrade:** Update `nalgebra` to v0.34.1.
+
+**Documentations**
+- Add `CODE_OF_CONDUCT.md` and `CONTRIBUTING.md`.
+- Add testing documentation in `tests/`.
+- Improve documentations.
+
+**Testing**
+- Add static tests and corresponding testing suite.
+- Add `assert_close_vec!` macro for doctest.
+
 ## 0.2
 ### 0.2.0
 **Breaking Changes**
@@ -11,8 +75,8 @@
 
 **New Features**
 - Support both `f32` and `f64`.
-- `fields::field_cuboid`: Compute magnetic field for cuboid magnets.
-- `fields::field_dipole`: Compute magnetic field for magnetic dipole moments.
+- `fields::field_cuboid`: Computes magnetic field for cuboid magnets.
+- `fields::field_dipole`: Computes magnetic field for magnetic dipole moments.
 - `CuboidMagnet`: Struct for cuboid magnet.
 - `Dipole`: Struct for magnetic dipole moment.
 - Add `from_sources` method for `SourceCollection` and `MultiSourceCollection`.
@@ -48,7 +112,7 @@
 
 ### 0.1.0
 **New Features**
-- `fields::field_cylinder`: Compute magnetic field for cylindrical magnets.
+- `fields::field_cylinder`: Computes magnetic field for cylindrical magnets.
 - `CylinderMagnet`: Struct for cylindrical magnet.
 - `SourceCollection`: Struct for homogeneous source collection.
 - `MultiSourceCollection`: Struct for heterogeneous source collection.

@@ -4,40 +4,37 @@
  */
 
 //! Analytical B-field computation for cuboid magnets.
-//! 
-//! <div class="warning">⚠️ Unstable feature. May subject to changes.</div>
 
-use std::iter::Sum;
-
-use nalgebra::{Matrix3, Point3, RealField, UnitQuaternion, Vector3};
+use nalgebra::{Matrix3, Point3, RealField, UnitQuaternion, Vector3, vector};
 use numeric_literals::replace_float_literals;
 
 use crate::{
+    base::coordinate::compute_in_local,
     crate_util::{impl_parallel, impl_parallel_sum},
-    geometry::compute_in_local,
 };
 
-/// Compute B-field of a homogeneous cuboid magnet at point (x, y, z) in the local frame.
+/// Computes B-field of a homogeneous cuboid magnet at point (x, y, z) in the local frame.
 ///
-/// <div class="warning">⚠️ Unstable feature. May subject to changes.</div>
-/// 
 /// # Arguments
+///
 /// - `point`: Observer position (m)
 /// - `dimensions`: Cuboid side lengths (m)
 /// - `polarization`: Polarization vector (T)
 ///
 /// # Returns
+///
 /// - B-field vector (T) at point (x, y, z)
 ///
 /// # References
+///
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[allow(non_snake_case)]
 #[inline]
 #[replace_float_literals(T::from_f64(literal).unwrap())]
 pub fn local_cuboid_B<T: RealField + Copy>(
-    point: &Point3<T>,
-    polarization: &Vector3<T>,
-    dimensions: &Vector3<T>,
+    point: Point3<T>,
+    polarization: Vector3<T>,
+    dimensions: Vector3<T>,
 ) -> Vector3<T> {
     let (mut x, mut y, mut z) = (point.x, point.y, point.z);
     let abc = dimensions / 2.0;
@@ -166,33 +163,49 @@ pub fn local_cuboid_B<T: RealField + Copy>(
     let by_tot = by_pol_x + by_pol_y + by_pol_z;
     let bz_tot = bz_pol_x + bz_pol_y + bz_pol_z;
 
-    Vector3::new(bx_tot, by_tot, bz_tot) / (4.0 * T::pi())
+    vector![bx_tot, by_tot, bz_tot] / (4.0 * T::pi())
 }
 
-/// Compute B-field of a homogeneous cuboid magnet at point (x, y, z).
+/// Computes B-field of a homogeneous cuboid magnet at point (x, y, z).
 ///
-/// <div class="warning">⚠️ Unstable feature. May subject to changes.</div>
-/// 
 /// # Arguments
-/// - `point`: Observer position (m)
+///
+/// - `point`: Observer positions (m)
 /// - `position`: Magnet position (m)
 /// - `orientation`: Magnet orientation in unit quaternion
-/// - `dimensions`: Cuboid side lengths (m)
 /// - `polarization`: Polarization vector (T)
+/// - `dimensions`: Cuboid side lengths (m)
 ///
-/// # Returns
-/// - B-field vector (T) at point (x, y, z)
+/// # Examples
+///
+/// ```
+/// # use approx::assert_relative_eq;
+/// # use magba::fields::cuboid_B;
+/// # use nalgebra::*;
+/// let b_field = cuboid_B(
+///     point![5.0, 6.0, 7.0],
+///     point![1.0, 2.0, 3.0],
+///     UnitQuaternion::from_scaled_axis(
+///         [1.0471975511965976, 0.6283185307179586, 0.4487989505128276].into(),
+///     ),
+///     vector![0.45, 0.3, 0.15],
+///     vector![1.0, 2.0, 3.0],
+/// );
+/// let expected = vector![0.0007246145093594572, 0.0008956704674508121, 0.0010056854402183814];
+/// assert_relative_eq!(b_field, expected, epsilon = 5e-14);
+/// ```
 ///
 /// # References
+///
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[allow(non_snake_case)]
 #[inline]
-pub fn global_cuboid_B<T: RealField + Copy>(
-    point: &Point3<T>,
-    position: &Point3<T>,
-    orientation: &UnitQuaternion<T>,
-    polarization: &Vector3<T>,
-    dimensions: &Vector3<T>,
+pub fn cuboid_B<T: RealField + Copy>(
+    point: Point3<T>,
+    position: Point3<T>,
+    orientation: UnitQuaternion<T>,
+    polarization: Vector3<T>,
+    dimensions: Vector3<T>,
 ) -> Vector3<T> {
     compute_in_local!(
         local_cuboid_B,
@@ -203,64 +216,111 @@ pub fn global_cuboid_B<T: RealField + Copy>(
     )
 }
 
-/// Compute B-field at points in global frame for a single cuboid magnet.
+/// Computes B-field at points in global frame for a single cuboid magnet.
 ///
 /// # Arguments
+///
 /// - `points`: Observer positions (m)
 /// - `position`: Magnet position (m)
 /// - `orientation`: Magnet orientation in unit quaternion
 /// - `polarization`: Polarization vector (T)
 /// - `dimensions`: Cuboid side lengths (m)
+/// - `out`: Mutable slice to store the B-field vectors at each observer (T)
 ///
-/// # Returns
-/// - B-field vectors at each observer (T)
-/// 
+/// # Examples
+///
+/// ```
+/// # use approx::assert_relative_eq;
+/// # use magba::fields::cuboid_B_batch;
+/// # use nalgebra::*;
+/// let mut out = [Vector3::zeros(); 3];
+/// cuboid_B_batch(
+///     &[
+///         point![5.0, 6.0, 7.0],
+///         point![4.0, 3.0, 2.0],
+///         point![0.5, 0.25, 0.125],
+///     ],
+///     point![1.0, 2.0, 3.0],
+///     UnitQuaternion::from_scaled_axis(
+///         [1.0471975511965976, 0.6283185307179586, 0.4487989505128276].into(),
+///     ),
+///     vector![0.45, 0.3, 0.15],
+///     vector![1.0, 2.0, 3.0],
+///     &mut out,
+/// );
+///
+/// let expected_fields = [
+///     vector![
+///         0.0007246145093594572,
+///         0.0008956704674508121,
+///         0.0010056854402183814
+///     ],
+///     vector![
+///         0.007318657264531047,
+///         0.0013309418462993756,
+///         -0.006614791491997044
+///     ],
+///     vector![
+///         -0.002912635045339925,
+///         0.003374408702355898,
+///         0.009246801593396508
+///     ],
+/// ];
+///
+/// out.iter()
+///     .zip(expected_fields.iter())
+///     .for_each(|(actual, expected)| assert_relative_eq!(actual, expected, epsilon = 5e-14));
+/// ```
+///
 /// # References
+///
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[allow(non_snake_case)]
-pub fn cuboid_B<T: RealField + Copy>(
+pub fn cuboid_B_batch<T: RealField + Copy>(
     points: &[Point3<T>],
-    position: &Point3<T>,
-    orientation: &UnitQuaternion<T>,
-    polarization: &Vector3<T>,
-    dimensions: &Vector3<T>,
-) -> Vec<Vector3<T>> {
+    position: Point3<T>,
+    orientation: UnitQuaternion<T>,
+    polarization: Vector3<T>,
+    dimensions: Vector3<T>,
+    out: &mut [Vector3<T>],
+) {
     impl_parallel!(
-        global_cuboid_B,
-        60,
-        points,
-        position,
-        orientation,
-        polarization,
-        dimensions,
+        cuboid_B,
+        rayon_threshold: 60,
+        input: points,
+        output: out,
+        args: [position, orientation, polarization, dimensions]
     )
 }
 
-/// Compute net B-field at each given point in global frame for multiple cuboid magnets.
+/// Computes net B-field at each given point in global frame for multiple cuboid magnets.
 ///
 /// # Arguments
+///
 /// - `points`: Observer positions in global frame (m)
 /// - `positions`: Magnet positions (m)
 /// - `orientations`: Magnet orientations as unit quaternions
 /// - `polarizations`: Polarization vectors (T)
 /// - `dimensions`: Cuboid side lengths (m)
+/// - `out`: Mutable slice to store the net B-field vectors at each observer (T)
 ///
-/// # Returns
-/// - Net B-field vectors at each observer (T)
-/// 
 /// # References
+///
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[allow(non_snake_case)]
-pub fn sum_multiple_cuboid_B<T: RealField + Copy + Sum>(
+pub fn sum_multiple_cuboid_B<T: RealField + Copy>(
     points: &[Point3<T>],
     positions: &[Point3<T>],
     orientations: &[UnitQuaternion<T>],
     polarizations: &[Vector3<T>],
     dimensions: &[Vector3<T>],
-) -> Vec<Vector3<T>> {
+    out: &mut [Vector3<T>],
+) {
     impl_parallel_sum!(
+        out,
         points,
+        60,
         [positions, orientations, polarizations, dimensions],
-        |pos, orien, pol, dim| cuboid_B(points, pos, orien, pol, dim)
+        |pos, p, o, pol, dim| cuboid_B(*pos, *p, *o, *pol, *dim)
     )
 }

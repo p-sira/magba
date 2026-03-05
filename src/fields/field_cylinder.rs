@@ -4,40 +4,43 @@
  */
 
 //! Analytical B-field computation for cylindrical magnets.
-//! 
-//! <div class="warning">⚠️ Unstable feature. May subject to changes.</div>
 
-use std::iter::Sum;
-
-use ellip::bulirsch::BulirschConst;
-use ellip::{cel, ellipe, ellipk};
-use nalgebra::{Point3, RealField, UnitQuaternion, Vector3};
+use ellip::{
+    bulirsch::{DefaultPrecision, cel_with_const},
+    ellipe, ellipk,
+};
+use nalgebra::{Point3, UnitQuaternion, Vector3, vector};
+use num_traits::Float as NumFloat;
 use numeric_literals::replace_float_literals;
 
-use crate::crate_util::{impl_parallel, impl_parallel_sum};
-use crate::geometry::{cart2cyl, compute_in_local, vec_cyl2cart};
-use crate::Float;
-use num_traits::Float as NumFloat;
+use crate::{
+    base::{
+        Float,
+        coordinate::{cart2cyl, compute_in_local, vec_cyl2cart},
+    },
+    crate_util::{impl_parallel, impl_parallel_sum},
+};
 
-/// Compute B-field of a cylindrical magnet with unit axial (z-axis) polarization
+/// Computes B-field of a cylindrical magnet with unit axial (z-axis) polarization
 /// at point (r, z) in cylindrical CS.
 ///
-/// <div class="warning">⚠️ Unstable feature. May subject to changes.</div>
-///
 /// # Arguments
+///
 /// - `r`, `z`: Observer positions in cylindrical CS, normalized by radius
 /// - `z0`: Half the height over radius
 ///
 /// # Returns
+///
 /// - B-field vector (T) at point (r, z)
 ///
 /// # References
+///
 /// - Derby, Norman, and Stanislaw Olbert. “Cylindrical Magnets and Ideal Solenoids.” American Journal of Physics 78, no. 3 (March 1, 2010): 229–35. <https://doi.org/10.1119/1.3256157>.
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[allow(non_snake_case)]
 #[inline]
 #[replace_float_literals(T::from_f64(literal).unwrap())]
-pub fn unit_axial_cylinder_B_cyl<T: Float + Copy>(r: T, z: T, z0: T) -> Vector3<T> {
+pub fn unit_axial_cylinder_B_cyl<T: Float>(r: T, z: T, z0: T) -> Vector3<T> {
     let (zp, zm) = (z + z0, z - z0);
     let (rp, rm) = (1.0 + r, 1.0 - r);
 
@@ -53,37 +56,36 @@ pub fn unit_axial_cylinder_B_cyl<T: Float + Copy>(r: T, z: T, z0: T) -> Vector3<
     let gamma = rm / rp;
     let gamma2 = gamma * gamma;
 
-    let br =
-        (cel(kp, 1.0, 1.0, -1.0).unwrap() / sq1 - cel(km, 1.0, 1.0, -1.0).unwrap() / sq0) / T::pi();
-    let bz = (zp * cel(kp, gamma2, 1.0, gamma).unwrap() / sq1
-        - zm * cel(km, gamma2, 1.0, gamma).unwrap() / sq0)
+    let br = (cel_with_const::<T, DefaultPrecision>(kp, 1.0, 1.0, -1.0).unwrap() / sq1
+        - cel_with_const::<T, DefaultPrecision>(km, 1.0, 1.0, -1.0).unwrap() / sq0)
+        / T::pi();
+    let bz = (zp * cel_with_const::<T, DefaultPrecision>(kp, gamma2, 1.0, gamma).unwrap() / sq1
+        - zm * cel_with_const::<T, DefaultPrecision>(km, gamma2, 1.0, gamma).unwrap() / sq0)
         / (rp * T::pi());
     // bphi = 0
-    Vector3::new(br, 0.0, bz)
+    vector![br, 0.0, bz]
 }
 
-/// Compute B-field of a cylindrical magnet with unit diametrial (r-axis) polarization
+/// Computes B-field of a cylindrical magnet with unit diametrial (r-axis) polarization
 /// at point (r, phi, z) in cylindrical CS.
 ///
-/// <div class="warning">⚠️ Unstable feature. May subject to changes.</div>
-/// 
 /// # Arguments
+///
 /// - `r`, `phi`, `z`: Observer positions in cylindrical CS, normalized by radius
 /// - `z0`: Half the height over radius
 ///
 /// # Returns
+///
 /// - B-field vector (T) at point (r, phi, z)
 ///
 /// # References
+///
 /// - Caciagli, Alessio, Roel J. Baars, Albert P. Philipse, and Bonny W. M. Kuipers. “Exact Expression for the Magnetic Field of a Finite Cylinder with Arbitrary Uniform Magnetization.” Journal of Magnetism and Magnetic Materials 456 (June 15, 2018): 423–32. <https://doi.org/10.1016/j.jmmm.2018.02.003>.
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[allow(non_snake_case)]
 #[inline]
 #[replace_float_literals(T::from_f64(literal).unwrap())]
-pub fn unit_diametric_cylinder_B_cyl<T>(r: T, phi: T, z: T, z0: T) -> Vector3<T>
-where
-    T: RealField + Copy + Float + BulirschConst,
-{
+pub fn unit_diametric_cylinder_B_cyl<T: Float>(r: T, phi: T, z: T, z0: T) -> Vector3<T> {
     let (zp, zm) = (z + z0, z - z0);
     let (zp2, zm2) = (zp * zp, zm * zm);
     let r2 = r * r;
@@ -119,7 +121,7 @@ where
                     * r5
                     * ((1.0 - 12.0 * zp2 + 8.0 * zp4) / zpp5 / sqrt_p
                         - (1.0 - 12.0 * zm2 + 8.0 * zm4) / zmm5 / sqrt_m));
-        return Vector3::new(br, bphi, bz);
+        return vector![br, bphi, bz];
     }
 
     // General case
@@ -138,15 +140,17 @@ where
         (-4.0 * r / rm2, 1.0 / rm)
     };
 
-    // Compute elliptics
+    // Computes elliptics
     let (ellk_p, ellk_m) = (ellipk(argp).unwrap(), ellipk(argm).unwrap());
     let (elle_p, elle_m) = (ellipe(argp).unwrap(), ellipe(argm).unwrap());
     let (ellpi_p, ellpi_m) = (
-        cel(NumFloat::sqrt(1.0 - argp), 1.0 - argc, 1.0, 1.0).unwrap(),
-        cel(NumFloat::sqrt(1.0 - argm), 1.0 - argc, 1.0, 1.0).unwrap(),
+        cel_with_const::<T, DefaultPrecision>(NumFloat::sqrt(1.0 - argp), 1.0 - argc, 1.0, 1.0)
+            .unwrap(),
+        cel_with_const::<T, DefaultPrecision>(NumFloat::sqrt(1.0 - argm), 1.0 - argc, 1.0, 1.0)
+            .unwrap(),
     );
 
-    // Compute the fields
+    // Computes the fields
     let br = -NumFloat::cos(phi) / (4.0 * T::pi() * r2)
         * (-zm * am * elle_m + zp * ap * elle_p + zm / am * (2.0 + zm2) * ellk_m
             - zp / ap * (2.0 + zp2) * ellk_p
@@ -162,14 +166,13 @@ where
         * (am * elle_m - ap * elle_p - (1.0 + zm2 + r2) / am * ellk_m
             + (1.0 + zp2 + r2) / ap * ellk_p);
 
-    Vector3::new(br, bphi, bz)
+    vector![br, bphi, bz]
 }
 
-/// Compute B-field of a cylindrical magnet at point (r, phi, z) in cylindrical CS.
+/// Computes B-field of a cylindrical magnet at point (r, phi, z) in cylindrical CS.
 ///
-/// <div class="warning">⚠️ Unstable feature. May subject to changes.</div>
-/// 
 /// # Arguments
+///
 /// - `r`, `phi`, `z`: Observer positions in cylindrical CS (m, rad, m)
 /// - `radius`: Cylinder radius (m)
 /// - `height`: Cylinder height (m)
@@ -177,19 +180,22 @@ where
 /// - `pol_z`: Axial polarization (T)
 ///
 /// # Returns
+///
 /// - B-field vector (T) at point (r, phi, z)
 ///
 /// # Notes
+///
 /// - Zero vector is returned if the point is close to the cylindrical magnet's edge (rim).
 ///
 /// # References
+///
 /// - Caciagli, Alessio, Roel J. Baars, Albert P. Philipse, and Bonny W. M. Kuipers. “Exact Expression for the Magnetic Field of a Finite Cylinder with Arbitrary Uniform Magnetization.” Journal of Magnetism and Magnetic Materials 456 (June 15, 2018): 423–32. <https://doi.org/10.1016/j.jmmm.2018.02.003>.
 /// - Derby, Norman, and Stanislaw Olbert. “Cylindrical Magnets and Ideal Solenoids.” American Journal of Physics 78, no. 3 (March 1, 2010): 229–35. <https://doi.org/10.1119/1.3256157>.
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[allow(non_snake_case)]
 #[inline]
 #[replace_float_literals(T::from_f64(literal).unwrap())]
-pub fn cylinder_B_cyl<T: RealField + Copy + Float + BulirschConst>(
+pub fn cylinder_B_cyl<T: Float>(
     r: T,
     phi: T,
     z: T,
@@ -224,28 +230,31 @@ pub fn cylinder_B_cyl<T: RealField + Copy + Float + BulirschConst>(
     b
 }
 
-/// Compute B-field at point (x, y, z) of a cylindrical magnet in local frame.
+/// Computes B-field at point (x, y, z) of a cylindrical magnet in local frame.
 ///
 /// <div class="warning">⚠️ Unstable feature. May subject to changes.</div>
-/// 
+///
 /// # Arguments
+///
 /// - `point`: Observer position in local frame (m)
 /// - `polarization`: Polarization vector (T)
 /// - `radius`: Cylinder radius (m)
 /// - `height`: Cylinder height (m)
 ///
 /// # Returns
+///
 /// - B-field vector at the observer (T)
 ///
 /// # References
+///
 /// - Caciagli, Alessio, Roel J. Baars, Albert P. Philipse, and Bonny W. M. Kuipers. “Exact Expression for the Magnetic Field of a Finite Cylinder with Arbitrary Uniform Magnetization.” Journal of Magnetism and Magnetic Materials 456 (June 15, 2018): 423–32. <https://doi.org/10.1016/j.jmmm.2018.02.003>.
 /// - Derby, Norman, and Stanislaw Olbert. “Cylindrical Magnets and Ideal Solenoids.” American Journal of Physics 78, no. 3 (March 1, 2010): 229–35. <https://doi.org/10.1119/1.3256157>.
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[allow(non_snake_case)]
 #[inline]
-pub fn local_cylinder_B<T: RealField + Copy + Float + BulirschConst>(
-    point: &Point3<T>,
-    polarization: &Vector3<T>,
+pub fn local_cylinder_B<T: Float>(
+    point: Point3<T>,
+    polarization: Vector3<T>,
     radius: T,
     height: T,
 ) -> Vector3<T> {
@@ -265,116 +274,181 @@ pub fn local_cylinder_B<T: RealField + Copy + Float + BulirschConst>(
     let (bx, by) = vec_cyl2cart(b_cyl.x, b_cyl.y, phi);
     // Check if point is in the magnet
     if r <= radius && NumFloat::abs(point.z) <= height / T::from(2.0).unwrap() {
-        return Vector3::new(bx + polarization.x, by + polarization.y, b_cyl.z);
+        return vector![bx + polarization.x, by + polarization.y, b_cyl.z];
     }
 
-    Vector3::new(bx, by, b_cyl.z)
+    vector![bx, by, b_cyl.z]
 }
 
-/// Compute B-field at point (x, y, z) of a cylindrical magnet.
+/// Computes B-field at point (x, y, z) of a cylindrical magnet.
 ///
-/// <div class="warning">⚠️ Unstable feature. May subject to changes.</div>
-/// 
 /// # Arguments
-/// - `point`: Observer position in local frame (m)
+///
+/// - `point`: Observer positions in global frame (m)
 /// - `position`: Magnet position (m)
-/// - `orientation`: Magnet orientation in unit quaternion
+/// - `orientation`: Magnet orientation as unit quaternion
 /// - `polarization`: Polarization vector (T)
-/// - `radius`: Cylinder radius (m)
+/// - `diameter`: Cylinder diameter (m)
 /// - `height`: Cylinder height (m)
 ///
-/// # Returns
-/// - B-field vector at the observer (T)
+/// # Examples
+///
+/// ```
+/// # use approx::assert_relative_eq;
+/// # use magba::fields::cylinder_B;
+/// # use nalgebra::*;
+/// let b_field = cylinder_B(
+///     point![5.0, 6.0, 7.0],
+///     point![1.0, 2.0, 3.0],
+///     UnitQuaternion::from_scaled_axis(
+///         [1.0471975511965976, 0.6283185307179586, 0.4487989505128276].into(),
+///     ),
+///     vector![0.45, 0.3, 0.15],
+///     1.0,
+///     2.0,
+/// );
+/// let expected = vector![0.00018917835277408574, 0.00023329950084703265, 0.00027040129610630406];
+/// assert_relative_eq!(b_field, expected, epsilon = 1e-12);
+/// ```
 ///
 /// # References
+///
 /// - Caciagli, Alessio, Roel J. Baars, Albert P. Philipse, and Bonny W. M. Kuipers. “Exact Expression for the Magnetic Field of a Finite Cylinder with Arbitrary Uniform Magnetization.” Journal of Magnetism and Magnetic Materials 456 (June 15, 2018): 423–32. <https://doi.org/10.1016/j.jmmm.2018.02.003>.
 /// - Derby, Norman, and Stanislaw Olbert. “Cylindrical Magnets and Ideal Solenoids.” American Journal of Physics 78, no. 3 (March 1, 2010): 229–35. <https://doi.org/10.1119/1.3256157>.
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
+#[inline]
 #[allow(non_snake_case)]
-pub fn global_cylinder_B<T: RealField + Copy + Float + BulirschConst>(
-    point: &Point3<T>,
-    position: &Point3<T>,
-    orientation: &UnitQuaternion<T>,
-    polarization: &Vector3<T>,
-    radius: T,
+pub fn cylinder_B<T: Float>(
+    point: Point3<T>,
+    position: Point3<T>,
+    orientation: UnitQuaternion<T>,
+    polarization: Vector3<T>,
+    diameter: T,
     height: T,
 ) -> Vector3<T> {
     compute_in_local!(
         local_cylinder_B,
-        &point,
-        &position,
-        &orientation,
-        (&polarization, radius, height),
+        point,
+        position,
+        orientation,
+        (polarization, diameter / T::from(2.0).unwrap(), height),
     )
 }
 
-/// Compute B-field at points in global frame for a single cylindrical magnet.
+/// Computes B-field at points in global frame for a single cylindrical magnet.
 ///
 /// # Arguments
+///
 /// - `points`: Observer positions in global frame (m)
 /// - `position`: Magnet position (m)
 /// - `orientation`: Magnet orientation as unit quaternion
 /// - `polarization`: Polarization vector (T)
-/// - `radius`: Cylinder radius (m)
+/// - `diameter`: Cylinder diameter (m)
 /// - `height`: Cylinder height (m)
+/// - `out`: Mutable slice to store the B-field vectors at each observer (T)
 ///
-/// # Returns
-/// - B-field vectors at each observer (T)
+/// # Examples
+///
+/// ```
+/// # use approx::assert_relative_eq;
+/// # use magba::fields::cylinder_B_batch;
+/// # use nalgebra::*;
+/// let mut out = [Vector3::zeros(); 3];
+/// cylinder_B_batch(
+///     &[
+///         point![5.0, 6.0, 7.0],
+///         point![4.0, 3.0, 2.0],
+///         point![0.5, 0.25, 0.125],
+///     ],
+///     point![1.0, 2.0, 3.0],
+///     UnitQuaternion::from_scaled_axis(
+///         [1.0471975511965976, 0.6283185307179586, 0.4487989505128276].into(),
+///     ),
+///     vector![0.45, 0.3, 0.15],
+///     1.0,
+///     2.0,
+///     &mut out,
+/// );
+///
+/// let expected_fields = [
+///     vector![
+///         0.00018917835277408574,
+///         0.00023329950084703265,
+///         0.00027040129610630406,
+///     ],
+///     vector![
+///         0.0022094649753594976,
+///         0.00025744482630791175,
+///         -0.0019561148824707958,
+///     ],
+///     vector![
+///         -0.0007627329318442827,
+///         0.0008631764371268399,
+///         0.00236800766196815,
+///     ],
+/// ];
+///
+/// out.iter()
+///     .zip(expected_fields.iter())
+///     .for_each(|(actual, expected)| assert_relative_eq!(actual, expected, epsilon = 1e-12));
+/// ```
 ///
 /// # References
+///
 /// - Caciagli, Alessio, Roel J. Baars, Albert P. Philipse, and Bonny W. M. Kuipers. “Exact Expression for the Magnetic Field of a Finite Cylinder with Arbitrary Uniform Magnetization.” Journal of Magnetism and Magnetic Materials 456 (June 15, 2018): 423–32. <https://doi.org/10.1016/j.jmmm.2018.02.003>.
 /// - Derby, Norman, and Stanislaw Olbert. “Cylindrical Magnets and Ideal Solenoids.” American Journal of Physics 78, no. 3 (March 1, 2010): 229–35. <https://doi.org/10.1119/1.3256157>.
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[allow(non_snake_case)]
-pub fn cylinder_B<T: RealField + Copy + Float + BulirschConst>(
+pub fn cylinder_B_batch<T: Float>(
     points: &[Point3<T>],
-    position: &Point3<T>,
-    orientation: &UnitQuaternion<T>,
-    polarization: &Vector3<T>,
-    radius: T,
+    position: Point3<T>,
+    orientation: UnitQuaternion<T>,
+    polarization: Vector3<T>,
+    diameter: T,
     height: T,
-) -> Vec<Vector3<T>> {
+    out: &mut [Vector3<T>],
+) {
     impl_parallel!(
-        global_cylinder_B,
-        60,
-        points,
-        position,
-        orientation,
-        polarization,
-        radius,
-        height,
+        cylinder_B,
+        rayon_threshold: 60,
+        input: points,
+        output: out,
+        args: [position, orientation, polarization, diameter, height]
     )
 }
 
-/// Compute net B-field at each given point in global frame for multiple cylindrical magnets.
+/// Computes net B-field at each given point in global frame for multiple cylindrical magnets.
 ///
 /// # Arguments
+///
 /// - `points`: Observer positions in global frame (m)
 /// - `positions`: Magnet positions (m)
 /// - `orientations`: Magnet orientations as unit quaternions
 /// - `polarizations`: Polarization vectors (T)
-/// - `radii`: Cylinder radii (m)
+/// - `diameters`: Cylinder diameters (m)
 /// - `heights`: Cylinder heights (m)
-///
-/// # Returns
-/// - Net B-field vectors at each observer (T)
+/// - `out`: Mutable slice to store the net B-field vectors at each observer (T)
 ///
 /// # References
+///
 /// - Caciagli, Alessio, Roel J. Baars, Albert P. Philipse, and Bonny W. M. Kuipers. “Exact Expression for the Magnetic Field of a Finite Cylinder with Arbitrary Uniform Magnetization.” Journal of Magnetism and Magnetic Materials 456 (June 15, 2018): 423–32. <https://doi.org/10.1016/j.jmmm.2018.02.003>.
 /// - Derby, Norman, and Stanislaw Olbert. “Cylindrical Magnets and Ideal Solenoids.” American Journal of Physics 78, no. 3 (March 1, 2010): 229–35. <https://doi.org/10.1119/1.3256157>.
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[allow(non_snake_case)]
-pub fn sum_multiple_cylinder_B<T: RealField + Copy + Float + BulirschConst + Sum>(
+pub fn sum_multiple_cylinder_B<T: Float>(
     points: &[Point3<T>],
     positions: &[Point3<T>],
     orientations: &[UnitQuaternion<T>],
     polarizations: &[Vector3<T>],
-    radii: &[T],
+    diameters: &[T],
     heights: &[T],
-) -> Vec<Vector3<T>> {
+    out: &mut [Vector3<T>],
+) {
     impl_parallel_sum!(
+        out,
         points,
-        [positions, orientations, polarizations, radii, heights],
-        |pos, orien, pol, r, h| cylinder_B(points, pos, orien, pol, *r, *h)
+        60,
+        [positions, orientations, polarizations, diameters, heights],
+        |pos, p, o, pol, d, h| cylinder_B(*pos, *p, *o, *pol, *d / T::from(2.0).unwrap(), *h)
     )
 }

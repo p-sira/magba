@@ -5,8 +5,6 @@
 
 //! Coordinate conversion and calculation utilities for 3D geometry.
 
-#![allow(unused)]
-
 use nalgebra::{Point3, RealField, UnitQuaternion, Vector3};
 
 /// Convert Cartesian coordinates *(x, y)* to cylindrical coordinates *(r, phi)*.
@@ -29,9 +27,9 @@ pub fn vec_cyl2cart<T: RealField + Copy>(r: T, phi: T, theta: T) -> (T, T) {
 macro_rules! compute_in_local {
     ($func: ident, $point: expr, $position: expr, $orientation: expr, ($($func_args:expr),*),) => {
         {
-            use crate::geometry::{local_point, global_vector};
+            use crate::base::coordinate::{local_point, global_vector};
 
-            global_vector(&$func(&local_point($point, $position, $orientation), $($func_args),*), $orientation)
+            global_vector($func(local_point($point, $position, $orientation), $($func_args),*), $orientation)
         }
     };
 }
@@ -39,40 +37,17 @@ pub(crate) use compute_in_local;
 
 /// Transform global point to the local frame of the object.
 pub fn local_point<T: RealField + Copy>(
-    point: &Point3<T>,
-    position: &Point3<T>,
-    orientation: &UnitQuaternion<T>,
+    point: Point3<T>,
+    position: Point3<T>,
+    orientation: UnitQuaternion<T>,
 ) -> Point3<T> {
     orientation.inverse() * Point3::from(point.coords - position.coords)
 }
 
-/// Transform multiple points in global frame to the local frame of the object.
-pub fn local_points<T: RealField + Copy>(
-    points: &[Point3<T>],
-    position: &Point3<T>,
-    orientation: &UnitQuaternion<T>,
-) -> Vec<Point3<T>> {
-    points
-        .iter()
-        .map(|point| local_point(point, position, orientation))
-        .collect()
-}
-
 /// Transform local vector to the global frame.
 pub fn global_vector<T: RealField + Copy>(
-    vector: &Vector3<T>,
-    orientation: &UnitQuaternion<T>,
+    vector: Vector3<T>,
+    orientation: UnitQuaternion<T>,
 ) -> Vector3<T> {
     orientation * vector
-}
-
-/// Transform local vectors to the global frame.
-pub fn global_vectors<T: RealField + Copy>(
-    local_vectors: &[Vector3<T>],
-    orientation: &UnitQuaternion<T>,
-) -> Vec<Vector3<T>> {
-    local_vectors
-        .iter()
-        .map(|local_vector| global_vector(local_vector, orientation))
-        .collect()
 }

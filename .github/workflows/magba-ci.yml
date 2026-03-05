@@ -5,9 +5,9 @@ permissions:
 
 on:
   push:
-    branches: [ "main", "dev" ]
+    branches: ["main", "dev"]
   pull_request:
-    branches: [ "main", "dev" ]
+    branches: ["main", "dev"]
   workflow_dispatch:
 
 env:
@@ -17,60 +17,117 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Clippy
-      run: cargo clippy
-  test-default:
+      - uses: actions/checkout@v4
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cargo-${{ runner.os }}-
+      - name: Clippy
+        run: cargo clippy -- -D warnings
+
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: cargo-${{ matrix.os }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cargo-${{ matrix.os }}-
+      - name: Install cargo-hack
+        uses: taiki-e/install-action@cargo-hack
+      - name: Run tests across feature combinations
+        run: cargo hack test --feature-powerset --exclude-features libm --features std
+
+  check-warnings-std:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Test default
-      run: cargo test
-  test-no-default:
+      - uses: actions/checkout@v4
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cargo-${{ runner.os }}-
+      - name: Install cargo-hack
+        uses: taiki-e/install-action@cargo-hack
+      - name: Check warnings
+        run: RUSTFLAGS="-D warnings" cargo hack test --feature-powerset --exclude-features libm --features std
+
+  check-no-std:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Test no-default
-      run: cargo test --no-default-features
-  test-sources:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: Test sources
-      run: cargo test --no-default-features --features=sources
-  test-parallel:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4 
-    - name: Test parallel
-      run: cargo test --no-default-features --features=parallel
-  test-unstable:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: Test unstable
-      run: cargo test --features=unstable
-  test-nodefault-unstable:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: Test unstable
-      run: cargo test --no-default-features --features=unstable
+      - uses: actions/checkout@v4
+      - name: Install no_std target
+        run: rustup target add thumbv7m-none-eabi
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: cargo-nostd-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+      - name: Install cargo-hack
+        uses: taiki-e/install-action@cargo-hack
+      - name: Check no_std
+        run: RUSTFLAGS="-D warnings" cargo hack check --target thumbv7m-none-eabi --feature-powerset --exclude-features default,std,rayon --features libm
+
   doc:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Make doc
-      run: cargo doc --no-deps
+      - uses: actions/checkout@v4
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cargo-${{ runner.os }}-
+      - name: Make doc
+        run: RUSTFLAGS="-D warnings" cargo +nightly doc --all-features --no-deps
+
   format:
     runs-on: ubuntu-latest
-    needs: [test-default, test-no-default, test-sources, test-parallel, test-unstable, test-nodefault-unstable]
+    needs: test
     steps:
-    - uses: actions/checkout@v4
-    - name: Format codes
-      run: |
-        cargo fmt
-        git config --global user.name 'github-actions'
-        git config --global user.email 'github-actions@github.com'
-        git add .
-        git diff --cached --quiet || (git commit -m "FMT: CI cargo fmt" && git push)
+      - uses: actions/checkout@v4
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cargo-${{ runner.os }}-
+      - name: Format codes
+        run: |
+          cargo fmt
+          git config --global user.name 'github-actions'
+          git config --global user.email 'github-actions@github.com'
+          git add .
+          git diff --cached --quiet || (git commit -m "FMT: CI cargo fmt" && git push)
