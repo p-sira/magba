@@ -11,7 +11,7 @@
 **Magba** is a performant analytical magnetic computation library for Rust.
 
 All physical quantities are assumed to be in SI units.
-Python bindings available via [Pymagba](https://github.com/p-sira/pymagba).
+Python bindings available via [PyMagba](https://github.com/p-sira/pymagba).
 
 ## User Guide
 
@@ -33,7 +33,7 @@ Python bindings available via [Pymagba](https://github.com/p-sira/pymagba).
 ## Acknowledgment
 
 Most of the field computation used in Magba is based on [MagpyLib](https://github.com/magpylib/magpylib).
-We would like to thank MagpyLib contributors their hard work and contributions to the scientific community.
+We would like to thank MagpyLib contributors for their hard work and contributions to the scientific community.
 */
 
 #[cfg(feature = "alloc")]
