@@ -20,7 +20,7 @@ Python bindings available via [Pymagba](https://github.com/p-sira/pymagba).
 - [Manipulating object positions and orientations](base::Transform#examples)
 - [Creating magnets and computing fields](magnets)
 - [Using sensors to measure magnetic fields](sensors)
-- [Grouping components as an assembly](collections::SourceAssembly)
+- [Grouping magnets and sensors as assemblies](collections::SourceAssembly)
 - Parallelization using [Rayon](https://github.com/rayon-rs/rayon) (enabled by default)
 
 ### Advanced Features
