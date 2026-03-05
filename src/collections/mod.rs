@@ -9,13 +9,23 @@
 //!
 //! # Arrays vs. Assemblies
 //!
-//! | Feature | Array (`SourceArray`, `SensorArray`) | Assembly (`SourceAssembly`, `SensorAssembly`) |
+//! | Feature | Array (`SourceArray`, `ObserverArray`) | Assembly (`SourceAssembly`, `ObserverAssembly`) |
 //! |---------|--------------------------------------|-----------------------------------------------|
 //! | **Allocation** | Stack-allocated | Heap-allocated |
 //! | **Capacity** | Fixed-size (`const N: usize`) | Dynamically-sized (`Vec`) |
 //! | **Components** | Uniform type (unless wrapped in an enum like `Magnet`) | Naturally heterogeneous |
 //! | **Nesting** | Not supported | Supported (only for `SourceAssembly`) |
 //! | **Custom Types** | Not supported | Supported |
+//!
+//! # Convenience Macros
+//!
+//! Instead of manually creating collections, you can use the [`sources!`](crate::sources) and [`observers!`](crate::observers) macros.
+//! These macros provide a familiar, `vec!`-like syntax to quickly build up arrays and assemblies.
+//!
+//! - **Arrays**: Use bracket syntax (e.g., `sources!([m1, m2])`) to instantiate a fixed-size `SourceArray` or `ObserverArray`.
+//! - **Assemblies**: Use comma-separated arguments (e.g., `sources!(m1, m2)`) to instantiate a dynamically-sized `SourceAssembly` or `ObserverAssembly`.
+//!
+//! Note that the macros are exported at the root of the crate (`magba::sources!`, `magba::observers!`).
 
 mod macros;
 #[cfg(test)]
@@ -24,17 +34,17 @@ pub(crate) use macros::observers;
 pub(crate) use macros::sources;
 
 mod node;
-mod sensor_array;
-mod sensor_assembly;
-mod sensor_component;
+mod observer_array;
+mod observer_assembly;
+mod observer_component;
 mod source_array;
 mod source_assembly;
 mod source_component;
 
 use node::Node;
-pub use sensor_array::SensorArray;
-pub use sensor_assembly::SensorAssembly;
-pub use sensor_component::SensorComponent;
+pub use observer_array::ObserverArray;
+pub use observer_assembly::ObserverAssembly;
+pub use observer_component::ObserverComponent;
 pub use source_array::SourceArray;
 pub use source_assembly::SourceAssembly;
 pub use source_component::SourceComponent;

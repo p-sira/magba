@@ -25,12 +25,12 @@ e
 
 **Components Design**
 - **Node Struct:** Assemblies now store `Node`, which holds the component's local position and the relative offset with respect to the collection's local coordinate, mitigating error accumulation during repeated transformations.
-- **SourceComponent Enum:** The variants can be `Magnet`, `Collection`, or `Custom`. Components can be grouped into `SourceAssembly`.
-- **SensorComponent Enum:** The variants can be `Sensor` or `Custom`. Likewise, they can be grouped into `SensorAssembly`.
+- **SourceComponent Enum:** The variants can be `Magnet`, `Assembly`, or `Custom`. Components can be grouped into `SourceAssembly`.
+- **ObserverComponent Enum:** The variants can be `Sensor` or `Custom`. Likewise, they can be grouped into `ObserverAssembly`.
 - **Magnet and Sensor Enums:** The variants are all structs defined in `magba::magnets` and `magba::sensors`, respectively.
 
 **Stack Allocation**
-- `SourceArray` and `SensorArray`: A fixed-size, stack-allocated, homogeneous collection of `Source` and `Observer`, respectively.
+- `SourceArray` and `ObserverArray`: A fixed-size, stack-allocated, homogeneous collection of `Source` and `Observer`, respectively.
 
 **New Feature Flags**
 - Add `no_std`, `libm`, and `alloc` feature flags.

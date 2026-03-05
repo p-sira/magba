@@ -13,24 +13,24 @@ use crate::{
         Float, Observer, Pose, SensorOutput, Source, Transform,
         transform::{impl_group_transform, impl_transform},
     },
-    collections::{Node, SensorArray, SensorComponent},
+    collections::{Node, ObserverArray, ObserverComponent},
 };
 
 // MARK: Base
 
-/// Heap-allocated data structure for grouping [SensorComponent].
+/// Heap-allocated data structure for grouping [ObserverComponent].
 #[derive(Debug, Clone)]
-pub struct SensorAssembly<T: Float = f64> {
+pub struct ObserverAssembly<T: Float = f64> {
     pose: Pose<T>,
-    nodes: Vec<Node<SensorComponent<T>, T>>,
+    nodes: Vec<Node<ObserverComponent<T>, T>>,
 }
 
-impl<T: Float> SensorAssembly<T> {
-    /// Constructs a [SensorAssembly], keeping the components' coordinates as GLOBAL.
+impl<T: Float> ObserverAssembly<T> {
+    /// Constructs a [ObserverAssembly], keeping the components' coordinates as GLOBAL.
     pub fn new(
         position: Point3<T>,
         orientation: UnitQuaternion<T>,
-        components: impl IntoIterator<Item = impl Into<SensorComponent<T>>>,
+        components: impl IntoIterator<Item = impl Into<ObserverComponent<T>>>,
     ) -> Self {
         let pose = Pose::new(position, orientation);
         let pose_inv = pose.as_isometry().inverse();
@@ -38,7 +38,7 @@ impl<T: Float> SensorAssembly<T> {
         let nodes = components
             .into_iter()
             .map(|c| {
-                let component: SensorComponent<T> = c.into();
+                let component: ObserverComponent<T> = c.into();
                 let local_offset = (pose_inv * component.pose().as_isometry()).into();
                 Node::new(component, local_offset)
             })
@@ -47,11 +47,11 @@ impl<T: Float> SensorAssembly<T> {
         Self { pose, nodes }
     }
 
-    pub fn components(&self) -> impl Iterator<Item = &SensorComponent<T>> {
+    pub fn components(&self) -> impl Iterator<Item = &ObserverComponent<T>> {
         self.nodes.iter().map(|n| &n.component)
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = &SensorComponent<T>> {
+    pub fn iter(&self) -> impl Iterator<Item = &ObserverComponent<T>> {
         self.components()
     }
 
@@ -64,7 +64,7 @@ impl<T: Float> SensorAssembly<T> {
     }
 }
 
-impl<T: Float> Default for SensorAssembly<T> {
+impl<T: Float> Default for ObserverAssembly<T> {
     fn default() -> Self {
         Self {
             pose: Pose::default(),
@@ -75,8 +75,8 @@ impl<T: Float> Default for SensorAssembly<T> {
 
 // MARK: With builders
 
-impl<T: Float> SensorAssembly<T> {
-    pub fn with(mut self, component: impl Into<SensorComponent<T>>) -> Self {
+impl<T: Float> ObserverAssembly<T> {
+    pub fn with(mut self, component: impl Into<ObserverComponent<T>>) -> Self {
         self.push(component);
         self
     }
@@ -99,8 +99,8 @@ impl<T: Float> SensorAssembly<T> {
 
 // MARK: From, Into
 
-impl<T: Float> FromIterator<SensorComponent<T>> for SensorAssembly<T> {
-    fn from_iter<I: IntoIterator<Item = SensorComponent<T>>>(iter: I) -> Self {
+impl<T: Float> FromIterator<ObserverComponent<T>> for ObserverAssembly<T> {
+    fn from_iter<I: IntoIterator<Item = ObserverComponent<T>>>(iter: I) -> Self {
         let nodes = iter
             .into_iter()
             .map(|c| {
@@ -116,29 +116,29 @@ impl<T: Float> FromIterator<SensorComponent<T>> for SensorAssembly<T> {
     }
 }
 
-impl<T: Float, I: Into<SensorComponent<T>>, const N: usize> From<[I; N]> for SensorAssembly<T> {
+impl<T: Float, I: Into<ObserverComponent<T>>, const N: usize> From<[I; N]> for ObserverAssembly<T> {
     fn from(components: [I; N]) -> Self {
         components.into_iter().map(Into::into).collect()
     }
 }
 
-impl<T: Float, I: Into<SensorComponent<T>>> From<Vec<I>> for SensorAssembly<T> {
+impl<T: Float, I: Into<ObserverComponent<T>>> From<Vec<I>> for ObserverAssembly<T> {
     fn from(components: Vec<I>) -> Self {
         components.into_iter().map(Into::into).collect()
     }
 }
 
-impl<T: Float> From<&[SensorComponent<T>]> for SensorAssembly<T> {
-    fn from(components: &[SensorComponent<T>]) -> Self {
+impl<T: Float> From<&[ObserverComponent<T>]> for ObserverAssembly<T> {
+    fn from(components: &[ObserverComponent<T>]) -> Self {
         components.iter().cloned().collect()
     }
 }
 
-impl<'a, T: Float> IntoIterator for &'a SensorAssembly<T> {
-    type Item = &'a SensorComponent<T>;
+impl<'a, T: Float> IntoIterator for &'a ObserverAssembly<T> {
+    type Item = &'a ObserverComponent<T>;
     type IntoIter = std::iter::Map<
-        std::slice::Iter<'a, Node<SensorComponent<T>, T>>,
-        fn(&'a Node<SensorComponent<T>, T>) -> &'a SensorComponent<T>,
+        std::slice::Iter<'a, Node<ObserverComponent<T>, T>>,
+        fn(&'a Node<ObserverComponent<T>, T>) -> &'a ObserverComponent<T>,
     >;
 
     fn into_iter(self) -> Self::IntoIter {
@@ -146,28 +146,28 @@ impl<'a, T: Float> IntoIterator for &'a SensorAssembly<T> {
     }
 }
 
-impl<S, T: Float, const N: usize> From<SensorArray<S, N, T>> for SensorAssembly<T>
+impl<S, T: Float, const N: usize> From<ObserverArray<S, N, T>> for ObserverAssembly<T>
 where
-    S: Observer<T> + Into<SensorComponent<T>>,
+    S: Observer<T> + Into<ObserverComponent<T>>,
 {
-    fn from(array: SensorArray<S, N, T>) -> Self {
-        SensorAssembly::new(array.position(), array.orientation(), array)
+    fn from(array: ObserverArray<S, N, T>) -> Self {
+        ObserverAssembly::new(array.position(), array.orientation(), array)
     }
 }
 
 // MARK: Extend, Push
 
-impl<T: Float> SensorAssembly<T> {
-    pub fn push(&mut self, component: impl Into<SensorComponent<T>>) {
-        let component: SensorComponent<T> = component.into();
+impl<T: Float> ObserverAssembly<T> {
+    pub fn push(&mut self, component: impl Into<ObserverComponent<T>>) {
+        let component: ObserverComponent<T> = component.into();
         let local_offset =
             (self.pose.as_isometry().inverse() * component.pose().as_isometry()).into();
         self.nodes.push(Node::new(component, local_offset));
     }
 }
 
-impl<T: Float> Extend<SensorComponent<T>> for SensorAssembly<T> {
-    fn extend<I: IntoIterator<Item = SensorComponent<T>>>(&mut self, iter: I) {
+impl<T: Float> Extend<ObserverComponent<T>> for ObserverAssembly<T> {
+    fn extend<I: IntoIterator<Item = ObserverComponent<T>>>(&mut self, iter: I) {
         for component in iter {
             self.push(component);
         }
@@ -176,15 +176,15 @@ impl<T: Float> Extend<SensorComponent<T>> for SensorAssembly<T> {
 
 // MARK: Index
 
-impl<T: Float> Index<usize> for SensorAssembly<T> {
-    type Output = SensorComponent<T>;
+impl<T: Float> Index<usize> for ObserverAssembly<T> {
+    type Output = ObserverComponent<T>;
 
     fn index(&self, index: usize) -> &Self::Output {
         &self.nodes[index].component
     }
 }
 
-impl<T: Float> IndexMut<usize> for SensorAssembly<T> {
+impl<T: Float> IndexMut<usize> for ObserverAssembly<T> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.nodes[index].component
     }
@@ -192,16 +192,16 @@ impl<T: Float> IndexMut<usize> for SensorAssembly<T> {
 
 // MARK: Transform
 
-impl_transform!(SensorAssembly<T> where T: Float);
-impl_group_transform!(SensorAssembly<T> where T: Float);
+impl_transform!(ObserverAssembly<T> where T: Float);
+impl_group_transform!(ObserverAssembly<T> where T: Float);
 
 // MARK: Display
 
-impl<T: Float> SensorAssembly<T> {
+impl<T: Float> ObserverAssembly<T> {
     pub fn format(&self, f: &mut std::fmt::Formatter<'_>, indent: &str) -> std::fmt::Result {
         writeln!(
             f,
-            "SensorAssembly ({} children) at {}",
+            "Observer Assembly ({} children) at {}",
             self.nodes.len(),
             self.pose()
         )?;
@@ -212,7 +212,7 @@ impl<T: Float> SensorAssembly<T> {
     }
 }
 
-impl<T: Float> Display for SensorAssembly<T> {
+impl<T: Float> Display for ObserverAssembly<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.format(f, "")
     }
@@ -220,7 +220,7 @@ impl<T: Float> Display for SensorAssembly<T> {
 
 // MARK: PartialEq
 
-impl<T: Float> PartialEq for SensorAssembly<T> {
+impl<T: Float> PartialEq for ObserverAssembly<T> {
     fn eq(&self, other: &Self) -> bool {
         if self.position() != other.position()
             || self.orientation() != other.orientation()
@@ -252,6 +252,6 @@ mod tests {
     fn test_todo() {
         use crate::collections::observers;
         use crate::prelude::*;
-        let _: SensorAssembly = observers!();
+        let _: ObserverAssembly = observers!();
     }
 }

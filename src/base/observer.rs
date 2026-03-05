@@ -29,7 +29,7 @@ pub trait Observer<T: Float>: Transform<T> + Send + Sync + DynClone {
     fn read(&self, source: &dyn Source<T>) -> SensorOutput<T>;
 
     /// A default formatter that behaves like Display.
-    /// Last argument is the indentation, which is for SensorAssembly support.
+    /// Last argument is the indentation, which is for ObserverAssembly support.
     /// Override this for custom printouts.
     fn format(&self, f: &mut core::fmt::Formatter<'_>, _: &str) -> core::fmt::Result {
         write!(f, "Observer at {}", self.pose())
