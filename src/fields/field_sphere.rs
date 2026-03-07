@@ -5,11 +5,11 @@
 
 //! Analytical B-field computation for homogeneously magnetized sphere.
 
-use nalgebra::{Point3, RealField, UnitQuaternion, Vector3};
+use nalgebra::{Point3, UnitQuaternion, Vector3};
 use numeric_literals::replace_float_literals;
 
 use crate::{
-    base::coordinate::compute_in_local,
+    base::{Float, coordinate::compute_in_local},
     crate_utils::{impl_parallel, impl_parallel_sum},
 };
 
@@ -34,7 +34,7 @@ use crate::{
 #[inline]
 #[allow(non_snake_case)]
 #[replace_float_literals(T::from_f64(literal).unwrap())]
-pub fn local_sphere_B<T: RealField + num_traits::Float + Copy>(
+pub fn local_sphere_B<T: Float>(
     point: Point3<T>,
     polarization: Vector3<T>,
     diameter: T,
@@ -75,7 +75,7 @@ pub fn local_sphere_B<T: RealField + num_traits::Float + Copy>(
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[inline]
 #[allow(non_snake_case)]
-pub fn sphere_B<T: RealField + num_traits::Float + Copy>(
+pub fn sphere_B<T: Float>(
     point: Point3<T>,
     position: Point3<T>,
     orientation: UnitQuaternion<T>,
@@ -106,7 +106,7 @@ pub fn sphere_B<T: RealField + num_traits::Float + Copy>(
 ///
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[allow(non_snake_case)]
-pub fn sphere_B_batch<T: RealField + num_traits::Float + Copy>(
+pub fn sphere_B_batch<T: Float>(
     points: &[Point3<T>],
     position: Point3<T>,
     orientation: UnitQuaternion<T>,
@@ -138,7 +138,7 @@ pub fn sphere_B_batch<T: RealField + num_traits::Float + Copy>(
 ///
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[allow(non_snake_case)]
-pub fn sum_multiple_sphere_B<T: RealField + num_traits::Float + Copy>(
+pub fn sum_multiple_sphere_B<T: Float>(
     points: &[Point3<T>],
     positions: &[Point3<T>],
     orientations: &[UnitQuaternion<T>],
