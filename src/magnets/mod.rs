@@ -52,10 +52,12 @@
 mod cuboid;
 mod cylinder;
 mod dipole;
+mod sphere;
 
 pub use cuboid::CuboidMagnet;
 pub use cylinder::CylinderMagnet;
 pub use dipole::Dipole;
+pub use sphere::SphereMagnet;
 
 mod magnet;
 pub use magnet::Magnet;

@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
-from magpylib.magnet import Cuboid, Cylinder
+from magpylib.magnet import Cuboid, Cylinder, Sphere
 from magpylib.misc import Dipole
 from scipy.spatial.transform import Rotation
 
@@ -65,6 +65,14 @@ def generate_tests(points, points_small):
         points,
         points_small,
         np.array((1.0, 2.0, 3.0)),  # moment
+    )
+
+    generate_test(
+        Sphere,
+        points,
+        points_small,
+        0.1,  # diameter
+        np.array((1.0, 2.0, 3.0)),  # polarization
     )
 
 

@@ -1,5 +1,14 @@
 # Changelog
+## 0.4
+
+### 0.4.0
+
+**New Features**
+
+- `SphereMagnet`
+
 ## 0.3
+
 ### 0.3.0
 
 #### BREAKING CHANGES

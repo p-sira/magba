@@ -98,3 +98,28 @@ generate_test_cases(
         )
     ],
 )
+
+from magpylib.func import sphere_field
+
+generate_test_cases(
+    "sphere_B",
+    sphere_field,
+    [
+        TestCase(
+            [5, 6, 7],
+            [1.0],
+            [0.45, 0.30, 0.15],
+            [0, 0, 0],
+            [0, 0, 0],
+            1e-15,
+        ),
+        TestCase(
+            [5, 6, 7],
+            [1.0],
+            [0.45, 0.30, 0.15],
+            [1, 2, 3],
+            [np.pi / 3, np.pi / 5, np.pi / 7],
+            1e-15,
+        ),
+    ],
+)

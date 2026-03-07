@@ -59,10 +59,12 @@
 mod field_cuboid;
 mod field_cylinder;
 mod field_dipole;
+mod field_sphere;
 
 pub use field_cuboid::{cuboid_B, cuboid_B_batch, sum_multiple_cuboid_B};
 pub use field_cylinder::{cylinder_B, cylinder_B_batch, sum_multiple_cylinder_B};
 pub use field_dipole::{dipole_B, dipole_B_batch, sum_multiple_dipole_B};
+pub use field_sphere::{sphere_B, sphere_B_batch, sum_multiple_sphere_B};
 
 #[cfg(feature = "unstable")]
 mod unstable {
