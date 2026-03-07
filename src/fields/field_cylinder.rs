@@ -18,7 +18,7 @@ use crate::{
         Float,
         coordinate::{cart2cyl, compute_in_local, vec_cyl2cart},
     },
-    crate_util::{impl_parallel, impl_parallel_sum},
+    crate_utils::{impl_parallel, impl_parallel_sum},
 };
 
 /// Computes B-field of a cylindrical magnet with unit axial (z-axis) polarization

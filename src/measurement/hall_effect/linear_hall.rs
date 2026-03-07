@@ -5,7 +5,7 @@
 
 use nalgebra::{RealField, Vector3};
 
-use crate::crate_util::impl_parallel;
+use crate::crate_utils::impl_parallel;
 
 /// Computes analog voltage output of a linear Hall effect sensor.
 ///

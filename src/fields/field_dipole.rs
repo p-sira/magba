@@ -10,7 +10,7 @@ use numeric_literals::replace_float_literals;
 
 use crate::{
     base::coordinate::compute_in_local,
-    crate_util::{impl_parallel, impl_parallel_sum},
+    crate_utils::{impl_parallel, impl_parallel_sum},
 };
 
 /// Computes B-field of a magnetic dipole moment at point (x, y, z) in local frame.

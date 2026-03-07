@@ -88,7 +88,7 @@ impl<T: RealField> From<Isometry3<T>> for Pose<T> {
     }
 }
 
-crate::crate_util::need_std!(
+crate::crate_utils::need_std!(
     // Optional or just empty
 );
 
