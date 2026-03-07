@@ -62,7 +62,7 @@ pub mod prelude {
     use super::*;
 
     pub use base::{Float, Observer, SensorOutput, Source, Transform};
-    pub use magnets::{CuboidMagnet, CylinderMagnet, Dipole, Magnet};
+    pub use magnets::{CuboidMagnet, CylinderMagnet, Dipole, Magnet, SphereMagnet};
     pub use sensors::{Sensor, hall_effect};
 
     need_std!(
