@@ -80,6 +80,23 @@ fn cel_iter<T: Float>(
 ///
 /// - B-field vector at the observer (T)
 ///
+/// # Examples
+///
+/// ```
+/// # use approx::assert_relative_eq;
+/// # use magba::fields::circular_B;
+/// # use nalgebra::{point, vector, UnitQuaternion};
+/// let b_field = circular_B::<f32>(
+///     point![0.0, 0.0, 0.0],
+///     point![0.0, 0.0, 0.0],
+///     UnitQuaternion::identity(),
+///     2.0,
+///     1.0,
+/// );
+/// let expected = vector![0.0, 0.0, 6.283185e-7];
+/// assert_relative_eq!(b_field, expected, epsilon = 1e-16);
+/// ```
+///
 /// # References
 ///
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
@@ -158,7 +175,7 @@ pub fn local_circular_B<T: Float>(point: Point3<T>, diameter: T, current: T) -> 
 ///     1.0,
 /// );
 /// let expected = vector![0.0, 0.0, 6.283185307179586e-7];
-/// assert_relative_eq!(b_field, expected, epsilon = 1e-12);
+/// assert_relative_eq!(b_field, expected, epsilon = 1e-16);
 /// ```
 ///
 /// # References
