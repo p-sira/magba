@@ -8,7 +8,7 @@ use nalgebra::Vector3;
 
 use crate::{
     base::{DynClone, Float, Source, Transform},
-    crate_util::need_std,
+    crate_utils::need_std,
 };
 
 /// Unified output for varying sensor types.

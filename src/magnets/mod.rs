@@ -61,6 +61,3 @@ pub use sphere::SphereMagnet;
 
 mod magnet;
 pub use magnet::Magnet;
-
-mod define_magnet;
-use define_magnet::define_magnet;

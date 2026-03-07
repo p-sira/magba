@@ -39,14 +39,15 @@ We would like to thank MagpyLib contributors for their hard work and contributio
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
-mod crate_util;
-use crate::crate_util::need_std;
+pub(crate) mod crate_utils;
+use crate::crate_utils::need_std;
 
 pub mod base;
 pub mod conversion;
 pub mod fields;
 pub mod measurement;
 
+pub mod currents;
 pub mod magnets;
 pub mod sensors;
 
@@ -62,6 +63,7 @@ pub mod prelude {
     use super::*;
 
     pub use base::{Float, Observer, SensorOutput, Source, Transform};
+    pub use currents::{CircularCurrent, Current};
     pub use magnets::{CuboidMagnet, CylinderMagnet, Dipole, Magnet, SphereMagnet};
     pub use sensors::{Sensor, hall_effect};
 

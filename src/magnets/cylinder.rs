@@ -5,10 +5,10 @@
 
 use nalgebra::Vector3;
 
-use crate::magnets::define_magnet;
+use crate::crate_utils::define_source;
 
-define_magnet! {
-    /// Uniformly magnetized cylindrical magnet.
+define_source! {
+    /// Cylinder magnet source.
     ///
     /// # References
     ///

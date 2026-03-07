@@ -5,9 +5,9 @@
 
 use nalgebra::Vector3;
 
-use crate::magnets::define_magnet;
+use crate::crate_utils::define_source;
 
-define_magnet! {
+define_source! {
     /// Uniformly magnetized spherical magnet.
     ///
     /// # References

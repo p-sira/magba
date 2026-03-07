@@ -10,7 +10,7 @@ use numeric_literals::replace_float_literals;
 
 use crate::{
     base::coordinate::compute_in_local,
-    crate_util::{impl_parallel, impl_parallel_sum},
+    crate_utils::{impl_parallel, impl_parallel_sum},
 };
 
 /// Computes B-field of a homogeneously magnetized sphere at point (x, y, z) in local frame.
@@ -45,14 +45,6 @@ pub fn local_sphere_B<T: RealField + num_traits::Float + Copy>(
 
     if r > r_sphere {
         // Outside: Dipole field
-        // B = mu0/(4*pi*r^5) * (3*(m.r)r - m*r^2)
-        // m = M * V = (J/mu0) * (4/3*pi*R^3)
-        // B = 10^-7 * (J/mu0 * 4/3*pi*R^3) / r^5 * (3*(J.r)r - J*r^2) * (mu0/J) ... wait
-        // Let's use Magpylib's formula:
-        // B = ( (3 * (J.r) * r / r^2 - J) / r^3 ) * (R^3 / 3)
-        // Which simplifies to:
-        // B = (3 * (J.r) * r - J * r^2) / (3 * r^5) * R^3
-
         let r2 = r * r;
         let r5 = r2 * r2 * r;
         let r_sphere3 = r_sphere * r_sphere * r_sphere;

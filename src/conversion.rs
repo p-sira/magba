@@ -7,7 +7,7 @@
 
 use nalgebra::Vector3;
 
-use crate::{base::Float, crate_util::need_std};
+use crate::{base::Float, crate_utils::need_std};
 
 /// Convert B-field vector to H-field vector.
 ///
