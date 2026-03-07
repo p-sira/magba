@@ -11,10 +11,16 @@ use nalgebra::{Isometry3, Point3, RealField, Translation3, UnitQuaternion};
 ///
 /// ```
 /// # use magba::base::Pose;
-/// # use nalgebra::Point3;
+/// # use nalgebra::{Point3, UnitQuaternion};
+/// # use approx::assert_relative_eq;
 /// let mut pose: Pose = Pose::default();
 /// pose.translate([1.0, 2.0, 3.0]);
-/// assert_eq!(pose.position(), Point3::new(1.0, 2.0, 3.0));
+/// assert_relative_eq!(pose.position(), Point3::new(1.0, 2.0, 3.0));
+///
+/// let rotation = UnitQuaternion::from_scaled_axis([0.0, std::f64::consts::PI, 0.0].into());
+/// pose.rotate_anchor(rotation, [1.0, 0.0, 0.0]);
+/// assert_relative_eq!(pose.position(), Point3::new(1.0, 2.0, -3.0), epsilon = 1e-15);
+/// assert_relative_eq!(pose.orientation(), rotation);
 /// ```
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Pose<T: RealField = f64> {
