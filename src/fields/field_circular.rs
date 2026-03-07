@@ -198,7 +198,6 @@ pub fn circular_B<T: Float>(
 ///
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 /// - Ortner, Michael, Peter Leitner, and Franz Slanovc. “Numerically Stable and Computationally Efficient Expression for the Magnetic Field of a Current Loop.” Magnetism 3, no. 1 (2023): 11-31. <https://doi.org/10.3390/magnetism3010002>.
-#[cfg(feature = "alloc")]
 #[allow(non_snake_case)]
 pub fn circular_B_batch<T: Float>(
     points: &[Point3<T>],
