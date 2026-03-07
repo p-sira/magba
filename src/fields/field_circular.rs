@@ -58,12 +58,12 @@ fn cel_iter<T: Float>(
         qc = NumFloat::sqrt(kk) * 2.0;
         kk = qc * em;
         let f = cc;
-        cc = cc + ss / p;
+        cc += ss / p;
         g = kk / p;
         ss = 2.0 * (ss + f * g);
-        p = p + g;
+        p += g;
         g = em;
-        em = em + qc;
+        em += qc;
     }
     half_pi * (ss + cc * em) / (em * (em + p))
 }
@@ -95,9 +95,9 @@ pub fn local_circular_B<T: Float>(point: Point3<T>, diameter: T, current: T) -> 
     let (mut r, phi) = cart2cyl(point.x, point.y);
     let mut z = point.z;
 
-    // Relative coordinates
-    r = r / r0;
-    z = z / r0;
+    // Invariant
+    r /= r0;
+    z /= r0;
 
     // Special case: at singularity (on the loop)
     if NumFloat::abs(r - 1.0) < 1e-15 && NumFloat::abs(z) < 1e-15 {
