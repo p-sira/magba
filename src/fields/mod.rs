@@ -68,17 +68,11 @@ pub use field_cylinder::{cylinder_B, cylinder_B_batch, sum_multiple_cylinder_B};
 pub use field_dipole::{dipole_B, dipole_B_batch, sum_multiple_dipole_B};
 pub use field_sphere::{sphere_B, sphere_B_batch, sum_multiple_sphere_B};
 
-#[cfg(feature = "unstable")]
-mod unstable {
-    use super::*;
-    #[cfg_attr(docsrs, doc(cfg(feature = "unstable")))]
+crate::crate_utils::need_unstable! {
     pub use field_cuboid::local_cuboid_B;
-    #[cfg_attr(docsrs, doc(cfg(feature = "unstable")))]
     pub use field_cylinder::{
         cylinder_B_cyl, local_cylinder_B, unit_axial_cylinder_B_cyl, unit_diametric_cylinder_B_cyl,
     };
-    #[cfg_attr(docsrs, doc(cfg(feature = "unstable")))]
     pub use field_dipole::local_dipole_B;
+    pub use field_sphere::local_sphere_B;
 }
-#[cfg(feature = "unstable")]
-pub use unstable::*;
