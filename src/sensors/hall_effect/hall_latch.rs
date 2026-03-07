@@ -233,11 +233,10 @@ mod tests {
     fn test_hall_latch() {
         use crate::base::SensorOutput;
 
-        let mut sensor = HallLatch::default();
-        // B_OP = 10 mT, B_RP = -10 mT
-        sensor.set_b_op(0.010);
-        sensor.set_b_rp(-0.010);
-        sensor.set_sensitive_axis([0.0, 0.0, 1.0]);
+        let mut sensor = HallLatch::default()
+            .with_b_op(0.010)
+            .with_b_rp(-0.010)
+            .with_sensitive_axis([0.0, 0.0, 1.0]);
 
         // Initially state is false (0)
         let source_zero = MockSource::new(Vector3::new(0.0, 0.0, 0.0));
