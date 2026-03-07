@@ -21,10 +21,6 @@ const MAX_ITER: usize = 10;
 
 /// Computes the Iterative part of Bulirsch cel algorithm.
 ///
-/// Implementation based on "Numerically stable and computationally efficient
-/// expression for the magnetic field of a current loop.", M. Ortner et al.,
-/// Magnetism 2023, 3(1), 11-31.
-///
 /// # Arguments
 ///
 /// - `qc`, `p`, `g`, `cc`, `ss`, `em`, `kk`: Parameters of the cel integral

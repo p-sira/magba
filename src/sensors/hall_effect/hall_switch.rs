@@ -171,9 +171,9 @@ mod tests {
     fn test_hall_switch() {
         use crate::base::SensorOutput;
 
-        let mut sensor = HallSwitch::default();
-        sensor.set_b_op(0.010);
-        sensor.set_sensitive_axis([0.0, 0.0, 1.0]);
+        let mut sensor = HallSwitch::default()
+            .with_b_op(0.010)
+            .with_sensitive_axis([0.0, 0.0, 1.0]);
 
         // Field below B_OP
         let source_off = MockSource::new(Vector3::new(0.0, 0.0, 0.005));
