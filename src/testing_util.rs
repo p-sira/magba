@@ -281,7 +281,7 @@ macro_rules! generate_tests {
         mod generated_tests {
             use std::f64::consts::PI;
 
-            use nalgebra::{point, vector, Translation3};
+            use nalgebra::*;
 
             use crate::testing_util::*;
             use super::*;
