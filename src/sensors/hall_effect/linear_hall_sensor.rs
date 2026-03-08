@@ -91,7 +91,7 @@ impl<T: Float> LinearHallSensor<T> {
     #[inline]
     pub fn compute_B_perp(&self, source: &dyn Source<T>) -> T {
         let b_field = source.compute_B(self.pose.position());
-        let global_sensitivity_vector = self.pose.orientation() * self.sensitivity_vector;
+        let global_sensitivity_vector = self.pose.orientation() * self.sensitive_axis();
 
         b_field.dot(&global_sensitivity_vector)
     }
