@@ -61,3 +61,8 @@ pub use sphere::SphereMagnet;
 
 mod magnet;
 pub use magnet::Magnet;
+
+#[cfg(test)]
+mod stable_field;
+#[cfg(test)]
+pub(crate) use stable_field::StableFieldMagnet;

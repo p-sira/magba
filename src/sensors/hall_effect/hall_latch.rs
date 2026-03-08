@@ -195,39 +195,8 @@ impl<T: Float> Display for HallLatch<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use nalgebra::{Point3, UnitQuaternion, Vector3};
-
-    use crate::base::{Float, Pose, Source};
-
-    #[derive(Clone)]
-    struct MockSource<T: Float = f64> {
-        pose: Pose<T>,
-        b_field: Vector3<T>,
-    }
-
-    impl<T: Float> MockSource<T> {
-        fn new(b_field: Vector3<T>) -> Self {
-            Self {
-                pose: Default::default(),
-                b_field,
-            }
-        }
-    }
-
-    crate::base::transform::impl_transform!(MockSource<T> where T: Float);
-
-    impl<T: Float> Source<T> for MockSource<T> {
-        #[allow(non_snake_case)]
-        fn compute_B(&self, _point: Point3<T>) -> Vector3<T> {
-            self.b_field
-        }
-
-        #[allow(non_snake_case)]
-        #[cfg(feature = "alloc")]
-        fn compute_B_batch(&self, points: &[Point3<T>]) -> alloc::vec::Vec<Vector3<T>> {
-            points.iter().map(|_| self.b_field).collect()
-        }
-    }
+    use crate::magnets::StableFieldMagnet;
+    use nalgebra::{UnitQuaternion, Vector3};
 
     #[test]
     fn test_hall_latch() {
@@ -239,15 +208,15 @@ mod tests {
             .with_sensitive_axis([0.0, 0.0, 1.0]);
 
         // Initially state is false (0)
-        let source_zero = MockSource::new(Vector3::new(0.0, 0.0, 0.0));
+        let source_zero = StableFieldMagnet::new(Vector3::new(0.0, 0.0, 0.0));
         assert_eq!(sensor.read_state(&source_zero), false);
 
         // Apply field below B_OP but above B_RP
-        let source_weak = MockSource::new(Vector3::new(0.0, 0.0, 0.005));
+        let source_weak = StableFieldMagnet::new(Vector3::new(0.0, 0.0, 0.005));
         assert_eq!(sensor.read_state(&source_weak), false);
 
         // Apply field above B_OP -> state becomes true
-        let source_op = MockSource::new(Vector3::new(0.0, 0.0, 0.015));
+        let source_op = StableFieldMagnet::new(Vector3::new(0.0, 0.0, 0.015));
         assert_eq!(sensor.read_state(&source_op), true);
 
         // Reduce field below B_OP but above B_RP -> state remains true (hysteresis)
@@ -255,7 +224,7 @@ mod tests {
         assert_eq!(sensor.read(&source_weak), SensorOutput::Digital(1));
 
         // Apply field below B_RP -> state becomes false
-        let source_rp = MockSource::new(Vector3::new(0.0, 0.0, -0.015));
+        let source_rp = StableFieldMagnet::new(Vector3::new(0.0, 0.0, -0.015));
         assert_eq!(sensor.read_state(&source_rp), false);
 
         // Increase field back to weak -> state remains false
