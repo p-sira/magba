@@ -77,6 +77,25 @@ impl<T: Float> LinearHallSensor<T> {
         )
     }
 
+    /// Computes the B-field perpendicular to the sensor surface in the presence
+    /// of a magnetic source.
+    ///
+    /// # Arguments
+    ///
+    /// - `source`: Magnetic [Source]
+    ///
+    /// # Returns
+    ///
+    /// - B-field vector (T)
+    #[allow(non_snake_case)]
+    #[inline]
+    pub fn compute_B_perp(&self, source: &dyn Source<T>) -> T {
+        let b_field = source.compute_B(self.pose.position());
+        let global_sensitivity_vector = self.pose.orientation() * self.sensitivity_vector;
+
+        b_field.dot(&global_sensitivity_vector)
+    }
+
     // MARK: Getters
 
     #[inline]
