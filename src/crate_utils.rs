@@ -26,16 +26,16 @@ macro_rules! need_alloc {
 
 macro_rules! need_unstable {
     ($($body:item)*) => {
-        $(
             #[cfg(feature = "unstable")]
             mod unstable {
                 use super::*;
-                #[cfg_attr(docsrs, doc(cfg(feature = "unstable")))]
-                $body
+                $(
+                    #[cfg_attr(docsrs, doc(cfg(feature = "unstable")))]
+                    $body
+                )*
             }
             #[cfg(feature = "unstable")]
             pub use unstable::*;
-        )*
     };
 }
 pub(crate) use need_unstable;
