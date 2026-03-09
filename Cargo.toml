@@ -2,7 +2,7 @@
 members = ["magba-dev-utils"]
 
 [workspace.package]
-version = "0.4.1"
+version = "0.4.2"
 authors = ["Sira Pornsiriprasert <code@psira.me>"]
 documentation = "https://docs.rs/magba"
 homepage = "https://github.com/p-sira/magba"
