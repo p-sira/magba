@@ -116,7 +116,7 @@ pub fn sphere_B_batch<T: Float>(
 ) {
     impl_parallel!(
         sphere_B,
-        rayon_threshold: 60,
+        rayon_threshold: 3100,
         input: points,
         output: out,
         args: [position, orientation, polarization, diameter]

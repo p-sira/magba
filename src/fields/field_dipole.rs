@@ -162,7 +162,7 @@ pub fn dipole_B_batch<T: RealField + num_traits::Float + Copy>(
     out: &mut [Vector3<T>],
 ) {
     impl_parallel!(
-        dipole_B, rayon_threshold: 60, input: points, output: out, args: [position, orientation, moment]
+        dipole_B, rayon_threshold: 3100, input: points, output: out, args: [position, orientation, moment]
     )
 }
 

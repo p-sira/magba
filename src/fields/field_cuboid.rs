@@ -286,7 +286,7 @@ pub fn cuboid_B_batch<T: RealField + Copy>(
 ) {
     impl_parallel!(
         cuboid_B,
-        rayon_threshold: 60,
+        rayon_threshold: 50,
         input: points,
         output: out,
         args: [position, orientation, polarization, dimensions]
