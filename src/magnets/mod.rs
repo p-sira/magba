@@ -52,13 +52,17 @@
 mod cuboid;
 mod cylinder;
 mod dipole;
+mod sphere;
 
 pub use cuboid::CuboidMagnet;
 pub use cylinder::CylinderMagnet;
 pub use dipole::Dipole;
+pub use sphere::SphereMagnet;
 
 mod magnet;
 pub use magnet::Magnet;
 
-mod define_magnet;
-use define_magnet::define_magnet;
+#[cfg(test)]
+mod stable_field;
+#[cfg(test)]
+pub(crate) use stable_field::StableFieldMagnet;

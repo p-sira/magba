@@ -1,0 +1,41 @@
+// Generated threshold values from benchmark results
+
+    impl_parallel!(
+        circular_B,
+        rayon_threshold: 350,
+        input: points,
+        output: out,
+        args: [position, orientation, diameter, current]
+    );
+
+    impl_parallel!(
+        cuboid_B,
+        rayon_threshold: 50,
+        input: points,
+        output: out,
+        args: [position, orientation, polarization, dimensions]
+    );
+
+    impl_parallel!(
+        cylinder_B,
+        rayon_threshold: 150,
+        input: points,
+        output: out,
+        args: [position, orientation, polarization, diameter, height]
+    );
+
+    impl_parallel!(
+        dipole_B,
+        rayon_threshold: 3100,
+        input: points,
+        output: out,
+        args: [position, orientation, moment]
+    );
+
+    impl_parallel!(
+        sphere_B,
+        rayon_threshold: 3100,
+        input: points,
+        output: out,
+        args: [position, orientation, polarization, diameter]
+    );

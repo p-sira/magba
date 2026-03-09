@@ -18,7 +18,7 @@ use crate::{
         Float,
         coordinate::{cart2cyl, compute_in_local, vec_cyl2cart},
     },
-    crate_util::{impl_parallel, impl_parallel_sum},
+    crate_utils::{impl_parallel, impl_parallel_sum},
 };
 
 /// Computes B-field of a cylindrical magnet with unit axial (z-axis) polarization
@@ -410,7 +410,7 @@ pub fn cylinder_B_batch<T: Float>(
 ) {
     impl_parallel!(
         cylinder_B,
-        rayon_threshold: 60,
+        rayon_threshold: 150,
         input: points,
         output: out,
         args: [position, orientation, polarization, diameter, height]
@@ -449,6 +449,41 @@ pub fn sum_multiple_cylinder_B<T: Float>(
         points,
         60,
         [positions, orientations, polarizations, diameters, heights],
-        |pos, p, o, pol, d, h| cylinder_B(*pos, *p, *o, *pol, *d / T::from(2.0).unwrap(), *h)
+        |pos, p, o, pol, d, h| cylinder_B(*pos, *p, *o, *pol, *d, *h)
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use nalgebra::{point, vector};
+
+    use super::*;
+
+    #[test]
+    fn test_sum_multiple_cylinder_b() {
+        use crate::testing_util::impl_test_sum_multiple;
+        let points = &[
+            point![5.0, 6.0, 7.0],
+            point![4.0, 3.0, 2.0],
+            point![0.5, 0.25, 0.125],
+        ];
+        let positions = &[point![1.0, 2.0, 3.0], point![0.0, 0.0, 0.0]];
+        let orientations = &[
+            UnitQuaternion::from_scaled_axis(vector![1.0, 0.6, 0.4]),
+            UnitQuaternion::identity(),
+        ];
+        let polarizations = &[vector![0.45, 0.3, 0.15], vector![1.0, 2.0, 3.0]];
+        let diameters = &[1.0, 2.0];
+        let heights = &[2.0, 3.0];
+
+        impl_test_sum_multiple!(
+            sum_multiple_cylinder_B,
+            1e-12,
+            points,
+            positions,
+            orientations,
+            (polarizations, diameters, heights),
+            |p, pos, ori, pol, d, h| cylinder_B(p, pos, ori, pol, d, h)
+        );
+    }
 }

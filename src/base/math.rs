@@ -4,6 +4,7 @@
  */
 
 const MU0: f64 = 1.2566370614359173e-6;
+const RECIP_MU0: f64 = 1.0 / MU0;
 
 /// Generic trait for floating point numbers compatible with all [Magba](crate) implementations.
 ///
@@ -40,6 +41,9 @@ const MU0: f64 = 1.2566370614359173e-6;
 pub trait Float: nalgebra::RealField + num_traits::Float + Copy {
     /// Permeability of free space (μ₀) = 4π × 10⁻⁷ H/m.
     fn mu0() -> Self;
+
+    /// Reciprocal of mu0
+    fn recip_mu0() -> Self;
 }
 
 impl Float for f32 {
@@ -47,11 +51,21 @@ impl Float for f32 {
     fn mu0() -> Self {
         MU0 as f32
     }
+
+    #[inline]
+    fn recip_mu0() -> Self {
+        RECIP_MU0 as f32
+    }
 }
 
 impl Float for f64 {
     #[inline]
     fn mu0() -> Self {
         MU0
+    }
+
+    #[inline]
+    fn recip_mu0() -> Self {
+        RECIP_MU0
     }
 }

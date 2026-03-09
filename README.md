@@ -10,7 +10,7 @@
     <a href="https://crates.io/crates/magba" style="text-decoration:none">
         <img src="https://img.shields.io/crates/v/magba" alt="Crate">
     </a>
-    <a href="https://crates.io/crates/magba">
+    <a href="https://crates.io/crates/magba" style="text-decoration: none">
         <img src="https://img.shields.io/crates/d/magba" alt="Total Downloads">
     </a>
     <a href="https://docs.rs/magba" style="text-decoration:none">
