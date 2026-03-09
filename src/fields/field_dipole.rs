@@ -195,3 +195,36 @@ pub fn sum_multiple_dipole_B<T: RealField + num_traits::Float + Copy>(
         |pos, p, o, m| dipole_B(*pos, *p, *o, *m)
     )
 }
+
+#[cfg(test)]
+mod tests {
+    use nalgebra::{point, vector};
+
+    use super::*;
+
+    #[test]
+    fn test_sum_multiple_dipole_b() {
+        use crate::testing_util::impl_test_sum_multiple;
+        let points = &[
+            point![5.0, 6.0, 7.0],
+            point![4.0, 3.0, 2.0],
+            point![0.5, 0.25, 0.125],
+        ];
+        let positions = &[point![1.0, 2.0, 3.0], point![0.0, 0.0, 0.0]];
+        let orientations = &[
+            UnitQuaternion::from_scaled_axis(vector![1.0, 0.6, 0.4]),
+            UnitQuaternion::identity(),
+        ];
+        let moments = &[vector![0.45, 0.3, 0.15], vector![1.0, 2.0, 3.0]];
+
+        impl_test_sum_multiple!(
+            sum_multiple_dipole_B,
+            2e-10,
+            points,
+            positions,
+            orientations,
+            (moments),
+            |p, pos, ori, m| dipole_B(p, pos, ori, m)
+        );
+    }
+}

@@ -179,4 +179,31 @@ mod tests {
         let expected = vector![1.0, 2.0, 3.0] * (2.0 / 3.0);
         assert_relative_eq!(b, expected, epsilon = 1e-15);
     }
+
+    #[test]
+    fn test_sum_multiple_sphere_b() {
+        use crate::testing_util::impl_test_sum_multiple;
+        let points = &[
+            point![5.0, 6.0, 7.0],
+            point![4.0, 3.0, 2.0],
+            point![0.5, 0.25, 0.125],
+        ];
+        let positions = &[point![1.0, 2.0, 3.0], point![0.0, 0.0, 0.0]];
+        let orientations = &[
+            UnitQuaternion::from_scaled_axis(vector![1.0, 0.6, 0.4]),
+            UnitQuaternion::identity(),
+        ];
+        let polarizations = &[vector![0.45, 0.3, 0.15], vector![1.0, 2.0, 3.0]];
+        let diameters = &[1.0, 2.0];
+
+        impl_test_sum_multiple!(
+            sum_multiple_sphere_B,
+            1e-15,
+            points,
+            positions,
+            orientations,
+            (polarizations, diameters),
+            |p, pos, ori, pol, d| sphere_B(p, pos, ori, pol, d)
+        );
+    }
 }
