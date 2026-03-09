@@ -91,7 +91,10 @@ macro_rules! impl_parallel {
                 $out.par_iter_mut()
                     .zip($inputs.par_iter())
                     .for_each(|(o, p)| *o = $func(*p, $($func_args),*));
-                return;
+            } else {
+                $out.iter_mut()
+                    .zip($inputs.iter())
+                    .for_each(|(o, p)| *o = $func(*p, $($func_args),*));
             }
 
             $out.iter_mut()
