@@ -31,6 +31,28 @@ pub enum SourceComponent<T: Float = f64> {
 }
 
 impl<T: Float> PartialEq for SourceComponent<T> {
+    /// ```
+    /// # use magba::prelude::*;
+    /// # use magba::sources;
+    /// let cylinder = CylinderMagnet::default();
+    /// let cylinder2 = CylinderMagnet::default().with_polarization([1.0, 2.0, 3.0]);
+    /// assert_eq!(cylinder, cylinder.clone());
+    /// assert_ne!(cylinder, cylinder2);
+    ///
+    /// let current = CircularCurrent::default();
+    /// let current2 = CircularCurrent::<f64>::default().with_current(2.0);
+    /// assert_eq!(current, current.clone());
+    /// assert_ne!(current, current2);
+    ///
+    /// let assembly = sources!(cylinder, current);
+    /// let assembly2 = sources!(cylinder2, current2);
+    /// assert_eq!(assembly, assembly.clone());
+    /// assert_ne!(assembly, assembly2);
+    ///
+    /// // Custom types always return unequal.
+    /// let custom = SourceComponent::<f64>::Custom(Box::new(CuboidMagnet::default()));
+    /// assert_ne!(custom, custom.clone());
+    /// ```
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (Self::Magnet(l0), Self::Magnet(r0)) => l0 == r0,
