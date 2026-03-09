@@ -10,8 +10,8 @@ use nalgebra::{Point3, UnitQuaternion, Vector3};
 
 use crate::{
     base::{
-        Float, Observer, Pose, SensorOutput, Source, pose::impl_pose_methods,
-        transform::impl_transform,
+        pose::impl_pose_methods, transform::impl_transform, Float, Observer, Pose, SensorOutput,
+        Source,
     },
     measurement::hall_effect::linear_hall_voltage,
 };
@@ -38,6 +38,10 @@ impl<T: Float> LinearHallSensor<T> {
         sensitivity: T,
         supply_voltage: T,
     ) -> Self {
+        if supply_voltage <= T::zero() {
+            panic!("Supply voltage must be positive.");
+        }
+
         let two = T::from_f64(2.0).unwrap();
         let sensitivity_vector = sensitive_axis.into().normalize() * sensitivity;
 
@@ -122,6 +126,9 @@ impl<T: Float> LinearHallSensor<T> {
 
     #[inline]
     pub fn set_supply_voltage(&mut self, supply_voltage: T) {
+        if supply_voltage <= T::zero() {
+            panic!("Supply voltage must be positive.");
+        }
         let two = T::from_f64(2.0).unwrap();
         self.max_voltage = supply_voltage;
         self.quiescent_voltage = supply_voltage / two;

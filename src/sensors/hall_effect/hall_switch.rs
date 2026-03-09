@@ -10,8 +10,8 @@ use nalgebra::{Point3, UnitQuaternion, Vector3};
 
 use crate::{
     base::{
-        Float, Observer, Pose, SensorOutput, Source, pose::impl_pose_methods,
-        transform::impl_transform,
+        pose::impl_pose_methods, transform::impl_transform, Float, Observer, Pose, SensorOutput,
+        Source,
     },
     measurement::hall_effect::hall_switch_state,
 };
@@ -38,6 +38,9 @@ impl<T: Float> HallSwitch<T> {
         sensitive_axis: impl Into<Vector3<T>>,
         b_op: T,
     ) -> Self {
+        if b_op < T::zero() {
+            panic!("B_OP must be non-negative.");
+        }
         Self {
             pose: Pose::new(position.into(), orientation),
             sensitive_axis: sensitive_axis.into().normalize(),
@@ -75,6 +78,9 @@ impl<T: Float> HallSwitch<T> {
 
     #[inline]
     pub fn set_b_op(&mut self, b_op: T) {
+        if b_op < T::zero() {
+            panic!("B_OP must be non-negative.");
+        }
         self.b_op = b_op;
     }
 

@@ -11,8 +11,8 @@ use nalgebra::{Point3, UnitQuaternion, Vector3};
 
 use crate::{
     base::{
-        Float, Observer, Pose, SensorOutput, Source, pose::impl_pose_methods,
-        transform::impl_transform,
+        pose::impl_pose_methods, transform::impl_transform, Float, Observer, Pose, SensorOutput,
+        Source,
     },
     measurement::hall_effect::hall_latch_state,
 };
@@ -66,6 +66,9 @@ impl<T: Float> HallLatch<T> {
         b_op: T,
         b_rp: T,
     ) -> Self {
+        if b_op <= b_rp {
+            panic!("B_OP must be greater than B_RP.");
+        }
         Self {
             pose: Pose::new(position.into(), orientation),
             sensitive_axis: sensitive_axis.into().normalize(),
