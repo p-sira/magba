@@ -50,12 +50,12 @@ fn generate_code(func_name: &str, args: &str, bench_result: &BenchmarkResult) ->
     format!(
         "
     impl_parallel!(
-            {},
-            rayon_threshold: {},
-            input: points,
-            output: out,
-            args: {}
-        );
+        {},
+        rayon_threshold: {},
+        input: points,
+        output: out,
+        args: {}
+    )
 ",
         func_name, bench_result.threshold, args
     )
