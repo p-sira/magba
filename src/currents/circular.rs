@@ -19,7 +19,7 @@ define_source! {
             error "Diameter must be positive.",
         current: T = T::one(),
     }
-    arg_display: "d={}, i={}";
+    arg_display: "d={}, I={}";
     arg_fmt: [format_float, format_float]
 
     docs: {
