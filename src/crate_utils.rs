@@ -60,10 +60,6 @@ need_alloc! {
             alloc::format!("[{:?}, {:?}, {:?}]", v.x, v.y, v.z)
         }
     }
-
-    pub(crate) fn format_int(_f: &mut Formatter, v: usize) -> alloc::string::String {
-        alloc::format!("{}", v)
-    }
 }
 
 macro_rules! assert_eq_lens {
