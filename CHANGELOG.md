@@ -10,10 +10,17 @@
 - `compute_B_perp` for `LinearHallSensor`.
 
 **Bug Fixes**
+
 - Fix unimplemented Rayon parallelization in `impl_parallel_sum`.
 - Fix double division in the diameter argument of `sum_multiple_cylinder_B`.
 
+**Performance**
+
+- Optimize parallelization thresholds for field computation functions.
+
 **Testing**
+
+- Implement binary search for the parallelization thresholds.
 - Add tests for `sum_multiple_*` functions.
 
 ## 0.3
