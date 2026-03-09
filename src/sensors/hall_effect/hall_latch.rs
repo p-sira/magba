@@ -126,11 +126,17 @@ impl<T: Float> HallLatch<T> {
 
     #[inline]
     pub fn set_b_op(&mut self, b_op: T) {
+        if b_op <= self.b_rp {
+            panic!("B_OP must be greater than B_RP.");
+        }
         self.b_op = b_op;
     }
 
     #[inline]
     pub fn set_b_rp(&mut self, b_rp: T) {
+        if self.b_op <= b_rp {
+            panic!("B_OP must be greater than B_RP.");
+        }
         self.b_rp = b_rp;
     }
 
