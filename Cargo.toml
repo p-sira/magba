@@ -2,7 +2,7 @@
 members = []
 
 [workspace.package]
-version = "0.3.0"
+version = "0.4.0"
 authors = ["Sira Pornsiriprasert <code@psira.me>"]
 documentation = "https://docs.rs/magba"
 homepage = "https://github.com/p-sira/magba"
