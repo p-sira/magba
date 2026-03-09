@@ -13,6 +13,7 @@
 
 - Fix unimplemented Rayon parallelization in `impl_parallel_sum`.
 - Fix double division in the diameter argument of `sum_multiple_cylinder_B`.
+- Fix incorrect conversion between B and H.
 
 **Performance**
 
