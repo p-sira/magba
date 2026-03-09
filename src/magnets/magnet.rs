@@ -10,7 +10,7 @@ use enum_dispatch::enum_dispatch;
 
 use crate::{
     base::{Float, Pose, Source, Transform},
-    magnets::{CuboidMagnet, CylinderMagnet, Dipole},
+    magnets::{CuboidMagnet, CylinderMagnet, Dipole, SphereMagnet},
 };
 use nalgebra::{Point3, Vector3};
 
@@ -36,6 +36,7 @@ pub enum Magnet<T: Float = f64> {
     Cylinder(CylinderMagnet<T>),
     Cuboid(CuboidMagnet<T>),
     Dipole(Dipole<T>),
+    Sphere(SphereMagnet<T>),
 }
 
 #[cfg(all(test, feature = "std"))]

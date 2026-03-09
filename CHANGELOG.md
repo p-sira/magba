@@ -1,6 +1,13 @@
 # Changelog
 ## 0.4
 
+### 0.4.1
+
+**Bug Fixes**
+
+- Implement missing transitive From for `SphereMagnet` -> `Magnet` -> `SourceComponent`.
+- Implement missing `Sphere` variant of the `Magnet` enum.
+
 ### 0.4.0
 
 **New Features**
