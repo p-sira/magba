@@ -244,3 +244,37 @@ pub fn sum_multiple_circular_B<T: Float>(
         |pos, p, o, d, c| circular_B(*pos, *p, *o, *d, *c)
     )
 }
+
+#[cfg(test)]
+mod tests {
+    use nalgebra::{point, vector};
+
+    use super::*;
+
+    #[test]
+    fn test_sum_multiple_circular_b() {
+        use crate::testing_util::impl_test_sum_multiple;
+        let points = &[
+            point![5.0, 6.0, 7.0],
+            point![4.0, 3.0, 2.0],
+            point![0.5, 0.25, 0.125],
+        ];
+        let positions = &[point![1.0, 2.0, 3.0], point![0.0, 0.0, 0.0]];
+        let orientations = &[
+            UnitQuaternion::from_scaled_axis(vector![1.0, 0.6, 0.4]),
+            UnitQuaternion::identity(),
+        ];
+        let diameters = &[1.0, 2.0];
+        let currents = &[1.5, 2.5];
+
+        impl_test_sum_multiple!(
+            sum_multiple_circular_B,
+            1e-15,
+            points,
+            positions,
+            orientations,
+            (diameters, currents),
+            |p, pos, ori, d, c| circular_B(p, pos, ori, d, c)
+        );
+    }
+}

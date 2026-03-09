@@ -327,3 +327,47 @@ macro_rules! generate_tests {
     };
 }
 pub(crate) use generate_tests;
+
+/// Macro to verify `sum_multiple_*` field calculation functions.
+///
+/// It ensures that the sum of multiple sources matches the sum of individual field calculations.
+macro_rules! impl_test_sum_multiple {
+    (
+        $sum_multiple_func:ident,
+        $epsilon:expr,
+        $points:expr,
+        $positions:expr,
+        $orientations:expr,
+        ($($other_vecs:expr),*),
+        |$p:ident, $pos:ident, $ori:ident, $($other_args:ident),*| $calc:expr
+    ) => {{
+        let mut out = vec![Vector3::zeros(); $points.len()];
+        $sum_multiple_func(
+            $points,
+            $positions,
+            $orientations,
+            $($other_vecs,)*
+            &mut out,
+        );
+
+        let mut expected = vec![Vector3::zeros(); $points.len()];
+        for (i, p) in $points.iter().enumerate() {
+            let $p = *p;
+            let mut sum = Vector3::zeros();
+            for (j, pos) in $positions.iter().enumerate() {
+                let $pos = *pos;
+                let $ori = $orientations[j];
+                $(
+                    let $other_args = $other_vecs[j];
+                )*
+                sum += $calc;
+            }
+            expected[i] = sum;
+        }
+
+        for (actual, expected) in out.iter().zip(expected.iter()) {
+            approx::assert_relative_eq!(actual, expected, epsilon = $epsilon);
+        }
+    }};
+}
+pub(crate) use impl_test_sum_multiple;
