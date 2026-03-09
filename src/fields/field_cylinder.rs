@@ -449,6 +449,6 @@ pub fn sum_multiple_cylinder_B<T: Float>(
         points,
         60,
         [positions, orientations, polarizations, diameters, heights],
-        |pos, p, o, pol, d, h| cylinder_B(*pos, *p, *o, *pol, *d / T::from(2.0).unwrap(), *h)
+        |pos, p, o, pol, d, h| cylinder_B(*pos, *p, *o, *pol, *d, *h)
     )
 }
