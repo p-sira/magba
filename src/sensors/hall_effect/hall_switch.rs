@@ -10,8 +10,8 @@ use nalgebra::{Point3, UnitQuaternion, Vector3};
 
 use crate::{
     base::{
-        pose::impl_pose_methods, transform::impl_transform, Float, Observer, Pose, SensorOutput,
-        Source,
+        Float, Observer, Pose, SensorOutput, Source, pose::impl_pose_methods,
+        transform::impl_transform,
     },
     measurement::hall_effect::hall_switch_state,
 };
@@ -178,5 +178,11 @@ mod tests {
 
         // Source opposite should now trigger it
         assert_eq!(sensor.read_state(&source_opp), true);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_input_validation() {
+        let _ = HallSwitch::new([0.0; 3], UnitQuaternion::identity(), [0.0, 0.0, 1.0], -1.0);
     }
 }

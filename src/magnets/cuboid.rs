@@ -64,12 +64,25 @@ mod tests {
 
     #[test]
     #[should_panic]
-    fn test_input_validation() {
-        CuboidMagnet::new(
+    fn test_init_validation() {
+        CuboidMagnet::<f64>::new(
             [0.0; 3],
             UnitQuaternion::identity(),
             [0.0; 3],
             [0.0, -1.0, -2.0],
         );
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_set_dimensions_validation() {
+        let mut magnet = CuboidMagnet::default();
+        magnet.set_dimensions([1.0, -1.0, 1.0]);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_with_dimensions_validation() {
+        let _ = CuboidMagnet::default().with_dimensions([-1.0, 1.0, 1.0]);
     }
 }

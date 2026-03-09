@@ -48,3 +48,15 @@ crate::testing_util::generate_tests! {
         rotate: 2e-10,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::currents::CircularCurrent;
+    use nalgebra::UnitQuaternion;
+
+    #[test]
+    #[should_panic]
+    fn test_input_validation() {
+        let _ = CircularCurrent::new([0.0; 3], UnitQuaternion::identity(), -1.0, 1.0);
+    }
+}
