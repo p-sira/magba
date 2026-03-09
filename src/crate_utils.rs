@@ -82,20 +82,25 @@ macro_rules! impl_parallel {
             assert_eq!($out.len(), $inputs.len(), "Output slice length must match input vectors length.");
 
             #[cfg(feature = "rayon")]
-            if $inputs.len() > $threshold {
-                use rayon::prelude::*;
-                $out.par_iter_mut()
-                    .zip($inputs.par_iter())
-                    .for_each(|(o, p)| *o = $func(*p, $($func_args),*));
-            } else {
+            {
+                if $inputs.len() > $threshold {
+                    use rayon::prelude::*;
+                    $out.par_iter_mut()
+                        .zip($inputs.par_iter())
+                        .for_each(|(o, p)| *o = $func(*p, $($func_args),*));
+                } else {
+                    $out.iter_mut()
+                        .zip($inputs.iter())
+                        .for_each(|(o, p)| *o = $func(*p, $($func_args),*));
+                }
+            }
+
+            #[cfg(not(feature = "rayon"))]
+            {
                 $out.iter_mut()
                     .zip($inputs.iter())
                     .for_each(|(o, p)| *o = $func(*p, $($func_args),*));
             }
-
-            $out.iter_mut()
-                .zip($inputs.iter())
-                .for_each(|(o, p)| *o = $func(*p, $($func_args),*));
         }
     };
 }
