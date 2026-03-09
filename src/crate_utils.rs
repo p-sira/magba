@@ -60,6 +60,10 @@ need_alloc! {
             alloc::format!("[{:?}, {:?}, {:?}]", v.x, v.y, v.z)
         }
     }
+
+    pub(crate) fn format_int(_f: &mut Formatter, v: usize) -> alloc::string::String {
+        alloc::format!("{}", v)
+    }
 }
 
 macro_rules! assert_eq_lens {
@@ -108,7 +112,21 @@ macro_rules! impl_parallel_sum {
         );
 
         #[cfg(feature = "rayon")]
-// ... (rest of impl_parallel_sum)
+        {
+            use rayon::prelude::*;
+
+            $out.par_iter_mut()
+                .zip($points.par_iter())
+                .for_each(|(o, p_ref)| {
+                    let $p = p_ref;
+                    *o = itertools::izip!($($vecs),+)
+                        .fold(nalgebra::Vector3::zeros(), |acc, ($($args),*)| {
+                            acc + $calc
+                        });
+                });
+        }
+
+        #[cfg(not(feature = "rayon"))]
         $out.iter_mut()
             .zip($points.iter())
             .for_each(|(o, p_ref)| {
