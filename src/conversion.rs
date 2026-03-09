@@ -7,7 +7,7 @@
 
 use nalgebra::Vector3;
 
-use crate::{base::Float, crate_utils::need_std};
+use crate::base::Float;
 
 /// Convert B-field vector to H-field vector.
 ///
@@ -58,7 +58,7 @@ pub fn mag_to_pol<T: Float>(mag_vector: Vector3<T>) -> Vector3<T> {
     mag_vector.scale(T::mu0())
 }
 
-need_std! {
+crate::crate_utils::need_alloc! {
     /// Convert B-field vectors to H-field vectors.
     ///
     /// # Arguments

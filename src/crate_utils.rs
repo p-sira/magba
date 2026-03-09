@@ -23,6 +23,7 @@ macro_rules! need_alloc {
         )*
     };
 }
+pub(crate) use need_alloc;
 
 macro_rules! need_unstable {
     ($($body:item)*) => {
