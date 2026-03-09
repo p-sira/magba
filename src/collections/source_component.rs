@@ -9,7 +9,7 @@ use crate::{
     base::{Float, Pose, Source, Transform},
     collections::{SourceArray, SourceAssembly},
     currents::{CircularCurrent, Current},
-    magnets::{CuboidMagnet, CylinderMagnet, Dipole, Magnet},
+    magnets::{CuboidMagnet, CylinderMagnet, Dipole, Magnet, SphereMagnet},
 };
 use nalgebra::{Point3, Vector3};
 
@@ -90,7 +90,7 @@ macro_rules! impl_transitive_from_current {
     };
 }
 
-impl_transitive_from_magnet!(CylinderMagnet, CuboidMagnet, Dipole);
+impl_transitive_from_magnet!(CylinderMagnet, CuboidMagnet, Dipole, SphereMagnet);
 impl_transitive_from_current!(CircularCurrent);
 
 impl<T: Float> Eq for SourceComponent<T> {}
