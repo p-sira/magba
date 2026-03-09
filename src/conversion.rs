@@ -59,6 +59,8 @@ pub fn mag_to_pol<T: Float>(mag_vector: Vector3<T>) -> Vector3<T> {
 }
 
 crate::crate_utils::need_alloc! {
+    use alloc::vec::Vec;
+
     /// Convert B-field vectors to H-field vectors.
     ///
     /// # Arguments
