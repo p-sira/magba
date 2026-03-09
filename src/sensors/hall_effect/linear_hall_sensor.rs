@@ -10,8 +10,8 @@ use nalgebra::{Point3, UnitQuaternion, Vector3};
 
 use crate::{
     base::{
-        pose::impl_pose_methods, transform::impl_transform, Float, Observer, Pose, SensorOutput,
-        Source,
+        Float, Observer, Pose, SensorOutput, Source, pose::impl_pose_methods,
+        transform::impl_transform,
     },
     measurement::hall_effect::linear_hall_voltage,
 };
@@ -186,5 +186,30 @@ impl<T: Float> Observer<T> for LinearHallSensor<T> {
 impl<T: Float> Display for LinearHallSensor<T> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         <Self as Observer<T>>::format(self, f, "")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use nalgebra::UnitQuaternion;
+
+    #[test]
+    #[should_panic]
+    fn test_input_validation() {
+        let _ = LinearHallSensor::new(
+            [0.0; 3],
+            UnitQuaternion::identity(),
+            [0.0, 0.0, 1.0],
+            1.0,
+            -1.0,
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_set_supply_voltage_validation() {
+        let mut sensor = LinearHallSensor::default();
+        sensor.set_supply_voltage(-5.0);
     }
 }

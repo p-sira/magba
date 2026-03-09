@@ -11,8 +11,8 @@ use nalgebra::{Point3, UnitQuaternion, Vector3};
 
 use crate::{
     base::{
-        pose::impl_pose_methods, transform::impl_transform, Float, Observer, Pose, SensorOutput,
-        Source,
+        Float, Observer, Pose, SensorOutput, Source, pose::impl_pose_methods,
+        transform::impl_transform,
     },
     measurement::hall_effect::hall_latch_state,
 };
@@ -248,5 +248,31 @@ mod tests {
         // The projected field is (-0.015) * (-1) = 0.015.
         // This is above B_OP, so it should turn ON.
         assert_eq!(sensor.read_state(&source_rp), true);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_input_validation() {
+        let _ = HallLatch::new(
+            [0.0; 3],
+            UnitQuaternion::identity(),
+            [0.0, 0.0, 1.0],
+            0.0,
+            0.0,
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_set_b_op_validation() {
+        let mut sensor = HallLatch::default().with_b_op(0.010).with_b_rp(-0.010);
+        sensor.set_b_op(-0.020);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_set_b_rp_validation() {
+        let mut sensor = HallLatch::default().with_b_op(0.010).with_b_rp(-0.010);
+        sensor.set_b_rp(0.020);
     }
 }

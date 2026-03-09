@@ -62,7 +62,25 @@ mod tests {
 
     #[test]
     #[should_panic]
-    fn test_input_validation() {
-        let _: SphereMagnet = SphereMagnet::default().with_diameter(-1.0_f64);
+    fn test_init_validation() {
+        let _ = SphereMagnet::<f64>::new(
+            [0.0; 3],
+            nalgebra::UnitQuaternion::identity(),
+            [0.0, 0.0, 1.0],
+            -1.0_f64,
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_set_diameter_validation() {
+        let mut magnet = SphereMagnet::<f64>::default();
+        magnet.set_diameter(-1.0_f64);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_with_diameter_validation() {
+        let _: SphereMagnet<f64> = SphereMagnet::<f64>::default().with_diameter(-1.0_f64);
     }
 }

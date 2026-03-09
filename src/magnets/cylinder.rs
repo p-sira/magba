@@ -68,7 +68,39 @@ mod tests {
 
     #[test]
     #[should_panic]
-    fn test_input_validation() {
-        let _: CylinderMagnet = CylinderMagnet::default().with_diameter(-1.0_f64);
+    fn test_init_validation() {
+        let _ = CylinderMagnet::<f64>::new(
+            [0.0; 3],
+            nalgebra::UnitQuaternion::identity(),
+            [0.0, 0.0, 1.0],
+            -1.0_f64,
+            1.0_f64,
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_set_diameter_validation() {
+        let mut magnet = CylinderMagnet::<f64>::default();
+        magnet.set_diameter(-1.0_f64);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_with_diameter_validation() {
+        let _: CylinderMagnet<f64> = CylinderMagnet::<f64>::default().with_diameter(-1.0_f64);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_set_height_validation() {
+        let mut magnet = CylinderMagnet::<f64>::default();
+        magnet.set_height(-1.0_f64);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_with_height_validation() {
+        let _: CylinderMagnet<f64> = CylinderMagnet::<f64>::default().with_height(-1.0_f64);
     }
 }
