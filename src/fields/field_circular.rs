@@ -205,7 +205,7 @@ pub fn circular_B_batch<T: Float>(
 ) {
     impl_parallel!(
         circular_B,
-        rayon_threshold: 60,
+        rayon_threshold: 350,
         input: points,
         output: out,
         args: [position, orientation, diameter, current]
