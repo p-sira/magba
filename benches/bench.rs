@@ -3,267 +3,108 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-#[cfg(feature = "unstable")]
-mod parallel_overhead {
-    use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
+use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
+use magba::fields::*;
+use nalgebra::{Point3, UnitQuaternion, Vector3, point, vector};
 
-    use magba::{base::Source, fields::cylinder_B, magnets::CylinderMagnet};
-    use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3, point, vector};
-    use rayon::prelude::*;
+#[cfg(feature = "rayon")]
+use rayon::prelude::*;
 
-    #[allow(dead_code)]
-    struct CylinderTestData {
-        points: Vec<Point3<f64>>,
-        position: Point3<f64>,
-        orientation: UnitQuaternion<f64>,
-        radius: f64,
-        height: f64,
-        polarization: Vector3<f64>,
-    }
-
-    #[allow(non_snake_case, dead_code)]
-    fn generate_global_cylinder_B_test_data(size: usize) -> CylinderTestData {
-        let test_points = [
-            point![1.0, -1.0, 1.5],
-            point![1.0, 1.0, 1.5],
-            point![0.0, 0.0, 0.0],
-        ];
-        let points = (0..size)
-            .map(|n| test_points[n % test_points.len()])
-            .collect();
-        CylinderTestData {
-            points,
-            position: Point3::origin(),
-            orientation: UnitQuaternion::identity(),
-            radius: 1.0,
-            height: 3.0,
-            polarization: vector![1.0, 1.0, 1.0],
-        }
-    }
-
-    /// Found that parallel is better slightly above 50
-    #[allow(non_snake_case, dead_code)]
-    fn bench_cylinder_B_parallel_vs_serial(c: &mut Criterion) {
-        let mut group = c.benchmark_group("parallel_overhead");
-        for size in [10, 20, 50, 60, 100].iter() {
-            let test_data = generate_global_cylinder_B_test_data(*size);
-
-            group.bench_with_input(
-                BenchmarkId::new("cylinder_B_serial", size),
-                &size,
-                |b, _| {
-                    b.iter(|| {
-                        let field = test_data
-                            .points
-                            .iter()
-                            .map(|p| {
-                                cylinder_B(
-                                    *p,
-                                    test_data.position,
-                                    test_data.orientation,
-                                    test_data.polarization,
-                                    test_data.radius,
-                                    test_data.height,
-                                )
-                            })
-                            .collect::<Vec<_>>();
-                        assert!(!field.is_empty())
-                    });
-                },
-            );
-
-            group.bench_with_input(
-                BenchmarkId::new("cylinder_B_parallel", size),
-                &size,
-                |b, _| {
-                    b.iter(|| {
-                        let field = test_data
-                            .points
-                            .par_iter()
-                            .map(|p| {
-                                cylinder_B(
-                                    *p,
-                                    test_data.position,
-                                    test_data.orientation,
-                                    test_data.polarization,
-                                    test_data.radius,
-                                    test_data.height,
-                                )
-                            })
-                            .collect::<Vec<_>>();
-                        assert!(!field.is_empty())
-                    });
-                },
-            );
-        }
-        group.finish();
-    }
-
-    fn get_points(n: usize) -> Vec<Point3<f64>> {
-        (0..n)
-            .map(|i| {
-                let i = i as f64;
-                point![i, i + 1.0, i + 2.0]
-            })
-            .collect()
-    }
-
-    /// Serial is always faster
-    /// Disabled due to consistent results
-    #[allow(dead_code)]
-    fn bench_translate_parallel_vs_serial(c: &mut Criterion) {
-        let mut group = c.benchmark_group("parallel_overhead");
-
-        for size in [10, 100, 100000].iter() {
-            let points = get_points(*size);
-            let translation = Translation3::new(3.0, 2.0, 1.0);
-
-            group.bench_with_input(BenchmarkId::new("translate_serial", size), &size, |b, _| {
-                b.iter(|| {
-                    let results = points
-                        .iter()
-                        .map(|point| translation.transform_point(point))
-                        .collect::<Vec<_>>();
-                    assert!(!results.is_empty())
-                });
-            });
-
-            group.bench_with_input(
-                BenchmarkId::new("translate_parallel", size),
-                &size,
-                |b, _| {
-                    b.iter(|| {
-                        let results = points
-                            .par_iter()
-                            .map(|point| translation.transform_point(point))
-                            .collect::<Vec<_>>();
-                        assert!(!results.is_empty())
-                    });
-                },
-            );
-        }
-        group.finish();
-    }
-
-    /// Serial is mostly faster, except at very large collection size like 5000+
-    #[allow(dead_code)]
-    fn bench_rotate_parallel_vs_serial(c: &mut Criterion) {
-        let mut group = c.benchmark_group("parallel_overhead");
-
-        fn rotate_anchor(
-            current_position: &Point3<f64>,
-            current_orientation: &UnitQuaternion<f64>,
-            rotation: &UnitQuaternion<f64>,
-            anchor: &Point3<f64>,
-        ) -> (Point3<f64>, UnitQuaternion<f64>) {
-            let local_position = current_position - anchor;
-            let new_position =
-                Point3::from(rotation * local_position + Vector3::from(anchor.coords));
-            let new_orientation = rotation * current_orientation;
-            (new_position, new_orientation)
-        }
-
-        for size in [1000, 5000, 10000].iter() {
-            let points = get_points(*size);
-            let current_orientation = UnitQuaternion::identity();
-            let rotation = UnitQuaternion::from_scaled_axis(vector![1.0, 2.0, 3.0]);
-            let anchor = point![3.0, 2.0, 1.0];
-
-            group.bench_with_input(BenchmarkId::new("rotate_serial", size), &size, |b, _| {
-                b.iter(|| {
-                    let results = points
-                        .iter()
-                        .map(|point| {
-                            rotate_anchor(point, &current_orientation, &rotation, &anchor);
-                        })
-                        .collect::<Vec<_>>();
-                    assert!(!results.is_empty())
-                });
-            });
-
-            group.bench_with_input(BenchmarkId::new("rotate_parallel", size), &size, |b, _| {
-                b.iter(|| {
-                    let results = points
-                        .par_iter()
-                        .map(|point| {
-                            rotate_anchor(point, &current_orientation, &rotation, &anchor);
-                        })
-                        .collect::<Vec<_>>();
-                    assert!(!results.is_empty())
-                });
-            });
-        }
-        group.finish();
-    }
-
-    fn get_cylinder_collection(n: usize) -> Vec<CylinderMagnet<f64>> {
-        (0..n)
-            .map(|_| {
-                CylinderMagnet::new(
-                    point![-0.004694999999999998, 0.008131978541535878, -0.006],
-                    UnitQuaternion::from_scaled_axis(Vector3::new(
-                        1.5315599088338596,
-                        0.41038024073191587,
-                        0.4103802407319159,
-                    )),
-                    vector![0.4, 0.5, 0.6],
-                    2e-3,
-                    5e-3,
-                )
-            })
-            .collect()
-    }
-
-    /// Parallel is always faster, except with 1 source.
-    /// However, I don't think it is worth branching.
-    /// Disabled due to consistent results
-    #[allow(dead_code, non_snake_case)]
-    fn bench_collection_B_parallel_vs_serial(c: &mut Criterion) {
-        let mut group = c.benchmark_group("parallel_overhead");
-
-        for size in [1, 2, 5, 10].iter() {
-            let points = get_points(100);
-            let collection = get_cylinder_collection(*size);
-
-            group.bench_with_input(
-                BenchmarkId::new("collection_b_serial", size),
-                &size,
-                |b, _| {
-                    b.iter(|| {
-                        let field = collection
-                            .iter()
-                            .map(|magnet| magnet.compute_B_batch(&points))
-                            .collect::<Vec<_>>();
-                        assert!(!field.is_empty())
-                    });
-                },
-            );
-
-            group.bench_with_input(
-                BenchmarkId::new("collection_b_parallel", size),
-                &size,
-                |b, _| {
-                    b.iter(|| {
-                        let field = collection
-                            .par_iter()
-                            .map(|magnet| magnet.compute_B_batch(&points))
-                            .collect::<Vec<_>>();
-                        assert!(!field.is_empty())
-                    });
-                },
-            );
-        }
-        group.finish();
-    }
-
-    criterion_group!(
-        benches,
-        bench_cylinder_B_parallel_vs_serial,
-        // bench_translate_parallel_vs_serial,
-        bench_rotate_parallel_vs_serial,
-        // bench_collection_B_parallel_vs_serial,
-    );
-    criterion_main!(benches);
+fn get_points(n: usize) -> Vec<Point3<f64>> {
+    (0..n)
+        .map(|i| {
+            let i = i as f64;
+            point![i * 0.01, i * 0.01, i * 0.01]
+        })
+        .collect()
 }
 
-fn main() {}
+macro_rules! bench_field {
+    ($c:ident, $group_name:expr, $func_name:ident, $input_sizes:expr, ($($args:expr),*)) => {
+        let mut group = $c.benchmark_group($group_name);
+        for size in $input_sizes {
+            let points = get_points(*size);
+            let mut out = vec![Vector3::zeros(); *size];
+
+            group.bench_with_input(
+                BenchmarkId::new("serial", size),
+                size,
+                |b, _| {
+                    b.iter(|| {
+                        points.iter().zip(out.iter_mut()).for_each(|(p, o)| {
+                            *o = $func_name(*p, $($args),*);
+                        });
+                        criterion::black_box(&out);
+                    });
+                },
+            );
+
+            #[cfg(feature = "rayon")]
+            group.bench_with_input(
+                BenchmarkId::new("batch", size),
+                size,
+                |b, _| {
+                    b.iter(|| {
+                        points.par_iter()
+                            .zip(out.par_iter_mut())
+                            .for_each(|(p, o)| {
+                                *o = $func_name(*p, $($args),*);
+                            });
+                        criterion::black_box(&out);
+                    });
+                },
+            );
+        }
+        group.finish();
+    };
+}
+
+fn bench_thresholds(c: &mut Criterion) {
+    let pos = Point3::origin();
+    let ori = UnitQuaternion::identity();
+    let pol = vector![1.0, 0.0, 0.0];
+    let dim = vector![0.01, 0.01, 0.01];
+    let height = 0.02;
+    let diameter = 0.02;
+    let moment = vector![0.0, 0.0, 1e-3];
+    let current = 1.0;
+
+    bench_field!(
+        c,
+        "threshold/circular_B",
+        circular_B,
+        &[150, 300, 500, 700, 1000],
+        (pos, ori, diameter, current)
+    );
+    bench_field!(
+        c,
+        "threshold/cuboid_B",
+        cuboid_B,
+        &[20, 30, 50, 100, 150],
+        (pos, ori, pol, dim)
+    );
+    bench_field!(
+        c,
+        "threshold/cylinder_B",
+        cylinder_B,
+        &[75, 100, 150, 200, 250],
+        (pos, ori, pol, diameter, height)
+    );
+    bench_field!(
+        c,
+        "threshold/dipole_B",
+        dipole_B,
+        &[3000, 4000, 5000, 6000, 7000],
+        (pos, ori, moment)
+    );
+    bench_field!(
+        c,
+        "threshold/sphere_B",
+        sphere_B,
+        &[1500, 2000, 2500, 3000, 3500],
+        (pos, ori, pol, diameter)
+    );
+}
+
+criterion_group!(benches, bench_thresholds);
+criterion_main!(benches);
