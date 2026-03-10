@@ -38,6 +38,9 @@ impl<T: Float> HallSwitch<T> {
         sensitive_axis: impl Into<Vector3<T>>,
         b_op: T,
     ) -> Self {
+        if b_op < T::zero() {
+            panic!("B_OP must be non-negative.");
+        }
         Self {
             pose: Pose::new(position.into(), orientation),
             sensitive_axis: sensitive_axis.into().normalize(),
@@ -75,6 +78,9 @@ impl<T: Float> HallSwitch<T> {
 
     #[inline]
     pub fn set_b_op(&mut self, b_op: T) {
+        if b_op < T::zero() {
+            panic!("B_OP must be non-negative.");
+        }
         self.b_op = b_op;
     }
 
@@ -172,5 +178,11 @@ mod tests {
 
         // Source opposite should now trigger it
         assert_eq!(sensor.read_state(&source_opp), true);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_input_validation() {
+        let _ = HallSwitch::new([0.0; 3], UnitQuaternion::identity(), [0.0, 0.0, 1.0], -1.0);
     }
 }

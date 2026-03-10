@@ -1,6 +1,16 @@
 # Changelog
 ## 0.4
 
+### 0.4.2
+
+**Bug Fixes**
+
+- Add missing input validation for sensors.
+
+**Testing**
+
+- Add input validation tests.
+
 ### 0.4.1
 
 **Bug Fixes**

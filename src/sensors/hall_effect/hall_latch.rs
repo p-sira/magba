@@ -66,6 +66,9 @@ impl<T: Float> HallLatch<T> {
         b_op: T,
         b_rp: T,
     ) -> Self {
+        if b_op <= b_rp {
+            panic!("B_OP must be greater than B_RP.");
+        }
         Self {
             pose: Pose::new(position.into(), orientation),
             sensitive_axis: sensitive_axis.into().normalize(),
@@ -123,11 +126,17 @@ impl<T: Float> HallLatch<T> {
 
     #[inline]
     pub fn set_b_op(&mut self, b_op: T) {
+        if b_op <= self.b_rp {
+            panic!("B_OP must be greater than B_RP.");
+        }
         self.b_op = b_op;
     }
 
     #[inline]
     pub fn set_b_rp(&mut self, b_rp: T) {
+        if self.b_op <= b_rp {
+            panic!("B_OP must be greater than B_RP.");
+        }
         self.b_rp = b_rp;
     }
 
@@ -239,5 +248,31 @@ mod tests {
         // The projected field is (-0.015) * (-1) = 0.015.
         // This is above B_OP, so it should turn ON.
         assert_eq!(sensor.read_state(&source_rp), true);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_input_validation() {
+        let _ = HallLatch::new(
+            [0.0; 3],
+            UnitQuaternion::identity(),
+            [0.0, 0.0, 1.0],
+            0.0,
+            0.0,
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_set_b_op_validation() {
+        let mut sensor = HallLatch::default().with_b_op(0.010).with_b_rp(-0.010);
+        sensor.set_b_op(-0.020);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_set_b_rp_validation() {
+        let mut sensor = HallLatch::default().with_b_op(0.010).with_b_rp(-0.010);
+        sensor.set_b_rp(0.020);
     }
 }
