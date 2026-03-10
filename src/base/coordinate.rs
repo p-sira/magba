@@ -27,16 +27,16 @@ pub fn vec_cyl2cart<T: RealField + Copy>(r: T, phi: T, theta: T) -> (T, T) {
 macro_rules! compute_in_local {
     ($func: ident, $point: expr, $position: expr, $orientation: expr, ($($func_args:expr),*),) => {
         {
-            use crate::base::coordinate::{local_point, global_vector};
-
-            global_vector($func(local_point($point, $position, $orientation), $($func_args),*), $orientation)
+            let local_point = crate::base::coordinate::global_to_local_point($point, $position, $orientation);
+            let local_result_vector = $func(local_point, $($func_args),*);
+            crate::base::coordinate::local_to_global_vector(local_result_vector, $orientation)
         }
     };
 }
 pub(crate) use compute_in_local;
 
 /// Transform global point to the local frame of the object.
-pub fn local_point<T: RealField + Copy>(
+pub(crate) fn global_to_local_point<T: RealField + Copy>(
     point: Point3<T>,
     position: Point3<T>,
     orientation: UnitQuaternion<T>,
@@ -45,7 +45,7 @@ pub fn local_point<T: RealField + Copy>(
 }
 
 /// Transform local vector to the global frame.
-pub fn global_vector<T: RealField + Copy>(
+pub(crate) fn local_to_global_vector<T: RealField + Copy>(
     vector: Vector3<T>,
     orientation: UnitQuaternion<T>,
 ) -> Vector3<T> {
