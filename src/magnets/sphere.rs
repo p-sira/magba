@@ -54,6 +54,12 @@ crate::testing_util::generate_tests! {
         translate: 1e-10,
         rotate: 1e-10,
     }
+    f32_rtols: {
+        static: 1e-6,
+        static_small: 1e-6,
+        translate: 1e-6,
+        rotate: 1e-6,
+    }
 }
 
 #[cfg(test)]
