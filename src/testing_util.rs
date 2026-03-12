@@ -246,6 +246,12 @@ pub(crate) use test_B_magnet;
 ///         translate: 1e-10,
 ///         rotate: 1e-10,
 ///     }
+///     f32_rtols: {
+///         static: 1e-6,
+///         static_small: 1e-6,
+///         translate: 1e-6,
+///         rotate: 1e-6,
+///     }
 /// }
 /// ```
 ///
@@ -259,6 +265,7 @@ pub(crate) use test_B_magnet;
 ///     translate: $rtol_translate:expr,
 ///     rotate: $rtol_rotate:expr $(,)?
 /// }
+/// [f32_rtols: { ... }]
 /// ```
 /// - $source_type: Type identifier for the magnet.
 /// - $filename: Base name of the test file.
@@ -267,23 +274,56 @@ pub(crate) use test_B_magnet;
 ///   divided by 10 in small workspace tests.
 /// - rtols: Relative tolerance for corresponding tests.
 macro_rules! generate_tests {
-    {
-        $source_type: ident
-        filename: $filename: ident
-        params: { $($pname:ident : $params: expr),* $(,)? }
-        rtols: {
-            static: $rtol_static:expr,
-            static_small: $rtol_static_small:expr,
-            translate: $rtol_translate:expr,
-            rotate: $rtol_rotate:expr $(,)?
+    // Internal helper to generate f32 tests
+    (@f32_mod $source_type: ident, $filename: ident, [$($params: expr),*], $f32_rtol_static: expr, $f32_rtol_static_small: expr, $f32_rtol_translate: expr, $f32_rtol_rotate: expr) => {
+        mod f32_tests {
+            use std::f32::consts::PI;
+            use super::*;
+
+            fn magnet() -> $source_type<f32> {
+                $source_type::new(
+                    point![0.1f32, 0.2, 0.3],
+                    quat_from_rotvec(PI / 7.0, PI / 6.0, PI / 5.0),
+                    $($params),*
+                )
+            }
+
+            #[test]
+            fn test_static() {
+                test_B_magnet!(&magnet(), &format!("{}.csv", stringify!($filename)), $f32_rtol_static)
+            }
+
+            #[test]
+            fn test_static_small() {
+                let magnet = $source_type::new(
+                    point![0.03f32, 0.02, 0.01],
+                    quat_from_rotvec(PI / 7.0, PI / 6.0, PI / 5.0),
+                    $(($params) / 10.0),*
+                );
+                test_B_magnet!(@small, &magnet, &format!("{}-small.csv", stringify!($filename)), $f32_rtol_static_small)
+            }
+
+            #[test]
+            fn test_translate() {
+                let mut magnet = magnet();
+                magnet.translate(Translation3::new(-0.1f32, -0.2, -0.3));
+                test_B_magnet!(&magnet, &format!("{}-translate.csv", stringify!($filename)), $f32_rtol_translate)
+
+            }
+
+            #[test]
+            fn test_rotate() {
+                let mut magnet = magnet();
+                magnet.rotate(quat_from_rotvec(PI / 7.0, PI / 6.0, PI / 5.0).inverse());
+                test_B_magnet!(&magnet, &format!("{}-rotate.csv", stringify!($filename)), $f32_rtol_rotate)
+            }
         }
-    } => {
-        mod generated_tests {
+    };
+
+    // Internal helper to generate f64 tests
+    (@f64_mod $source_type: ident, $filename: ident, [$($params: expr),*], $rtol_static: expr, $rtol_static_small: expr, $rtol_translate: expr, $rtol_rotate: expr) => {
+        mod f64_tests {
             use std::f64::consts::PI;
-
-            use nalgebra::*;
-
-            use crate::testing_util::*;
             use super::*;
 
             fn magnet() -> $source_type<f64> {
@@ -323,6 +363,57 @@ macro_rules! generate_tests {
                 magnet.rotate(quat_from_rotvec(PI / 7.0, PI / 6.0, PI / 5.0).inverse());
                 test_B_magnet!(&magnet, &format!("{}-rotate.csv", stringify!($filename)), $rtol_rotate)
             }
+        }
+    };
+
+    // Pattern with f32_rtols
+    {
+        $source_type: ident
+        filename: $filename: ident
+        params: { $($pname:ident : $params: expr),* $(,)? }
+        rtols: {
+            static: $rtol_static:expr,
+            static_small: $rtol_static_small:expr,
+            translate: $rtol_translate:expr,
+            rotate: $rtol_rotate:expr $(,)?
+        }
+        f32_rtols: {
+            static: $f32_rtol_static:expr,
+            static_small: $f32_rtol_static_small:expr,
+            translate: $f32_rtol_translate:expr,
+            rotate: $f32_rtol_rotate:expr $(,)?
+        }
+    } => {
+        mod generated_tests {
+            use nalgebra::*;
+
+            use crate::testing_util::*;
+            use super::*;
+
+            crate::testing_util::generate_tests!(@f64_mod $source_type, $filename, [$($params),*], $rtol_static, $rtol_static_small, $rtol_translate, $rtol_rotate);
+            crate::testing_util::generate_tests!(@f32_mod $source_type, $filename, [$($params),*], $f32_rtol_static, $f32_rtol_static_small, $f32_rtol_translate, $f32_rtol_rotate);
+        }
+    };
+
+    // Pattern without f32_rtols (legacy/default)
+    {
+        $source_type: ident
+        filename: $filename: ident
+        params: { $($pname:ident : $params: expr),* $(,)? }
+        rtols: {
+            static: $rtol_static:expr,
+            static_small: $rtol_static_small:expr,
+            translate: $rtol_translate:expr,
+            rotate: $rtol_rotate:expr $(,)?
+        }
+    } => {
+        mod generated_tests {
+            use nalgebra::*;
+
+            use crate::testing_util::*;
+            use super::*;
+
+            crate::testing_util::generate_tests!(@f64_mod $source_type, $filename, [$($params),*], $rtol_static, $rtol_static_small, $rtol_translate, $rtol_rotate);
         }
     };
 }
