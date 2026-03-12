@@ -3,6 +3,8 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
+use ellip::bulirsch::BulirschConst;
+
 const MU0: f64 = 1.2566370614359173e-6;
 const RECIP_MU0: f64 = 1.0 / MU0;
 
@@ -38,7 +40,7 @@ const RECIP_MU0: f64 = 1.0 / MU0;
 ///
 /// assert_relative_ne!(field_f64, field_f32.cast::<f64>());
 /// ```
-pub trait Float: nalgebra::RealField + num_traits::Float + Copy {
+pub trait Float: nalgebra::RealField + num_traits::Float + BulirschConst<Self> + Copy {
     /// Permeability of free space (μ₀) = 4π × 10⁻⁷ H/m.
     fn mu0() -> Self;
 

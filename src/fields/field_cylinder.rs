@@ -5,10 +5,7 @@
 
 //! Analytical B-field computation for cylindrical magnets.
 
-use ellip::{
-    bulirsch::{DefaultPrecision, cel_with_const},
-    ellipe, ellipk,
-};
+use ellip::{bulirsch::cel, ellipe, ellipk};
 use nalgebra::{Point3, UnitQuaternion, Vector3, vector};
 use num_traits::Float as NumFloat;
 use numeric_literals::replace_float_literals;
@@ -56,11 +53,10 @@ pub fn unit_axial_cylinder_B_cyl<T: Float>(r: T, z: T, z0: T) -> Vector3<T> {
     let gamma = rm / rp;
     let gamma2 = gamma * gamma;
 
-    let br = (cel_with_const::<T, DefaultPrecision>(kp, 1.0, 1.0, -1.0).unwrap() / sq1
-        - cel_with_const::<T, DefaultPrecision>(km, 1.0, 1.0, -1.0).unwrap() / sq0)
-        / T::pi();
-    let bz = (zp * cel_with_const::<T, DefaultPrecision>(kp, gamma2, 1.0, gamma).unwrap() / sq1
-        - zm * cel_with_const::<T, DefaultPrecision>(km, gamma2, 1.0, gamma).unwrap() / sq0)
+    let br =
+        (cel(kp, 1.0, 1.0, -1.0).unwrap() / sq1 - cel(km, 1.0, 1.0, -1.0).unwrap() / sq0) / T::pi();
+    let bz = (zp * cel(kp, gamma2, 1.0, gamma).unwrap() / sq1
+        - zm * cel(km, gamma2, 1.0, gamma).unwrap() / sq0)
         / (rp * T::pi());
     // bphi = 0
     vector![br, 0.0, bz]
@@ -144,10 +140,8 @@ pub fn unit_diametric_cylinder_B_cyl<T: Float>(r: T, phi: T, z: T, z0: T) -> Vec
     let (ellk_p, ellk_m) = (ellipk(argp).unwrap(), ellipk(argm).unwrap());
     let (elle_p, elle_m) = (ellipe(argp).unwrap(), ellipe(argm).unwrap());
     let (ellpi_p, ellpi_m) = (
-        cel_with_const::<T, DefaultPrecision>(NumFloat::sqrt(1.0 - argp), 1.0 - argc, 1.0, 1.0)
-            .unwrap(),
-        cel_with_const::<T, DefaultPrecision>(NumFloat::sqrt(1.0 - argm), 1.0 - argc, 1.0, 1.0)
-            .unwrap(),
+        cel(NumFloat::sqrt(1.0 - argp), 1.0 - argc, 1.0, 1.0).unwrap(),
+        cel(NumFloat::sqrt(1.0 - argm), 1.0 - argc, 1.0, 1.0).unwrap(),
     );
 
     // Computes the fields
