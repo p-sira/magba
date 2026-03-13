@@ -1,13 +1,16 @@
 # Changelog
-## 0.5
 
-### 0.5.0
+## 0.4
+
+### 0.4.3
 
 **Breaking Changes**
 
 - Add Ellip's `BulirschConst<Self>` bound constraint to Magba's `Float` trait to allow true support of generic float type for cylinder field functions.
 
-## 0.4
+**Bug Fixes**
+
+- Fix cylinder magnet field function failing to converge for f32.
 
 ### 0.4.2
 
