@@ -3,8 +3,8 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
+use core::fmt::Display;
 use core::ops::{Index, IndexMut};
-use std::fmt::Display;
 
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
@@ -126,6 +126,22 @@ impl<S: Source<T>, const N: usize, T: Float> From<[S; N]> for SourceArray<S, N, 
             pose: Pose::default(),
             nodes,
         }
+    }
+}
+
+impl<S: Source<T>, const N: usize, T: Float> FromIterator<S> for SourceArray<S, N, T> {
+    fn from_iter<I: IntoIterator<Item = S>>(iter: I) -> Self {
+        let mut iter = iter.into_iter();
+        let sources = core::array::from_fn(|_| {
+            iter.next()
+                .expect("SourceArray::from_iter: iterator yielded fewer than N items")
+        });
+
+        if iter.next().is_some() {
+            panic!("SourceArray::from_iter: iterator yielded more than N items");
+        }
+
+        Self::from(sources)
     }
 }
 

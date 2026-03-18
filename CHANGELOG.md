@@ -2,6 +2,12 @@
 
 ## 0.4
 
+### 0.4.4
+
+**Improvements**
+
+- Add `from_iter` method to `SourceArray` and `ObserverArray`.
+
 ### 0.4.3
 
 **Breaking Changes**

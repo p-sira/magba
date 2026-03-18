@@ -3,8 +3,8 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
+use core::fmt::Display;
 use core::ops::{Index, IndexMut};
-use std::fmt::Display;
 
 use nalgebra::{Point3, Translation3, UnitQuaternion};
 
@@ -104,6 +104,22 @@ impl<S: Observer<T>, const N: usize, T: Float> From<[S; N]> for ObserverArray<S,
     }
 }
 
+impl<S: Observer<T>, const N: usize, T: Float> FromIterator<S> for ObserverArray<S, N, T> {
+    fn from_iter<I: IntoIterator<Item = S>>(iter: I) -> Self {
+        let mut iter = iter.into_iter();
+        let sensors = core::array::from_fn(|_| {
+            iter.next()
+                .expect("ObserverArray::from_iter: iterator yielded fewer than N items")
+        });
+
+        if iter.next().is_some() {
+            panic!("ObserverArray::from_iter: iterator yielded more than N items");
+        }
+
+        Self::from(sensors)
+    }
+}
+
 impl<'a, S: Observer<T>, const N: usize, T: Float> IntoIterator for &'a ObserverArray<S, N, T> {
     type Item = &'a S;
     type IntoIter = std::iter::Map<std::slice::Iter<'a, Node<S, T>>, fn(&'a Node<S, T>) -> &'a S>;
@@ -160,5 +176,64 @@ impl<S: Observer<T>, const N: usize, T: Float> Display for ObserverArray<S, N, T
         crate::collections::utils::write_tree(f, self.components(), "", |leaf, f, ind| {
             leaf.format(f, ind)
         })
+    }
+}
+
+// MARK: Tests
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::sensors::hall_effect::LinearHallSensor;
+
+    #[test]
+    fn test_observer_array_from_iter() {
+        let sensors = (0..3).map(|i| {
+            LinearHallSensor::new(
+                [i as f64, 0.0, 0.0],
+                UnitQuaternion::identity(),
+                [0.0, 0.0, 1.0],
+                30.0,
+                3.3,
+            )
+        });
+
+        let array: ObserverArray<LinearHallSensor, 3> = sensors.collect();
+        assert_eq!(array.nodes.len(), 3);
+        assert_eq!(array.nodes[0].component.pose().position().x, 0.0);
+        assert_eq!(array.nodes[1].component.pose().position().x, 1.0);
+        assert_eq!(array.nodes[2].component.pose().position().x, 2.0);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_observer_array_from_iter_too_short() {
+        let sensors = (0..2).map(|i| {
+            LinearHallSensor::new(
+                [i as f64, 0.0, 0.0],
+                UnitQuaternion::identity(),
+                [0.0, 0.0, 1.0],
+                30.0,
+                3.3,
+            )
+        });
+
+        let _: ObserverArray<LinearHallSensor, 3> = sensors.collect();
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_observer_array_from_iter_too_long() {
+        let sensors = (0..4).map(|i| {
+            LinearHallSensor::new(
+                [i as f64, 0.0, 0.0],
+                UnitQuaternion::identity(),
+                [0.0, 0.0, 1.0],
+                30.0,
+                3.3,
+            )
+        });
+
+        let _: ObserverArray<LinearHallSensor, 3> = sensors.collect();
     }
 }
