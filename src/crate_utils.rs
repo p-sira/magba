@@ -161,6 +161,8 @@ macro_rules! impl_parallel_sum {
 }
 pub(crate) use impl_parallel_sum;
 
+// MARK: define_source!
+
 /// Generates a struct representing a magnetic source.
 ///
 /// This macro handles the creation of the struct, constructor logic (including `Into` conversions),
