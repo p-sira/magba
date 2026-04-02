@@ -53,7 +53,9 @@ pub fn local_tetrahedron_B<T: Float>(
         vertices[1] - vertices[0],
         vertices[2] - vertices[0],
         vertices[3] - vertices[0],
-    ]).try_inverse() {
+    ])
+    .try_inverse()
+    {
         let p_rel = point.coords - vertices[0];
         let new_p = mat_inv * p_rel;
 

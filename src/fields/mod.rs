@@ -69,8 +69,8 @@ pub use field_cuboid::{cuboid_B, cuboid_B_batch, sum_multiple_cuboid_B};
 pub use field_cylinder::{cylinder_B, cylinder_B_batch, sum_multiple_cylinder_B};
 pub use field_dipole::{dipole_B, dipole_B_batch, sum_multiple_dipole_B};
 pub use field_sphere::{sphere_B, sphere_B_batch, sum_multiple_sphere_B};
-pub use field_tetrahedron::{tetrahedron_B, tetrahedron_B_batch, sum_multiple_tetrahedron_B};
-pub use field_triangle::{triangle_B, triangle_B_batch, sum_multiple_triangle_B};
+pub use field_tetrahedron::{sum_multiple_tetrahedron_B, tetrahedron_B, tetrahedron_B_batch};
+pub use field_triangle::{sum_multiple_triangle_B, triangle_B, triangle_B_batch};
 
 crate::crate_utils::need_unstable! {
     pub use field_cuboid::local_cuboid_B;
