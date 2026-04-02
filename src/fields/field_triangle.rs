@@ -6,6 +6,7 @@
 //! Analytical B-field computation for homogeneously magnetized triangular surface.
 
 use nalgebra::{Point3, UnitQuaternion, Vector3};
+use num_traits::Float as NumFloat;
 use numeric_literals::replace_float_literals;
 
 use crate::{
@@ -28,10 +29,10 @@ fn solid_angle<T: Float>(r_vecs: &[Vector3<T>; 3], r_mags: &[T; 3]) -> T {
         + r_vecs[2].dot(&r_vecs[0]) * r_mags[1]
         + r_vecs[1].dot(&r_vecs[0]) * r_mags[2];
 
-    let result = 2.0 * num_traits::Float::atan2(N, D);
+    let result = 2.0 * NumFloat::atan2(N, D);
 
     // Modulus 2pi to avoid jumps on edges in line
-    if num_traits::Float::abs(result) > 2.0 * T::pi() {
+    if NumFloat::abs(result) > 2.0 * T::pi() {
         T::zero()
     } else {
         result
@@ -103,22 +104,20 @@ pub fn local_triangle_B<T: Float>(
 
     for i in 0..3 {
         let bl_val = b_vals[i] / l_mags[i];
-        let ind = num_traits::Float::abs(r_mags[i] + bl_val);
+        let ind = NumFloat::abs(r_mags[i] + bl_val);
 
-        let I;
-        if ind > 1.0e-12 {
-            I = (1.0 / l_mags[i])
-                * num_traits::Float::ln(
-                    (num_traits::Float::sqrt(
+        let I = if ind > 1.0e-12 {
+            (1.0 / l_mags[i])
+                * NumFloat::ln(
+                    (NumFloat::sqrt(
                         l_mags[i] * l_mags[i] + 2.0 * b_vals[i] + r_mags[i] * r_mags[i],
                     ) + l_mags[i]
                         + bl_val)
                         / ind,
-                );
+                )
         } else {
-            I = -(1.0 / l_mags[i])
-                * num_traits::Float::ln(num_traits::Float::abs(l_mags[i] - r_mags[i]) / r_mags[i]);
-        }
+            -(1.0 / l_mags[i]) * NumFloat::ln(NumFloat::abs(l_mags[i] - r_mags[i]) / r_mags[i])
+        };
 
         // Accumulate I * L
         PQR += L[i] * I;
