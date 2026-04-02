@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
-from magpylib.magnet import Cuboid, Cylinder, Sphere
+from magpylib.magnet import Cuboid, Cylinder, Sphere, Tetrahedron
 from magpylib.misc import Dipole, Triangle
 from scipy.spatial.transform import Rotation
 
@@ -80,6 +80,14 @@ def generate_tests(points, points_small):
         points,
         points_small,
         np.array([[-0.1, -0.1, -0.1], [0.1, -0.1, 0.1], [0.0, 0.2, 0.0]]),  # vertices
+        np.array((1.0, 2.0, 3.0)),  # polarization
+    )
+
+    generate_test(
+        Tetrahedron,
+        points,
+        points_small,
+        np.array([[-0.1, -0.1, -0.1], [0.1, -0.1, -0.1], [0.0, 0.1, -0.1], [0.0, 0.0, 0.1]]),  # vertices
         np.array((1.0, 2.0, 3.0)),  # polarization
     )
 
