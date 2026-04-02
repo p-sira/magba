@@ -245,9 +245,17 @@ impl<T: RealField + Copy> ScaleParam<T> for Vector3<T> {
         self / scale
     }
 }
-impl<T: RealField + Copy> ScaleParam<T> for [Vector3<T>; 3] {
+impl<T: RealField + Copy> ScaleParam<T> for [Vector3<T>; 3]
+{
     fn scale_param(self, scale: T) -> Self {
         [self[0] / scale, self[1] / scale, self[2] / scale]
+    }
+}
+
+impl<T: RealField + Copy> ScaleParam<T> for [Vector3<T>; 4]
+{
+    fn scale_param(self, scale: T) -> Self {
+        [self[0] / scale, self[1] / scale, self[2] / scale, self[3] / scale]
     }
 }
 

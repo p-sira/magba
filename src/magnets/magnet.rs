@@ -10,7 +10,7 @@ use enum_dispatch::enum_dispatch;
 
 use crate::{
     base::{Float, Pose, Source, Transform},
-    magnets::{CuboidMagnet, CylinderMagnet, Dipole, SphereMagnet, TriangleMagnet},
+    magnets::{CuboidMagnet, CylinderMagnet, Dipole, SphereMagnet, TetrahedronMagnet, TriangleMagnet},
 };
 use nalgebra::{Point3, Vector3};
 
@@ -37,6 +37,7 @@ pub enum Magnet<T: Float = f64> {
     Cuboid(CuboidMagnet<T>),
     Dipole(Dipole<T>),
     Sphere(SphereMagnet<T>),
+    Tetrahedron(TetrahedronMagnet<T>),
     Triangle(TriangleMagnet<T>),
 }
 
