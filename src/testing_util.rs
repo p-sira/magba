@@ -232,6 +232,25 @@ macro_rules! test_B_magnet {
 }
 pub(crate) use test_B_magnet;
 
+pub trait ScaleParam<T> {
+    fn scale_param(self, scale: T) -> Self;
+}
+impl<T: RealField + Copy> ScaleParam<T> for T {
+    fn scale_param(self, scale: T) -> Self {
+        self / scale
+    }
+}
+impl<T: RealField + Copy> ScaleParam<T> for Vector3<T> {
+    fn scale_param(self, scale: T) -> Self {
+        self / scale
+    }
+}
+impl<T: RealField + Copy> ScaleParam<T> for [Vector3<T>; 3] {
+    fn scale_param(self, scale: T) -> Self {
+        [self[0] / scale, self[1] / scale, self[2] / scale]
+    }
+}
+
 /// Generate basic tests for magnetic sources.
 /// Tests compute_B, compute_B for small magnets, translate, and rotate.
 ///
@@ -298,7 +317,7 @@ macro_rules! generate_tests {
                 let magnet = $source_type::new(
                     point![0.03f32, 0.02, 0.01],
                     quat_from_rotvec(PI / 7.0, PI / 6.0, PI / 5.0),
-                    $(($params) / 10.0),*
+                    $(crate::testing_util::ScaleParam::scale_param($params, 10.0f32)),*
                 );
                 test_B_magnet!(@small, &magnet, &format!("{}-small.csv", stringify!($filename)), $f32_rtol_static_small)
             }
@@ -344,7 +363,7 @@ macro_rules! generate_tests {
                 let magnet = $source_type::new(
                     point![0.03, 0.02, 0.01],
                     quat_from_rotvec(PI / 7.0, PI / 6.0, PI / 5.0),
-                    $(($params) / 10.0),*
+                    $(crate::testing_util::ScaleParam::scale_param($params, 10.0)),*
                 );
                 test_B_magnet!(@small, &magnet, &format!("{}-small.csv", stringify!($filename)), $rtol_static_small)
             }

@@ -6,7 +6,7 @@ from pathlib import Path
 
 import numpy as np
 from magpylib.magnet import Cuboid, Cylinder, Sphere
-from magpylib.misc import Dipole
+from magpylib.misc import Dipole, Triangle
 from scipy.spatial.transform import Rotation
 
 sys.path.append(str(Path(__file__).parent.parent))
@@ -75,6 +75,13 @@ def generate_tests(points, points_small):
         np.array((1.0, 2.0, 3.0)),  # polarization
     )
 
+    generate_test(
+        Triangle,
+        points,
+        points_small,
+        np.array([[-0.1, -0.1, -0.1], [0.1, -0.1, 0.1], [0.0, 0.2, 0.0]]),  # vertices
+        np.array((1.0, 2.0, 3.0)),  # polarization
+    )
 
 if __name__ == "__main__":
     points = get_points()

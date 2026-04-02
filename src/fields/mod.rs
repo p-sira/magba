@@ -61,12 +61,14 @@ mod field_cuboid;
 mod field_cylinder;
 mod field_dipole;
 mod field_sphere;
+mod field_triangle;
 
 pub use field_circular::{circular_B, circular_B_batch, sum_multiple_circular_B};
 pub use field_cuboid::{cuboid_B, cuboid_B_batch, sum_multiple_cuboid_B};
 pub use field_cylinder::{cylinder_B, cylinder_B_batch, sum_multiple_cylinder_B};
 pub use field_dipole::{dipole_B, dipole_B_batch, sum_multiple_dipole_B};
 pub use field_sphere::{sphere_B, sphere_B_batch, sum_multiple_sphere_B};
+pub use field_triangle::{triangle_B, triangle_B_batch, sum_multiple_triangle_B};
 
 crate::crate_utils::need_unstable! {
     pub use field_cuboid::local_cuboid_B;
@@ -75,4 +77,5 @@ crate::crate_utils::need_unstable! {
     };
     pub use field_dipole::local_dipole_B;
     pub use field_sphere::local_sphere_B;
+    pub use field_triangle::local_triangle_B;
 }
