@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5
+
+### 0.5.0
+
+**New Features**
+
+- Add `TriangleMagnet` struct and its field function.
+
 ## 0.4
 
 ### 0.4.4
