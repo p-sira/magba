@@ -11,7 +11,8 @@ use enum_dispatch::enum_dispatch;
 use crate::{
     base::{Float, Pose, Source, Transform},
     magnets::{
-        CuboidMagnet, CylinderMagnet, Dipole, SphereMagnet, TetrahedronMagnet, TriangleMagnet,
+        CuboidMagnet, CylinderMagnet, Dipole, MeshMagnet, SphereMagnet, TetrahedronMagnet,
+        TriangleMagnet,
     },
 };
 use nalgebra::{Point3, Vector3};
@@ -41,6 +42,7 @@ pub enum Magnet<T: Float = f64> {
     Sphere(SphereMagnet<T>),
     Tetrahedron(TetrahedronMagnet<T>),
     Triangle(TriangleMagnet<T>),
+    Mesh(MeshMagnet<T>),
 }
 
 #[cfg(all(test, feature = "std"))]

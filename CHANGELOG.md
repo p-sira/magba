@@ -6,7 +6,7 @@
 
 **New Features**
 
-- Add `TriangleMagnet` and `TetrahedronMagnet` structs and their field functions.
+- Add `TriangleMagnet`, `TetrahedronMagnet`, and `MeshMagnet` structs and their field functions.
 
 ## 0.4
 

@@ -77,6 +77,10 @@ need_alloc! {
             alloc::format!("[({:?}, {:?}, {:?}), ({:?}, {:?}, {:?}), ({:?}, {:?}, {:?}), ({:?}, {:?}, {:?})]", v[0].x, v[0].y, v[0].z, v[1].x, v[1].y, v[1].z, v[2].x, v[2].y, v[2].z, v[3].x, v[3].y, v[3].z)
         }
     }
+
+    pub(crate) fn format_vec_len<T>(_f: &mut Formatter, v: &[T]) -> alloc::string::String {
+        alloc::format!("len({})", v.len())
+    }
 }
 
 macro_rules! assert_eq_lens {
@@ -196,16 +200,27 @@ macro_rules! define_source {
     // MARK: Helpers
     (@arg_into $arg:expr) => { $arg.into() };
     (@arg_into $arg:expr, val) => { $arg };
+    (@arg_into $arg:expr, ref) => { $arg };
     (@arg_type_decl $arg_type:ty) => { impl Into<$arg_type> };
     (@arg_type_decl $arg_type:ty, val) => { $arg_type };
-    (@pass_arg $arg:expr $(, val)?) => { $arg };
+    (@arg_type_decl $arg_type:ty, ref) => { $arg_type };
+    (@pass_arg $arg:expr) => { $arg };
+    (@pass_arg $arg:expr, val) => { $arg };
+    (@pass_arg $arg:expr, ref) => { &$arg };
 
     // MARK: Get, Set, With
-    (@getters $struct_name:ident, $(($arg:ident, $arg_type:ty))*) => {
+    (@getter_ret_type $arg_type:ty) => { $arg_type };
+    (@getter_ret_type $arg_type:ty, val) => { $arg_type };
+    (@getter_ret_type $arg_type:ty, ref) => { &$arg_type };
+    (@getter_body $self:ident, $arg:ident) => { $self.$arg };
+    (@getter_body $self:ident, $arg:ident, val) => { $self.$arg };
+    (@getter_body $self:ident, $arg:ident, ref) => { &$self.$arg };
+
+    (@getters $struct_name:ident, $(($arg:ident, $arg_type:ty, [$(@$is_value:ident)?]))*) => {
         impl<T: crate::base::Float> $struct_name<T> {
             $(
-                pub fn $arg(&self) -> $arg_type {
-                    self.$arg
+                pub fn $arg(&self) -> $crate::crate_utils::define_source!(@getter_ret_type $arg_type $(, $is_value)?) {
+                    $crate::crate_utils::define_source!(@getter_body self, $arg $(, $is_value)?)
                 }
             )*
         }
@@ -276,7 +291,7 @@ macro_rules! define_source {
             )*
         }
 
-        $crate::crate_utils::define_source!(@getters $name, $(($arg, $arg_type))*);
+        $crate::crate_utils::define_source!(@getters $name, $(($arg, $arg_type, [$(@$is_value)?]))*);
 
         $crate::crate_utils::define_source!(@setters $name, $(
             (
@@ -364,7 +379,7 @@ macro_rules! define_source {
             #[cfg(feature = "alloc")]
             fn format(&self, f: &mut core::fmt::Formatter<'_>, _: &str) -> core::fmt::Result {
                 $(
-                    let $arg = crate::crate_utils::$arg_fmt(&mut *f, self.$arg);
+                    let $arg = crate::crate_utils::$arg_fmt(&mut *f, $crate::crate_utils::define_source!(@pass_arg self.$arg $(, $is_value)?));
                 )*
 
                 write!(
