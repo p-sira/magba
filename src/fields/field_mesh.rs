@@ -46,7 +46,7 @@ pub fn local_mesh_B<T: Float>(
 
         b_total += local_triangle_B(point, polarization, [v1, v2, v3]);
 
-        if let Some(_) = intersect_moller_trumbore(v1, v2, v3, ray, T::zero(), T::infinity()) {
+        if intersect_moller_trumbore(v1, v2, v3, ray, T::zero(), T::infinity()).is_some() {
             intersections += 1;
         }
     }
@@ -153,7 +153,7 @@ pub fn sum_multiple_mesh_B<T: Float>(
             vertices_list,
             faces_list
         ],
-        |pos, p, o, pol, vert, face| mesh_B(*pos, *p, *o, *pol, *vert, *face)
+        |pos, p, o, pol, vert, face| mesh_B(*pos, *p, *o, *pol, vert, face)
     )
 }
 
