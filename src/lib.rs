@@ -40,6 +40,7 @@ We would like to thank MagpyLib contributors for their hard work and contributio
 extern crate alloc;
 
 pub(crate) mod crate_utils;
+use crate::crate_utils::need_alloc;
 use crate::crate_utils::need_std;
 
 pub mod base;
@@ -65,7 +66,7 @@ pub mod prelude {
     pub use base::{Float, Observer, SensorOutput, Source, Transform};
     pub use currents::{CircularCurrent, Current};
     pub use magnets::{
-        CuboidMagnet, CylinderMagnet, Dipole, Magnet, MeshMagnet, SphereMagnet, TetrahedronMagnet,
+        CuboidMagnet, CylinderMagnet, Dipole, Magnet, SphereMagnet, TetrahedronMagnet,
         TriangleMagnet,
     };
     pub use sensors::{Sensor, hall_effect};
@@ -75,5 +76,9 @@ pub mod prelude {
             SourceComponent, SourceAssembly, ObserverComponent, ObserverAssembly, SourceArray,
             ObserverArray,
         };
+    );
+
+    need_alloc!(
+        pub use magnets::MeshMagnet;
     );
 }
