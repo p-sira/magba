@@ -515,6 +515,7 @@ dependencies = [
  "num-traits",
  "numeric_literals",
  "rayon",
+ "rayx",
  "regex",
  "serde_json",
  "tabled",
@@ -775,6 +776,16 @@ checksum = "1465873a3dfdaa8ae7cb14b4383657caab0b3e8a0aa9ae8e04b044854c8dfce2"
 dependencies = [
  "crossbeam-deque",
  "crossbeam-utils",
+]
+
+[[package]]
+name = "rayx"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9e48a4ee0e2ea4567a0426cf6881a832e0285adddad2eac35cbe7bc1fc3eb3ee"
+dependencies = [
+ "nalgebra",
+ "num-traits",
 ]
 
 [[package]]

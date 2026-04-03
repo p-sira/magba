@@ -235,27 +235,51 @@ pub(crate) use test_B_magnet;
 pub trait ScaleParam<T> {
     fn scale_param(self, scale: T) -> Self;
 }
+
 impl<T: RealField + Copy> ScaleParam<T> for T {
     fn scale_param(self, scale: T) -> Self {
         self / scale
     }
 }
+
 impl<T: RealField + Copy> ScaleParam<T> for Vector3<T> {
     fn scale_param(self, scale: T) -> Self {
         self / scale
     }
 }
-impl<T: RealField + Copy> ScaleParam<T> for [Vector3<T>; 3]
-{
+
+impl<T: RealField + Copy> ScaleParam<T> for [Vector3<T>; 3] {
     fn scale_param(self, scale: T) -> Self {
         [self[0] / scale, self[1] / scale, self[2] / scale]
     }
 }
 
-impl<T: RealField + Copy> ScaleParam<T> for [Vector3<T>; 4]
-{
+impl<T: RealField + Copy> ScaleParam<T> for [Vector3<T>; 4] {
     fn scale_param(self, scale: T) -> Self {
-        [self[0] / scale, self[1] / scale, self[2] / scale, self[3] / scale]
+        [
+            self[0] / scale,
+            self[1] / scale,
+            self[2] / scale,
+            self[3] / scale,
+        ]
+    }
+}
+
+impl<T: RealField + Copy> ScaleParam<T> for Vec<Vector3<T>> {
+    fn scale_param(self, scale: T) -> Self {
+        self.into_iter().map(|v| v / scale).collect()
+    }
+}
+
+impl ScaleParam<f64> for Vec<[usize; 3]> {
+    fn scale_param(self, _scale: f64) -> Self {
+        self
+    }
+}
+
+impl ScaleParam<f32> for Vec<[usize; 3]> {
+    fn scale_param(self, _scale: f32) -> Self {
+        self
     }
 }
 
