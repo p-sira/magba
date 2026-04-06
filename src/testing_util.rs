@@ -15,7 +15,10 @@ use std::{
     str::FromStr,
 };
 
-use crate::base::Source;
+use crate::base::{
+    Float, Source,
+    mesh::{TriMesh, Triangle},
+};
 
 /// Calculate the relative Euclidean distance
 pub fn relative_vec_distance<T: RealField + Copy>(a: Vector3<T>, b: Vector3<T>) -> T {
@@ -236,25 +239,25 @@ pub trait ScaleParam<T> {
     fn scale_param(self, scale: T) -> Self;
 }
 
-impl<T: RealField + Copy> ScaleParam<T> for T {
+impl<T: Float> ScaleParam<T> for T {
     fn scale_param(self, scale: T) -> Self {
         self / scale
     }
 }
 
-impl<T: RealField + Copy> ScaleParam<T> for Vector3<T> {
+impl<T: Float> ScaleParam<T> for Vector3<T> {
     fn scale_param(self, scale: T) -> Self {
         self / scale
     }
 }
 
-impl<T: RealField + Copy> ScaleParam<T> for [Vector3<T>; 3] {
+impl<T: Float> ScaleParam<T> for [Vector3<T>; 3] {
     fn scale_param(self, scale: T) -> Self {
         [self[0] / scale, self[1] / scale, self[2] / scale]
     }
 }
 
-impl<T: RealField + Copy> ScaleParam<T> for [Vector3<T>; 4] {
+impl<T: Float> ScaleParam<T> for [Vector3<T>; 4] {
     fn scale_param(self, scale: T) -> Self {
         [
             self[0] / scale,
@@ -265,21 +268,28 @@ impl<T: RealField + Copy> ScaleParam<T> for [Vector3<T>; 4] {
     }
 }
 
-impl<T: RealField + Copy> ScaleParam<T> for Vec<Vector3<T>> {
+impl<T: Float> ScaleParam<T> for Vec<Vector3<T>> {
     fn scale_param(self, scale: T) -> Self {
         self.into_iter().map(|v| v / scale).collect()
     }
 }
 
-impl ScaleParam<f64> for Vec<[usize; 3]> {
-    fn scale_param(self, _scale: f64) -> Self {
-        self
+impl<T: Float> ScaleParam<T> for Triangle<T> {
+    fn scale_param(self, scale: T) -> Self {
+        let [v1, v2, v3] = self.vertices.scale_param(scale);
+        Self::new(v1, v2, v3)
     }
 }
 
-impl ScaleParam<f32> for Vec<[usize; 3]> {
-    fn scale_param(self, _scale: f32) -> Self {
-        self
+impl<T: Float> ScaleParam<T> for Vec<Triangle<T>> {
+    fn scale_param(self, scale: T) -> Self {
+        self.into_iter().map(|t| t.scale_param(scale)).collect()
+    }
+}
+
+impl<T: Float> ScaleParam<T> for TriMesh<T> {
+    fn scale_param(self, scale: T) -> Self {
+        TriMesh::from_triangles(self.triangles.scale_param(scale))
     }
 }
 

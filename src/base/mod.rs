@@ -21,6 +21,9 @@ pub use observer::{Observer, SensorOutput};
 pub use source::Source;
 pub use transform::Transform;
 
+#[cfg(feature = "mesh")]
+pub mod mesh;
+
 /// Wrapper trait for optional [dyn_clone::DynClone](https://docs.rs/dyn-clone/latest/dyn_clone/trait.DynClone.html).
 ///
 /// No-op if the `std` feature is disabled.
