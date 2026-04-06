@@ -66,9 +66,9 @@ pub use triangle::TriangleMagnet;
 mod magnet;
 pub use magnet::Magnet;
 
-#[cfg(feature = "alloc")]
+#[cfg(feature = "mesh")]
 mod mesh;
-#[cfg(feature = "alloc")]
+#[cfg(feature = "mesh")]
 pub use mesh::MeshMagnet;
 
 #[cfg(test)]

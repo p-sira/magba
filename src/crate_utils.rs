@@ -46,6 +46,7 @@ need_alloc! {
     use core::fmt::Formatter;
     use nalgebra::Vector3;
 
+    // MARK: Formatters
     pub(crate) fn format_float<T: Float>(f: &mut Formatter, v: T) -> alloc::string::String {
         if let Some(p) = f.precision() {
             alloc::format!("{:.p$}", v, p = p)
@@ -77,10 +78,14 @@ need_alloc! {
             alloc::format!("[({:?}, {:?}, {:?}), ({:?}, {:?}, {:?}), ({:?}, {:?}, {:?}), ({:?}, {:?}, {:?})]", v[0].x, v[0].y, v[0].z, v[1].x, v[1].y, v[1].z, v[2].x, v[2].y, v[2].z, v[3].x, v[3].y, v[3].z)
         }
     }
+}
 
-    pub(crate) fn format_vec_len<T>(_f: &mut Formatter, v: &[T]) -> alloc::string::String {
-        alloc::format!("len({})", v.len())
-    }
+#[cfg(feature = "mesh")]
+pub(crate) fn format_trimesh_count<T: Float>(
+    _f: &mut Formatter,
+    mesh: &crate::base::mesh::TriMesh<T>,
+) -> alloc::string::String {
+    alloc::format!("{}", mesh.triangles.len())
 }
 
 macro_rules! assert_eq_lens {

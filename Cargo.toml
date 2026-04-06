@@ -50,13 +50,18 @@ ellip = { version = "1.1.0", default-features = false, features = ["unstable"] }
 enum_dispatch = "0.3.13"
 getset = "0.1.6"
 itertools = { version = "0.14.0", default-features = false }
-nalgebra = { version = "0.34.1", default-features = false, features = [
+nalgebra = { version = "0.34.2", default-features = false, features = [
     "macros",
 ] }
 num-traits = { version = "0.2.19", default-features = false }
 numeric_literals = "0.2.0"
+openmesh = { version = "0.2.1", default-features = false, features = [
+    "libm",
+    "nalgebra",
+] }
 rayon = { version = "1.10.0", optional = true }
-rayx = { version = "0.1.1", default-features = false }
+rayx = { version = "0.1.2", default-features = false }
+stl_io = { version = "0.11", optional = true }
 
 [dev-dependencies]
 approx = "0.5.1"
@@ -68,19 +73,22 @@ tabled = "0.18"
 magba-dev-utils = { workspace = true }
 
 [features]
+default = ["std", "rayon", "mesh", "io-stl"]
 std = [
     "alloc",
     "ellip/std",
     "num-traits/std",
     "nalgebra/std",
     "rayx/std",
+    "openmesh/std",
     "dep:derive_more",
     "dep:dyn-clone",
 ]
-default = ["std", "rayon"]
 alloc = ["nalgebra/alloc"]
 rayon = ["std", "dep:rayon", "nalgebra/rayon"]
-libm = ["ellip/libm", "num-traits/libm", "nalgebra/libm"]
+libm = ["ellip/libm", "num-traits/libm", "nalgebra/libm", "openmesh/libm"]
+mesh = ["alloc"]
+io-stl = ["mesh", "std", "openmesh/stl"]
 unstable = []
 
 [package.metadata.docs.rs]

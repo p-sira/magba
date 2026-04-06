@@ -7,6 +7,7 @@ requires-python = ">=3.13"
 dependencies = [
     "magpylib>=5.2.1",
     "numpy>=2.4.0",
+    "numpy-stl>=3.0.0",
     "pip-tools>=7.5.2",
     "scipy>=1.16.3",
 ]
