@@ -55,7 +55,7 @@ pub mod sensors;
 need_std!(
     pub mod collections;
 
-    #[cfg(test)]
+    #[cfg(any(test, feature = "test-utils"))]
     pub mod testing_util;
 );
 

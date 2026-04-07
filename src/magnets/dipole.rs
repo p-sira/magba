@@ -48,7 +48,19 @@ crate::testing_util::generate_tests! {
         translate: 2e-10,
         rotate: 2e-10,
     }
+    p95_rtols: {
+        static: 2e-10,
+        static_small: 2e-10,
+        translate: 2e-10,
+        rotate: 2e-10,
+    }
     f32_rtols: {
+        static: 1e-6,
+        static_small: 1e-6,
+        translate: 1e-6,
+        rotate: 1e-6,
+    }
+    f32_p95_rtols: {
         static: 1e-6,
         static_small: 1e-6,
         translate: 1e-6,

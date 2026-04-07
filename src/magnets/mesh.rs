@@ -114,11 +114,23 @@ crate::testing_util::generate_tests! {
         translate: 1e-9,
         rotate: 1e-10,
     }
+    p95_rtols: {
+        static: 2e-10,
+        static_small: 1e-9,
+        translate: 1e-9,
+        rotate: 1e-10,
+    }
     f32_rtols: {
         static: 5e-2,
         static_small: 0.2,
         translate: 5e-2,
         rotate: 1e-2,
+    }
+    f32_p95_rtols: {
+        static: 1e-3,
+        static_small: 1e-3,
+        translate: 1e-3,
+        rotate: 1e-3,
     }
 }
 
@@ -137,6 +149,7 @@ mod stl_tests {
             &mesh,
             "./tests/test-data/points.csv",
             "./tests/test-data/suzanne-stl.csv",
+            1e-11,
             1e-11,
         );
     }
