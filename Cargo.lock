@@ -585,7 +585,6 @@ dependencies = [
  "enum_dispatch",
  "getset",
  "itertools 0.14.0",
- "magba-dev-utils",
  "nalgebra",
  "num-traits",
  "numeric_literals",
@@ -596,15 +595,6 @@ dependencies = [
  "reproducible",
  "serde_json",
  "stl_io",
- "tabled",
-]
-
-[[package]]
-name = "magba-dev-utils"
-version = "0.4.4"
-dependencies = [
- "serde",
- "serde_json",
  "tabled",
 ]
 
