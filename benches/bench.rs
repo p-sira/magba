@@ -8,10 +8,6 @@ use std::path::Path;
 
 use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
 use magba::fields::*;
-use magba_dev_utils::{
-    benchmark::extract_criterion_mean,
-    test_report::{format_float, format_performance},
-};
 use nalgebra::{Point3, UnitQuaternion, Vector3, point, vector};
 use tabled::{Table, Tabled, settings::Style};
 
@@ -49,6 +45,29 @@ impl ExitCond {
             Self::MaxIter => "Max iteration".to_string(),
             Self::MaxThres => "Max threshold".to_string(),
         }
+    }
+}
+
+fn format_float(val: &f64) -> String {
+    if val.is_nan() {
+        "-".to_string()
+    } else {
+        format!("{:.3}", val)
+    }
+}
+
+fn format_performance(val: &f64) -> String {
+    let val = *val / 1e9;
+    if val.is_nan() {
+        "-".to_string()
+    } else if val < 1e-6 {
+        format!("{:.3} ns", val * 1e9)
+    } else if val < 1e-3 {
+        format!("{:.3} µs", val * 1e6)
+    } else if val < 1.0 {
+        format!("{:.3} ms", val * 1e3)
+    } else {
+        format!("{:.3} s", val)
     }
 }
 
@@ -120,10 +139,10 @@ macro_rules! find_threshold {
                 });
             });
 
-            record.par_time = extract_criterion_mean(
+            record.par_time = reproducible::extract_criterion_mean_ns(
                 &par_path.join(record.threshold.to_string()).join("new").join("estimates.json")
             ).unwrap();
-            record.ser_time = extract_criterion_mean(
+            record.ser_time = reproducible::extract_criterion_mean_ns(
                 &ser_path.join(record.threshold.to_string()).join("new").join("estimates.json")
             ).unwrap();
             record.ratio = record.par_time / record.ser_time;
@@ -161,10 +180,10 @@ macro_rules! find_threshold {
                         });
                     });
 
-                    let par_time = extract_criterion_mean(
+                    let par_time = reproducible::extract_criterion_mean_ns(
                         &par_path.join(mid.to_string()).join("new").join("estimates.json")
                     ).unwrap();
-                    let ser_time = extract_criterion_mean(
+                    let ser_time = reproducible::extract_criterion_mean_ns(
                         &ser_path.join(mid.to_string()).join("new").join("estimates.json")
                     ).unwrap();
                     let ratio = par_time / ser_time;
