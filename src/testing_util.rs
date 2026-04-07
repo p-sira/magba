@@ -85,10 +85,42 @@ pub fn assert_close_vec_vector<T: RealField + Copy + LowerExp>(
     vecs1: &Vec<Vector3<T>>,
     vecs2: &Vec<Vector3<T>>,
     rtol: T,
+    p95_rtol: T,
 ) {
     let len = vecs1.len();
     if len != vecs2.len() {
         panic!("assert_close_vector fails. Two vecs of Vector3 must be the same length.")
+    }
+
+    let mut rdists: Vec<T> = vecs1
+        .iter()
+        .zip(vecs2)
+        .map(|(v1, v2)| relative_vec_distance(*v1, *v2))
+        .collect();
+    rdists.sort_by(|a, b| a.partial_cmp(b).unwrap_or(core::cmp::Ordering::Equal));
+    let median = if rdists.is_empty() {
+        T::zero()
+    } else {
+        rdists[len / 2]
+    };
+    let p95 = if rdists.is_empty() {
+        T::zero()
+    } else {
+        rdists[(len as f64 * 0.95) as usize]
+    };
+    let max = if rdists.is_empty() {
+        T::zero()
+    } else {
+        *rdists.last().unwrap()
+    };
+    eprintln!(
+        "Error stats: median={:e}, p95={:e}, max={:e} (p95_rtol={:e}, max_rtol={:e})",
+        median, p95, max, p95_rtol, rtol
+    );
+
+    if p95 > p95_rtol {
+        eprintln!("FAILED: p95 error ({:e}) exceeds p95_rtol ({:e}).", p95, p95_rtol);
+        panic!("assert_close_vec_vector p95 check failed");
     }
     // Use parallel comparison for large vectors
     #[cfg(feature = "rayon")]
@@ -182,6 +214,7 @@ pub fn compare_B_with_file<S: Source<T>, T: RealField + Copy + LowerExp + FromSt
     points_path_str: &str,
     ref_path_str: &str,
     rtol: T,
+    p95_rtol: T,
 ) {
     let points_path = Path::new(points_path_str);
     let ref_path = Path::new(ref_path_str);
@@ -203,17 +236,37 @@ pub fn compare_B_with_file<S: Source<T>, T: RealField + Copy + LowerExp + FromSt
 
     let b_fields = source.compute_B_batch(&points);
 
-    assert_close_vec_vector(&b_fields, &expected, rtol);
+    assert_close_vec_vector(&b_fields, &expected, rtol, p95_rtol);
 }
 
 #[allow(non_snake_case)]
+#[allow(unused_macros)]
 macro_rules! test_B_magnet {
+    (@small, $magnet: expr, $ref_path_str: expr, $rtol: expr, $p95_rtol: expr) => {
+        compare_B_with_file(
+            $magnet,
+            "./tests/test-data/points-small.csv",
+            &format!("./tests/test-data/{}", $ref_path_str),
+            $rtol,
+            $p95_rtol,
+        )
+    };
     (@small, $magnet: expr, $ref_path_str: expr, $rtol: expr) => {
         compare_B_with_file(
             $magnet,
             "./tests/test-data/points-small.csv",
             &format!("./tests/test-data/{}", $ref_path_str),
             $rtol,
+            $rtol,
+        )
+    };
+    (@large, $magnet: expr, $ref_path_str: expr, $rtol: expr, $p95_rtol: expr) => {
+        compare_B_with_file(
+            $magnet,
+            "./tests/test-data/points-large.csv",
+            &format!("./tests/test-data/{}", $ref_path_str),
+            $rtol,
+            $p95_rtol,
         )
     };
     (@large, $magnet: expr, $ref_path_str: expr, $rtol: expr) => {
@@ -222,6 +275,16 @@ macro_rules! test_B_magnet {
             "./tests/test-data/points-large.csv",
             &format!("./tests/test-data/{}", $ref_path_str),
             $rtol,
+            $rtol,
+        )
+    };
+    ($magnet: expr, $ref_path_str: expr, $rtol: expr, $p95_rtol: expr) => {
+        compare_B_with_file(
+            $magnet,
+            "./tests/test-data/points.csv",
+            &format!("./tests/test-data/{}", $ref_path_str),
+            $rtol,
+            $p95_rtol,
         )
     };
     ($magnet: expr, $ref_path_str: expr, $rtol: expr) => {
@@ -230,9 +293,11 @@ macro_rules! test_B_magnet {
             "./tests/test-data/points.csv",
             &format!("./tests/test-data/{}", $ref_path_str),
             $rtol,
+            $rtol,
         )
     };
 }
+#[allow(unused_imports)]
 pub(crate) use test_B_magnet;
 
 pub trait ScaleParam<T> {
@@ -334,9 +399,10 @@ impl<T: Float> ScaleParam<T> for TriMesh<T> {
 /// - $params: The base parameter value for the test. Must implement division operator as it will be
 ///   divided by 10 in small workspace tests.
 /// - rtols: Relative tolerance for corresponding tests.
+#[allow(unused_macros)]
 macro_rules! generate_tests {
     // Internal helper to generate f32 tests
-    (@f32_mod $source_type: ident, $filename: ident, [$($params: expr),*], $f32_rtol_static: expr, $f32_rtol_static_small: expr, $f32_rtol_translate: expr, $f32_rtol_rotate: expr) => {
+    (@f32_mod $source_type: ident, $filename: ident, [$($params: expr),*], $f32_rtol_static: expr, $f32_rtol_static_small: expr, $f32_rtol_translate: expr, $f32_rtol_rotate: expr, $f32_p95_rtol_static: expr, $f32_p95_rtol_static_small: expr, $f32_p95_rtol_translate: expr, $f32_p95_rtol_rotate: expr) => {
         mod f32_tests {
             use std::f32::consts::PI;
             use super::*;
@@ -351,7 +417,7 @@ macro_rules! generate_tests {
 
             #[test]
             fn test_static() {
-                test_B_magnet!(&magnet(), &format!("{}.csv", stringify!($filename)), $f32_rtol_static)
+                test_B_magnet!(&magnet(), &format!("{}.csv", stringify!($filename)), $f32_rtol_static, $f32_p95_rtol_static)
             }
 
             #[test]
@@ -361,14 +427,14 @@ macro_rules! generate_tests {
                     quat_from_rotvec(PI / 7.0, PI / 6.0, PI / 5.0),
                     $(crate::testing_util::ScaleParam::scale_param($params, 10.0f32)),*
                 );
-                test_B_magnet!(@small, &magnet, &format!("{}-small.csv", stringify!($filename)), $f32_rtol_static_small)
+                test_B_magnet!(@small, &magnet, &format!("{}-small.csv", stringify!($filename)), $f32_rtol_static_small, $f32_p95_rtol_static_small)
             }
 
             #[test]
             fn test_translate() {
                 let mut magnet = magnet();
                 magnet.translate(Translation3::new(-0.1f32, -0.2, -0.3));
-                test_B_magnet!(&magnet, &format!("{}-translate.csv", stringify!($filename)), $f32_rtol_translate)
+                test_B_magnet!(&magnet, &format!("{}-translate.csv", stringify!($filename)), $f32_rtol_translate, $f32_p95_rtol_translate)
 
             }
 
@@ -376,13 +442,13 @@ macro_rules! generate_tests {
             fn test_rotate() {
                 let mut magnet = magnet();
                 magnet.rotate(quat_from_rotvec(PI / 7.0, PI / 6.0, PI / 5.0).inverse());
-                test_B_magnet!(&magnet, &format!("{}-rotate.csv", stringify!($filename)), $f32_rtol_rotate)
+                test_B_magnet!(&magnet, &format!("{}-rotate.csv", stringify!($filename)), $f32_rtol_rotate, $f32_p95_rtol_rotate)
             }
         }
     };
 
     // Internal helper to generate f64 tests
-    (@f64_mod $source_type: ident, $filename: ident, [$($params: expr),*], $rtol_static: expr, $rtol_static_small: expr, $rtol_translate: expr, $rtol_rotate: expr) => {
+    (@f64_mod $source_type: ident, $filename: ident, [$($params: expr),*], $rtol_static: expr, $rtol_static_small: expr, $rtol_translate: expr, $rtol_rotate: expr, $p95_rtol_static: expr, $p95_rtol_static_small: expr, $p95_rtol_translate: expr, $p95_rtol_rotate: expr) => {
         mod f64_tests {
             use std::f64::consts::PI;
             use super::*;
@@ -397,7 +463,7 @@ macro_rules! generate_tests {
 
             #[test]
             fn test_static() {
-                test_B_magnet!(&magnet(), &format!("{}.csv", stringify!($filename)), $rtol_static)
+                test_B_magnet!(&magnet(), &format!("{}.csv", stringify!($filename)), $rtol_static, $p95_rtol_static)
             }
 
             #[test]
@@ -407,14 +473,14 @@ macro_rules! generate_tests {
                     quat_from_rotvec(PI / 7.0, PI / 6.0, PI / 5.0),
                     $(crate::testing_util::ScaleParam::scale_param($params, 10.0)),*
                 );
-                test_B_magnet!(@small, &magnet, &format!("{}-small.csv", stringify!($filename)), $rtol_static_small)
+                test_B_magnet!(@small, &magnet, &format!("{}-small.csv", stringify!($filename)), $rtol_static_small, $p95_rtol_static_small)
             }
 
             #[test]
             fn test_translate() {
                 let mut magnet = magnet();
                 magnet.translate(Translation3::new(-0.1, -0.2, -0.3));
-                test_B_magnet!(&magnet, &format!("{}-translate.csv", stringify!($filename)), $rtol_translate)
+                test_B_magnet!(&magnet, &format!("{}-translate.csv", stringify!($filename)), $rtol_translate, $p95_rtol_translate)
 
             }
 
@@ -422,7 +488,7 @@ macro_rules! generate_tests {
             fn test_rotate() {
                 let mut magnet = magnet();
                 magnet.rotate(quat_from_rotvec(PI / 7.0, PI / 6.0, PI / 5.0).inverse());
-                test_B_magnet!(&magnet, &format!("{}-rotate.csv", stringify!($filename)), $rtol_rotate)
+                test_B_magnet!(&magnet, &format!("{}-rotate.csv", stringify!($filename)), $rtol_rotate, $p95_rtol_rotate)
             }
         }
     };
@@ -438,11 +504,23 @@ macro_rules! generate_tests {
             translate: $rtol_translate:expr,
             rotate: $rtol_rotate:expr $(,)?
         }
+        p95_rtols: {
+            static: $p95_rtol_static:expr,
+            static_small: $p95_rtol_static_small:expr,
+            translate: $p95_rtol_translate:expr,
+            rotate: $p95_rtol_rotate:expr $(,)?
+        }
         f32_rtols: {
             static: $f32_rtol_static:expr,
             static_small: $f32_rtol_static_small:expr,
             translate: $f32_rtol_translate:expr,
             rotate: $f32_rtol_rotate:expr $(,)?
+        }
+        f32_p95_rtols: {
+            static: $f32_p95_rtol_static:expr,
+            static_small: $f32_p95_rtol_static_small:expr,
+            translate: $f32_p95_rtol_translate:expr,
+            rotate: $f32_p95_rtol_rotate:expr $(,)?
         }
     } => {
         mod generated_tests {
@@ -451,12 +529,40 @@ macro_rules! generate_tests {
             use crate::testing_util::*;
             use super::*;
 
-            crate::testing_util::generate_tests!(@f64_mod $source_type, $filename, [$($params),*], $rtol_static, $rtol_static_small, $rtol_translate, $rtol_rotate);
-            crate::testing_util::generate_tests!(@f32_mod $source_type, $filename, [$($params),*], $f32_rtol_static, $f32_rtol_static_small, $f32_rtol_translate, $f32_rtol_rotate);
+            crate::testing_util::generate_tests!(@f64_mod $source_type, $filename, [$($params),*], $rtol_static, $rtol_static_small, $rtol_translate, $rtol_rotate, $p95_rtol_static, $p95_rtol_static_small, $p95_rtol_translate, $p95_rtol_rotate);
+            crate::testing_util::generate_tests!(@f32_mod $source_type, $filename, [$($params),*], $f32_rtol_static, $f32_rtol_static_small, $f32_rtol_translate, $f32_rtol_rotate, $f32_p95_rtol_static, $f32_p95_rtol_static_small, $f32_p95_rtol_translate, $f32_p95_rtol_rotate);
         }
     };
 
-    // Pattern without f32_rtols (legacy/default)
+    // Pattern with rtols and p95_rtols, but no f32
+    {
+        $source_type: ident
+        filename: $filename: ident
+        params: { $($pname:ident : $params: expr),* $(,)? }
+        rtols: {
+            static: $rtol_static:expr,
+            static_small: $rtol_static_small:expr,
+            translate: $rtol_translate:expr,
+            rotate: $rtol_rotate:expr $(,)?
+        }
+        p95_rtols: {
+            static: $p95_rtol_static:expr,
+            static_small: $p95_rtol_static_small:expr,
+            translate: $p95_rtol_translate:expr,
+            rotate: $p95_rtol_rotate:expr $(,)?
+        }
+    } => {
+        mod generated_tests {
+            use nalgebra::*;
+
+            use crate::testing_util::*;
+            use super::*;
+
+            crate::testing_util::generate_tests!(@f64_mod $source_type, $filename, [$($params),*], $rtol_static, $rtol_static_small, $rtol_translate, $rtol_rotate, $p95_rtol_static, $p95_rtol_static_small, $p95_rtol_translate, $p95_rtol_rotate);
+        }
+    };
+
+    // Pattern with only rtols (legacy)
     {
         $source_type: ident
         filename: $filename: ident
@@ -474,15 +580,17 @@ macro_rules! generate_tests {
             use crate::testing_util::*;
             use super::*;
 
-            crate::testing_util::generate_tests!(@f64_mod $source_type, $filename, [$($params),*], $rtol_static, $rtol_static_small, $rtol_translate, $rtol_rotate);
+            crate::testing_util::generate_tests!(@f64_mod $source_type, $filename, [$($params),*], $rtol_static, $rtol_static_small, $rtol_translate, $rtol_rotate, $rtol_static, $rtol_static_small, $rtol_translate, $rtol_rotate);
         }
     };
 }
+#[allow(unused_imports)]
 pub(crate) use generate_tests;
 
 /// Macro to verify `sum_multiple_*` field calculation functions.
 ///
 /// It ensures that the sum of multiple sources matches the sum of individual field calculations.
+#[allow(unused_macros)]
 macro_rules! impl_test_sum_multiple {
     (
         $sum_multiple_func:ident,
@@ -522,4 +630,5 @@ macro_rules! impl_test_sum_multiple {
         }
     }};
 }
+#[allow(unused_imports)]
 pub(crate) use impl_test_sum_multiple;
