@@ -5,27 +5,57 @@
 
 use nalgebra::{Vector3, vector};
 use openmesh::MeshError;
-use rayx::{Hit, Ray, Triangle as RayxTriangle};
 
 use crate::base::Float;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Triangle<T: Float> {
-    pub vertices: [Vector3<T>; 3],
-    m: RayxTriangle<T>,
-}
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Triangle<T: Float>(pub Vector3<T>, pub Vector3<T>, pub Vector3<T>);
 
 impl<T: Float> Triangle<T> {
-    pub fn new(v1: Vector3<T>, v2: Vector3<T>, v3: Vector3<T>) -> Self {
-        Self {
-            vertices: [v1, v2, v3],
-            m: RayxTriangle::new(v1, v2, v3).unwrap(),
-        }
+    #[inline]
+    pub fn vertices(&self) -> [Vector3<T>; 3] {
+        [self.0, self.1, self.2]
+    }
+}
+
+/// Möller–Trumbore ray–triangle intersection algorithm.
+#[inline]
+pub fn is_ray_hit<T: Float>(
+    triangle: Triangle<T>,
+    ray_origin: Vector3<T>,
+    ray_dir: Vector3<T>,
+    t_min: T,
+    t_max: T,
+) -> bool {
+    let eps = T::epsilon() * T::from(16.0).unwrap();
+    let e1 = triangle.1 - triangle.0;
+    let e2 = triangle.2 - triangle.0;
+    let p = ray_dir.cross(&e2);
+
+    let det = e1.dot(&p);
+    if num_traits::Float::abs(det) < eps {
+        return false;
+    }
+    let inv_det = T::one() / det;
+    let tvec = ray_origin - triangle.0;
+
+    let u = tvec.dot(&p) * inv_det;
+    if u < T::zero() || u > T::one() {
+        return false;
     }
 
-    pub fn intersect(&self, ray: Ray<T>, t_min: T, t_max: T) -> Option<Hit<T>> {
-        self.m.intersect(ray, t_min, t_max)
+    let q = tvec.cross(&e1);
+    let v = ray_dir.dot(&q) * inv_det;
+    if v < T::zero() || u + v > T::one() {
+        return false;
     }
+
+    let t = e2.dot(&q) * inv_det;
+    if !(t_min..=t_max).contains(&t) {
+        return false;
+    }
+
+    true
 }
 
 /// Triangular mesh data structure with IO and validation handling.
@@ -59,7 +89,7 @@ impl<T: Float + core::iter::Sum> TriMesh<T> {
                 let v1 = vertices[face.0].clone();
                 let v2 = vertices[face.1].clone();
                 let v3 = vertices[face.2].clone();
-                Triangle::new(
+                Triangle(
                     vector![v1.0, v1.1, v1.2],
                     vector![v2.0, v2.1, v2.2],
                     vector![v3.0, v3.1, v3.2],
@@ -97,7 +127,7 @@ impl<T: Float> TriMesh<T> {
         let vertices: Vec<_> = vertices.into_iter().collect();
         let triangles = faces
             .into_iter()
-            .map(|face| Triangle::new(vertices[face[0]], vertices[face[1]], vertices[face[2]]))
+            .map(|face| Triangle(vertices[face[0]], vertices[face[1]], vertices[face[2]]))
             .collect();
 
         Self { triangles }

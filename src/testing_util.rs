@@ -119,7 +119,10 @@ pub fn assert_close_vec_vector<T: RealField + Copy + LowerExp>(
     );
 
     if p95 > p95_rtol {
-        eprintln!("FAILED: p95 error ({:e}) exceeds p95_rtol ({:e}).", p95, p95_rtol);
+        eprintln!(
+            "FAILED: p95 error ({:e}) exceeds p95_rtol ({:e}).",
+            p95, p95_rtol
+        );
         panic!("assert_close_vec_vector p95 check failed");
     }
     // Use parallel comparison for large vectors
@@ -341,8 +344,8 @@ impl<T: Float> ScaleParam<T> for Vec<Vector3<T>> {
 
 impl<T: Float> ScaleParam<T> for Triangle<T> {
     fn scale_param(self, scale: T) -> Self {
-        let [v1, v2, v3] = self.vertices.scale_param(scale);
-        Self::new(v1, v2, v3)
+        let [v1, v2, v3] = self.vertices().scale_param(scale);
+        Self(v1, v2, v3)
     }
 }
 
