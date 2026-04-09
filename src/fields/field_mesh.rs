@@ -6,13 +6,12 @@
 //! Analytical B-field computation for homogeneously magnetized triangular mesh.
 
 use nalgebra::{Point3, UnitQuaternion, Vector3};
-use rayx::Ray;
 
 use crate::{
     base::{
         Float,
         coordinate::compute_in_local,
-        mesh::{TriMesh, Triangle},
+        mesh::{TriMesh, Triangle, is_ray_hit},
     },
     crate_utils::{impl_parallel, impl_parallel_sum},
     fields::field_triangle::local_triangle_B,
@@ -38,13 +37,14 @@ pub fn local_mesh_B<T: Float>(
 ) -> Vector3<T> {
     let mut b_total = Vector3::zeros();
 
-    let ray = Ray::new(point.coords, Vector3::new(T::one(), T::zero(), T::zero()));
+    let ray_origin = point.coords;
+    let ray_dir = Vector3::new(T::one(), T::zero(), T::zero());
+
     let mut intersections = 0;
+    triangles.iter().for_each(|&triangle| {
+        b_total += local_triangle_B(point, polarization, triangle.vertices());
 
-    triangles.iter().for_each(|triangle| {
-        b_total += local_triangle_B(point, polarization, triangle.vertices);
-
-        if triangle.intersect(ray, T::zero(), T::infinity()).is_some() {
+        if is_ray_hit(triangle, ray_origin, ray_dir, T::zero(), T::infinity()) {
             intersections += 1;
         }
     });

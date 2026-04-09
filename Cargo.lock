@@ -590,7 +590,6 @@ dependencies = [
  "numeric_literals",
  "openmesh",
  "rayon",
- "rayx",
  "regex",
  "reproducible",
  "serde_json",
@@ -859,16 +858,6 @@ checksum = "1465873a3dfdaa8ae7cb14b4383657caab0b3e8a0aa9ae8e04b044854c8dfce2"
 dependencies = [
  "crossbeam-deque",
  "crossbeam-utils",
-]
-
-[[package]]
-name = "rayx"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "315ab7c9af6db4ddc00b77e322b08334a9682519a8a2c0fd62fb016a224978cd"
-dependencies = [
- "nalgebra",
- "num-traits",
 ]
 
 [[package]]
