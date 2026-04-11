@@ -3,7 +3,7 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-use nalgebra::{Vector3, vector};
+use nalgebra::Vector3;
 use openmesh::MeshError;
 
 use crate::base::Float;
@@ -88,25 +88,14 @@ impl<T: Float + core::iter::Sum> TriMesh<T> {
         V: IntoIterator<Item = Vector3<T>>,
         F: IntoIterator<Item = [usize; 3]>,
     {
-        let vertices: Vec<_> = vertices.into_iter().map(Into::into).collect();
-        let faces: Vec<_> = faces.into_iter().map(Into::into).collect();
-        openmesh::core::validate_mesh(&vertices, &faces, T::from(1e-4).unwrap())?;
+        let vertices: Vec<Vector3<T>> = vertices.into_iter().collect();
+        let faces: Vec<[usize; 3]> = faces.into_iter().collect();
 
-        let triangles = faces
-            .into_iter()
-            .map(|face| {
-                let v1 = vertices[face.0].clone();
-                let v2 = vertices[face.1].clone();
-                let v3 = vertices[face.2].clone();
-                Triangle::new(
-                    vector![v1.0, v1.1, v1.2],
-                    vector![v2.0, v2.1, v2.2],
-                    vector![v3.0, v3.1, v3.2],
-                )
-            })
-            .collect();
+        let v_val: Vec<openmesh::Vertex<T>> = vertices.iter().map(|&v| v.into()).collect();
+        let f_val: Vec<openmesh::Face> = faces.iter().map(|&f| f.into()).collect();
+        openmesh::core::validate_mesh(&v_val, &f_val, T::from(1e-4).unwrap())?;
 
-        Ok(Self { triangles })
+        Ok(Self::new_unchecked(vertices, faces))
     }
 
     #[cfg(feature = "io-stl")]
@@ -128,6 +117,7 @@ impl<T: Float + core::iter::Sum> TriMesh<T> {
 
 impl<T: Float> TriMesh<T> {
     /// Construct a [TriMesh] from vertices and faces without validation.
+    #[inline]
     pub fn new_unchecked<V, F>(vertices: V, faces: F) -> Self
     where
         V: IntoIterator<Item = Vector3<T>>,

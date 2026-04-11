@@ -357,7 +357,7 @@ impl<T: Float> ScaleParam<T> for Vec<Triangle<T>> {
 
 impl<T: Float> ScaleParam<T> for TriMesh<T> {
     fn scale_param(self, scale: T) -> Self {
-        TriMesh::from_triangles(self.triangles.scale_param(scale))
+        TriMesh::from_triangles(self.triangles().iter().map(|&t| t.scale_param(scale)).collect())
     }
 }
 

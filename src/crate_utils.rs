@@ -85,7 +85,7 @@ pub(crate) fn format_trimesh_count<T: Float>(
     _f: &mut Formatter,
     mesh: &crate::base::mesh::TriMesh<T>,
 ) -> alloc::string::String {
-    alloc::format!("{}", mesh.triangles.len())
+    alloc::format!("{}", mesh.triangles().len())
 }
 
 macro_rules! assert_eq_lens {
