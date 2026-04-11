@@ -132,11 +132,13 @@ impl<T: Float> TriMesh<T> {
         Self { triangles }
     }
 
+    #[inline]
     pub fn triangles(&self) -> &[Triangle<T>] {
         &self.triangles
     }
 
     /// Construct a [TriMesh] from triangles without validation.
+    #[inline]
     pub fn from_triangles(triangles: Vec<Triangle<T>>) -> Self {
         Self { triangles }
     }

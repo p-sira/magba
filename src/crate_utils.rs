@@ -224,6 +224,7 @@ macro_rules! define_source {
     (@getters $struct_name:ident, $(($arg:ident, $arg_type:ty, [$(@$is_value:ident)?]))*) => {
         impl<T: crate::base::Float> $struct_name<T> {
             $(
+                #[inline]
                 pub fn $arg(&self) -> $crate::crate_utils::define_source!(@getter_ret_type $arg_type $(, $is_value)?) {
                     $crate::crate_utils::define_source!(@getter_body self, $arg $(, $is_value)?)
                 }
@@ -244,6 +245,7 @@ macro_rules! define_source {
             $(
                 // Setters
                 concat_idents::concat_idents!(fn_name = set_, $arg {
+                    #[inline]
                     pub fn fn_name(&mut self, $arg: $crate::crate_utils::define_source!(@arg_type_decl $arg_type $(, $is_value)?)) {
                         let $arg: $arg_type = $crate::crate_utils::define_source!(@arg_into $arg $(, $is_value)?);
                         $(
@@ -258,6 +260,7 @@ macro_rules! define_source {
 
                 // Buliders (with setters)
                 concat_idents::concat_idents!(fn_name = with_, $arg {
+                    #[inline]
                     pub fn fn_name(mut self, $arg: $crate::crate_utils::define_source!(@arg_type_decl $arg_type $(, $is_value)?)) -> Self {
                         concat_idents::concat_idents!(ident = set_, $arg {
                             self.ident($arg);

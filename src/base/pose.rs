@@ -188,20 +188,24 @@ macro_rules! impl_pose_methods {
     () => {
         crate::base::pose::delegate_to_pose!();
 
+        #[inline]
         pub fn set_pose(&mut self, pose: crate::base::Pose<T>) {
             self.pose = pose;
         }
 
+        #[inline]
         pub fn with_position(mut self, position: impl Into<nalgebra::Point3<T>>) -> Self {
             self.set_position(position.into());
             self
         }
 
+        #[inline]
         pub fn with_orientation(mut self, orientation: nalgebra::UnitQuaternion<T>) -> Self {
             self.set_orientation(orientation);
             self
         }
 
+        #[inline]
         pub fn with_pose(mut self, pose: crate::base::Pose<T>) -> Self {
             self.set_pose(pose);
             self
