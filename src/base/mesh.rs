@@ -70,7 +70,7 @@ pub fn is_ray_hit<T: Float>(
 /// Triangular mesh data structure with IO and validation handling.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TriMesh<T: Float> {
-    pub triangles: Vec<Triangle<T>>,
+    triangles: Vec<Triangle<T>>,
 }
 
 impl<T: Float + core::iter::Sum> TriMesh<T> {
@@ -82,7 +82,7 @@ impl<T: Float + core::iter::Sum> TriMesh<T> {
     ///
     /// # Notes
     ///
-    /// To construct a [TriMesh] without validation, use [TriMesh::new_unchecked].
+    /// To construct a [TriMesh] without validation, use [TriMesh::new_unchecked]
     pub fn new<V, F>(vertices: V, faces: F) -> Result<Self, MeshError>
     where
         V: IntoIterator<Item = Vector3<T>>,
@@ -140,6 +140,10 @@ impl<T: Float> TriMesh<T> {
             .collect();
 
         Self { triangles }
+    }
+
+    pub fn triangles(&self) -> &[Triangle<T>] {
+        &self.triangles
     }
 
     /// Construct a [TriMesh] from triangles without validation.
