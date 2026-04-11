@@ -83,7 +83,7 @@ pub fn mesh_B<T: Float>(
         point,
         position,
         orientation,
-        (polarization, &mesh.triangles),
+        (polarization, mesh.triangles()),
     )
 }
 
