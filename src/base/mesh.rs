@@ -9,12 +9,21 @@ use openmesh::MeshError;
 use crate::base::Float;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Triangle<T: Float>(pub Vector3<T>, pub Vector3<T>, pub Vector3<T>);
+pub struct Triangle<T: Float> {
+    v1: Vector3<T>,
+    v2: Vector3<T>,
+    v3: Vector3<T>,
+}
 
 impl<T: Float> Triangle<T> {
     #[inline]
+    pub fn new(v1: Vector3<T>, v2: Vector3<T>, v3: Vector3<T>) -> Self {
+        Self { v1, v2, v3 }
+    }
+
+    #[inline]
     pub fn vertices(&self) -> [Vector3<T>; 3] {
-        [self.0, self.1, self.2]
+        [self.v1, self.v2, self.v3]
     }
 }
 
@@ -28,8 +37,8 @@ pub fn is_ray_hit<T: Float>(
     t_max: T,
 ) -> bool {
     let eps = T::epsilon() * T::from(16.0).unwrap();
-    let e1 = triangle.1 - triangle.0;
-    let e2 = triangle.2 - triangle.0;
+    let e1 = triangle.v2 - triangle.v1;
+    let e2 = triangle.v3 - triangle.v1;
     let p = ray_dir.cross(&e2);
 
     let det = e1.dot(&p);
@@ -37,7 +46,7 @@ pub fn is_ray_hit<T: Float>(
         return false;
     }
     let inv_det = T::one() / det;
-    let tvec = ray_origin - triangle.0;
+    let tvec = ray_origin - triangle.v1;
 
     let u = tvec.dot(&p) * inv_det;
     if u < T::zero() || u > T::one() {
@@ -89,7 +98,7 @@ impl<T: Float + core::iter::Sum> TriMesh<T> {
                 let v1 = vertices[face.0].clone();
                 let v2 = vertices[face.1].clone();
                 let v3 = vertices[face.2].clone();
-                Triangle(
+                Triangle::new(
                     vector![v1.0, v1.1, v1.2],
                     vector![v2.0, v2.1, v2.2],
                     vector![v3.0, v3.1, v3.2],
@@ -127,7 +136,7 @@ impl<T: Float> TriMesh<T> {
         let vertices: Vec<_> = vertices.into_iter().collect();
         let triangles = faces
             .into_iter()
-            .map(|face| Triangle(vertices[face[0]], vertices[face[1]], vertices[face[2]]))
+            .map(|face| Triangle::new(vertices[face[0]], vertices[face[1]], vertices[face[2]]))
             .collect();
 
         Self { triangles }

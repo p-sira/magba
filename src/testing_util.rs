@@ -345,7 +345,7 @@ impl<T: Float> ScaleParam<T> for Vec<Vector3<T>> {
 impl<T: Float> ScaleParam<T> for Triangle<T> {
     fn scale_param(self, scale: T) -> Self {
         let [v1, v2, v3] = self.vertices().scale_param(scale);
-        Self(v1, v2, v3)
+        Self::new(v1, v2, v3)
     }
 }
 
