@@ -52,7 +52,7 @@ nalgebra = { version = "0.34.2", default-features = false, features = [
 ] }
 num-traits = { version = "0.2.19", default-features = false }
 numeric_literals = "0.2.0"
-openmesh = { version = "0.2.2", default-features = false, features = [
+openmesh = { version = "0.2.3", default-features = false, features = [
     "libm",
     "nalgebra",
 ] }
