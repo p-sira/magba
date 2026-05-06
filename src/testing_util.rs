@@ -342,6 +342,7 @@ impl<T: Float> ScaleParam<T> for Vec<Vector3<T>> {
     }
 }
 
+#[cfg(feature = "mesh")]
 impl<T: Float> ScaleParam<T> for Triangle<T> {
     fn scale_param(self, scale: T) -> Self {
         let [v1, v2, v3] = self.vertices().scale_param(scale);
@@ -349,12 +350,14 @@ impl<T: Float> ScaleParam<T> for Triangle<T> {
     }
 }
 
+#[cfg(feature = "mesh")]
 impl<T: Float> ScaleParam<T> for Vec<Triangle<T>> {
     fn scale_param(self, scale: T) -> Self {
         self.into_iter().map(|t| t.scale_param(scale)).collect()
     }
 }
 
+#[cfg(feature = "mesh")]
 impl<T: Float> ScaleParam<T> for TriMesh<T> {
     fn scale_param(self, scale: T) -> Self {
         TriMesh::from_triangles(
