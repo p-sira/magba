@@ -92,7 +92,7 @@ jobs:
         uses: taiki-e/install-action@cargo-hack
       - name: Check no_std
         run: RUSTFLAGS="-D warnings" cargo hack check --target thumbv7m-none-eabi \
-          --feature-powerset --exclude-features \
+          --feature-powerset --exclude-features
           default,std,rayon,mesh,io-stl,test-utils --features libm
 
   doc:
