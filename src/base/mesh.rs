@@ -105,6 +105,9 @@ impl<T: Float + core::iter::Sum> TriMesh<T> {
     {
         let mesh: openmesh::Mesh<T> = openmesh::Mesh::from_stl(reader)
             .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
+        mesh.validate()
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e.to_string()))?;
+
         let vertices: Vec<Vector3<T>> = mesh
             .vertices
             .into_iter()
@@ -141,5 +144,17 @@ impl<T: Float> TriMesh<T> {
     #[inline]
     pub fn from_triangles(triangles: Vec<Triangle<T>>) -> Self {
         Self { triangles }
+    }
+}
+
+impl<T: Float + core::iter::Sum> From<openmesh::Mesh<T>> for TriMesh<T> {
+    fn from(mesh: openmesh::Mesh<T>) -> Self {
+        let vertices: Vec<Vector3<T>> = mesh
+            .vertices
+            .into_iter()
+            .map(|v| Vector3::new(v.0, v.1, v.2))
+            .collect();
+        let faces: Vec<[usize; 3]> = mesh.faces.into_iter().map(|f| [f.0, f.1, f.2]).collect();
+        Self::new_unchecked(vertices, faces)
     }
 }
