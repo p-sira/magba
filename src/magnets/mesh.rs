@@ -8,6 +8,7 @@ use nalgebra::Vector3;
 use openmesh::MeshError;
 
 use crate::base::Float;
+use alloc::vec::Vec;
 use crate::base::mesh::TriMesh;
 use crate::crate_utils::define_source;
 
