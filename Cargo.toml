@@ -36,7 +36,7 @@ name = "bench"
 
 [[example]]
 name = "generate_error_report"
-required-features = ["test-utils"]
+required-features = ["test-utils", "io-stl"]
 
 [dependencies]
 concat-idents = "1.1.5"
