@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.5
+
+### 0.5.0
+
+**New Features**
+
+- Add `TriangleMagnet`, `TetrahedronMagnet`, and `MeshMagnet` structs and their field functions.
+
+**Testing**
+
+- Add accuracy report.
+
 ## 0.4
 
 ### 0.4.4

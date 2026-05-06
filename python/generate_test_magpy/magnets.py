@@ -5,8 +5,8 @@ import sys
 from pathlib import Path
 
 import numpy as np
-from magpylib.magnet import Cuboid, Cylinder, Sphere
-from magpylib.misc import Dipole
+from magpylib.magnet import Cuboid, Cylinder, Sphere, Tetrahedron, TriangularMesh
+from magpylib.misc import Dipole, Triangle
 from scipy.spatial.transform import Rotation
 
 sys.path.append(str(Path(__file__).parent.parent))
@@ -24,10 +24,19 @@ def generate_test(source_class, points, points_small, *args):
         *args,
     )
 
+    small_args = []
+    for x in args:
+        if isinstance(x, np.ndarray) and x.dtype.kind == 'f':
+            small_args.append(x / 10.0)
+        elif isinstance(x, float):
+            small_args.append(x / 10.0)
+        else:
+            small_args.append(x)
+
     small_magnet = source_class(
         (0.03, 0.02, 0.01),
         rotation,
-        *[x / 10 for x in args],
+        *small_args,
     )
 
     save_test_array(f"{class_name}.csv", magnet.getB(points))
@@ -75,6 +84,30 @@ def generate_tests(points, points_small):
         np.array((1.0, 2.0, 3.0)),  # polarization
     )
 
+    generate_test(
+        Triangle,
+        points,
+        points_small,
+        np.array([[-0.1, -0.1, -0.1], [0.1, -0.1, 0.1], [0.0, 0.2, 0.0]]),  # vertices
+        np.array((1.0, 2.0, 3.0)),  # polarization
+    )
+
+    generate_test(
+        Tetrahedron,
+        points,
+        points_small,
+        np.array([[-0.1, -0.1, -0.1], [0.1, -0.1, -0.1], [0.0, 0.1, -0.1], [0.0, 0.0, 0.1]]),  # vertices
+        np.array((1.0, 2.0, 3.0)),  # polarization
+    )
+
+    generate_test(
+        TriangularMesh,
+        points,
+        points_small,
+        np.array([[-0.1, -0.1, -0.1], [0.1, -0.1, -0.1], [0.0, 0.1, -0.1], [0.0, 0.0, 0.1]]),  # vertices
+        np.array([[0, 2, 1], [0, 1, 3], [1, 2, 3], [0, 3, 2]]), # faces
+        np.array((1.0, 2.0, 3.0)),  # polarization
+    )
 
 if __name__ == "__main__":
     points = get_points()

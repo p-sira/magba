@@ -53,14 +53,23 @@ mod cuboid;
 mod cylinder;
 mod dipole;
 mod sphere;
+mod tetrahedron;
+mod triangle;
 
 pub use cuboid::CuboidMagnet;
 pub use cylinder::CylinderMagnet;
 pub use dipole::Dipole;
 pub use sphere::SphereMagnet;
+pub use tetrahedron::TetrahedronMagnet;
+pub use triangle::TriangleMagnet;
 
 mod magnet;
 pub use magnet::Magnet;
+
+#[cfg(feature = "mesh")]
+mod mesh;
+#[cfg(feature = "mesh")]
+pub use mesh::MeshMagnet;
 
 #[cfg(test)]
 mod stable_field;

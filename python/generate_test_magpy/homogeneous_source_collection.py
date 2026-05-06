@@ -37,20 +37,20 @@ def test_cylinder_collection(points):
     )
 
     field = magnets.getB(points)
-    save_test_array("cylinder-collection.csv", field)
+    save_test_array("cylinder-sources.csv", field)
 
     magnets.position = (0.01, 0.015, 0.02)
     field = magnets.getB(points)
-    save_test_array("cylinder-collection-translate.csv", field)
+    save_test_array("cylinder-sources-translate.csv", field)
 
     magnets.position = (0, 0, 0)
     magnets.orientation = Rotation.from_rotvec((np.pi / 3, np.pi / 4, np.pi / 5))
     field = magnets.getB(points)
-    save_test_array("cylinder-collection-rotate.csv", field)
+    save_test_array("cylinder-sources-rotate.csv", field)
 
     magnets.position = (0.01, 0.015, 0.02)
     field = magnets.getB(points)
-    save_test_array("cylinder-collection-translate-rotate.csv", field)
+    save_test_array("cylinder-sources-translate-rotate.csv", field)
 
 
 def test_cuboid_collection(points):
@@ -80,20 +80,20 @@ def test_cuboid_collection(points):
     )
 
     field = magnets.getB(points)
-    save_test_array("cuboid-collection.csv", field)
+    save_test_array("cuboid-sources.csv", field)
 
     magnets.position = (0.01, 0.015, 0.02)
     field = magnets.getB(points)
-    save_test_array("cuboid-collection-translate.csv", field)
+    save_test_array("cuboid-sources-translate.csv", field)
 
     magnets.position = (0, 0, 0)
     magnets.orientation = Rotation.from_rotvec((np.pi / 3, np.pi / 4, np.pi / 5))
     field = magnets.getB(points)
-    save_test_array("cuboid-collection-rotate.csv", field)
+    save_test_array("cuboid-sources-rotate.csv", field)
 
     magnets.position = (0.01, 0.015, 0.02)
     field = magnets.getB(points)
-    save_test_array("cuboid-collection-translate-rotate.csv", field)
+    save_test_array("cuboid-sources-translate-rotate.csv", field)
 
 
 def generate_tests(points_small):

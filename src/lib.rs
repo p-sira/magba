@@ -54,7 +54,7 @@ pub mod sensors;
 need_std!(
     pub mod collections;
 
-    #[cfg(test)]
+    #[cfg(any(test, feature = "test-utils"))]
     pub mod testing_util;
 );
 
@@ -64,7 +64,10 @@ pub mod prelude {
 
     pub use base::{Float, Observer, SensorOutput, Source, Transform};
     pub use currents::{CircularCurrent, Current};
-    pub use magnets::{CuboidMagnet, CylinderMagnet, Dipole, Magnet, SphereMagnet};
+    pub use magnets::{
+        CuboidMagnet, CylinderMagnet, Dipole, Magnet, SphereMagnet, TetrahedronMagnet,
+        TriangleMagnet,
+    };
     pub use sensors::{Sensor, hall_effect};
 
     need_std!(
@@ -73,4 +76,7 @@ pub mod prelude {
             ObserverArray,
         };
     );
+
+    #[cfg(feature = "mesh")]
+    pub use magnets::MeshMagnet;
 }

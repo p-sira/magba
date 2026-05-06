@@ -46,6 +46,7 @@ need_alloc! {
     use core::fmt::Formatter;
     use nalgebra::Vector3;
 
+    // MARK: Formatters
     pub(crate) fn format_float<T: Float>(f: &mut Formatter, v: T) -> alloc::string::String {
         if let Some(p) = f.precision() {
             alloc::format!("{:.p$}", v, p = p)
@@ -61,6 +62,30 @@ need_alloc! {
             alloc::format!("[{:?}, {:?}, {:?}]", v.x, v.y, v.z)
         }
     }
+
+    pub(crate) fn format_vertices<T: Float>(f: &mut Formatter, v: [Vector3<T>; 3]) -> alloc::string::String {
+        if let Some(p) = f.precision() {
+            alloc::format!("[({:.p$}, {:.p$}, {:.p$}), ({:.p$}, {:.p$}, {:.p$}), ({:.p$}, {:.p$}, {:.p$})]", v[0].x, v[0].y, v[0].z, v[1].x, v[1].y, v[1].z, v[2].x, v[2].y, v[2].z, p = p)
+        } else {
+            alloc::format!("[({:?}, {:?}, {:?}), ({:?}, {:?}, {:?}), ({:?}, {:?}, {:?})]", v[0].x, v[0].y, v[0].z, v[1].x, v[1].y, v[1].z, v[2].x, v[2].y, v[2].z)
+        }
+    }
+
+    pub(crate) fn format_vertices_4<T: Float>(f: &mut Formatter, v: [Vector3<T>; 4]) -> alloc::string::String {
+        if let Some(p) = f.precision() {
+            alloc::format!("[({:.p$}, {:.p$}, {:.p$}), ({:.p$}, {:.p$}, {:.p$}), ({:.p$}, {:.p$}, {:.p$}), ({:.p$}, {:.p$}, {:.p$})]", v[0].x, v[0].y, v[0].z, v[1].x, v[1].y, v[1].z, v[2].x, v[2].y, v[2].z, v[3].x, v[3].y, v[3].z, p = p)
+        } else {
+            alloc::format!("[({:?}, {:?}, {:?}), ({:?}, {:?}, {:?}), ({:?}, {:?}, {:?}), ({:?}, {:?}, {:?})]", v[0].x, v[0].y, v[0].z, v[1].x, v[1].y, v[1].z, v[2].x, v[2].y, v[2].z, v[3].x, v[3].y, v[3].z)
+        }
+    }
+}
+
+#[cfg(feature = "mesh")]
+pub(crate) fn format_trimesh_count<T: Float>(
+    _f: &mut Formatter,
+    mesh: &crate::base::mesh::TriMesh<T>,
+) -> alloc::string::String {
+    alloc::format!("{}", mesh.triangles().len())
 }
 
 macro_rules! assert_eq_lens {
@@ -145,6 +170,8 @@ macro_rules! impl_parallel_sum {
 }
 pub(crate) use impl_parallel_sum;
 
+// MARK: define_source!
+
 /// Generates a struct representing a magnetic source.
 ///
 /// This macro handles the creation of the struct, constructor logic (including `Into` conversions),
@@ -178,16 +205,28 @@ macro_rules! define_source {
     // MARK: Helpers
     (@arg_into $arg:expr) => { $arg.into() };
     (@arg_into $arg:expr, val) => { $arg };
+    (@arg_into $arg:expr, ref) => { $arg };
     (@arg_type_decl $arg_type:ty) => { impl Into<$arg_type> };
     (@arg_type_decl $arg_type:ty, val) => { $arg_type };
+    (@arg_type_decl $arg_type:ty, ref) => { $arg_type };
     (@pass_arg $arg:expr) => { $arg };
+    (@pass_arg $arg:expr, val) => { $arg };
+    (@pass_arg $arg:expr, ref) => { &$arg };
 
     // MARK: Get, Set, With
-    (@getters $struct_name:ident, $(($arg:ident, $arg_type:ty))*) => {
+    (@getter_ret_type $arg_type:ty) => { $arg_type };
+    (@getter_ret_type $arg_type:ty, val) => { $arg_type };
+    (@getter_ret_type $arg_type:ty, ref) => { &$arg_type };
+    (@getter_body $self:ident, $arg:ident) => { $self.$arg };
+    (@getter_body $self:ident, $arg:ident, val) => { $self.$arg };
+    (@getter_body $self:ident, $arg:ident, ref) => { &$self.$arg };
+
+    (@getters $struct_name:ident, $(($arg:ident, $arg_type:ty, [$(@$is_value:ident)?]))*) => {
         impl<T: crate::base::Float> $struct_name<T> {
             $(
-                pub fn $arg(&self) -> $arg_type {
-                    self.$arg
+                #[inline]
+                pub fn $arg(&self) -> $crate::crate_utils::define_source!(@getter_ret_type $arg_type $(, $is_value)?) {
+                    $crate::crate_utils::define_source!(@getter_body self, $arg $(, $is_value)?)
                 }
             )*
         }
@@ -206,6 +245,7 @@ macro_rules! define_source {
             $(
                 // Setters
                 concat_idents::concat_idents!(fn_name = set_, $arg {
+                    #[inline]
                     pub fn fn_name(&mut self, $arg: $crate::crate_utils::define_source!(@arg_type_decl $arg_type $(, $is_value)?)) {
                         let $arg: $arg_type = $crate::crate_utils::define_source!(@arg_into $arg $(, $is_value)?);
                         $(
@@ -220,6 +260,7 @@ macro_rules! define_source {
 
                 // Buliders (with setters)
                 concat_idents::concat_idents!(fn_name = with_, $arg {
+                    #[inline]
                     pub fn fn_name(mut self, $arg: $crate::crate_utils::define_source!(@arg_type_decl $arg_type $(, $is_value)?)) -> Self {
                         concat_idents::concat_idents!(ident = set_, $arg {
                             self.ident($arg);
@@ -258,7 +299,7 @@ macro_rules! define_source {
             )*
         }
 
-        $crate::crate_utils::define_source!(@getters $name, $(($arg, $arg_type))*);
+        $crate::crate_utils::define_source!(@getters $name, $(($arg, $arg_type, [$(@$is_value)?]))*);
 
         $crate::crate_utils::define_source!(@setters $name, $(
             (
@@ -346,7 +387,7 @@ macro_rules! define_source {
             #[cfg(feature = "alloc")]
             fn format(&self, f: &mut core::fmt::Formatter<'_>, _: &str) -> core::fmt::Result {
                 $(
-                    let $arg = crate::crate_utils::$arg_fmt(&mut *f, self.$arg);
+                    let $arg = crate::crate_utils::$arg_fmt(&mut *f, $crate::crate_utils::define_source!(@pass_arg self.$arg $(, $is_value)?));
                 )*
 
                 write!(

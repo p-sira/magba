@@ -37,20 +37,20 @@ def test_multi_collection(points):
     )
 
     field = magnets.getB(points)
-    save_test_array("multi-collection.csv", field)
+    save_test_array("multi-sources.csv", field)
 
     magnets.position = (0.01, 0.015, 0.02)
     field = magnets.getB(points)
-    save_test_array("multi-collection-translate.csv", field)
+    save_test_array("multi-sources-translate.csv", field)
 
     magnets.position = (0, 0, 0)
     magnets.orientation = Rotation.from_rotvec((np.pi / 3, np.pi / 4, np.pi / 5))
     field = magnets.getB(points)
-    save_test_array("multi-collection-rotate.csv", field)
+    save_test_array("multi-sources-rotate.csv", field)
 
     magnets.position = (0.01, 0.015, 0.02)
     field = magnets.getB(points)
-    save_test_array("multi-collection-translate-rotate.csv", field)
+    save_test_array("multi-sources-translate-rotate.csv", field)
 
 
 def generate_tests(points_small):
