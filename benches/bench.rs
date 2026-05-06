@@ -139,10 +139,10 @@ macro_rules! find_threshold {
                 });
             });
 
-            record.par_time = reproducible::extract_criterion_mean_ns(
+            record.par_time = reproducible::benchmark::extract_criterion_mean_ns(
                 &par_path.join(record.threshold.to_string()).join("new").join("estimates.json")
             ).unwrap();
-            record.ser_time = reproducible::extract_criterion_mean_ns(
+            record.ser_time = reproducible::benchmark::extract_criterion_mean_ns(
                 &ser_path.join(record.threshold.to_string()).join("new").join("estimates.json")
             ).unwrap();
             record.ratio = record.par_time / record.ser_time;
@@ -180,10 +180,10 @@ macro_rules! find_threshold {
                         });
                     });
 
-                    let par_time = reproducible::extract_criterion_mean_ns(
+                    let par_time = reproducible::benchmark::extract_criterion_mean_ns(
                         &par_path.join(mid.to_string()).join("new").join("estimates.json")
                     ).unwrap();
-                    let ser_time = reproducible::extract_criterion_mean_ns(
+                    let ser_time = reproducible::benchmark::extract_criterion_mean_ns(
                         &ser_path.join(mid.to_string()).join("new").join("estimates.json")
                     ).unwrap();
                     let ratio = par_time / ser_time;
