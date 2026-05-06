@@ -40,7 +40,6 @@ We would like to thank MagpyLib contributors for their hard work and contributio
 extern crate alloc;
 
 pub(crate) mod crate_utils;
-use crate::crate_utils::need_alloc;
 use crate::crate_utils::need_std;
 
 pub mod base;
@@ -78,7 +77,6 @@ pub mod prelude {
         };
     );
 
-    need_alloc!(
-        pub use magnets::MeshMagnet;
-    );
+    #[cfg(feature = "mesh")]
+    pub use magnets::MeshMagnet;
 }

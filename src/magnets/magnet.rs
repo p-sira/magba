@@ -15,7 +15,7 @@ use crate::{
     },
 };
 
-#[cfg(feature = "alloc")]
+#[cfg(feature = "mesh")]
 use crate::magnets::MeshMagnet;
 
 use nalgebra::{Point3, Vector3};
@@ -46,7 +46,7 @@ pub enum Magnet<T: Float = f64> {
     Tetrahedron(TetrahedronMagnet<T>),
     Triangle(TriangleMagnet<T>),
 
-    #[cfg(feature = "alloc")]
+    #[cfg(feature = "mesh")]
     Mesh(MeshMagnet<T>),
 }
 
