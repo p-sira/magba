@@ -15,10 +15,10 @@ use std::{
     str::FromStr,
 };
 
-use crate::base::{
-    Float, Source,
-    mesh::{TriMesh, Triangle},
-};
+use crate::base::{Float, Source};
+
+#[cfg(feature = "mesh")]
+use crate::base::mesh::{TriMesh, Triangle};
 
 /// Calculate the relative Euclidean distance
 pub fn relative_vec_distance<T: RealField + Copy>(a: Vector3<T>, b: Vector3<T>) -> T {
@@ -357,7 +357,12 @@ impl<T: Float> ScaleParam<T> for Vec<Triangle<T>> {
 
 impl<T: Float> ScaleParam<T> for TriMesh<T> {
     fn scale_param(self, scale: T) -> Self {
-        TriMesh::from_triangles(self.triangles().iter().map(|&t| t.scale_param(scale)).collect())
+        TriMesh::from_triangles(
+            self.triangles()
+                .iter()
+                .map(|&t| t.scale_param(scale))
+                .collect(),
+        )
     }
 }
 
