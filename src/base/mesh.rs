@@ -7,6 +7,7 @@ use nalgebra::Vector3;
 use openmesh::MeshError;
 
 use crate::base::Float;
+use alloc::vec::Vec;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Triangle<T: Float> {
