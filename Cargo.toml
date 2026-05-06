@@ -1,5 +1,5 @@
 [workspace.package]
-version = "0.4.4"
+version = "0.5.0"
 authors = ["Sira Pornsiriprasert <code@psira.me>"]
 documentation = "https://docs.rs/magba"
 homepage = "https://github.com/p-sira/magba"
