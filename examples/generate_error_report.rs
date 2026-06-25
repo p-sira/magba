@@ -119,8 +119,6 @@ fn add_magnet_accuracy<T: magba::base::Float + std::str::FromStr>(
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    println!("# Magba Accuracy Report\n");
-
     let magnets = [
         ("CylinderMagnet", "cylinder.csv"),
         ("CuboidMagnet", "cuboid.csv"),
@@ -141,29 +139,34 @@ fn main() -> Result<(), Box<dyn Error>> {
             .with_column(Column::accuracy("Max").with_stat(ColumnStat::Max))
     }
 
+    let mut content = std::fs::read_to_string("tests/report_template.md")
+        .expect("Cannot read the report template");
+
+    content = content.replace("{{TEST_ENV}}", &current_env!().to_string());
+
     // f64 report
     {
-        println!("## Relative Error: f64\n");
         let mut report = get_report();
 
         for &(name, ref_file) in &magnets {
             let magnet = create_magnet::<f64>(name);
             report = add_magnet_accuracy(report, name, magnet, ref_file)?;
         }
-        println!("{}", report.render_markdown());
+        content = content.replace("{{ERROR_F64}}", report.render_markdown().as_str());
     }
 
     // f32 report
     {
-        println!("\n## Relative Error: f32\n");
         let mut report = get_report();
 
         for &(name, ref_file) in &magnets {
             let magnet = create_magnet::<f32>(name);
             report = add_magnet_accuracy(report, name, magnet, ref_file)?;
         }
-        println!("{}", report.render_markdown());
+        content = content.replace("{{ERROR_F32}}", report.render_markdown().as_str());
     }
 
+    let _ = std::fs::write("tests/README.md", content).expect("Cannot write the report");
+    println!("tests/README.md generated successfully");
     Ok(())
 }
