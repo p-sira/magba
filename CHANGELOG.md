@@ -2,6 +2,10 @@
 
 ## 0.5
 
+### 0.5.1
+
+- Improve accuracy report.
+
 ### 0.5.0
 
 **New Features**
