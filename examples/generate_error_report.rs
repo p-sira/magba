@@ -72,7 +72,7 @@ where
     ];
 
     match name {
-        "CircularCurrent" => Box::new(CircularCurrent::new(pos, rot, f(0.1), f(1.0))),
+        "CircularCurrent" => Box::new(CircularCurrent::new(pos, rot, f(1.0), f(1.0))),
         "CylinderMagnet" => Box::new(CylinderMagnet::new(pos, rot, pol, f(0.1), f(0.2))),
         "CuboidMagnet" => Box::new(CuboidMagnet::new(pos, rot, pol, [f(0.1), f(0.2), f(0.3)])),
         "Dipole" => Box::new(Dipole::new(pos, rot, pol)),
