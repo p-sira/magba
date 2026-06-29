@@ -4,6 +4,13 @@
 
 ### 0.5.1
 
+**Improvements**
+
+- Remove redundant batch calculation for `TetrahedronMagnet`.
+- Retune the parallelization thresholds for field computation functions.
+
+**Testing**
+
 - Improve accuracy report.
 - Add documentation on how to automatically tune the parallelization threshold in the module `fields`.
 
