@@ -63,7 +63,9 @@ pub mod prelude {
     use super::*;
 
     pub use base::{Float, Observer, SensorOutput, Source, Transform};
-    pub use currents::{CircularCurrent, Current, PathCurrent, TriangleCurrent};
+    #[cfg(feature = "alloc")]
+    pub use currents::PathCurrent;
+    pub use currents::{CircularCurrent, Current, TriangleCurrent};
 
     #[cfg(feature = "mesh")]
     pub use currents::SheetCurrent;
