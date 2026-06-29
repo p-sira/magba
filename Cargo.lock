@@ -925,9 +925,9 @@ checksum = "2b15c43186be67a4fd63bee50d0303afffcef381492ebe2c5d87f324e1b8815c"
 
 [[package]]
 name = "reproducible"
-version = "0.3.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b9f83389f1334a9d294d71177f270ef1d154042c4d4ada816fc1ee1e1e44173b"
+checksum = "36266815f629bb248722e53c0b0d1373b172373342aa3bd3d821f6e295a9ba11"
 dependencies = [
  "csv",
  "delegate",

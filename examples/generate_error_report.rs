@@ -55,6 +55,7 @@ where
     TetrahedronMagnet<T>: Source<T>,
     TriangleMagnet<T>: Source<T>,
     MeshMagnet<T>: Source<T>,
+    CircularCurrent<T>: Source<T>,
 {
     let f = |v: f64| T::from(v).unwrap();
 
@@ -71,6 +72,7 @@ where
     ];
 
     match name {
+        "CircularCurrent" => Box::new(CircularCurrent::new(pos, rot, f(0.1), f(1.0))),
         "CylinderMagnet" => Box::new(CylinderMagnet::new(pos, rot, pol, f(0.1), f(0.2))),
         "CuboidMagnet" => Box::new(CuboidMagnet::new(pos, rot, pol, [f(0.1), f(0.2), f(0.3)])),
         "Dipole" => Box::new(Dipole::new(pos, rot, pol)),
@@ -114,12 +116,14 @@ fn add_magnet_accuracy<T: magba::base::Float + std::str::FromStr>(
 
     Ok(report.with_row(
         Row::new_batch(name, source.as_batch_evaluator())
-            .with_split_csv_cases(points_path, ref_path)?,
+            .with_split_csv_cases(points_path, ref_path)?
+            .with_criterion_id(format!("fields_{}/{}", std::any::type_name::<T>(), name)),
     ))
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
     let magnets = [
+        ("CircularCurrent", "circularcurrent.csv"),
         ("CylinderMagnet", "cylinder.csv"),
         ("CuboidMagnet", "cuboid.csv"),
         ("Dipole", "dipole.csv"),
@@ -137,6 +141,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             .with_column(Column::accuracy("Mean").with_stat(ColumnStat::Mean))
             .with_column(Column::accuracy("P95").with_stat(ColumnStat::P95))
             .with_column(Column::accuracy("Max").with_stat(ColumnStat::Max))
+            .with_column(Column::<f64>::perf("Performance"))
     }
 
     let mut content = std::fs::read_to_string("tests/report_template.md")
