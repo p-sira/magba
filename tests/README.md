@@ -17,7 +17,7 @@ This report is generated on AMD Ryzen 5 4600H with Radeon Graphics @4.0 GHz RAM 
 | Function          | Median    | Mean      | P95       | Max       | Performance |
 |-------------------|-----------|-----------|-----------|-----------|-------------|
 | CircularCurrent   | 0.000     | 1.137e-11 | 1.320e-10 | 1.321e-10 | 41.8 ns     |
-| CurrentPath       | 1.320e-10 | 1.182e-10 | 1.320e-10 | 1.320e-10 | 45.5 ns     |
+| PathCurrent       | 1.320e-10 | 1.182e-10 | 1.320e-10 | 1.320e-10 | 45.5 ns     |
 | CylinderMagnet    | 2.947e-13 | 3.511e-12 | 2.543e-12 | 2.501e-10 | 59.5 ns     |
 | CuboidMagnet      | 0.000     | 6.930e-15 | 5.568e-14 | 2.103e-13 | 117.9 ns    |
 | Dipole            | 1.320e-10 | 7.586e-11 | 1.320e-10 | 1.320e-10 | 14.4 ns     |
@@ -31,7 +31,7 @@ This report is generated on AMD Ryzen 5 4600H with Radeon Graphics @4.0 GHz RAM 
 | Function          | Median   | Mean     | P95      | Max      | Performance |
 |-------------------|----------|----------|----------|----------|-------------|
 | CircularCurrent   | 2.094e-7 | 3.216e-7 | 7.188e-7 | 1.907e-5 | 41.9 ns     |
-| CurrentPath       | 3.389e-7 | 5.152e-7 | 1.376e-6 | 1.197e-5 | 42.8 ns     |
+| PathCurrent       | 3.389e-7 | 5.152e-7 | 1.376e-6 | 1.197e-5 | 42.8 ns     |
 | CylinderMagnet    | 2.511e-5 | 1.736e-4 | 2.912e-4 | 0.031    | 49.5 ns     |
 | CuboidMagnet      | 6.130e-6 | 9.213e-6 | 2.790e-5 | 9.530e-5 | 85.0 ns     |
 | Dipole            | 1.897e-7 | 2.186e-7 | 4.850e-7 | 8.763e-7 | 7.5 ns      |

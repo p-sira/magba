@@ -5,8 +5,8 @@
 
 mod circular;
 mod current;
-mod current_path;
+mod path_current;
 
 pub use circular::CircularCurrent;
 pub use current::Current;
-pub use current_path::CurrentPath;
+pub use path_current::PathCurrent;

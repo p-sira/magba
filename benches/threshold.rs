@@ -255,7 +255,7 @@ fn bench_thresholds(c: &mut Criterion) {
         vector![0.0, 0.1, -0.1],
         vector![0.0, 0.0, 0.1],
     ];
-    let vertices_current_path = vec![
+    let vertices_path_current = vec![
         vector![-0.1, -0.1, -0.1],
         vector![0.1, -0.1, -0.1],
         vector![0.0, 0.1, -0.1],
@@ -287,8 +287,8 @@ fn bench_thresholds(c: &mut Criterion) {
     find_threshold!(
         c,
         results,
-        current_path_B,
-        (pos, ori, current, &vertices_current_path),
+        path_current_B,
+        (pos, ori, current, &vertices_path_current),
         150,
         record_file
     );

@@ -9,7 +9,7 @@
     )
 
     impl_parallel!(
-        current_path_B,
+        path_current_B,
         rayon_threshold: 200,
         input: points,
         output: out,

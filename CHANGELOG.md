@@ -6,7 +6,7 @@
 
 **New Features**
 
-- `CurrentPath` struct and its field function.
+- `PathCurrent` struct and its field function.
 
 **Improvements**
 

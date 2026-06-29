@@ -56,7 +56,7 @@ where
     TriangleMagnet<T>: Source<T>,
     MeshMagnet<T>: Source<T>,
     CircularCurrent<T>: Source<T>,
-    CurrentPath<T>: Source<T>,
+    PathCurrent<T>: Source<T>,
 {
     let f = |v: f64| T::from(v).unwrap();
 
@@ -74,7 +74,7 @@ where
 
     match name {
         "CircularCurrent" => Box::new(CircularCurrent::new(pos, rot, f(1.0), f(1.0))),
-        "CurrentPath" => Box::new(CurrentPath::new(
+        "PathCurrent" => Box::new(PathCurrent::new(
             pos,
             rot,
             f(100.0),
@@ -136,7 +136,7 @@ fn add_magnet_accuracy<T: magba::base::Float + std::str::FromStr>(
 fn main() -> Result<(), Box<dyn Error>> {
     let magnets = [
         ("CircularCurrent", "circularcurrent.csv"),
-        ("CurrentPath", "polyline.csv"),
+        ("PathCurrent", "polyline.csv"),
         ("CylinderMagnet", "cylinder.csv"),
         ("CuboidMagnet", "cuboid.csv"),
         ("Dipole", "dipole.csv"),

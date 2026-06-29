@@ -32,7 +32,7 @@ use crate::{
 #[inline]
 #[allow(non_snake_case)]
 #[replace_float_literals(T::from_f64(literal).unwrap())]
-pub fn local_current_path_B<T: Float>(
+pub fn local_path_current_B<T: Float>(
     point: Point3<T>,
     current: T,
     vertices: &[Vector3<T>],
@@ -120,7 +120,7 @@ pub fn local_current_path_B<T: Float>(
 /// - B-field vector (T) at point (x, y, z)
 #[inline]
 #[allow(non_snake_case)]
-pub fn current_path_B<T: Float>(
+pub fn path_current_B<T: Float>(
     point: Point3<T>,
     position: Point3<T>,
     orientation: UnitQuaternion<T>,
@@ -128,7 +128,7 @@ pub fn current_path_B<T: Float>(
     vertices: &[Vector3<T>],
 ) -> Vector3<T> {
     compute_in_local!(
-        local_current_path_B,
+        local_path_current_B,
         point,
         position,
         orientation,
@@ -147,7 +147,7 @@ pub fn current_path_B<T: Float>(
 /// - `vertices`: Vertices defining the current path in local coords (m)
 /// - `out`: Mutable slice to store the B-field vectors at each observer (T)
 #[allow(non_snake_case)]
-pub fn current_path_B_batch<T: Float>(
+pub fn path_current_B_batch<T: Float>(
     points: &[Point3<T>],
     position: Point3<T>,
     orientation: UnitQuaternion<T>,
@@ -156,7 +156,7 @@ pub fn current_path_B_batch<T: Float>(
     out: &mut [Vector3<T>],
 ) {
     impl_parallel!(
-        current_path_B,
+        path_current_B,
         rayon_threshold: 200,
         input: points,
         output: out,
@@ -175,7 +175,7 @@ pub fn current_path_B_batch<T: Float>(
 /// - `vertices_list`: List of vertices defining the current path in local coords (m)
 /// - `out`: Mutable slice to store the net B-field vectors at each observer (T)
 #[allow(non_snake_case)]
-pub fn sum_multiple_currentpath_B<T: Float>(
+pub fn sum_multiple_path_current_B<T: Float>(
     points: &[Point3<T>],
     positions: &[Point3<T>],
     orientations: &[UnitQuaternion<T>],
@@ -188,7 +188,7 @@ pub fn sum_multiple_currentpath_B<T: Float>(
         points,
         60,
         [positions, orientations, currents, vertices_list],
-        |pos, p, o, curr, vert| current_path_B(*pos, *p, *o, *curr, vert)
+        |pos, p, o, curr, vert| path_current_B(*pos, *p, *o, *curr, vert)
     )
 }
 
@@ -199,7 +199,7 @@ mod tests {
 
     #[test]
     #[allow(non_snake_case)]
-    fn test_sum_multiple_currentpath_B() {
+    fn test_sum_multiple_path_current_B() {
         use crate::testing_util::impl_test_sum_multiple;
         let points = &[
             point![5.0, 6.0, 7.0],
@@ -226,13 +226,13 @@ mod tests {
         ];
 
         impl_test_sum_multiple!(
-            sum_multiple_currentpath_B,
+            sum_multiple_path_current_B,
             1e-15,
             points,
             positions,
             orientations,
             (currents, vertices_list),
-            |p, pos, ori, curr, vert| current_path_B(p, pos, ori, curr, &vert)
+            |p, pos, ori, curr, vert| path_current_B(p, pos, ori, curr, &vert)
         );
     }
 }

@@ -10,8 +10,8 @@ use crate::crate_utils::define_source;
 
 define_source! {
     /// A current path modeling a sequence of straight current-carrying wire segments.
-    CurrentPath
-    field_fn: current_path_B
+    PathCurrent
+    field_fn: path_current_B
     args: {
         current: T = T::zero(),
         vertices: @ref Vec<Vector3<T>> = Vec::new(),
@@ -20,16 +20,16 @@ define_source! {
     arg_fmt: [format_float, format_vertices_count]
     docs: {
         new: {
-            /// Construct a [CurrentPath].
+            /// Construct a [PathCurrent].
             ///
             /// # Examples
             ///
             /// ```
-            /// # use magba::currents::CurrentPath;
+            /// # use magba::currents::PathCurrent;
             /// # use nalgebra::{UnitQuaternion, vector, Vector3};
             /// let vertices = vec![vector![-0.1, -0.1, -0.1], vector![0.1, -0.1, -0.1], vector![0.0, 0.1, -0.1], vector![0.0, 0.0, 0.1]];
             ///
-            /// let current_path = CurrentPath::new(
+            /// let path_current = PathCurrent::new(
             ///     [0.0, 0.0, 0.0],              // position (m)
             ///     UnitQuaternion::identity(),   // orientation as unit quaternion
             ///     100.0,                        // current (A)
@@ -42,7 +42,7 @@ define_source! {
 
 #[cfg(all(test, feature = "std"))]
 crate::testing_util::generate_tests! {
-    CurrentPath
+    PathCurrent
     filename: polyline
     params: {
         current: 100.0,

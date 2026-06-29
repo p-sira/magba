@@ -70,7 +70,7 @@ fn generate_lib_rs_code(results: &[BenchmarkResult]) -> String {
     let functions = [
         ("circular_B", "[position, orientation, diameter, current]"),
         (
-            "current_path_B",
+            "path_current_B",
             "[position, orientation, current, vertices]",
         ),
         (
