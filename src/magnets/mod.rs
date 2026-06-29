@@ -48,6 +48,14 @@
 //! field computation using [Rayon](https://github.com/rayon-rs/rayon) if the number of input
 //! points is greater than the threshold to overcome the parallelization overhead.
 //! If you disable the `rayon` feature, it will fallback to sequential computation.
+//!
+//! To automatically tune the threshold for your computation environment,
+//!
+//! 1. Download the source code locally
+//! 2. Run `cargo bench threshold`
+//! 3. Copy the generated code from `benches/impl_parallel.txt` to the function *_B_batch,
+//! such as `fields::field_cuboid::cuboid_B_batch`.
+//! 4. Recompile and install Magba with the adjusted threshold locally.
 
 mod cuboid;
 mod cylinder;
