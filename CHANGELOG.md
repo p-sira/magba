@@ -5,6 +5,7 @@
 ### 0.5.1
 
 - Improve accuracy report.
+- Add documentation on how to automatically tune the parallelization threshold in the module `magnets`.
 
 ### 0.5.0
 
