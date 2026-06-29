@@ -23,13 +23,12 @@ pub fn local_sheet_current_B<T: Float>(
 ) -> Vector3<T> {
     let mut b_total = Vector3::zeros();
 
-    for (i, &triangle) in mesh.triangles().iter().enumerate() {
-        let j = if i < current_densities.len() {
-            current_densities[i]
-        } else {
-            Vector3::zeros()
-        };
-        b_total += local_triangle_current_B(point, j, &triangle.vertices());
+    let count = core::cmp::min(current_densities.len(), mesh.triangles().len());
+    for (i, &triangle) in mesh.triangles().iter().take(count).enumerate() {
+        let j = current_densities[i];
+        if j != Vector3::zeros() {
+            b_total += local_triangle_current_B(point, j, &triangle.vertices());
+        }
     }
 
     b_total

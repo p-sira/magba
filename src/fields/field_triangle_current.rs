@@ -5,7 +5,7 @@
 
 //! Analytical B-field computation for a homogeneously charged triangular current sheet.
 
-use nalgebra::{Point3, UnitQuaternion, Vector3};
+use nalgebra::{Point3, UnitQuaternion, Vector2, Vector3};
 use num_traits::Float as NumFloat;
 use numeric_literals::replace_float_literals;
 
@@ -19,63 +19,73 @@ use crate::{
 #[allow(non_snake_case)]
 #[replace_float_literals(T::from_f64(literal).unwrap())]
 fn elementar_current_sheet_Hfield<T: Float>(
-    x: T,
-    y: T,
-    mut z: T,
+    point_local: Vector3<T>,
     u1: T,
     u2: T,
     v2: T,
-    ju: T,
-    jv: T,
+    j_uv: Vector2<T>,
 ) -> Vector3<T> {
+    let x = point_local.x;
+    let y = point_local.y;
+    let mut z = point_local.z;
+    let ju = j_uv.x;
+    let jv = j_uv.y;
+
     if NumFloat::abs(z) < 1e-15 {
         z = if z < 0.0 { -1e-15 } else { 1e-15 };
     }
 
-    let sqrt1 = NumFloat::sqrt((x * x) + (y * y) + (z * z));
-    let sqrt2 = NumFloat::sqrt((u1 * u1) - 2.0 * u1 * x + (x * x) + (y * y) + (z * z));
-    let sqrt3 = NumFloat::sqrt(
-        (u2 * u2) - 2.0 * u2 * x + (v2 * v2) - 2.0 * v2 * y + (x * x) + (y * y) + (z * z),
-    );
-    let sqrt4 = NumFloat::sqrt((u1 * u1) - 2.0 * u1 * u2 + (u2 * u2) + (v2 * v2));
-    let sqrt5 = NumFloat::sqrt((u2 * u2) + (v2 * v2));
+    let y_2 = y * y;
+    let z_2 = z * z;
+    let yz2 = y_2 + z_2;
+    let x_2 = x * x;
+    let r2 = x_2 + yz2;
+
+    let u1_2 = u1 * u1;
+    let u2_2 = u2 * u2;
+    let v2_2 = v2 * v2;
+
+    let sqrt1 = NumFloat::sqrt(r2);
+    let sqrt2 = NumFloat::sqrt(u1_2 - 2.0 * u1 * x + r2);
+    let sqrt3 = NumFloat::sqrt(u2_2 - 2.0 * u2 * x + v2_2 - 2.0 * v2 * y + r2);
+    let sqrt4 = NumFloat::sqrt(u1_2 - 2.0 * u1 * u2 + u2_2 + v2_2);
+    let sqrt5 = NumFloat::sqrt(u2_2 + v2_2);
 
     let mut H = Vector3::zeros();
 
-    H.x = (NumFloat::atan((-u2 * ((y * y) + (z * z)) + v2 * x * y) / (v2 * z * sqrt1))
-        + NumFloat::atan((v2 * y * (u1 - x) - (u1 - u2) * ((y * y) + (z * z))) / (v2 * z * sqrt2))
-        - NumFloat::atan(
-            (-u2 * ((y * y) + (z * z)) - (v2 * v2) * x + v2 * y * (u2 + x)) / (v2 * z * sqrt3),
-        )
-        - NumFloat::atan(
-            (-u1 * ((v2 * v2) - 2.0 * v2 * y + (y * y) + (z * z))
-                + u2 * ((y * y) + (z * z))
-                + (v2 * v2) * x
-                - v2 * y * (u2 + x))
-                / (v2 * z * sqrt3),
-        ))
-        / (u1 * v2 * z);
+    let v2_z = v2 * z;
 
-    H.y = H.x; // Set to H.x temporarily
+    H.x = (NumFloat::atan((-u2 * yz2 + v2 * x * y) / (v2_z * sqrt1))
+        + NumFloat::atan((v2 * y * (u1 - x) - (u1 - u2) * yz2) / (v2_z * sqrt2))
+        - NumFloat::atan((-u2 * yz2 - v2_2 * x + v2 * y * (u2 + x)) / (v2_z * sqrt3))
+        - NumFloat::atan(
+            (-u1 * (v2_2 - 2.0 * v2 * y + yz2) + u2 * yz2 + v2_2 * x - v2 * y * (u2 + x))
+                / (v2_z * sqrt3),
+        ))
+        / (u1 * v2_z);
+
+    H.y = H.x;
+
+    let ju_u1_u2_jv_v2 = ju * (u1 - u2) - jv * v2;
+    let ju_u2_jv_v2 = ju * u2 + jv * v2;
 
     H.z = -(ju * NumFloat::atanh(x / sqrt1) + ju * NumFloat::atanh((u1 - x) / sqrt2)
-        - (ju * (u1 - u2) - jv * v2)
-            * NumFloat::atanh(((u1 * u1) - u1 * (u2 + x) + u2 * x + v2 * y) / (sqrt4 * sqrt2))
+        - ju_u1_u2_jv_v2
+            * NumFloat::atanh((u1_2 - u1 * (u2 + x) + u2 * x + v2 * y) / (sqrt4 * sqrt2))
             / sqrt4
-        + (ju * (u1 - u2) - jv * v2)
-            * NumFloat::atanh(
-                (u1 * (u2 - x) - (u2 * u2) + u2 * x + v2 * (-v2 + y)) / (sqrt4 * sqrt3),
-            )
+        + ju_u1_u2_jv_v2
+            * NumFloat::atanh((u1 * (u2 - x) - u2_2 + u2 * x + v2 * (-v2 + y)) / (sqrt4 * sqrt3))
             / sqrt4
-        + (ju * u2 + jv * v2) * NumFloat::atanh((-u2 * x - v2 * y) / (sqrt5 * sqrt1)) / sqrt5
-        - (ju * u2 + jv * v2)
-            * NumFloat::atanh(((u2 * u2) - u2 * x + v2 * (v2 - y)) / (sqrt5 * sqrt3))
-            / sqrt5)
+        + ju_u2_jv_v2 * NumFloat::atanh((-u2 * x - v2 * y) / (sqrt5 * sqrt1)) / sqrt5
+        - ju_u2_jv_v2 * NumFloat::atanh((u2_2 - u2 * x + v2 * (v2 - y)) / (sqrt5 * sqrt3)) / sqrt5)
         / (u1 * v2);
 
-    let H0 = H.x * jv * z * u1 * v2 / (4.0 * T::pi());
-    let H1 = -H.y * ju * z * u1 * v2 / (4.0 * T::pi());
-    let H2 = H.z * u1 * v2 / (4.0 * T::pi());
+    let factor = u1 * v2 / (4.0 * T::pi());
+    let factor_z = factor * z;
+
+    let H0 = H.x * jv * factor_z;
+    let H1 = -H.y * ju * factor_z;
+    let H2 = H.z * factor;
 
     Vector3::new(H0, H1, H2)
 }
@@ -89,6 +99,10 @@ pub fn local_triangle_current_B<T: Float>(
     current_density: Vector3<T>,
     vertices: &[Vector3<T>; 3],
 ) -> Vector3<T> {
+    if current_density == Vector3::zeros() {
+        return Vector3::zeros();
+    }
+
     let translation = vertices[0];
     let v1 = vertices[1] - translation;
     let v2 = vertices[2] - translation;
@@ -118,7 +132,8 @@ pub fn local_triangle_current_B<T: Float>(
     let ju = current_density.dot(&ex);
     let jv = current_density.dot(&ey);
 
-    let H_local = elementar_current_sheet_Hfield(x, y, z, u1, u2, v_2, ju, jv);
+    let H_local =
+        elementar_current_sheet_Hfield(Vector3::new(x, y, z), u1, u2, v_2, Vector2::new(ju, jv));
 
     // Transform back H
     let H_global = ex * H_local.x + ey * H_local.y + ez * H_local.z;
