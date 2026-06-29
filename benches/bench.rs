@@ -1,5 +1,6 @@
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use magba::base::Source;
+use magba::base::mesh::TriMesh;
 use magba::currents::*;
 use magba::magnets::*;
 use nalgebra::{Point3, UnitQuaternion, point, vector};
@@ -71,6 +72,38 @@ fn bench_field_functions(c: &mut Criterion) {
             b.iter(|| black_box(path_current.compute_B_batch(&points)))
         });
 
+        let vertices_triangle_current = [
+            vector![0.0, 0.0, 0.0],
+            vector![1.0, 0.0, 0.0],
+            vector![0.0, 1.0, 0.0],
+        ];
+        let current_density_triangle = vector![1.0, 2.0, 3.0];
+        let triangle_current = TriangleCurrent::new(
+            pos,
+            ori,
+            current_density_triangle,
+            vertices_triangle_current,
+        );
+        group.bench_function("TriangleCurrent", |b| {
+            b.iter(|| black_box(triangle_current.compute_B_batch(&points)))
+        });
+
+        let sheet_mesh = TriMesh::new(
+            vec![
+                vector![-0.1, -0.1, -0.1],
+                vector![0.1, -0.1, -0.1],
+                vector![0.0, 0.1, -0.1],
+                vector![0.0, 0.0, 0.1],
+            ],
+            vec![[0, 2, 1], [0, 1, 3], [1, 2, 3], [0, 3, 2]],
+        )
+        .unwrap();
+        let sheet_current_densities = vec![vector![1.0, 2.0, 3.0]; 4];
+        let sheet_current = SheetCurrent::new(pos, ori, sheet_current_densities, sheet_mesh);
+        group.bench_function("SheetCurrent", |b| {
+            b.iter(|| black_box(sheet_current.compute_B_batch(&points)))
+        });
+
         let cuboid = CuboidMagnet::new(pos, ori, pol, dim);
         group.bench_function("CuboidMagnet", |b| {
             b.iter(|| black_box(cuboid.compute_B_batch(&points)))
@@ -112,7 +145,6 @@ fn bench_field_functions(c: &mut Criterion) {
             b.iter(|| black_box(tetra.compute_B_batch(&points)))
         });
 
-        use magba::base::mesh::TriMesh;
         let vertices_mesh = vec![
             vector![-0.1, -0.1, -0.1],
             vector![0.1, -0.1, -0.1],
@@ -158,6 +190,38 @@ fn bench_field_functions(c: &mut Criterion) {
         let path_current = PathCurrent::new(pos, ori, current, vertices_path_current);
         group.bench_function("PathCurrent", |b| {
             b.iter(|| black_box(path_current.compute_B_batch(&points)))
+        });
+
+        let vertices_triangle_current = [
+            vector![0.0f32, 0.0, 0.0],
+            vector![1.0f32, 0.0, 0.0],
+            vector![0.0f32, 1.0, 0.0],
+        ];
+        let current_density_triangle = vector![1.0f32, 2.0, 3.0];
+        let triangle_current = TriangleCurrent::new(
+            pos,
+            ori,
+            current_density_triangle,
+            vertices_triangle_current,
+        );
+        group.bench_function("TriangleCurrent", |b| {
+            b.iter(|| black_box(triangle_current.compute_B_batch(&points)))
+        });
+
+        let sheet_mesh = TriMesh::new(
+            vec![
+                vector![-0.1f32, -0.1, -0.1],
+                vector![0.1f32, -0.1, -0.1],
+                vector![0.0f32, 0.1, -0.1],
+                vector![0.0f32, 0.0, 0.1],
+            ],
+            vec![[0, 2, 1], [0, 1, 3], [1, 2, 3], [0, 3, 2]],
+        )
+        .unwrap();
+        let sheet_current_densities = vec![vector![1.0f32, 2.0, 3.0]; 4];
+        let sheet_current = SheetCurrent::new(pos, ori, sheet_current_densities, sheet_mesh);
+        group.bench_function("SheetCurrent", |b| {
+            b.iter(|| black_box(sheet_current.compute_B_batch(&points)))
         });
 
         let cuboid = CuboidMagnet::new(pos, ori, pol, dim);

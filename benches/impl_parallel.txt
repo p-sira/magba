@@ -71,3 +71,19 @@
         output: out,
         args: [position, orientation, polarization, mesh]
     )
+
+    impl_parallel!(
+        triangle_current_B,
+        rayon_threshold: 100,
+        input: points,
+        output: out,
+        args: [position, orientation, current_density, vertices]
+    )
+
+    impl_parallel!(
+        sheet_current_B,
+        rayon_threshold: 100,
+        input: points,
+        output: out,
+        args: [position, orientation, current_densities, mesh]
+    )

@@ -6,7 +6,7 @@
 
 **New Features**
 
-- `PathCurrent` struct and its field function.
+- `PathCurrent`, `TriangleCurrent`, and `SheetCurrent` structs and their field functions.
 
 **Improvements**
 

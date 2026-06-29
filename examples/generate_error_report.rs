@@ -57,6 +57,8 @@ where
     MeshMagnet<T>: Source<T>,
     CircularCurrent<T>: Source<T>,
     PathCurrent<T>: Source<T>,
+    SheetCurrent<T>: Source<T>,
+    TriangleCurrent<T>: Source<T>,
 {
     let f = |v: f64| T::from(v).unwrap();
 
@@ -83,6 +85,28 @@ where
                 vector![f(0.1), f(-0.1), f(-0.1)],
                 vector![f(0.0), f(0.1), f(-0.1)],
                 vector![f(0.0), f(0.0), f(0.1)],
+            ],
+        )),
+        "SheetCurrent" => {
+            let mesh = TriMesh::<T>::new_unchecked(
+                tetrahedron_vertices,
+                vec![[0, 2, 1], [0, 1, 3], [1, 2, 3], [0, 3, 2]],
+            );
+            Box::new(SheetCurrent::new(
+                pos,
+                rot,
+                vec![vector![f(1.0), f(2.0), f(3.0)]; 4],
+                mesh,
+            ))
+        }
+        "TriangleCurrent" => Box::new(TriangleCurrent::new(
+            pos,
+            rot,
+            vector![f(1.0), f(2.0), f(3.0)],
+            [
+                vector![f(-0.1), f(-0.1), f(-0.1)],
+                vector![f(0.1), f(-0.1), f(-0.1)],
+                vector![f(0.0), f(0.1), f(-0.1)],
             ],
         )),
         "CylinderMagnet" => Box::new(CylinderMagnet::new(pos, rot, pol, f(0.1), f(0.2))),
@@ -137,6 +161,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let magnets = [
         ("CircularCurrent", "circularcurrent.csv"),
         ("PathCurrent", "polyline.csv"),
+        ("SheetCurrent", "sheetcurrent.csv"),
+        ("TriangleCurrent", "trianglecurrent.csv"),
         ("CylinderMagnet", "cylinder.csv"),
         ("CuboidMagnet", "cuboid.csv"),
         ("Dipole", "dipole.csv"),

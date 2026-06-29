@@ -5,8 +5,14 @@
 
 mod circular;
 mod current;
-mod path_current;
+mod path;
+#[cfg(feature = "mesh")]
+mod sheet;
+mod triangle;
 
 pub use circular::CircularCurrent;
 pub use current::Current;
-pub use path_current::PathCurrent;
+pub use path::PathCurrent;
+#[cfg(feature = "mesh")]
+pub use sheet::SheetCurrent;
+pub use triangle::TriangleCurrent;

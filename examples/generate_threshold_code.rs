@@ -95,6 +95,14 @@ fn generate_lib_rs_code(results: &[BenchmarkResult]) -> String {
             "[position, orientation, polarization, vertices, mat_inv]",
         ),
         ("mesh_B", "[position, orientation, polarization, mesh]"),
+        (
+            "triangle_current_B",
+            "[position, orientation, current_density, vertices]",
+        ),
+        (
+            "sheet_current_B",
+            "[position, orientation, current_densities, mesh]",
+        ),
     ];
 
     for (func_name, args) in &functions {

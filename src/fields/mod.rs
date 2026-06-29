@@ -70,18 +70,28 @@ mod field_cuboid;
 mod field_cylinder;
 mod field_dipole;
 mod field_path_current;
+#[cfg(feature = "mesh")]
+mod field_sheet_current;
 mod field_sphere;
 mod field_tetrahedron;
 mod field_triangle;
+mod field_triangle_current;
 
 pub use field_circular::{circular_B, circular_B_batch, sum_multiple_circular_B};
 pub use field_cuboid::{cuboid_B, cuboid_B_batch, sum_multiple_cuboid_B};
 pub use field_cylinder::{cylinder_B, cylinder_B_batch, sum_multiple_cylinder_B};
 pub use field_dipole::{dipole_B, dipole_B_batch, sum_multiple_dipole_B};
 pub use field_path_current::{path_current_B, path_current_B_batch, sum_multiple_path_current_B};
+#[cfg(feature = "mesh")]
+pub use field_sheet_current::{
+    sheet_current_B, sheet_current_B_batch, sum_multiple_sheet_current_B,
+};
 pub use field_sphere::{sphere_B, sphere_B_batch, sum_multiple_sphere_B};
 pub use field_tetrahedron::{sum_multiple_tetrahedron_B, tetrahedron_B, tetrahedron_B_batch};
 pub use field_triangle::{sum_multiple_triangle_B, triangle_B, triangle_B_batch};
+pub use field_triangle_current::{
+    sum_multiple_triangle_current_B, triangle_current_B, triangle_current_B_batch,
+};
 
 #[cfg(feature = "mesh")]
 mod field_mesh;
@@ -97,8 +107,12 @@ crate::crate_utils::need_unstable! {
     pub use field_sphere::local_sphere_B;
     pub use field_tetrahedron::{local_tetrahedron_B, tetrahedron_B_precomputed, precompute_tetrahedron};
     pub use field_triangle::local_triangle_B;
-    pub use field_path_current::local_path_current_B;
 
     #[cfg(feature = "mesh")]
     pub use field_mesh::local_mesh_B;
+
+    pub use field_path_current::local_path_current_B;
+    pub use field_triangle_current::local_triangle_current_B;
+    #[cfg(feature = "mesh")]
+    pub use field_sheet_current::local_sheet_current_B;
 }

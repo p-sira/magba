@@ -273,6 +273,14 @@ fn bench_thresholds(c: &mut Criterion) {
     let faces_mesh = vec![[0, 2, 1], [0, 1, 3], [1, 2, 3], [0, 3, 2]];
     let mesh = TriMesh::new(vertices_mesh, faces_mesh).unwrap();
 
+    let vertices_triangle_current = [
+        vector![0.0, 0.0, 0.0],
+        vector![1.0, 0.0, 0.0],
+        vector![0.0, 1.0, 0.0],
+    ];
+    let current_density = vector![1.0, 2.0, 3.0];
+    let sheet_current_densities = vec![vector![1.0, 2.0, 3.0]; 4];
+
     let mut results = Vec::new();
     let record_file = Path::new("benches/par_threshold.md");
 
@@ -326,7 +334,23 @@ fn bench_thresholds(c: &mut Criterion) {
         1550,
         record_file
     );
+    find_threshold!(
+        c,
+        results,
+        triangle_current_B,
+        (pos, ori, current_density, vertices_triangle_current),
+        100,
+        record_file
+    );
     find_threshold!(c, results, mesh_B, (pos, ori, pol, &mesh), 400, record_file);
+    find_threshold!(
+        c,
+        results,
+        sheet_current_B,
+        (pos, ori, &sheet_current_densities, &mesh),
+        100,
+        record_file
+    );
 }
 
 criterion_group!(benches, bench_thresholds);
