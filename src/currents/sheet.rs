@@ -51,6 +51,14 @@ define_source! {
 
 impl<T: Float + core::iter::Sum> SheetCurrent<T> {
     /// Validates and constructs a [`SheetCurrent`] from a [TriMesh].
+    ///
+    /// # Returns
+    ///
+    /// Returns a [MeshError] if the mesh has holes or zero-faces.
+    ///
+    /// # Notes
+    ///
+    /// To construct a [SheetCurrent] without validation, use [SheetCurrent::new].
     #[cfg(feature = "mesh")]
     #[inline]
     pub fn from_vertices_and_faces(
@@ -59,6 +67,23 @@ impl<T: Float + core::iter::Sum> SheetCurrent<T> {
         current_densities: Vec<Vector3<T>>,
     ) -> Result<Self, MeshError> {
         let trimesh = TriMesh::new(vertices, faces)?;
+
+        Ok(Self::new(
+            [T::zero(); 3],
+            nalgebra::UnitQuaternion::identity(),
+            current_densities,
+            trimesh,
+        ))
+    }
+
+    /// Validates and constructs a [`SheetCurrent`] from an STL reader.
+    #[cfg(feature = "io-stl")]
+    #[inline]
+    pub fn from_stl<R>(reader: &mut R, current_densities: Vec<Vector3<T>>) -> std::io::Result<Self>
+    where
+        R: std::io::Read + std::io::Seek,
+    {
+        let trimesh = TriMesh::from_stl(reader)?;
 
         Ok(Self::new(
             [T::zero(); 3],
