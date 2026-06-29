@@ -31,6 +31,15 @@
 //! enabled (default). If the `rayon` feature is disabled, the batch functions
 //! will process the points serially on a single thread.
 //!
+//! To automatically tune the threshold for your computation environment,
+//!
+//! 1. Download the source code locally
+//! 2. Run `cargo bench threshold --features unstable`.
+//! 3. Run `cargo run --package magba --example generate_threshold_code`.
+//! 4. Copy the generated code from `benches/impl_parallel.txt` to the function *_B_batch,
+//!    such as `fields::field_cuboid::cuboid_B_batch`.
+//! 5. Recompile and install Magba with the adjusted threshold locally.
+//!
 //! # Examples
 //!
 //! ```
@@ -84,7 +93,7 @@ crate::crate_utils::need_unstable! {
     };
     pub use field_dipole::local_dipole_B;
     pub use field_sphere::local_sphere_B;
-    pub use field_tetrahedron::local_tetrahedron_B;
+    pub use field_tetrahedron::{local_tetrahedron_B, tetrahedron_B_precomputed, precompute_tetrahedron};
     pub use field_triangle::local_triangle_B;
 
     #[cfg(feature = "mesh")]

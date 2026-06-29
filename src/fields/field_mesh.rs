@@ -108,7 +108,7 @@ pub fn mesh_B_batch<T: Float>(
 ) {
     impl_parallel!(
         mesh_B,
-        rayon_threshold: 400,
+        rayon_threshold: 100,
         input: points,
         output: out,
         args: [position, orientation, polarization, mesh]

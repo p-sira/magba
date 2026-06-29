@@ -185,7 +185,7 @@ pub fn triangle_B_batch<T: Float>(
 ) {
     impl_parallel!(
         triangle_B,
-        rayon_threshold: 3100, // Roughly similar to others
+        rayon_threshold: 300,
         input: points,
         output: out,
         args: [position, orientation, polarization, vertices]

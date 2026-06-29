@@ -13,7 +13,7 @@ use crate::{
     fields::field_triangle::local_triangle_B,
 };
 
-fn precompute_tetrahedron<T: Float>(
+pub fn precompute_tetrahedron<T: Float>(
     mut vertices: [Vector3<T>; 4],
 ) -> ([Vector3<T>; 4], Option<Matrix3<T>>) {
     let v01 = vertices[1] - vertices[0];
@@ -36,7 +36,7 @@ fn precompute_tetrahedron<T: Float>(
 
 #[inline]
 #[allow(non_snake_case)]
-fn local_tetrahedron_B_precomputed<T: Float>(
+pub fn local_tetrahedron_B_precomputed<T: Float>(
     point: Point3<T>,
     polarization: Vector3<T>,
     vertices: [Vector3<T>; 4],
@@ -165,7 +165,7 @@ pub fn tetrahedron_B_batch<T: Float>(
 
     impl_parallel!(
         tetrahedron_B_precomputed,
-        rayon_threshold: 775, // Derived from triangle having 3100 and we do 4 of them (3100 / 4 = 775)
+        rayon_threshold: 100,
         input: points,
         output: out,
         args: [position, orientation, polarization, vertices, mat_inv]

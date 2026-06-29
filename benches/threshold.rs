@@ -243,6 +243,30 @@ fn bench_thresholds(c: &mut Criterion) {
     let moment = vector![0.0, 0.0, 1e-3];
     let current = 1.0;
 
+    let vertices_triangle = [
+        vector![-0.1, -0.1, -0.1],
+        vector![0.1, -0.1, 0.1],
+        vector![0.0, 0.2, 0.0],
+    ];
+
+    let vertices_tetra = [
+        vector![-0.1, -0.1, -0.1],
+        vector![0.1, -0.1, -0.1],
+        vector![0.0, 0.1, -0.1],
+        vector![0.0, 0.0, 0.1],
+    ];
+    let (vertices_tetra, mat_inv_tetra) = magba::fields::precompute_tetrahedron(vertices_tetra);
+
+    use magba::base::mesh::TriMesh;
+    let vertices_mesh = vec![
+        vector![-0.1, -0.1, -0.1],
+        vector![0.1, -0.1, -0.1],
+        vector![0.0, 0.1, -0.1],
+        vector![0.0, 0.0, 0.1],
+    ];
+    let faces_mesh = vec![[0, 2, 1], [0, 1, 3], [1, 2, 3], [0, 3, 2]];
+    let mesh = TriMesh::new(vertices_mesh, faces_mesh).unwrap();
+
     let mut results = Vec::new();
     let record_file = Path::new("benches/par_threshold.md");
 
@@ -272,6 +296,23 @@ fn bench_thresholds(c: &mut Criterion) {
         2500,
         record_file
     );
+    find_threshold!(
+        c,
+        results,
+        triangle_B,
+        (pos, ori, pol, vertices_triangle),
+        3100,
+        record_file
+    );
+    find_threshold!(
+        c,
+        results,
+        tetrahedron_B_precomputed,
+        (pos, ori, pol, vertices_tetra, mat_inv_tetra),
+        1550,
+        record_file
+    );
+    find_threshold!(c, results, mesh_B, (pos, ori, pol, &mesh), 400, record_file);
 }
 
 criterion_group!(benches, bench_thresholds);

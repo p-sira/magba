@@ -82,6 +82,18 @@ fn generate_lib_rs_code(results: &[BenchmarkResult]) -> String {
             "sphere_B",
             "[position, orientation, polarization, diameter]",
         ),
+        (
+            "triangle_B",
+            "[position, orientation, polarization, vertices]",
+        ),
+        (
+            "tetrahedron_B_precomputed",
+            "[position, orientation, polarization, vertices, mat_inv]",
+        ),
+        (
+            "mesh_B",
+            "[position, orientation, polarization, mesh]",
+        ),
     ];
 
     for (func_name, args) in &functions {

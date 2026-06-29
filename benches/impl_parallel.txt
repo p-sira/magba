@@ -6,7 +6,7 @@
         input: points,
         output: out,
         args: [position, orientation, diameter, current]
-    );
+    )
 
     impl_parallel!(
         cuboid_B,
@@ -14,23 +14,23 @@
         input: points,
         output: out,
         args: [position, orientation, polarization, dimensions]
-    );
+    )
 
     impl_parallel!(
         cylinder_B,
-        rayon_threshold: 150,
+        rayon_threshold: 100,
         input: points,
         output: out,
         args: [position, orientation, polarization, diameter, height]
-    );
+    )
 
     impl_parallel!(
         dipole_B,
-        rayon_threshold: 3100,
+        rayon_threshold: 2500,
         input: points,
         output: out,
         args: [position, orientation, moment]
-    );
+    )
 
     impl_parallel!(
         sphere_B,
@@ -38,4 +38,28 @@
         input: points,
         output: out,
         args: [position, orientation, polarization, diameter]
-    );
+    )
+
+    impl_parallel!(
+        triangle_B,
+        rayon_threshold: 300,
+        input: points,
+        output: out,
+        args: [position, orientation, polarization, vertices]
+    )
+
+    impl_parallel!(
+        tetrahedron_B_precomputed,
+        rayon_threshold: 100,
+        input: points,
+        output: out,
+        args: [position, orientation, polarization, vertices, mat_inv]
+    )
+
+    impl_parallel!(
+        mesh_B,
+        rayon_threshold: 100,
+        input: points,
+        output: out,
+        args: [position, orientation, polarization, mesh]
+    )
