@@ -69,6 +69,7 @@ mod field_circular;
 mod field_cuboid;
 mod field_cylinder;
 mod field_dipole;
+#[cfg(feature = "alloc")]
 mod field_path_current;
 #[cfg(feature = "mesh")]
 mod field_sheet_current;
@@ -81,6 +82,7 @@ pub use field_circular::{circular_B, circular_B_batch, sum_multiple_circular_B};
 pub use field_cuboid::{cuboid_B, cuboid_B_batch, sum_multiple_cuboid_B};
 pub use field_cylinder::{cylinder_B, cylinder_B_batch, sum_multiple_cylinder_B};
 pub use field_dipole::{dipole_B, dipole_B_batch, sum_multiple_dipole_B};
+#[cfg(feature = "alloc")]
 pub use field_path_current::{path_current_B, path_current_B_batch, sum_multiple_path_current_B};
 #[cfg(feature = "mesh")]
 pub use field_sheet_current::{
@@ -111,6 +113,7 @@ crate::crate_utils::need_unstable! {
     #[cfg(feature = "mesh")]
     pub use field_mesh::local_mesh_B;
 
+    #[cfg(feature = "alloc")]
     pub use field_path_current::local_path_current_B;
     pub use field_triangle_current::local_triangle_current_B;
     #[cfg(feature = "mesh")]
