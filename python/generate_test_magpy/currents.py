@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
-from magpylib.current import Circle, TriangleSheet
+from magpylib.current import Circle, TriangleSheet, Polyline
 from scipy.spatial.transform import Rotation
 
 sys.path.append(str(Path(__file__).parent.parent))
@@ -106,6 +106,14 @@ def generate_tests(points, points_small):
             (1.0, 2.0, 3.0),
             (1.0, 2.0, 3.0),
         ],
+    )
+
+    generate_test(
+        Polyline,
+        points,
+        points_small,
+        current=100.0,
+        vertices=np.array([[-0.1, -0.1, -0.1], [0.1, -0.1, -0.1], [0.0, 0.1, -0.1], [0.0, 0.0, 0.1]]),
     )
 
 

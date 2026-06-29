@@ -5,7 +5,6 @@ import sys
 from pathlib import Path
 
 import numpy as np
-from magpylib.current import Polyline
 from magpylib.magnet import Cuboid, Cylinder, Sphere, Tetrahedron, TriangularMesh
 from magpylib.misc import Dipole, Triangle
 from scipy.spatial.transform import Rotation
@@ -110,13 +109,7 @@ def generate_tests(points, points_small):
         polarization=np.array((1.0, 2.0, 3.0)),  # polarization
     )
 
-    generate_test(
-        Polyline,
-        points,
-        points_small,
-        current=100.0,
-        vertices=np.array([[-0.1, -0.1, -0.1], [0.1, -0.1, -0.1], [0.0, 0.1, -0.1], [0.0, 0.0, 0.1]]),
-    )
+
 
 if __name__ == "__main__":
     points = get_points()
