@@ -141,7 +141,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             .with_column(Column::accuracy("Mean").with_stat(ColumnStat::Mean))
             .with_column(Column::accuracy("P95").with_stat(ColumnStat::P95))
             .with_column(Column::accuracy("Max").with_stat(ColumnStat::Max))
-            .with_column(Column::<f64>::perf("Performance"))
+            .with_column(Column::<f64>::perf("Performance").postprocess(|perf| perf / 1000.0)) // Divide by the number of test points
     }
 
     let mut content = std::fs::read_to_string("tests/report_template.md")

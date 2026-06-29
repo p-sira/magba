@@ -53,36 +53,67 @@ fn bench_field_functions(c: &mut Criterion) {
         let current = 1.0;
 
         let mut group = c.benchmark_group("fields/f64");
+        group.throughput(criterion::Throughput::Elements(points.len() as u64));
 
         let circular = CircularCurrent::new(pos, ori, diameter, current);
-        group.bench_function("CircularCurrent", |b| b.iter(|| black_box(circular.compute_B_batch(&points))));
+        group.bench_function("CircularCurrent", |b| {
+            b.iter(|| black_box(circular.compute_B_batch(&points)))
+        });
 
         let cuboid = CuboidMagnet::new(pos, ori, pol, dim);
-        group.bench_function("CuboidMagnet", |b| b.iter(|| black_box(cuboid.compute_B_batch(&points))));
+        group.bench_function("CuboidMagnet", |b| {
+            b.iter(|| black_box(cuboid.compute_B_batch(&points)))
+        });
 
         let cylinder = CylinderMagnet::new(pos, ori, pol, diameter, height);
-        group.bench_function("CylinderMagnet", |b| b.iter(|| black_box(cylinder.compute_B_batch(&points))));
+        group.bench_function("CylinderMagnet", |b| {
+            b.iter(|| black_box(cylinder.compute_B_batch(&points)))
+        });
 
         let dipole = Dipole::new(pos, ori, moment);
-        group.bench_function("Dipole", |b| b.iter(|| black_box(dipole.compute_B_batch(&points))));
+        group.bench_function("Dipole", |b| {
+            b.iter(|| black_box(dipole.compute_B_batch(&points)))
+        });
 
         let sphere = SphereMagnet::new(pos, ori, pol, diameter);
-        group.bench_function("SphereMagnet", |b| b.iter(|| black_box(sphere.compute_B_batch(&points))));
+        group.bench_function("SphereMagnet", |b| {
+            b.iter(|| black_box(sphere.compute_B_batch(&points)))
+        });
 
-        let vertices_triangle = [vector![-0.1, -0.1, -0.1], vector![0.1, -0.1, 0.1], vector![0.0, 0.2, 0.0]];
+        let vertices_triangle = [
+            vector![-0.1, -0.1, -0.1],
+            vector![0.1, -0.1, 0.1],
+            vector![0.0, 0.2, 0.0],
+        ];
         let triangle = TriangleMagnet::new(pos, ori, pol, vertices_triangle);
-        group.bench_function("TriangleMagnet", |b| b.iter(|| black_box(triangle.compute_B_batch(&points))));
+        group.bench_function("TriangleMagnet", |b| {
+            b.iter(|| black_box(triangle.compute_B_batch(&points)))
+        });
 
-        let vertices_tetra = [vector![-0.1, -0.1, -0.1], vector![0.1, -0.1, -0.1], vector![0.0, 0.1, -0.1], vector![0.0, 0.0, 0.1]];
+        let vertices_tetra = [
+            vector![-0.1, -0.1, -0.1],
+            vector![0.1, -0.1, -0.1],
+            vector![0.0, 0.1, -0.1],
+            vector![0.0, 0.0, 0.1],
+        ];
         let tetra = TetrahedronMagnet::new(pos, ori, pol, vertices_tetra);
-        group.bench_function("TetrahedronMagnet", |b| b.iter(|| black_box(tetra.compute_B_batch(&points))));
+        group.bench_function("TetrahedronMagnet", |b| {
+            b.iter(|| black_box(tetra.compute_B_batch(&points)))
+        });
 
         use magba::base::mesh::TriMesh;
-        let vertices_mesh = vec![vector![-0.1, -0.1, -0.1], vector![0.1, -0.1, -0.1], vector![0.0, 0.1, -0.1], vector![0.0, 0.0, 0.1]];
+        let vertices_mesh = vec![
+            vector![-0.1, -0.1, -0.1],
+            vector![0.1, -0.1, -0.1],
+            vector![0.0, 0.1, -0.1],
+            vector![0.0, 0.0, 0.1],
+        ];
         let faces_mesh = vec![[0, 2, 1], [0, 1, 3], [1, 2, 3], [0, 3, 2]];
         let mesh = TriMesh::new(vertices_mesh, faces_mesh).unwrap();
         let mesh_magnet = MeshMagnet::new(pos, ori, pol, mesh);
-        group.bench_function("MeshMagnet", |b| b.iter(|| black_box(mesh_magnet.compute_B_batch(&points))));
+        group.bench_function("MeshMagnet", |b| {
+            b.iter(|| black_box(mesh_magnet.compute_B_batch(&points)))
+        });
 
         group.finish();
     }
@@ -100,36 +131,67 @@ fn bench_field_functions(c: &mut Criterion) {
         let current = 1.0f32;
 
         let mut group = c.benchmark_group("fields/f32");
+        group.throughput(criterion::Throughput::Elements(points.len() as u64));
 
         let circular = CircularCurrent::new(pos, ori, diameter, current);
-        group.bench_function("CircularCurrent", |b| b.iter(|| black_box(circular.compute_B_batch(&points))));
+        group.bench_function("CircularCurrent", |b| {
+            b.iter(|| black_box(circular.compute_B_batch(&points)))
+        });
 
         let cuboid = CuboidMagnet::new(pos, ori, pol, dim);
-        group.bench_function("CuboidMagnet", |b| b.iter(|| black_box(cuboid.compute_B_batch(&points))));
+        group.bench_function("CuboidMagnet", |b| {
+            b.iter(|| black_box(cuboid.compute_B_batch(&points)))
+        });
 
         let cylinder = CylinderMagnet::new(pos, ori, pol, diameter, height);
-        group.bench_function("CylinderMagnet", |b| b.iter(|| black_box(cylinder.compute_B_batch(&points))));
+        group.bench_function("CylinderMagnet", |b| {
+            b.iter(|| black_box(cylinder.compute_B_batch(&points)))
+        });
 
         let dipole = Dipole::new(pos, ori, moment);
-        group.bench_function("Dipole", |b| b.iter(|| black_box(dipole.compute_B_batch(&points))));
+        group.bench_function("Dipole", |b| {
+            b.iter(|| black_box(dipole.compute_B_batch(&points)))
+        });
 
         let sphere = SphereMagnet::new(pos, ori, pol, diameter);
-        group.bench_function("SphereMagnet", |b| b.iter(|| black_box(sphere.compute_B_batch(&points))));
+        group.bench_function("SphereMagnet", |b| {
+            b.iter(|| black_box(sphere.compute_B_batch(&points)))
+        });
 
-        let vertices_triangle = [vector![-0.1f32, -0.1, -0.1], vector![0.1f32, -0.1, 0.1], vector![0.0f32, 0.2, 0.0]];
+        let vertices_triangle = [
+            vector![-0.1f32, -0.1, -0.1],
+            vector![0.1f32, -0.1, 0.1],
+            vector![0.0f32, 0.2, 0.0],
+        ];
         let triangle = TriangleMagnet::new(pos, ori, pol, vertices_triangle);
-        group.bench_function("TriangleMagnet", |b| b.iter(|| black_box(triangle.compute_B_batch(&points))));
+        group.bench_function("TriangleMagnet", |b| {
+            b.iter(|| black_box(triangle.compute_B_batch(&points)))
+        });
 
-        let vertices_tetra = [vector![-0.1f32, -0.1, -0.1], vector![0.1f32, -0.1, -0.1], vector![0.0f32, 0.1, -0.1], vector![0.0f32, 0.0, 0.1]];
+        let vertices_tetra = [
+            vector![-0.1f32, -0.1, -0.1],
+            vector![0.1f32, -0.1, -0.1],
+            vector![0.0f32, 0.1, -0.1],
+            vector![0.0f32, 0.0, 0.1],
+        ];
         let tetra = TetrahedronMagnet::new(pos, ori, pol, vertices_tetra);
-        group.bench_function("TetrahedronMagnet", |b| b.iter(|| black_box(tetra.compute_B_batch(&points))));
+        group.bench_function("TetrahedronMagnet", |b| {
+            b.iter(|| black_box(tetra.compute_B_batch(&points)))
+        });
 
         use magba::base::mesh::TriMesh;
-        let vertices_mesh = vec![vector![-0.1f32, -0.1, -0.1], vector![0.1f32, -0.1, -0.1], vector![0.0f32, 0.1, -0.1], vector![0.0f32, 0.0, 0.1]];
+        let vertices_mesh = vec![
+            vector![-0.1f32, -0.1, -0.1],
+            vector![0.1f32, -0.1, -0.1],
+            vector![0.0f32, 0.1, -0.1],
+            vector![0.0f32, 0.0, 0.1],
+        ];
         let faces_mesh = vec![[0, 2, 1], [0, 1, 3], [1, 2, 3], [0, 3, 2]];
         let mesh = TriMesh::new(vertices_mesh, faces_mesh).unwrap();
         let mesh_magnet = MeshMagnet::new(pos, ori, pol, mesh);
-        group.bench_function("MeshMagnet", |b| b.iter(|| black_box(mesh_magnet.compute_B_batch(&points))));
+        group.bench_function("MeshMagnet", |b| {
+            b.iter(|| black_box(mesh_magnet.compute_B_batch(&points)))
+        });
 
         group.finish();
     }

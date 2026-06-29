@@ -925,9 +925,9 @@ checksum = "2b15c43186be67a4fd63bee50d0303afffcef381492ebe2c5d87f324e1b8815c"
 
 [[package]]
 name = "reproducible"
-version = "0.3.1"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "36266815f629bb248722e53c0b0d1373b172373342aa3bd3d821f6e295a9ba11"
+checksum = "9c05b78cb2abe767e399d2d177ed862e12c1dcb00e9fef907c4dfb858fba3518"
 dependencies = [
  "csv",
  "delegate",
@@ -942,9 +942,9 @@ dependencies = [
 
 [[package]]
 name = "reproducible-macros"
-version = "0.3.0"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "39daf7e52bdc8f716007023f81e8a217788a3398a502160d0255d543103bfa22"
+checksum = "cb3645968697ad4f1b34fc41c129076decafa40b72f1dd512c6adeb9bac38a34"
 dependencies = [
  "proc-macro2",
  "quote",

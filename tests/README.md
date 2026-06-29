@@ -10,30 +10,30 @@ The observer points are generated using `get_points` and `get_points_small` func
 
 ## Accuracy Report
 
-This report is generated on AMD Ryzen 5 4600H with Radeon Graphics @1.9 GHz RAM 16 GB running x86_64-unknown-linux-gnu rustc 1.90.0 using magba v0.5.0.
+This report is generated on AMD Ryzen 5 4600H with Radeon Graphics @1.7 GHz RAM 16 GB running x86_64-unknown-linux-gnu rustc 1.90.0 using magba v0.5.0.
 
 ### Relative Error: f64
 
 | Function          | Median    | Mean      | P95       | Max       | Performance |
 |-------------------|-----------|-----------|-----------|-----------|-------------|
-| CircularCurrent   | 0.992     | 0.996     | 1.009     | 3.507     | 45.5 us     |
-| CylinderMagnet    | 2.947e-13 | 3.511e-12 | 2.543e-12 | 2.501e-10 | 64.8 us     |
-| CuboidMagnet      | 0.000     | 6.930e-15 | 5.568e-14 | 2.103e-13 | 132.5 us    |
-| Dipole            | 1.320e-10 | 7.586e-11 | 1.320e-10 | 1.320e-10 | 14.6 us     |
-| SphereMagnet      | 0.000     | 8.086e-19 | 0.000     | 8.078e-16 | 26.6 us     |
-| TetrahedronMagnet | 0.000     | 3.450e-13 | 7.618e-13 | 1.020e-10 | 423.0 us    |
-| TriangleMagnet    | 0.000     | 1.066e-14 | 3.274e-14 | 2.405e-12 | 110.4 us    |
-| MeshMagnet        | 0.000     | 3.450e-13 | 7.618e-13 | 1.020e-10 | 108.8 us    |
+| CircularCurrent   | 0.992     | 0.996     | 1.009     | 3.507     | 45.8 ns     |
+| CylinderMagnet    | 2.947e-13 | 3.511e-12 | 2.543e-12 | 2.501e-10 | 67.4 ns     |
+| CuboidMagnet      | 0.000     | 6.930e-15 | 5.568e-14 | 2.103e-13 | 136.1 ns    |
+| Dipole            | 1.320e-10 | 7.586e-11 | 1.320e-10 | 1.320e-10 | 14.5 ns     |
+| SphereMagnet      | 0.000     | 8.086e-19 | 0.000     | 8.078e-16 | 26.5 ns     |
+| TetrahedronMagnet | 0.000     | 3.450e-13 | 7.618e-13 | 1.020e-10 | 417.7 ns    |
+| TriangleMagnet    | 0.000     | 1.066e-14 | 3.274e-14 | 2.405e-12 | 114.0 ns    |
+| MeshMagnet        | 0.000     | 3.450e-13 | 7.618e-13 | 1.020e-10 | 101.4 ns    |
 
 ### Relative Error: f32
 
 | Function          | Median   | Mean     | P95      | Max      | Performance |
 |-------------------|----------|----------|----------|----------|-------------|
-| CircularCurrent   | 0.992    | 0.996    | 1.009    | 3.507    | 47.4 us     |
-| CylinderMagnet    | 2.511e-5 | 1.736e-4 | 2.912e-4 | 0.031    | 53.8 us     |
-| CuboidMagnet      | 6.130e-6 | 9.213e-6 | 2.790e-5 | 9.530e-5 | 97.9 us     |
-| Dipole            | 1.897e-7 | 2.186e-7 | 4.850e-7 | 8.763e-7 | 7.6 us      |
-| SphereMagnet      | 1.766e-7 | 2.070e-7 | 4.614e-7 | 9.171e-7 | 26.8 us     |
-| TetrahedronMagnet | 2.305e-5 | 1.174e-4 | 2.135e-4 | 0.031    | 367.9 us    |
-| TriangleMagnet    | 1.285e-6 | 5.890e-6 | 1.609e-5 | 4.272e-4 | 88.7 us     |
-| MeshMagnet        | 2.305e-5 | 1.174e-4 | 2.135e-4 | 0.031    | 102.2 us    |
+| CircularCurrent   | 0.992    | 0.996    | 1.009    | 3.507    | 43.2 ns     |
+| CylinderMagnet    | 2.511e-5 | 1.736e-4 | 2.912e-4 | 0.031    | 50.7 ns     |
+| CuboidMagnet      | 6.130e-6 | 9.213e-6 | 2.790e-5 | 9.530e-5 | 92.8 ns     |
+| Dipole            | 1.897e-7 | 2.186e-7 | 4.850e-7 | 8.763e-7 | 7.6 ns      |
+| SphereMagnet      | 1.766e-7 | 2.070e-7 | 4.614e-7 | 9.171e-7 | 26.6 ns     |
+| TetrahedronMagnet | 2.305e-5 | 1.174e-4 | 2.135e-4 | 0.031    | 367.4 ns    |
+| TriangleMagnet    | 1.285e-6 | 5.890e-6 | 1.609e-5 | 4.272e-4 | 85.6 ns     |
+| MeshMagnet        | 2.305e-5 | 1.174e-4 | 2.135e-4 | 0.031    | 91.6 ns     |
