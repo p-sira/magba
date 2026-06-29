@@ -10,7 +10,7 @@ The observer points are generated using `get_points` and `get_points_small` func
 
 ## Accuracy Report
 
-This report is generated on {{TEST_ENV}}.
+This report is generated on {{TEST_ENV}}. The performance is benchmarked using Criterion, and the results are divided by the number of test cases (1,000) to get the approximate time to compute the field function for one observer point.
 
 ### Relative Error: f64
 

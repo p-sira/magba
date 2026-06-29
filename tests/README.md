@@ -10,7 +10,7 @@ The observer points are generated using `get_points` and `get_points_small` func
 
 ## Accuracy Report
 
-This report is generated on AMD Ryzen 5 4600H with Radeon Graphics @1.7 GHz RAM 16 GB running x86_64-unknown-linux-gnu rustc 1.90.0 using magba v0.5.0.
+This report is generated on AMD Ryzen 5 4600H with Radeon Graphics @3.2 GHz RAM 16 GB running x86_64-unknown-linux-gnu rustc 1.90.0 using magba v0.5.0. The performance is benchmarked using Criterion, and the results are divided by the number of test cases (1,000) to get the approximate time to compute the field function for one observer point.
 
 ### Relative Error: f64
 
