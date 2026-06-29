@@ -31,6 +31,22 @@ impl_transform!(LinearHallSensor<T> where T: Float);
 
 impl<T: Float> LinearHallSensor<T> {
     // MARK: New
+
+    /// Construct a [LinearHallSensor].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use magba::sensors::hall_effect::LinearHallSensor;
+    /// # use nalgebra::UnitQuaternion;
+    /// let sensor = LinearHallSensor::new(
+    ///     [0.0, 0.0, 0.0],              // position (m)
+    ///     UnitQuaternion::identity(),   // orientation as unit quaternion
+    ///     [0.0, 0.0, 1.0],              // sensitive axis (automatically normalized)
+    ///     20.0,                         // sensitivity (V/T)
+    ///     5.0,                          // supply voltage (V)
+    /// );
+    /// ```
     pub fn new(
         position: impl Into<Point3<T>>,
         orientation: UnitQuaternion<T>,

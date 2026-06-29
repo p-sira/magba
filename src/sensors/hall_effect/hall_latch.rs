@@ -218,26 +218,26 @@ mod tests {
 
         // Initially state is false (0)
         let source_zero = StableFieldMagnet::new(Vector3::new(0.0, 0.0, 0.0));
-        assert_eq!(sensor.read_state(&source_zero), false);
+        assert!(!sensor.read_state(&source_zero));
 
         // Apply field below B_OP but above B_RP
         let source_weak = StableFieldMagnet::new(Vector3::new(0.0, 0.0, 0.005));
-        assert_eq!(sensor.read_state(&source_weak), false);
+        assert!(!sensor.read_state(&source_weak));
 
         // Apply field above B_OP -> state becomes true
         let source_op = StableFieldMagnet::new(Vector3::new(0.0, 0.0, 0.015));
-        assert_eq!(sensor.read_state(&source_op), true);
+        assert!(sensor.read_state(&source_op));
 
         // Reduce field below B_OP but above B_RP -> state remains true (hysteresis)
-        assert_eq!(sensor.read_state(&source_weak), true);
+        assert!(sensor.read_state(&source_weak));
         assert_eq!(sensor.read(&source_weak), SensorOutput::Digital(1));
 
         // Apply field below B_RP -> state becomes false
         let source_rp = StableFieldMagnet::new(Vector3::new(0.0, 0.0, -0.015));
-        assert_eq!(sensor.read_state(&source_rp), false);
+        assert!(!sensor.read_state(&source_rp));
 
         // Increase field back to weak -> state remains false
-        assert_eq!(sensor.read_state(&source_weak), false);
+        assert!(!sensor.read_state(&source_weak));
         assert_eq!(sensor.read(&source_weak), SensorOutput::Digital(0));
 
         // Sensor rotated 180 deg around X, sensitive axis is now -Z.
@@ -247,7 +247,7 @@ mod tests {
         // source_rp is -15mT in global Z. Sensor Z is -Z global.
         // The projected field is (-0.015) * (-1) = 0.015.
         // This is above B_OP, so it should turn ON.
-        assert_eq!(sensor.read_state(&source_rp), true);
+        assert!(sensor.read_state(&source_rp));
     }
 
     #[test]

@@ -48,6 +48,9 @@
 //! field computation using [Rayon](https://github.com/rayon-rs/rayon) if the number of input
 //! points is greater than the threshold to overcome the parallelization overhead.
 //! If you disable the `rayon` feature, it will fallback to sequential computation.
+//!
+//! To automatically tune the threshold for your computation environment,
+//! see [crate::fields#parallelization].
 
 mod cuboid;
 mod cylinder;

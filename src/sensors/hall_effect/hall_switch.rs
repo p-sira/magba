@@ -152,21 +152,21 @@ mod tests {
 
         // Field below B_OP
         let source_off = StableFieldMagnet::new(Vector3::new(0.0, 0.0, 0.005));
-        assert_eq!(sensor.read_state(&source_off), false);
+        assert!(!sensor.read_state(&source_off));
         assert_eq!(sensor.read(&source_off), SensorOutput::Digital(0));
 
         // Field above B_OP
         let source_on = StableFieldMagnet::new(Vector3::new(0.0, 0.0, 0.015));
-        assert_eq!(sensor.read_state(&source_on), true);
+        assert!(sensor.read_state(&source_on));
         assert_eq!(sensor.read(&source_on), SensorOutput::Digital(1));
 
         // Field pointing in wrong direction (perpendicular)
         let source_perp = StableFieldMagnet::new(Vector3::new(0.050, 0.0, 0.0));
-        assert_eq!(sensor.read_state(&source_perp), false);
+        assert!(!sensor.read_state(&source_perp));
 
         // Field pointing in opposite direction
         let source_opp = StableFieldMagnet::new(Vector3::new(0.0, 0.0, -0.015));
-        assert_eq!(sensor.read_state(&source_opp), false);
+        assert!(!sensor.read_state(&source_opp));
 
         // Sensor rotated 180 deg around X, sensitive axis is now -Z.
         // It points its Z-axis downwards.
@@ -174,10 +174,10 @@ mod tests {
         sensor.set_orientation(rot_quat);
 
         // Same source_on, but now sensor sensitivity is opposite, so perceived field is negative.
-        assert_eq!(sensor.read_state(&source_on), false);
+        assert!(!sensor.read_state(&source_on));
 
         // Source opposite should now trigger it
-        assert_eq!(sensor.read_state(&source_opp), true);
+        assert!(sensor.read_state(&source_opp));
     }
 
     #[test]

@@ -63,7 +63,12 @@ pub mod prelude {
     use super::*;
 
     pub use base::{Float, Observer, SensorOutput, Source, Transform};
-    pub use currents::{CircularCurrent, Current};
+    #[cfg(feature = "alloc")]
+    pub use currents::PathCurrent;
+    pub use currents::{CircularCurrent, Current, TriangleCurrent};
+
+    #[cfg(feature = "mesh")]
+    pub use currents::SheetCurrent;
     pub use magnets::{
         CuboidMagnet, CylinderMagnet, Dipole, Magnet, SphereMagnet, TetrahedronMagnet,
         TriangleMagnet,

@@ -31,6 +31,15 @@
 //! enabled (default). If the `rayon` feature is disabled, the batch functions
 //! will process the points serially on a single thread.
 //!
+//! To automatically tune the threshold for your computation environment,
+//!
+//! 1. Download the source code locally
+//! 2. Run `cargo bench threshold --features unstable`.
+//! 3. Run `cargo run --package magba --example generate_threshold_code`.
+//! 4. Copy the generated code from `benches/impl_parallel.txt` to the function *_B_batch,
+//!    such as `fields::field_cuboid::cuboid_B_batch`.
+//! 5. Recompile and install Magba with the adjusted threshold locally.
+//!
 //! # Examples
 //!
 //! ```
@@ -60,17 +69,31 @@ mod field_circular;
 mod field_cuboid;
 mod field_cylinder;
 mod field_dipole;
+#[cfg(feature = "alloc")]
+mod field_path_current;
+#[cfg(feature = "mesh")]
+mod field_sheet_current;
 mod field_sphere;
 mod field_tetrahedron;
 mod field_triangle;
+mod field_triangle_current;
 
 pub use field_circular::{circular_B, circular_B_batch, sum_multiple_circular_B};
 pub use field_cuboid::{cuboid_B, cuboid_B_batch, sum_multiple_cuboid_B};
 pub use field_cylinder::{cylinder_B, cylinder_B_batch, sum_multiple_cylinder_B};
 pub use field_dipole::{dipole_B, dipole_B_batch, sum_multiple_dipole_B};
+#[cfg(feature = "alloc")]
+pub use field_path_current::{path_current_B, path_current_B_batch, sum_multiple_path_current_B};
+#[cfg(feature = "mesh")]
+pub use field_sheet_current::{
+    sheet_current_B, sheet_current_B_batch, sum_multiple_sheet_current_B,
+};
 pub use field_sphere::{sphere_B, sphere_B_batch, sum_multiple_sphere_B};
 pub use field_tetrahedron::{sum_multiple_tetrahedron_B, tetrahedron_B, tetrahedron_B_batch};
 pub use field_triangle::{sum_multiple_triangle_B, triangle_B, triangle_B_batch};
+pub use field_triangle_current::{
+    sum_multiple_triangle_current_B, triangle_current_B, triangle_current_B_batch,
+};
 
 #[cfg(feature = "mesh")]
 mod field_mesh;
@@ -84,9 +107,15 @@ crate::crate_utils::need_unstable! {
     };
     pub use field_dipole::local_dipole_B;
     pub use field_sphere::local_sphere_B;
-    pub use field_tetrahedron::local_tetrahedron_B;
+    pub use field_tetrahedron::{local_tetrahedron_B, tetrahedron_B_precomputed, precompute_tetrahedron};
     pub use field_triangle::local_triangle_B;
 
     #[cfg(feature = "mesh")]
     pub use field_mesh::local_mesh_B;
+
+    #[cfg(feature = "alloc")]
+    pub use field_path_current::local_path_current_B;
+    pub use field_triangle_current::local_triangle_current_B;
+    #[cfg(feature = "mesh")]
+    pub use field_sheet_current::local_sheet_current_B;
 }

@@ -70,6 +70,10 @@ fn generate_lib_rs_code(results: &[BenchmarkResult]) -> String {
     let functions = [
         ("circular_B", "[position, orientation, diameter, current]"),
         (
+            "path_current_B",
+            "[position, orientation, current, vertices]",
+        ),
+        (
             "cuboid_B",
             "[position, orientation, polarization, dimensions]",
         ),
@@ -81,6 +85,23 @@ fn generate_lib_rs_code(results: &[BenchmarkResult]) -> String {
         (
             "sphere_B",
             "[position, orientation, polarization, diameter]",
+        ),
+        (
+            "triangle_B",
+            "[position, orientation, polarization, vertices]",
+        ),
+        (
+            "tetrahedron_B_precomputed",
+            "[position, orientation, polarization, vertices, mat_inv]",
+        ),
+        ("mesh_B", "[position, orientation, polarization, mesh]"),
+        (
+            "triangle_current_B",
+            "[position, orientation, current_density, vertices]",
+        ),
+        (
+            "sheet_current_B",
+            "[position, orientation, current_densities, mesh]",
         ),
     ];
 
