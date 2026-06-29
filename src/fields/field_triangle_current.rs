@@ -139,7 +139,7 @@ pub fn local_triangle_current_B<T: Float>(
     let H_global = ex * H_local.x + ey * H_local.y + ez * H_local.z;
 
     // B = H * mu0
-    let B = H_global * (4e-7 * T::pi());
+    let B = H_global * T::mu0();
 
     if B.x.is_nan() || B.y.is_nan() || B.z.is_nan() {
         Vector3::zeros()
