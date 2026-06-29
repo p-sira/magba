@@ -578,7 +578,7 @@ checksum = "13dc2df351e3202783a1fe0d44375f7295ffb4049267b0f3018346dc122a1d94"
 
 [[package]]
 name = "magba"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "approx",
  "concat-idents",
@@ -925,9 +925,9 @@ checksum = "2b15c43186be67a4fd63bee50d0303afffcef381492ebe2c5d87f324e1b8815c"
 
 [[package]]
 name = "reproducible"
-version = "0.3.0"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b9f83389f1334a9d294d71177f270ef1d154042c4d4ada816fc1ee1e1e44173b"
+checksum = "9c05b78cb2abe767e399d2d177ed862e12c1dcb00e9fef907c4dfb858fba3518"
 dependencies = [
  "csv",
  "delegate",
@@ -942,9 +942,9 @@ dependencies = [
 
 [[package]]
 name = "reproducible-macros"
-version = "0.3.0"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "39daf7e52bdc8f716007023f81e8a217788a3398a502160d0255d543103bfa22"
+checksum = "cb3645968697ad4f1b34fc41c129076decafa40b72f1dd512c6adeb9bac38a34"
 dependencies = [
  "proc-macro2",
  "quote",

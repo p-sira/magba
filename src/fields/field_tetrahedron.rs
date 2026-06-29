@@ -13,25 +13,9 @@ use crate::{
     fields::field_triangle::local_triangle_B,
 };
 
-/// Computes B-field of a homogeneously magnetized tetrahedron at point in local frame.
-///
-/// # Arguments
-///
-/// - `point`: Observer position (m)
-/// - `polarization`: Polarization vector (T)
-/// - `vertices`: Tetrahedron vertices `[P1, P2, P3, P4]` in local coords (m)
-///
-/// # Returns
-///
-/// - B-field vector (T) at point (x, y, z)
-#[inline]
-#[allow(non_snake_case)]
-pub fn local_tetrahedron_B<T: Float>(
-    point: Point3<T>,
-    polarization: Vector3<T>,
+pub fn precompute_tetrahedron<T: Float>(
     mut vertices: [Vector3<T>; 4],
-) -> Vector3<T> {
-    // Check chirality and ensure a right-handed system
+) -> ([Vector3<T>; 4], Option<Matrix3<T>>) {
     let v01 = vertices[1] - vertices[0];
     let v02 = vertices[2] - vertices[0];
     let v03 = vertices[3] - vertices[0];
@@ -40,6 +24,24 @@ pub fn local_tetrahedron_B<T: Float>(
         vertices.swap(2, 3);
     }
 
+    let mat_inv = Matrix3::from_columns(&[
+        vertices[1] - vertices[0],
+        vertices[2] - vertices[0],
+        vertices[3] - vertices[0],
+    ])
+    .try_inverse();
+
+    (vertices, mat_inv)
+}
+
+#[inline]
+#[allow(non_snake_case)]
+pub fn local_tetrahedron_B_precomputed<T: Float>(
+    point: Point3<T>,
+    polarization: Vector3<T>,
+    vertices: [Vector3<T>; 4],
+    mat_inv: Option<Matrix3<T>>,
+) -> Vector3<T> {
     // Sum over 4 triangular faces
     let b1 = local_triangle_B(point, polarization, [vertices[0], vertices[2], vertices[1]]);
     let b2 = local_triangle_B(point, polarization, [vertices[0], vertices[1], vertices[3]]);
@@ -49,13 +51,7 @@ pub fn local_tetrahedron_B<T: Float>(
     let mut b_total = b1 + b2 + b3 + b4;
 
     // Check if observer is inside the tetrahedron using barycentric coordinates
-    if let Some(mat_inv) = Matrix3::from_columns(&[
-        vertices[1] - vertices[0],
-        vertices[2] - vertices[0],
-        vertices[3] - vertices[0],
-    ])
-    .try_inverse()
-    {
+    if let Some(mat_inv) = mat_inv {
         let p_rel = point.coords - vertices[0];
         let new_p = mat_inv * p_rel;
 
@@ -72,6 +68,47 @@ pub fn local_tetrahedron_B<T: Float>(
     }
 
     b_total
+}
+
+/// Computes B-field of a homogeneously magnetized tetrahedron at point in local frame.
+///
+/// # Arguments
+///
+/// - `point`: Observer position (m)
+/// - `polarization`: Polarization vector (T)
+/// - `vertices`: Tetrahedron vertices `[P1, P2, P3, P4]` in local coords (m)
+///
+/// # Returns
+///
+/// - B-field vector (T) at point (x, y, z)
+#[inline]
+#[allow(non_snake_case)]
+pub fn local_tetrahedron_B<T: Float>(
+    point: Point3<T>,
+    polarization: Vector3<T>,
+    vertices: [Vector3<T>; 4],
+) -> Vector3<T> {
+    let (vertices, mat_inv) = precompute_tetrahedron(vertices);
+    local_tetrahedron_B_precomputed(point, polarization, vertices, mat_inv)
+}
+
+#[inline]
+#[allow(non_snake_case)]
+pub fn tetrahedron_B_precomputed<T: Float>(
+    point: Point3<T>,
+    position: Point3<T>,
+    orientation: UnitQuaternion<T>,
+    polarization: Vector3<T>,
+    vertices: [Vector3<T>; 4],
+    mat_inv: Option<Matrix3<T>>,
+) -> Vector3<T> {
+    compute_in_local!(
+        local_tetrahedron_B_precomputed,
+        point,
+        position,
+        orientation,
+        (polarization, vertices, mat_inv),
+    )
 }
 
 /// Computes B-field of a homogeneously magnetized tetrahedron at point (x, y, z).
@@ -124,12 +161,14 @@ pub fn tetrahedron_B_batch<T: Float>(
     vertices: [Vector3<T>; 4],
     out: &mut [Vector3<T>],
 ) {
+    let (vertices, mat_inv) = precompute_tetrahedron(vertices);
+
     impl_parallel!(
-        tetrahedron_B,
-        rayon_threshold: 1550, // Derived from triangle having 3100 and we do 4 of them
+        tetrahedron_B_precomputed,
+        rayon_threshold: 100,
         input: points,
         output: out,
-        args: [position, orientation, polarization, vertices]
+        args: [position, orientation, polarization, vertices, mat_inv]
     )
 }
 

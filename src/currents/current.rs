@@ -9,7 +9,10 @@ use derive_more::Display;
 use enum_dispatch::enum_dispatch;
 use nalgebra::{Point3, Vector3};
 
-use super::CircularCurrent;
+use super::{CircularCurrent, PathCurrent, TriangleCurrent};
+
+#[cfg(feature = "mesh")]
+use super::SheetCurrent;
 use crate::base::{Float, Pose, Source, Transform};
 
 /// Current source variants.
@@ -18,4 +21,8 @@ use crate::base::{Float, Pose, Source, Transform};
 #[enum_dispatch(Source<T>, Transform<T>,)]
 pub enum Current<T: Float = f64> {
     Circular(CircularCurrent<T>),
+    Path(PathCurrent<T>),
+    #[cfg(feature = "mesh")]
+    Sheet(SheetCurrent<T>),
+    Triangle(TriangleCurrent<T>),
 }

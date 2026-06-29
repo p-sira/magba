@@ -78,6 +78,9 @@ need_alloc! {
             alloc::format!("[({:?}, {:?}, {:?}), ({:?}, {:?}, {:?}), ({:?}, {:?}, {:?}), ({:?}, {:?}, {:?})]", v[0].x, v[0].y, v[0].z, v[1].x, v[1].y, v[1].z, v[2].x, v[2].y, v[2].z, v[3].x, v[3].y, v[3].z)
         }
     }
+    pub(crate) fn format_vertices_count<T: Float>(_: &mut Formatter, v: &[Vector3<T>]) -> alloc::string::String {
+        alloc::format!("{}", v.len())
+    }
 }
 
 #[cfg(feature = "mesh")]

@@ -1,10 +1,24 @@
 # Changelog
 
-## 0.5
+## 0.6
 
-### 0.5.1
+### 0.6.0
+
+**New Features**
+
+- `PathCurrent`, `TriangleCurrent`, and `SheetCurrent` structs and their field functions.
+
+**Improvements**
+
+- Remove redundant batch calculation for `TetrahedronMagnet`.
+- Retune the parallelization thresholds for field computation functions.
+
+**Testing**
 
 - Improve accuracy report.
+- Add documentation on how to automatically tune the parallelization threshold in the module `fields`.
+
+## 0.5
 
 ### 0.5.0
 

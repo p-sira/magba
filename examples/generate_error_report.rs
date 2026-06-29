@@ -55,6 +55,10 @@ where
     TetrahedronMagnet<T>: Source<T>,
     TriangleMagnet<T>: Source<T>,
     MeshMagnet<T>: Source<T>,
+    CircularCurrent<T>: Source<T>,
+    PathCurrent<T>: Source<T>,
+    SheetCurrent<T>: Source<T>,
+    TriangleCurrent<T>: Source<T>,
 {
     let f = |v: f64| T::from(v).unwrap();
 
@@ -71,6 +75,40 @@ where
     ];
 
     match name {
+        "CircularCurrent" => Box::new(CircularCurrent::new(pos, rot, f(1.0), f(1.0))),
+        "PathCurrent" => Box::new(PathCurrent::new(
+            pos,
+            rot,
+            f(100.0),
+            vec![
+                vector![f(-0.1), f(-0.1), f(-0.1)],
+                vector![f(0.1), f(-0.1), f(-0.1)],
+                vector![f(0.0), f(0.1), f(-0.1)],
+                vector![f(0.0), f(0.0), f(0.1)],
+            ],
+        )),
+        "SheetCurrent" => {
+            let mesh = TriMesh::<T>::new_unchecked(
+                tetrahedron_vertices,
+                vec![[0, 2, 1], [0, 1, 3], [1, 2, 3], [0, 3, 2]],
+            );
+            Box::new(SheetCurrent::new(
+                pos,
+                rot,
+                vec![vector![f(1.0), f(2.0), f(3.0)]; 4],
+                mesh,
+            ))
+        }
+        "TriangleCurrent" => Box::new(TriangleCurrent::new(
+            pos,
+            rot,
+            vector![f(1.0), f(2.0), f(3.0)],
+            [
+                vector![f(-0.1), f(-0.1), f(-0.1)],
+                vector![f(0.1), f(-0.1), f(-0.1)],
+                vector![f(0.0), f(0.1), f(-0.1)],
+            ],
+        )),
         "CylinderMagnet" => Box::new(CylinderMagnet::new(pos, rot, pol, f(0.1), f(0.2))),
         "CuboidMagnet" => Box::new(CuboidMagnet::new(pos, rot, pol, [f(0.1), f(0.2), f(0.3)])),
         "Dipole" => Box::new(Dipole::new(pos, rot, pol)),
@@ -114,12 +152,17 @@ fn add_magnet_accuracy<T: magba::base::Float + std::str::FromStr>(
 
     Ok(report.with_row(
         Row::new_batch(name, source.as_batch_evaluator())
-            .with_split_csv_cases(points_path, ref_path)?,
+            .with_split_csv_cases(points_path, ref_path)?
+            .with_criterion_id(format!("fields_{}/{}", std::any::type_name::<T>(), name)),
     ))
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
     let magnets = [
+        ("CircularCurrent", "circularcurrent.csv"),
+        ("PathCurrent", "polyline.csv"),
+        ("SheetCurrent", "sheetcurrent.csv"),
+        ("TriangleCurrent", "trianglecurrent.csv"),
         ("CylinderMagnet", "cylinder.csv"),
         ("CuboidMagnet", "cuboid.csv"),
         ("Dipole", "dipole.csv"),
@@ -137,6 +180,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             .with_column(Column::accuracy("Mean").with_stat(ColumnStat::Mean))
             .with_column(Column::accuracy("P95").with_stat(ColumnStat::P95))
             .with_column(Column::accuracy("Max").with_stat(ColumnStat::Max))
+            .with_column(Column::<f64>::perf("Performance").postprocess(|perf| perf / 1000.0)) // Divide by the number of test points
     }
 
     let mut content = std::fs::read_to_string("tests/report_template.md")

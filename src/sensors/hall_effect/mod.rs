@@ -3,6 +3,8 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
+//! Implementations of Hall effect sensors
+
 mod hall_latch;
 mod hall_switch;
 mod linear_hall_sensor;

@@ -404,7 +404,7 @@ pub fn cylinder_B_batch<T: Float>(
 ) {
     impl_parallel!(
         cylinder_B,
-        rayon_threshold: 150,
+        rayon_threshold: 100,
         input: points,
         output: out,
         args: [position, orientation, polarization, diameter, height]
