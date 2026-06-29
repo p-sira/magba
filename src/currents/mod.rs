@@ -3,6 +3,8 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
+//! Current source geometries that generate magnetic fields.
+
 mod circular;
 mod current;
 mod path;
