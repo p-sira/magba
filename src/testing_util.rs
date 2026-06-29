@@ -629,7 +629,7 @@ macro_rules! impl_test_sum_multiple {
                 let $pos = *pos;
                 let $ori = $orientations[j];
                 $(
-                    let $other_args = $other_vecs[j];
+                    let $other_args = $other_vecs[j].clone();
                 )*
                 sum += $calc;
             }

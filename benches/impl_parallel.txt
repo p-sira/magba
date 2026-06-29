@@ -9,6 +9,14 @@
     )
 
     impl_parallel!(
+        current_path_B,
+        rayon_threshold: 200,
+        input: points,
+        output: out,
+        args: [position, orientation, current, vertices]
+    )
+
+    impl_parallel!(
         cuboid_B,
         rayon_threshold: 50,
         input: points,

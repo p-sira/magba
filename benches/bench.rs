@@ -60,6 +60,17 @@ fn bench_field_functions(c: &mut Criterion) {
             b.iter(|| black_box(circular.compute_B_batch(&points)))
         });
 
+        let vertices_current_path = vec![
+            vector![-0.1, -0.1, -0.1],
+            vector![0.1, -0.1, -0.1],
+            vector![0.0, 0.1, -0.1],
+            vector![0.0, 0.0, 0.1],
+        ];
+        let current_path = CurrentPath::new(pos, ori, current, vertices_current_path);
+        group.bench_function("CurrentPath", |b| {
+            b.iter(|| black_box(current_path.compute_B_batch(&points)))
+        });
+
         let cuboid = CuboidMagnet::new(pos, ori, pol, dim);
         group.bench_function("CuboidMagnet", |b| {
             b.iter(|| black_box(cuboid.compute_B_batch(&points)))
@@ -136,6 +147,17 @@ fn bench_field_functions(c: &mut Criterion) {
         let circular = CircularCurrent::new(pos, ori, diameter, current);
         group.bench_function("CircularCurrent", |b| {
             b.iter(|| black_box(circular.compute_B_batch(&points)))
+        });
+
+        let vertices_current_path = vec![
+            vector![-0.1f32, -0.1, -0.1],
+            vector![0.1f32, -0.1, -0.1],
+            vector![0.0f32, 0.1, -0.1],
+            vector![0.0f32, 0.0, 0.1],
+        ];
+        let current_path = CurrentPath::new(pos, ori, current, vertices_current_path);
+        group.bench_function("CurrentPath", |b| {
+            b.iter(|| black_box(current_path.compute_B_batch(&points)))
         });
 
         let cuboid = CuboidMagnet::new(pos, ori, pol, dim);

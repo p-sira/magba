@@ -255,6 +255,12 @@ fn bench_thresholds(c: &mut Criterion) {
         vector![0.0, 0.1, -0.1],
         vector![0.0, 0.0, 0.1],
     ];
+    let vertices_current_path = vec![
+        vector![-0.1, -0.1, -0.1],
+        vector![0.1, -0.1, -0.1],
+        vector![0.0, 0.1, -0.1],
+        vector![0.0, 0.0, 0.1],
+    ];
     let (vertices_tetra, mat_inv_tetra) = magba::fields::precompute_tetrahedron(vertices_tetra);
 
     use magba::base::mesh::TriMesh;
@@ -276,6 +282,14 @@ fn bench_thresholds(c: &mut Criterion) {
         circular_B,
         (pos, ori, diameter, current),
         500,
+        record_file
+    );
+    find_threshold!(
+        c,
+        results,
+        current_path_B,
+        (pos, ori, current, &vertices_current_path),
+        150,
         record_file
     );
     find_threshold!(c, results, cuboid_B, (pos, ori, pol, dim), 50, record_file);

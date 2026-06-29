@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
+from magpylib.current import Polyline
 from magpylib.magnet import Cuboid, Cylinder, Sphere, Tetrahedron, TriangularMesh
 from magpylib.misc import Dipole, Triangle
 from scipy.spatial.transform import Rotation
@@ -14,29 +15,29 @@ sys.path.append(str(Path(__file__).parent.parent))
 from test_generation_util import get_points, get_points_small, save_test_array
 
 
-def generate_test(source_class, points, points_small, *args):
+def generate_test(source_class, points, points_small, **kwargs):
     class_name = source_class.__name__.lower()
     rotation = Rotation.from_rotvec([np.pi / 7, np.pi / 6, np.pi / 5])
 
     magnet = source_class(
-        (0.1, 0.2, 0.3),
-        rotation,
-        *args,
+        position=(0.1, 0.2, 0.3),
+        orientation=rotation,
+        **kwargs,
     )
 
-    small_args = []
-    for x in args:
-        if isinstance(x, np.ndarray) and x.dtype.kind == 'f':
-            small_args.append(x / 10.0)
-        elif isinstance(x, float):
-            small_args.append(x / 10.0)
+    small_kwargs = {}
+    for k, v in kwargs.items():
+        if isinstance(v, np.ndarray) and v.dtype.kind == 'f':
+            small_kwargs[k] = v / 10.0
+        elif isinstance(v, float):
+            small_kwargs[k] = v / 10.0
         else:
-            small_args.append(x)
+            small_kwargs[k] = v
 
     small_magnet = source_class(
-        (0.03, 0.02, 0.01),
-        rotation,
-        *small_args,
+        position=(0.03, 0.02, 0.01),
+        orientation=rotation,
+        **small_kwargs,
     )
 
     save_test_array(f"{class_name}.csv", magnet.getB(points))
@@ -57,56 +58,64 @@ def generate_tests(points, points_small):
         Cylinder,
         points,
         points_small,
-        np.array((0.1, 0.2)),  # dimensions (d, h)
-        np.array((1.0, 2.0, 3.0)),  # polarization
+        dimension=np.array((0.1, 0.2)),  # dimensions (d, h)
+        polarization=np.array((1.0, 2.0, 3.0)),  # polarization
     )
 
     generate_test(
         Cuboid,
         points,
         points_small,
-        np.array((0.1, 0.2, 0.3)),  # dimensions
-        np.array((1.0, 2.0, 3.0)),  # polarization
+        dimension=np.array((0.1, 0.2, 0.3)),  # dimensions
+        polarization=np.array((1.0, 2.0, 3.0)),  # polarization
     )
 
     generate_test(
         Dipole,
         points,
         points_small,
-        np.array((1.0, 2.0, 3.0)),  # moment
+        moment=np.array((1.0, 2.0, 3.0)),  # moment
     )
 
     generate_test(
         Sphere,
         points,
         points_small,
-        0.1,  # diameter
-        np.array((1.0, 2.0, 3.0)),  # polarization
+        diameter=0.1,  # diameter
+        polarization=np.array((1.0, 2.0, 3.0)),  # polarization
     )
 
     generate_test(
         Triangle,
         points,
         points_small,
-        np.array([[-0.1, -0.1, -0.1], [0.1, -0.1, 0.1], [0.0, 0.2, 0.0]]),  # vertices
-        np.array((1.0, 2.0, 3.0)),  # polarization
+        vertices=np.array([[-0.1, -0.1, -0.1], [0.1, -0.1, 0.1], [0.0, 0.2, 0.0]]),  # vertices
+        polarization=np.array((1.0, 2.0, 3.0)),  # polarization
     )
 
     generate_test(
         Tetrahedron,
         points,
         points_small,
-        np.array([[-0.1, -0.1, -0.1], [0.1, -0.1, -0.1], [0.0, 0.1, -0.1], [0.0, 0.0, 0.1]]),  # vertices
-        np.array((1.0, 2.0, 3.0)),  # polarization
+        vertices=np.array([[-0.1, -0.1, -0.1], [0.1, -0.1, -0.1], [0.0, 0.1, -0.1], [0.0, 0.0, 0.1]]),  # vertices
+        polarization=np.array((1.0, 2.0, 3.0)),  # polarization
     )
 
     generate_test(
         TriangularMesh,
         points,
         points_small,
-        np.array([[-0.1, -0.1, -0.1], [0.1, -0.1, -0.1], [0.0, 0.1, -0.1], [0.0, 0.0, 0.1]]),  # vertices
-        np.array([[0, 2, 1], [0, 1, 3], [1, 2, 3], [0, 3, 2]]), # faces
-        np.array((1.0, 2.0, 3.0)),  # polarization
+        vertices=np.array([[-0.1, -0.1, -0.1], [0.1, -0.1, -0.1], [0.0, 0.1, -0.1], [0.0, 0.0, 0.1]]),  # vertices
+        faces=np.array([[0, 2, 1], [0, 1, 3], [1, 2, 3], [0, 3, 2]]), # faces
+        polarization=np.array((1.0, 2.0, 3.0)),  # polarization
+    )
+
+    generate_test(
+        Polyline,
+        points,
+        points_small,
+        current=100.0,
+        vertices=np.array([[-0.1, -0.1, -0.1], [0.1, -0.1, -0.1], [0.0, 0.1, -0.1], [0.0, 0.0, 0.1]]),
     )
 
 if __name__ == "__main__":

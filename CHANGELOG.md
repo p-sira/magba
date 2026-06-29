@@ -1,8 +1,12 @@
 # Changelog
 
-## 0.5
+## 0.6
 
-### 0.5.1
+### 0.6.0
+
+**New Features**
+
+- `CurrentPath` struct and its field function.
 
 **Improvements**
 
@@ -13,6 +17,8 @@
 
 - Improve accuracy report.
 - Add documentation on how to automatically tune the parallelization threshold in the module `fields`.
+
+## 0.5
 
 ### 0.5.0
 
