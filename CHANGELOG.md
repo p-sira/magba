@@ -2,6 +2,10 @@
 
 ## 0.6
 
+### 0.6.1
+
+- Update the magnetic permeability in vacuum constant to follow the Committee on Data for Science and Technology (CODATA) 2022 recommendation. The value is changed from $1.2566370614359173e-6$ (derived from 4π × 1e-7) to $1.25663706127e-6$ (based on empirical evidence).
+
 ### 0.6.0
 
 **New Features**

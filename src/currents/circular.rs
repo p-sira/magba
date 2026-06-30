@@ -42,10 +42,10 @@ crate::testing_util::generate_tests! {
     filename: circularcurrent
     params: { diameter: 1.0, current: 1.0 }
     rtols: {
-        static: 2e-10,
-        static_small: 2e-10,
-        translate: 2e-10,
-        rotate: 2e-10,
+        static: 1e-13,
+        static_small: 1e-13,
+        translate: 1e-13,
+        rotate: 1e-13,
     }
 }
 
