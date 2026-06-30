@@ -94,7 +94,7 @@ pub fn local_path_current_B<T: Float>(
             NumFloat::abs(sin_th1 + sin_th2)
         };
 
-        let b_mag = (delta_sin / norm_o4) * (1.0 / norm_12) * current * 1e-7;
+        let b_mag = (delta_sin / norm_o4) * (1.0 / norm_12) * current * T::mu0_4pi();
         b_total += e_b * b_mag;
     }
 
