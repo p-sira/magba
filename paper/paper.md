@@ -31,7 +31,7 @@ Magba is a Rust library for high-performance magnetostatic field computation bas
 
 # Software Implementation
 
-Field functions are implemented based on fundamental expressions, such as the Biot-Savart law and the magnetic dipole equations [@furlani2001], as well as analytical solutions from the literature [@derby2010, @caciagli2018, @ortner2023, @furlani2001]. The implementations utilize a custom generic float trait that provides magnetic constants and integrates with the mathematical backends [@dimforge2026, @stone2024, @pornsiriprasert2026]. All physical quantities are assumed to be in SI units.
+Field functions are implemented based on fundamental expressions, such as the Biot-Savart law and the magnetic dipole equations [@furlani2001], as well as analytical solutions from the literature [@derby2010; @caciagli2018; @ortner2023; @furlani2001]. The implementations utilize a custom generic float trait that provides magnetic constants and integrates with the mathematical backends [@dimforge2026; @stone2024; @pornsiriprasert2026]. All physical quantities are assumed to be in SI units.
 
 ![Core software architecture of the Magba library.](figures/software-architecture.png)
 
@@ -77,7 +77,7 @@ Table 1: Summary of Field Function Accuracy and Performance at 64-bit Precision.
 | Triangle     | $0.000$               | $0.000$               | 78.5 ns   | 10.6 μs      | 135x         |
 +--------------+-----------------------+-----------------------+-----------+--------------+--------------+
 
-The results closely align with Magpylib, with the median below one machine epsilon for most implementations. The slight variance observed in the cylinder magnet calculations is attributable to the different mathematical backends used to evaluate elliptic integrals (Ellip [@pornsiriprasert2026] versus SciPy [@virtanen2020]).
+The results closely align with Magpylib, with the median below one machine epsilon for most implementations. The slight variance observed in the cylinder magnet calculations is attributable to the different mathematical backends used to evaluate elliptic integrals, namely Ellip [@pornsiriprasert2026] versus SciPy [@virtanen2020].
 
 # Usage Example
 
