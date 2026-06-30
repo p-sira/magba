@@ -1,0 +1,16 @@
+{
+    "version": 1,
+    "project": "magpylib_benchmarks",
+    "project_url": "https://github.com/magpylib/magpylib",
+    "repo": ".",
+    "show_commit_url": "http://github.com/magpylib/magpylib/commit/",
+    "branches": ["main"],
+    "environment_type": "virtualenv",
+    "matrix": {
+        "magpylib": [""]
+    },
+    "benchmark_dir": "python/benchmarks",
+    "env_dir": ".asv/env",
+    "results_dir": ".asv/results",
+    "html_dir": ".asv/html"
+}
