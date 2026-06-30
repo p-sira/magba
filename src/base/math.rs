@@ -5,8 +5,9 @@
 
 use ellip::bulirsch::BulirschConst;
 
-const MU0: f64 = 1.2566370614359173e-6;
+const MU0: f64 = 1.25663706127e-6;
 const RECIP_MU0: f64 = 1.0 / MU0;
+const MU0_4PI: f64 = MU0 / (4.0 * core::f64::consts::PI);
 
 /// Generic trait for floating point numbers compatible with all [Magba](crate) implementations.
 ///
@@ -18,7 +19,7 @@ const RECIP_MU0: f64 = 1.0 / MU0;
 /// Constants: Permeability of free space (μ₀)
 /// ```
 /// # use magba::base::Float;
-/// assert_eq!(f64::mu0(), 1.2566370614359173e-6);
+/// assert_eq!(f64::mu0(), 1.25663706127e-6);
 /// assert_eq!(f32::mu0(), 1.256637e-6);
 ///
 /// assert_ne!(f64::mu0(), f32::mu0() as f64);
@@ -41,11 +42,14 @@ const RECIP_MU0: f64 = 1.0 / MU0;
 /// assert_relative_ne!(field_f64, field_f32.cast::<f64>());
 /// ```
 pub trait Float: nalgebra::RealField + num_traits::Float + BulirschConst<Self> + Copy {
-    /// Permeability of free space (μ₀) = 4π × 10⁻⁷ H/m.
+    /// Permeability of free space (μ₀) = 1.25663706127 N/A² ≈ 4π × 10⁻⁷ N/A².
     fn mu0() -> Self;
 
     /// Reciprocal of mu0
     fn recip_mu0() -> Self;
+
+    /// Permeability of free space over 4π (μ₀/4π)
+    fn mu0_4pi() -> Self;
 }
 
 impl Float for f32 {
@@ -58,6 +62,11 @@ impl Float for f32 {
     fn recip_mu0() -> Self {
         RECIP_MU0 as f32
     }
+
+    #[inline]
+    fn mu0_4pi() -> Self {
+        MU0_4PI as f32
+    }
 }
 
 impl Float for f64 {
@@ -69,5 +78,10 @@ impl Float for f64 {
     #[inline]
     fn recip_mu0() -> Self {
         RECIP_MU0
+    }
+
+    #[inline]
+    fn mu0_4pi() -> Self {
+        MU0_4PI
     }
 }

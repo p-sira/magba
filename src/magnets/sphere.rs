@@ -49,16 +49,16 @@ crate::testing_util::generate_tests! {
     filename: sphere
     params: { polarization: vector![1.0, 2.0, 3.0], d: 0.1 }
     rtols: {
-        static: 1e-10,
-        static_small: 1e-10,
-        translate: 1e-10,
-        rotate: 1e-10,
+        static: 1e-14,
+        static_small: 1e-14,
+        translate: 1e-14,
+        rotate: 1e-14,
     }
     p95_rtols: {
-        static: 1e-10,
-        static_small: 1e-10,
-        translate: 1e-10,
-        rotate: 1e-10,
+        static: 1e-14,
+        static_small: 1e-14,
+        translate: 1e-14,
+        rotate: 1e-14,
     }
     f32_rtols: {
         static: 1e-6,

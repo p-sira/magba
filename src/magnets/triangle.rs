@@ -59,16 +59,16 @@ crate::testing_util::generate_tests! {
         vertices: [vector![-0.1, -0.1, -0.1], vector![0.1, -0.1, 0.1], vector![0.0, 0.2, 0.0]]
     }
     rtols: {
-        static: 1e-10,
-        static_small: 1e-10,
-        translate: 1e-10,
-        rotate: 1e-10,
+        static: 1e-11,
+        static_small: 1e-11,
+        translate: 1e-11,
+        rotate: 1e-11,
     }
     p95_rtols: {
-        static: 1e-10,
-        static_small: 1e-10,
-        translate: 1e-10,
-        rotate: 1e-10,
+        static: 1e-11,
+        static_small: 1e-11,
+        translate: 1e-11,
+        rotate: 1e-11,
     }
     f32_rtols: {
         static: 1e-3,

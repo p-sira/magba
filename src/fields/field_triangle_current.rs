@@ -18,7 +18,7 @@ use crate::{
 #[inline]
 #[allow(non_snake_case)]
 #[replace_float_literals(T::from_f64(literal).unwrap())]
-fn elementar_current_sheet_Hfield<T: Float>(
+fn elementar_current_sheet_Bfield<T: Float>(
     point_local: Vector3<T>,
     u1: T,
     u2: T,
@@ -80,7 +80,7 @@ fn elementar_current_sheet_Hfield<T: Float>(
         - ju_u2_jv_v2 * NumFloat::atanh((u2_2 - u2 * x + v2 * (v2 - y)) / (sqrt5 * sqrt3)) / sqrt5)
         / (u1 * v2);
 
-    let factor = u1 * v2 / (4.0 * T::pi());
+    let factor = u1 * v2 * T::mu0_4pi();
     let factor_z = factor * z;
 
     let H0 = H.x * jv * factor_z;
@@ -132,14 +132,11 @@ pub fn local_triangle_current_B<T: Float>(
     let ju = current_density.dot(&ex);
     let jv = current_density.dot(&ey);
 
-    let H_local =
-        elementar_current_sheet_Hfield(Vector3::new(x, y, z), u1, u2, v_2, Vector2::new(ju, jv));
+    let B_local =
+        elementar_current_sheet_Bfield(Vector3::new(x, y, z), u1, u2, v_2, Vector2::new(ju, jv));
 
-    // Transform back H
-    let H_global = ex * H_local.x + ey * H_local.y + ez * H_local.z;
-
-    // B = H * mu0
-    let B = H_global * T::mu0();
+    // Transform to global frame
+    let B = ex * B_local.x + ey * B_local.y + ez * B_local.z;
 
     if B.x.is_nan() || B.y.is_nan() || B.z.is_nan() {
         Vector3::zeros()

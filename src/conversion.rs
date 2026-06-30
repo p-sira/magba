@@ -25,7 +25,7 @@ use crate::base::Float;
 /// # use magba::conversion::B_to_H;
 /// # use nalgebra::vector;
 /// # use approx::assert_relative_eq;
-/// let B = vector![0.0, 0.0, 1.2566370614359173e-6];
+/// let B = vector![0.0, 0.0, 1.25663706127e-6];
 /// let H = B_to_H(B);
 /// assert_relative_eq!(H, vector![0.0, 0.0, 1.0]);
 /// ```
@@ -52,7 +52,7 @@ pub fn B_to_H<T: Float>(B_vector: Vector3<T>) -> Vector3<T> {
 /// # use approx::assert_relative_eq;
 /// let M = vector![0.0, 0.0, 1.0];
 /// let J = mag_to_pol(M);
-/// assert_relative_eq!(J, vector![0.0, 0.0, 1.2566370614359173e-6]);
+/// assert_relative_eq!(J, vector![0.0, 0.0, 1.25663706127e-6]);
 /// ```
 pub fn mag_to_pol<T: Float>(mag_vector: Vector3<T>) -> Vector3<T> {
     mag_vector.scale(T::mu0())
@@ -77,7 +77,7 @@ crate::crate_utils::need_alloc! {
     /// # use magba::conversion::B_to_H_batch;
     /// # use nalgebra::vector;
     /// # use approx::assert_relative_eq;
-    /// let B = vec![vector![0.0, 0.0, 1.2566370614359173e-6]];
+    /// let B = vec![vector![0.0, 0.0, 1.25663706127e-6]];
     /// let H = B_to_H_batch(&B);
     /// assert_relative_eq!(H[0], vector![0.0, 0.0, 1.0]);
     /// ```
@@ -107,7 +107,7 @@ crate::crate_utils::need_alloc! {
     /// # use approx::assert_relative_eq;
     /// let M = vec![vector![0.0, 0.0, 1.0]];
     /// let J = mag_to_pol_batch(&M);
-    /// assert_relative_eq!(J[0], vector![0.0, 0.0, 1.2566370614359173e-6]);
+    /// assert_relative_eq!(J[0], vector![0.0, 0.0, 1.25663706127e-6]);
     /// ```
     pub fn mag_to_pol_batch<T: Float>(
         mag_vectors: &[Vector3<T>],
@@ -127,7 +127,7 @@ mod tests {
 
     #[test]
     fn test_b_to_h() {
-        let b = vector![0.0, 0.0, 1.2566370614359173e-6];
+        let b = vector![0.0, 0.0, 1.25663706127e-6];
         let h = B_to_H(b);
         assert_relative_eq!(h, vector![0.0, 0.0, 1.0]);
     }
@@ -136,14 +136,14 @@ mod tests {
     fn test_mag_to_pol() {
         let m = vector![0.0, 0.0, 1.0];
         let j = mag_to_pol(m);
-        assert_relative_eq!(j, vector![0.0, 0.0, 1.2566370614359173e-6]);
+        assert_relative_eq!(j, vector![0.0, 0.0, 1.25663706127e-6]);
     }
 
     #[test]
     fn test_b_to_h_batch() {
         let b = vec![
-            vector![0.0, 0.0, 1.2566370614359173e-6],
-            vector![1.2566370614359173e-6, 0.0, 0.0],
+            vector![0.0, 0.0, 1.25663706127e-6],
+            vector![1.25663706127e-6, 0.0, 0.0],
         ];
         let h = B_to_H_batch(&b);
         assert_relative_eq!(h[0], vector![0.0, 0.0, 1.0]);
@@ -154,7 +154,7 @@ mod tests {
     fn test_mag_to_pol_batch() {
         let m = vec![vector![0.0, 0.0, 1.0], vector![1.0, 0.0, 0.0]];
         let j = mag_to_pol_batch(&m);
-        assert_relative_eq!(j[0], vector![0.0, 0.0, 1.2566370614359173e-6]);
-        assert_relative_eq!(j[1], vector![1.2566370614359173e-6, 0.0, 0.0]);
+        assert_relative_eq!(j[0], vector![0.0, 0.0, 1.25663706127e-6]);
+        assert_relative_eq!(j[1], vector![1.25663706127e-6, 0.0, 0.0]);
     }
 }

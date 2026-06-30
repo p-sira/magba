@@ -5,11 +5,11 @@
 
 //! Analytical B-field computation for magnet dipole moment.
 
-use nalgebra::{Point3, RealField, UnitQuaternion, Vector3};
+use nalgebra::{Point3, UnitQuaternion, Vector3};
 use numeric_literals::replace_float_literals;
 
 use crate::{
-    base::coordinate::compute_in_local,
+    base::{Float, coordinate::compute_in_local},
     crate_utils::{impl_parallel, impl_parallel_sum},
 };
 
@@ -30,10 +30,7 @@ use crate::{
 #[inline]
 #[allow(non_snake_case)]
 #[replace_float_literals(T::from_f64(literal).unwrap())]
-pub fn local_dipole_B<T: RealField + num_traits::Float + Copy>(
-    point: Point3<T>,
-    moment: Vector3<T>,
-) -> Vector3<T> {
+pub fn local_dipole_B<T: Float>(point: Point3<T>, moment: Vector3<T>) -> Vector3<T> {
     let p = Vector3::from(point.coords);
     let r = p.norm();
 
@@ -51,7 +48,7 @@ pub fn local_dipole_B<T: RealField + num_traits::Float + Copy>(
 
     (p * (3.0 * moment.component_mul(&p).sum() * (1.0 / num_traits::Float::powi(r, 5)))
         - moment * (1.0 / num_traits::Float::powi(r, 3)))
-        * 1e-7
+        * T::mu0_4pi()
 }
 
 /// Computes B-field of a magnetic dipole moment at point (x, y, z).
@@ -87,7 +84,7 @@ pub fn local_dipole_B<T: RealField + num_traits::Float + Copy>(
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[inline]
 #[allow(non_snake_case)]
-pub fn dipole_B<T: RealField + num_traits::Float + Copy>(
+pub fn dipole_B<T: Float>(
     point: Point3<T>,
     position: Point3<T>,
     orientation: UnitQuaternion<T>,
@@ -129,32 +126,32 @@ pub fn dipole_B<T: RealField + num_traits::Float + Copy>(
 ///
 /// let expected_fields = [
 ///     vector![
-///         1.5509430032394472e-10,
-///         1.8780091679184128e-10,
-///         2.1982579999135383e-10,
+///         1.5509430032394459e-10,
+///         1.8780091679184123e-10,
+///         2.1982579999135385e-10,
 ///     ],
 ///     vector![
-///         1.912964350397969e-9,
-///         1.6848048132752178e-10,
-///         -1.5822176176441132e-9,
+///         1.9129643501453957e-9,
+///         1.6848048130527745e-10,
+///         -1.5822176174352087e-9,
 ///     ],
 ///     vector![
-///         -6.242720907089988e-10,
-///         7.557286976901354e-10,
-///         1.912964350397969e-9,
+///         -6.242720906265745e-10,
+///         7.557286975903545e-10,
+///         2.0195830850542665e-9,
 ///     ],
 /// ];
 ///
 /// out.iter()
 ///     .zip(expected_fields.iter())
-///     .for_each(|(actual, expected)| assert_relative_eq!(actual, expected, epsilon = 2e-10));
+///     .for_each(|(actual, expected)| assert_relative_eq!(actual, expected, epsilon = 1e-14));
 /// ```
 ///
 /// # References
 ///
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[allow(non_snake_case)]
-pub fn dipole_B_batch<T: RealField + num_traits::Float + Copy>(
+pub fn dipole_B_batch<T: Float>(
     points: &[Point3<T>],
     position: Point3<T>,
     orientation: UnitQuaternion<T>,
@@ -180,7 +177,7 @@ pub fn dipole_B_batch<T: RealField + num_traits::Float + Copy>(
 ///
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[allow(non_snake_case)]
-pub fn sum_multiple_dipole_B<T: RealField + num_traits::Float + Copy>(
+pub fn sum_multiple_dipole_B<T: Float>(
     points: &[Point3<T>],
     positions: &[Point3<T>],
     orientations: &[UnitQuaternion<T>],
