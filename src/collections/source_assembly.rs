@@ -505,13 +505,13 @@ mod heterogeneous_collection_tests {
         let mut sources = sources();
         let rotation = UnitQuaternion::from_scaled_axis([PI / 3.0, PI / 4.0, PI / 5.0].into());
         sources.rotate(rotation);
-        test_B_magnet!(@small, &sources, "multi-sources-rotate.csv", 2e-10);
+        test_B_magnet!(@small, &sources, "multi-sources-rotate.csv", 1e-10);
 
         sources.rotate(rotation.inverse());
         sources.set_orientation(rotation);
-        test_B_magnet!(@small, &sources, "multi-sources-rotate.csv", 2e-10);
+        test_B_magnet!(@small, &sources, "multi-sources-rotate.csv", 1e-10);
 
         sources.set_position([0.01, 0.015, 0.02]);
-        test_B_magnet!(@small, &sources, "multi-sources-translate-rotate.csv", 2e-10);
+        test_B_magnet!(@small, &sources, "multi-sources-translate-rotate.csv", 1e-10);
     }
 }

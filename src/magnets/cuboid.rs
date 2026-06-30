@@ -49,16 +49,16 @@ crate::testing_util::generate_tests! {
     filename: cuboid
     params: { polarization: vector![1.0, 2.0, 3.0], dimensions: vector![0.1, 0.2, 0.3]}
     rtols: {
-        static: 2e-10,
-        static_small: 2e-10,
-        translate: 2e-10,
-        rotate: 2e-10,
+        static: 1e-12,
+        static_small: 1e-12,
+        translate: 1e-12,
+        rotate: 1e-12,
     }
     p95_rtols: {
-        static: 2e-10,
-        static_small: 2e-10,
-        translate: 2e-10,
-        rotate: 2e-10,
+        static: 1e-12,
+        static_small: 1e-12,
+        translate: 1e-12,
+        rotate: 1e-12,
     }
     f32_rtols: {
         static: 1e-4,

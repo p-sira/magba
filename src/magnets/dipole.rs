@@ -43,16 +43,16 @@ crate::testing_util::generate_tests! {
     filename: dipole
     params: { moment: vector![1.0, 2.0, 3.0] }
     rtols: {
-        static: 2e-10,
-        static_small: 2e-10,
-        translate: 2e-10,
-        rotate: 2e-10,
+        static: 1e-14,
+        static_small: 1e-14,
+        translate: 1e-14,
+        rotate: 1e-14,
     }
     p95_rtols: {
-        static: 2e-10,
-        static_small: 2e-10,
-        translate: 2e-10,
-        rotate: 2e-10,
+        static: 1e-14,
+        static_small: 1e-14,
+        translate: 1e-14,
+        rotate: 1e-14,
     }
     f32_rtols: {
         static: 1e-6,
