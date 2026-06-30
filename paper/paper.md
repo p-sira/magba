@@ -25,13 +25,13 @@ Magba is an analytical magnetostatic computation library for Rust, providing par
 
 # Statement of Need
 
-Accurate and fast computation of static magnetic fields is essential in numerous scientific and engineering domains, including sensor design, magnetic resonance imaging (MRI), and robotics. While the finite element method (FEM) provides versatile solutions for complex geometries, it is computationally intensive and often unsuitable for real-time applications. Analytical solutions for canonical magnet geometries provide a substantially faster alternative, yet relatively few software packages implement them. The most notable instance is Magpylib [@ortner2020], a Python library for analytical magnetostatic field computation. However, its runtime performance is constrained by the Python interpreter, making it less suitable for performance-critical workloads, such as optimization problems in magnetic tracking systems.
+Accurate and fast computation of static magnetic fields is essential in numerous scientific and engineering domains, including sensor design [@jones2020], magnetic resonance imaging (MRI) [@koch2009], and robotics [@song2018]. While the finite element method (FEM) provides versatile solutions for complex geometries, it is computationally intensive and often unsuitable for real-time applications. Analytical solutions for canonical magnet geometries provide a substantially faster alternative, yet relatively few software packages implement them. The most notable instance is Magpylib [@ortner2020], a Python library for analytical magnetostatic field computation. However, its runtime performance is constrained by the Python interpreter, making it less suitable for performance-critical workloads, such as optimization problems in magnetic tracking systems.
 
 Magba is a Rust library for high-performance magnetostatic field computation based on analytical solutions. It provides parallelized magnetic field calculation routines with low memory overhead while exposing a high-level, object-oriented API for constructing and manipulating magnetic systems. Additionally, the library provides physical sensor implementations, such as linear Hall effect sensors, that can be integrated into magnetic systems to measure magnetic fields and simulate readings.
 
 # Software Implementation
 
-Field functions are implemented based on fundamental expressions, such as the Biot-Savart law and the magnetic dipole equations [@furlani2001], as well as analytical solutions from the literature [@derby2010; @caciagli2018; @ortner2023; @furlani2001]. The implementations utilize a custom generic float trait that provides magnetic constants and integrates with the mathematical backends [@dimforge2026; @stone2024; @pornsiriprasert2026]. All physical quantities are assumed to be in SI units.
+Field functions are implemented based on fundamental expressions, such as the Biot-Savart law and the magnetic dipole equations [@furlani2001], as well as analytical solutions from the literature [@derby2010; @caciagli2018; @ortner2023]. The implementations utilize a custom generic float trait that provides magnetic constants and integrates with the mathematical backends. All physical quantities are assumed to be in SI units.
 
 ![Core software architecture of the Magba library.](figures/software-architecture.png)
 
@@ -41,7 +41,7 @@ The composition system provides two types of containers: arrays and assemblies. 
 
 # Results
 
-The library is extensively tested against Magpylib [@ortner2020]. The performance is evaluated against Magpylib's fully vectorized NumPy implementations. The magnetic polarization vector of the test magnets is standardized at $[1, 2, 3]$ Tesla. The observer points are evenly spaced from $-0.5$ m to $+0.5$ m, with 10 points along each axis. Relative Euclidean distance error is used as the metric.
+The library is extensively tested against Magpylib [@ortner2020]. The performance is evaluated against Magpylib's fully vectorized NumPy implementations. The magnetic polarization vector of the test magnets is standardized at $[1, 2, 3]$ Tesla. The observer points are evenly spaced from $-0.5$ m to $+0.5$ m, with 10 points along each axis, forming a grid of 1,000 points. Relative Euclidean distance error is used as the metric.
 
 The following results were generated on an AMD Ryzen 5 4600H with Radeon Graphics @4.0 GHz, 16 GB of RAM, running x86_64-unknown-linux-gnu rustc 1.90.0 and magba v0.6.1. The performance is benchmarked using Criterion, and the compute times are divided by the number of test cases (1,000) to obtain the approximate time to compute the field function for an observer point.
 
