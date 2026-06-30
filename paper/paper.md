@@ -41,7 +41,7 @@ The composition system provides two types of containers: arrays and assemblies. 
 
 The library is extensively tested against Magpylib [@ortner2020]. The performance is evaluated against Magpylib's fully vectorized NumPy implementations. The magnetic polarization vector of the test magnets is standardized at $[1, 2, 3]$ Tesla. The observer points are evenly spaced from $-0.5$ m to $+0.5$ m, with 10 points along each axis. Relative Euclidean distance error is used as the metric.
 
-The error report is automatically generated via continuous integration. The following results were generated on an AMD Ryzen 5 4600H with Radeon Graphics @4.0 GHz, 16 GB of RAM, running x86_64-unknown-linux-gnu rustc 1.90.0 and magba v0.6.0. The performance is benchmarked using Criterion, and the compute times are divided by the number of test cases (1,000) to obtain the approximate time to compute the field function for an observer point.
+The error report is automatically generated via continuous integration. The following results were generated on an AMD Ryzen 5 4600H with Radeon Graphics @4.0 GHz, 16 GB of RAM, running x86_64-unknown-linux-gnu rustc 1.90.0 and magba v0.6.1. The performance is benchmarked using Criterion, and the compute times are divided by the number of test cases (1,000) to obtain the approximate time to compute the field function for an observer point.
 
 Table 1: Summary of Field Function Accuracy and Performance at 64-bit Precision.
 
@@ -50,29 +50,29 @@ Table 1: Summary of Field Function Accuracy and Performance at 64-bit Precision.
 +:=============+:======================+:======================+:==========+:=============+:=============+
 | **Magnets**                                                                                            |
 +--------------+-----------------------+-----------------------+-----------+--------------+--------------+
-| Cylinder     | $2.947\times10^{-13}$ | $2.501\times10^{-10}$ | 59.5 ns   | 2.49 μs      | 42x          |
+| Cylinder     | $2.947\times10^{-13}$ | $2.501\times10^{-10}$ | 62.4 ns   | 2.49 μs      | 40x          |
 +--------------+-----------------------+-----------------------+-----------+--------------+--------------+
-| Cuboid       | $0.000$               | $2.103\times10^{-13}$ | 117.9 ns  | 1.33 μs      | 11x          |
+| Cuboid       | $0.000$               | $2.103\times10^{-13}$ | 133.0 ns  | 1.33 μs      | 10x          |
 +--------------+-----------------------+-----------------------+-----------+--------------+--------------+
-| Dipole       | $1.320\times10^{-10}$ | $1.320\times10^{-10}$ | 14.4 ns   | 422 ns       | 29x          |
+| Dipole       | $0.000$               | $0.000$               | 31.6 ns   | 422 ns       | 13x          |
 +--------------+-----------------------+-----------------------+-----------+--------------+--------------+
-| Sphere       | $0.000$               | $8.078\times10^{-16}$ | 26.8 ns   | 518 ns       | 19x          |
+| Sphere       | $0.000$               | $8.078\times10^{-16}$ | 26.6 ns   | 518 ns       | 19x          |
 +--------------+-----------------------+-----------------------+-----------+--------------+--------------+
-| Tetrahedron  | $0.000$               | $1.020\times10^{-10}$ | 92.9 ns   | 4.07 μs      | 44x          |
+| Tetrahedron  | $0.000$               | $1.020\times10^{-10}$ | 109.1 ns  | 4.07 μs      | 37x          |
 +--------------+-----------------------+-----------------------+-----------+--------------+--------------+
-| Triangle     | $0.000$               | $2.405\times10^{-12}$ | 48.5 ns   | 881 ns       | 18x          |
+| Triangle     | $0.000$               | $2.405\times10^{-12}$ | 55.3 ns   | 881 ns       | 16x          |
 +--------------+-----------------------+-----------------------+-----------+--------------+--------------+
-| Mesh         | $0.000$               | $1.020\times10^{-10}$ | 95.4 ns   | 7.53 μs      | 79x          |
+| Mesh         | $0.000$               | $1.020\times10^{-10}$ | 109.7 ns  | 7.53 μs      | 69x          |
 +--------------+-----------------------+-----------------------+-----------+--------------+--------------+
 | **Currents**                                                                                           |
 +--------------+-----------------------+-----------------------+-----------+--------------+--------------+
-| Circular     | $0.000$               | $1.321\times10^{-10}$ | 41.8 ns   | 739 ns       | 18x          |
+| Circular     | $0.000$               | $0.000$               | 46.7 ns   | 739 ns       | 16x          |
 +--------------+-----------------------+-----------------------+-----------+--------------+--------------+
-| Path         | $1.320\times10^{-10}$ | $1.320\times10^{-10}$ | 45.0 ns   | 1.87 μs      | 42x          |
+| Path         | $0.000$               | $0.000$               | 52.5 ns   | 1.87 μs      | 36x          |
 +--------------+-----------------------+-----------------------+-----------+--------------+--------------+
-| Sheet        | $0.000$               | $1.320\times10^{-10}$ | 146.9 ns  | 19.4 μs      | 132x         |
+| Sheet        | $0.000$               | $0.000$               | 197.3 ns  | 19.4 μs      | 98x          |
 +--------------+-----------------------+-----------------------+-----------+--------------+--------------+
-| Triangle     | $0.000$               | $0.000$               | 59.3 ns   | 10.6 μs      | 179x         |
+| Triangle     | $0.000$               | $0.000$               | 78.5 ns   | 10.6 μs      | 135x         |
 +--------------+-----------------------+-----------------------+-----------+--------------+--------------+
 
 # Usage Example
