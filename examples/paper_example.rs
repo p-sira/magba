@@ -30,6 +30,9 @@ fn main() {
     let observer_point = Point3::new(0.0, 0.0, 0.3);
     let b_field = assembly.compute_B(observer_point);
 
-    println!("B-field at {:?}: {:?}", observer_point, b_field);
-    // B-field at [0.0, 0.0, 0.3]: [[0.0, 0.0, 0.6316701187086277]]
+    println!(
+        "B-field at {}: [{}, {}, {}]",
+        observer_point, b_field[0], b_field[1], b_field[2]
+    );
+    // B-field at {0, 0, 0.3}: [0, 0, 6.317e-1]
 }
