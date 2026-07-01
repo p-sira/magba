@@ -6,32 +6,19 @@
 use magba::{prelude::*, sources};
 
 fn main() {
-    // Create a cylindrical magnet with polarization (0, 0, 1) T,
-    // diameter 0.05 m, and height 0.1 m.
-    let cylinder = CylinderMagnet::<f64>::new(
-        [0.0, 0.0, 0.0],                      // Position [m]
-        nalgebra::UnitQuaternion::identity(), // Rotation as unit quaternion
-        [0.0, 0.0, 1.0],                      // Polarization [T]
-        0.05,                                 // Diameter [m]
-        0.1,                                  // Height [m]
-    );
-
-    // Create a cuboid magnet with default parameters.
+    // Create magnets and group into a source assembly
+    let cylinder = CylinderMagnet::default()
+        .with_diameter(0.05)
+        .with_height(0.1);
     let cuboid = CuboidMagnet::<f64>::default();
-
-    // Group magnets into a source assembly
     let mut assembly = sources!(cylinder, cuboid);
 
     // Apply transformation on the source assembly
     assembly.translate([0.0, 0.0, 0.1]);
 
     // Compute the magnetic field at an observation point
-    let observer_point = nalgebra::Point3::new(0.0, 0.0, 0.3);
-    let b_field = assembly.compute_B(observer_point);
+    let b_field = assembly.compute_B(nalgebra::Point3::new(0.0, 0.0, 0.3));
 
-    println!(
-        "B-field at {}: [{}, {}, {}]",
-        observer_point, b_field[0], b_field[1], b_field[2]
-    );
-    // B-field at {0, 0, 0.3}: [0, 0, 6.317e-1]
+    println!("B = [{}, {}, {}]", b_field[0], b_field[1], b_field[2]);
+    // B = [0, 0, 0.6316701187086277]
 }
