@@ -15,7 +15,7 @@ affiliations:
   - name: Faculty of Medicine Ramathibodi Hospital, Mahidol University, Thailand
     ror: 04884sy85
     index: 1
-date: 1 January 2026
+date: 1 July 2026
 bibliography: paper.bib
 ---
 
@@ -31,7 +31,7 @@ Magba is a Rust library for high-performance magnetostatic field computation bas
 
 # Software Implementation
 
-Field functions are implemented based on fundamental expressions, such as the Biot-Savart law and the magnetic dipole equations [@furlani2001], as well as analytical solutions from the literature [e.g., @derby2010; @caciagli2018; @ortner2023]. The implementations utilize a custom generic float trait that provides magnetic constants and integrates with the mathematical backends. All physical quantities are assumed to be in SI units.
+Field functions are implemented based on analytical solutions from the literature (e.g., @caciagli2018; @derby2010; @ortner2023), as well as fundamental expressions, such as the Biot-Savart law and the magnetic dipole equations [@furlani2001]. The implementations utilize a custom generic float trait that provides magnetic constants and integrates with the mathematical backends. All physical quantities are assumed to be in SI units.
 
 ![Core software architecture of the Magba library.](figures/software-architecture.png)
 
