@@ -7,12 +7,12 @@ use magba::{prelude::*, sources};
 
 fn main() {
     // Create a cylindrical magnet with polarization (0, 0, 1) T,
-    // radius 0.05 m, and height 0.1 m.
+    // diameter 0.05 m, and height 0.1 m.
     let cylinder = CylinderMagnet::<f64>::new(
         [0.0, 0.0, 0.0],                      // Position [m]
         nalgebra::UnitQuaternion::identity(), // Rotation as unit quaternion
         [0.0, 0.0, 1.0],                      // Polarization [T]
-        0.05,                                 // Radius [m]
+        0.05,                                 // Diameter [m]
         0.1,                                  // Height [m]
     );
 
