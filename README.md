@@ -28,7 +28,7 @@ Python bindings available via [PyMagba](https://github.com/p-sira/pymagba).
 cargo add magba
 ```
 
-Learn more at [docs.rs/magba](https://docs.rs/magba).
+See the user guide at [docs.rs/magba](https://docs.rs/magba).
 
 ## Features
 
