@@ -43,7 +43,7 @@ The composition system provides two types of containers: arrays and assemblies. 
 
 The library is extensively tested against Magpylib [@ortner2020]. The performance is evaluated against Magpylib's fully vectorized NumPy implementations. The magnetic polarization vector of the test magnets is standardized at $[1, 2, 3]$ Tesla. The observer points are evenly spaced from $-0.5$ m to $+0.5$ m, with 10 points along each axis, forming a grid of 1,000 points. Relative Euclidean distance error is used as the metric.
 
-The following results were generated on an AMD Ryzen 5 4600H with Radeon Graphics @4.0 GHz, 16 GB of RAM, running x86_64-unknown-linux-gnu rustc 1.90.0 and magba v0.6.1. The performance is benchmarked using Criterion, and the compute times are divided by the number of test cases (1,000) to obtain the approximate time to compute the field function for an observer point.
+The following results were generated on an AMD Ryzen 5 4600H with Radeon Graphics @4.0 GHz, 16 GB of RAM, running x86_64-unknown-linux-gnu rustc 1.90.0 and magba v0.6.1. The performance is benchmarked using Criterion for Rust [@aparicio2025] and asv for Python [@droettboom2026]. The compute times are divided by the number of test cases (1,000) to obtain the approximate time to compute the field function for an observer point.
 
 Table 1: Summary of Field Function Accuracy and Performance at 64-bit Precision.
 
