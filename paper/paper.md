@@ -103,8 +103,12 @@ println!("B = [{}, {}, {}]", b_field[0], b_field[1], b_field[2]);
 // B = [0, 0, 0.6316701187086277]
 ```
 
+# AI Usage Disclosure
+
+The author conceptualized all software design decisions and testing frameworks. Gemini 3.1 Pro was utilized to assist with code generation, documentation drafting, and manuscript refinement. All AI-generated outputs were reviewed, edited, and validated by the author.
+
 # Acknowledgment
 
-I thank Michael Ortner and the MagpyLib contributors for the technical references and their unwavering commitment to the scientific community.
+I thank Michael Ortner and the Magpylib contributors for the technical references and their unwavering commitment to the scientific community.
 
 # References
