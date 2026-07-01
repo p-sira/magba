@@ -43,7 +43,7 @@ The composition system provides two types of containers: arrays and assemblies. 
 
 Magba was extensively evaluated against Magpylib's [@ortner2020] fully vectorized NumPy implementations. Test magnets were assigned a $[1, 2, 3]$ T polarization, and fields were computed on a 1,000-point grid spanning $\pm0.5$ m. Accuracy is measured using the relative Euclidean distance error.
 
-Benchmarks were conducted on an AMD Ryzen 5 4600H @4.0 GHz (16 GB RAM), running x86_64-unknown-linux-gnu with rustc 1.90.0 and magba v0.6.1, utilizing Criterion [@aparicio2025] and asv [@droettboom2026] for performance profiling in Rust and Python, respectively. The reported compute times are normalized per observer point.
+Benchmarks were conducted on an AMD Ryzen 5 4600H 4.0 GHz, 16 GB of RAM, running x86_64-unknown-linux-gnu with rustc 1.90.0 and magba v0.6.1, utilizing Criterion [@aparicio2025] and asv [@droettboom2026] for performance profiling in Rust and Python, respectively. The reported compute times are normalized per observer point.
 
 Table 1: Summary of Field Function Accuracy and Performance at 64-bit Precision.
 
