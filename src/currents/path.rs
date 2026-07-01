@@ -45,7 +45,7 @@ crate::testing_util::generate_tests! {
     PathCurrent
     filename: polyline
     params: {
-        current: 100.0,
+        current: 1.0,
         vertices: vec![vector![-0.1, -0.1, -0.1], vector![0.1, -0.1, -0.1], vector![0.0, 0.1, -0.1], vector![0.0, 0.0, 0.1]],
     }
     rtols: {

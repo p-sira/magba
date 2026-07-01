@@ -79,7 +79,7 @@ where
         "PathCurrent" => Box::new(PathCurrent::new(
             pos,
             rot,
-            f(100.0),
+            f(1.0),
             vec![
                 vector![f(-0.1), f(-0.1), f(-0.1)],
                 vector![f(0.1), f(-0.1), f(-0.1)],

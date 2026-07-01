@@ -112,7 +112,7 @@ def generate_tests(points, points_small):
         Polyline,
         points,
         points_small,
-        current=100.0,
+        current=1.0,
         vertices=np.array([[-0.1, -0.1, -0.1], [0.1, -0.1, -0.1], [0.0, 0.1, -0.1], [0.0, 0.0, 0.1]]),
     )
 
