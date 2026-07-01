@@ -43,7 +43,7 @@ The composition system provides two types of containers: arrays and assemblies. 
 
 The library is extensively tested against Magpylib [@ortner2020]. The performance is evaluated against Magpylib's fully vectorized NumPy implementations. The magnetic polarization vector of the test magnets is standardized at $[1, 2, 3]$ Tesla. The observer points are evenly spaced from $-0.5$ m to $+0.5$ m, with 10 points along each axis, forming a grid of 1,000 points. Relative Euclidean distance error is used as the metric.
 
-The following results were generated on an AMD Ryzen 5 4600H with Radeon Graphics @4.0 GHz, 16 GB of RAM, running x86_64-unknown-linux-gnu rustc 1.90.0 and magba v0.6.1. The performance is benchmarked using Criterion for Rust [@aparicio2025] and asv for Python [@droettboom2026]. The compute times are divided by the number of test cases (1,000) to obtain the approximate time to compute the field function for an observer point.
+The following results were generated on an AMD Ryzen 5 4600H with Radeon Graphics @4.0 GHz, 16 GB of RAM, running x86_64-unknown-linux-gnu rustc 1.90.0 and Magba v0.6.1. The performance is benchmarked using Criterion for Rust [@aparicio2025] and asv for Python [@droettboom2026]. The average compute times are normalized by the number of observer points (1,000) to obtain the approximate time to compute the field function for an observer point.
 
 Table 1: Summary of Field Function Accuracy and Performance at 64-bit Precision.
 
@@ -52,32 +52,32 @@ Table 1: Summary of Field Function Accuracy and Performance at 64-bit Precision.
 +:=============+:======================+:======================+:==========+:=============+:=============+
 | **Magnets**                                                                                            |
 +--------------+-----------------------+-----------------------+-----------+--------------+--------------+
-| Cylinder     | $2.947\times10^{-13}$ | $2.501\times10^{-10}$ | 62.4 ns   | 2.49 μs      | 40x          |
+| Cylinder     | $2.947\times10^{-13}$ | $2.501\times10^{-10}$ | 63.3 ns   | 2.49 μs      | 39x          |
 +--------------+-----------------------+-----------------------+-----------+--------------+--------------+
-| Cuboid       | $0.000$               | $2.103\times10^{-13}$ | 133.0 ns  | 1.33 μs      | 10x          |
+| Cuboid       | $0.000$               | $2.103\times10^{-13}$ | 136.3 ns  | 1.33 μs      | 10x          |
 +--------------+-----------------------+-----------------------+-----------+--------------+--------------+
 | Dipole       | $0.000$               | $0.000$               | 31.6 ns   | 422 ns       | 13x          |
 +--------------+-----------------------+-----------------------+-----------+--------------+--------------+
-| Sphere       | $0.000$               | $8.078\times10^{-16}$ | 26.6 ns   | 518 ns       | 19x          |
+| Sphere       | $0.000$               | $8.078\times10^{-16}$ | 26.9 ns   | 518 ns       | 19x          |
 +--------------+-----------------------+-----------------------+-----------+--------------+--------------+
-| Tetrahedron  | $0.000$               | $1.020\times10^{-10}$ | 109.1 ns  | 4.07 μs      | 37x          |
+| Tetrahedron  | $0.000$               | $1.020\times10^{-10}$ | 111.5 ns  | 4.07 μs      | 37x          |
 +--------------+-----------------------+-----------------------+-----------+--------------+--------------+
-| Triangle     | $0.000$               | $2.405\times10^{-12}$ | 55.3 ns   | 881 ns       | 16x          |
+| Triangle     | $0.000$               | $2.405\times10^{-12}$ | 55.6 ns   | 881 ns       | 16x          |
 +--------------+-----------------------+-----------------------+-----------+--------------+--------------+
-| Mesh         | $0.000$               | $1.020\times10^{-10}$ | 109.7 ns  | 7.53 μs      | 69x          |
+| Mesh         | $0.000$               | $1.020\times10^{-10}$ | 111.1 ns  | 7.53 μs      | 68x          |
 +--------------+-----------------------+-----------------------+-----------+--------------+--------------+
 | **Currents**                                                                                           |
 +--------------+-----------------------+-----------------------+-----------+--------------+--------------+
-| Circular     | $0.000$               | $0.000$               | 46.7 ns   | 739 ns       | 16x          |
+| Circular     | $0.000$               | $0.000$               | 46.9 ns   | 739 ns       | 16x          |
 +--------------+-----------------------+-----------------------+-----------+--------------+--------------+
-| Path         | $0.000$               | $0.000$               | 52.5 ns   | 1.87 μs      | 36x          |
+| Path         | $0.000$               | $0.000$               | 54.2 ns   | 1.87 μs      | 35x          |
 +--------------+-----------------------+-----------------------+-----------+--------------+--------------+
-| Sheet        | $0.000$               | $0.000$               | 197.3 ns  | 19.4 μs      | 98x          |
+| Sheet        | $0.000$               | $0.000$               | 208.1 ns  | 19.4 μs      | 93x          |
 +--------------+-----------------------+-----------------------+-----------+--------------+--------------+
-| Triangle     | $0.000$               | $0.000$               | 78.5 ns   | 10.6 μs      | 135x         |
+| Triangle     | $0.000$               | $0.000$               | 78.6 ns   | 10.6 μs      | 135x         |
 +--------------+-----------------------+-----------------------+-----------+--------------+--------------+
 
-The results closely align with Magpylib, with the median below one machine epsilon for most implementations. The slight variance observed in the cylinder magnet calculations is attributable to the different mathematical backends used to evaluate elliptic integrals, namely Ellip [@pornsiriprasert2026] versus SciPy [@virtanen2020].
+The results closely align with Magpylib, with the median below one machine epsilon for most implementations. The slight variance observed in the cylinder magnet calculations is attributable to the different mathematical backends used to evaluate elliptic integrals, namely Ellip [@pornsiriprasert2026] versus SciPy [@virtanen2020]. Computationally, Magba delivers a speedup of over an order of magnitude across all geometries. These gains are especially pronounced for mathematically intensive geometries, such as mesh magnets (68x) and triangle sheet currents (135x).
 
 # Usage Example
 
