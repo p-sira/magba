@@ -1,6 +1,6 @@
 ---
 title: 'Magba: Analytical Magnetostatic Computation for Rust'
-subtitle: 'PREPRINT'
+subtitle: 'PREPRINT\vspace{-3em}'
 tags:
   - magnetism
   - magnetic field
@@ -103,10 +103,6 @@ let b_field = assembly.compute_B(nalgebra::Point3::new(0.0, 0.0, 0.3));
 println!("B = [{}, {}, {}]", b_field[0], b_field[1], b_field[2]);
 // B = [0, 0, 0.6316701187086277]
 ```
-
-# AI Usage Disclosure
-
-The author conceptualized all software design decisions and testing frameworks. Gemini 3.1 Pro was utilized to assist with code generation, documentation drafting, and manuscript refinement. All AI-generated outputs were reviewed, edited, and validated by the author.
 
 # Acknowledgment
 

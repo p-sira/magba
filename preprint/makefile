@@ -12,7 +12,7 @@ $(OUT): $(SRC) $(BIB)
 		--bibliography=$(BIB) \
 		--pdf-engine=xelatex \
 		-V papersize:a4 \
-		-V geometry:margin=1.5in \
+		-V geometry:margin=1in \
 		-V geometry:top=0.75in \
 		-M link-citations=true
 
