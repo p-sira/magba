@@ -4,8 +4,14 @@
 
 ### 0.6.2
 
+**Bug Fixes**
+
 - Fix missing `From` trait implementation for `MeshMagnet`, `TriangleMagnet`, and `TetrahedronMagnet` into `SourceComponent`.
+
+**Testing**
+
 - Test data is migrated from `tests/test-data` to `testing/data`, which is included as a submodule from the git repository `https://github.com/p-sira/magba-testing`.
+- Add `MAGBA_REQUIRE_TEST_DATA` environment variable to prevent silent failure in the CI if the test data is missing.
 
 ### 0.6.1
 
