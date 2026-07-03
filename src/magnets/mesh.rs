@@ -142,15 +142,14 @@ mod stl_tests {
 
     #[test]
     fn test_suzanne() {
-        let base_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("testing/data");
         let mut file =
-            std::fs::File::open(base_path.join("suzanne.stl")).expect("Cannot open suzanne.stl");
+            std::fs::File::open("./testing/data/suzanne.stl").expect("Cannot open suzanne.stl");
         let mesh: MeshMagnet<f64> =
             MeshMagnet::from_stl(&mut file, [0.0, 0.0, 1.0]).expect("Failed to read STL");
         compare_B_with_file(
             &mesh,
-            &base_path.join("points.csv").to_string_lossy(),
-            &base_path.join("suzanne-stl.csv").to_string_lossy(),
+            "./testing/data/points.csv",
+            "./testing/data/suzanne-stl.csv",
             1e-11,
             1e-11,
         );
