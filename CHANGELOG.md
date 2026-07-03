@@ -2,6 +2,11 @@
 
 ## 0.6
 
+### 0.6.2
+
+- Fix missing `From` trait implementation for `MeshMagnet`, `TriangleMagnet`, and `TetrahedronMagnet` into `SourceComponent`.
+- Test data is migrated from `tests/test-data` to `testing/data`, which is included as a submodule from the git repository `https://github.com/p-sira/magba-testing`.
+
 ### 0.6.1
 
 - Update the magnetic permeability in vacuum constant to follow the Committee on Data for Science and Technology (CODATA) 2022 recommendation. The value is changed from $1.2566370614359173e-6$ (derived from 4π × 1e-7) to $1.25663706127e-6$ (based on empirical evidence).

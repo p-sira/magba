@@ -9,11 +9,14 @@ use crate::{
     base::{Float, Pose, Source, Transform},
     collections::{SourceArray, SourceAssembly},
     currents::{CircularCurrent, Current, PathCurrent, TriangleCurrent},
-    magnets::{CuboidMagnet, CylinderMagnet, Dipole, Magnet, SphereMagnet},
+    magnets::{
+        CuboidMagnet, CylinderMagnet, Dipole, Magnet, SphereMagnet, TetrahedronMagnet,
+        TriangleMagnet,
+    },
 };
 
 #[cfg(feature = "mesh")]
-use crate::currents::SheetCurrent;
+use crate::{currents::SheetCurrent, magnets::MeshMagnet};
 use nalgebra::{Point3, Vector3};
 
 #[derive(Debug, Clone)]
@@ -93,7 +96,18 @@ macro_rules! impl_transitive_from_current {
     };
 }
 
-impl_transitive_from_magnet!(CylinderMagnet, CuboidMagnet, Dipole, SphereMagnet);
+impl_transitive_from_magnet!(
+    CylinderMagnet,
+    CuboidMagnet,
+    Dipole,
+    SphereMagnet,
+    TriangleMagnet,
+    TetrahedronMagnet
+);
+
+#[cfg(feature = "mesh")]
+impl_transitive_from_magnet!(MeshMagnet);
+
 impl_transitive_from_current!(CircularCurrent, PathCurrent, TriangleCurrent);
 
 #[cfg(feature = "mesh")]
