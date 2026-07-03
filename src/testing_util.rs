@@ -248,8 +248,8 @@ macro_rules! test_B_magnet {
     (@small, $magnet: expr, $ref_path_str: expr, $rtol: expr, $p95_rtol: expr) => {
         compare_B_with_file(
             $magnet,
-            "./testing/data/points-small.csv",
-            &format!("./testing/data/{}", $ref_path_str),
+            &format!("{}/testing/data/points-small.csv", env!("CARGO_MANIFEST_DIR")),
+            &format!("{}/testing/data/{}", env!("CARGO_MANIFEST_DIR"), $ref_path_str),
             $rtol,
             $p95_rtol,
         )
@@ -257,8 +257,8 @@ macro_rules! test_B_magnet {
     (@small, $magnet: expr, $ref_path_str: expr, $rtol: expr) => {
         compare_B_with_file(
             $magnet,
-            "./testing/data/points-small.csv",
-            &format!("./testing/data/{}", $ref_path_str),
+            &format!("{}/testing/data/points-small.csv", env!("CARGO_MANIFEST_DIR")),
+            &format!("{}/testing/data/{}", env!("CARGO_MANIFEST_DIR"), $ref_path_str),
             $rtol,
             $rtol,
         )
@@ -266,8 +266,8 @@ macro_rules! test_B_magnet {
     (@large, $magnet: expr, $ref_path_str: expr, $rtol: expr, $p95_rtol: expr) => {
         compare_B_with_file(
             $magnet,
-            "./testing/data/points-large.csv",
-            &format!("./testing/data/{}", $ref_path_str),
+            &format!("{}/testing/data/points-large.csv", env!("CARGO_MANIFEST_DIR")),
+            &format!("{}/testing/data/{}", env!("CARGO_MANIFEST_DIR"), $ref_path_str),
             $rtol,
             $p95_rtol,
         )
@@ -275,8 +275,8 @@ macro_rules! test_B_magnet {
     (@large, $magnet: expr, $ref_path_str: expr, $rtol: expr) => {
         compare_B_with_file(
             $magnet,
-            "./testing/data/points-large.csv",
-            &format!("./testing/data/{}", $ref_path_str),
+            &format!("{}/testing/data/points-large.csv", env!("CARGO_MANIFEST_DIR")),
+            &format!("{}/testing/data/{}", env!("CARGO_MANIFEST_DIR"), $ref_path_str),
             $rtol,
             $rtol,
         )
@@ -284,8 +284,8 @@ macro_rules! test_B_magnet {
     ($magnet: expr, $ref_path_str: expr, $rtol: expr, $p95_rtol: expr) => {
         compare_B_with_file(
             $magnet,
-            "./testing/data/points.csv",
-            &format!("./testing/data/{}", $ref_path_str),
+            &format!("{}/testing/data/points.csv", env!("CARGO_MANIFEST_DIR")),
+            &format!("{}/testing/data/{}", env!("CARGO_MANIFEST_DIR"), $ref_path_str),
             $rtol,
             $p95_rtol,
         )
@@ -293,8 +293,8 @@ macro_rules! test_B_magnet {
     ($magnet: expr, $ref_path_str: expr, $rtol: expr) => {
         compare_B_with_file(
             $magnet,
-            "./testing/data/points.csv",
-            &format!("./testing/data/{}", $ref_path_str),
+            &format!("{}/testing/data/points.csv", env!("CARGO_MANIFEST_DIR")),
+            &format!("{}/testing/data/{}", env!("CARGO_MANIFEST_DIR"), $ref_path_str),
             $rtol,
             $rtol,
         )
