@@ -10,7 +10,7 @@ The observer points are generated using `get_points` and `get_points_small` func
 
 ## Accuracy Report
 
-This report is generated on AMD Ryzen 5 4600H with Radeon Graphics @1.8 GHz RAM 16 GB running x86_64-unknown-linux-gnu rustc 1.90.0 using magba v0.6.1. The performance is benchmarked using Criterion, and the results are divided by the number of test cases (1,000) to get the approximate time to compute the field function for one observer point.
+This report is generated on AMD Ryzen 5 4600H with Radeon Graphics @4.0 GHz RAM 16 GB running x86_64-unknown-linux-gnu rustc 1.90.0 using magba v0.6.1. The performance is benchmarked using Criterion, and the average compute times are divided by the number of test cases (1,000) to get the approximate time to compute the field function for one observer point.
 
 ### Relative Error: f64
 
@@ -33,7 +33,7 @@ This report is generated on AMD Ryzen 5 4600H with Radeon Graphics @1.8 GHz RAM 
 | Function          | Median   | Mean     | P95      | Max      | Performance |
 |-------------------|----------|----------|----------|----------|-------------|
 | CircularCurrent   | 2.094e-7 | 3.216e-7 | 7.188e-7 | 1.907e-5 | 46.9 ns     |
-| PathCurrent       | 3.389e-7 | 5.152e-7 | 1.376e-6 | 1.197e-5 | 51.3 ns     |
+| PathCurrent       | 3.480e-7 | 5.141e-7 | 1.376e-6 | 1.201e-5 | 51.3 ns     |
 | SheetCurrent      | 3.661e-6 | 4.207e-5 | 8.781e-5 | 0.012    | 124.7 ns    |
 | TriangleCurrent   | 3.362e-6 | 5.663e-5 | 5.845e-5 | 0.015    | 59.9 ns     |
 | CylinderMagnet    | 2.511e-5 | 1.736e-4 | 2.912e-4 | 0.031    | 54.3 ns     |
