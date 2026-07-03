@@ -9,7 +9,7 @@ jobs:
       CARGO_TERM_COLOR: always
       MAGBA_REQUIRE_TEST_DATA: "1"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           submodules: recursive
       - name: Install Rust
