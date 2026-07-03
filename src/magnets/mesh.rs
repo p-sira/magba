@@ -143,13 +143,13 @@ mod stl_tests {
     #[test]
     fn test_suzanne() {
         let mut file =
-            std::fs::File::open("./tests/test-data/suzanne.stl").expect("Cannot open suzanne.stl");
+            std::fs::File::open("./testing/data/suzanne.stl").expect("Cannot open suzanne.stl");
         let mesh: MeshMagnet<f64> =
             MeshMagnet::from_stl(&mut file, [0.0, 0.0, 1.0]).expect("Failed to read STL");
         compare_B_with_file(
             &mesh,
-            "./tests/test-data/points.csv",
-            "./tests/test-data/suzanne-stl.csv",
+            "./testing/data/points.csv",
+            "./testing/data/suzanne-stl.csv",
             1e-11,
             1e-11,
         );

@@ -223,13 +223,13 @@ pub fn compare_B_with_file<S: Source<T>, T: RealField + Copy + LowerExp + FromSt
     let ref_path = Path::new(ref_path_str);
     if !points_path.is_file() {
         println!(
-            "Test data {points_path:?} not found. Download from https://github.com/p-sira/magba/tree/main/tests/test-data."
+            "Test data {points_path:?} not found. Download from https://github.com/p-sira/magba/tree/main/testing/data."
         );
         return;
     }
     if !ref_path.is_file() {
         println!(
-            "Test data {ref_path:?} not found. Download from https://github.com/p-sira/magba/tree/main/tests/test-data."
+            "Test data {ref_path:?} not found. Download from https://github.com/p-sira/magba/tree/main/testing/data."
         );
         return;
     }
@@ -248,8 +248,8 @@ macro_rules! test_B_magnet {
     (@small, $magnet: expr, $ref_path_str: expr, $rtol: expr, $p95_rtol: expr) => {
         compare_B_with_file(
             $magnet,
-            "./tests/test-data/points-small.csv",
-            &format!("./tests/test-data/{}", $ref_path_str),
+            "./testing/data/points-small.csv",
+            &format!("./testing/data/{}", $ref_path_str),
             $rtol,
             $p95_rtol,
         )
@@ -257,8 +257,8 @@ macro_rules! test_B_magnet {
     (@small, $magnet: expr, $ref_path_str: expr, $rtol: expr) => {
         compare_B_with_file(
             $magnet,
-            "./tests/test-data/points-small.csv",
-            &format!("./tests/test-data/{}", $ref_path_str),
+            "./testing/data/points-small.csv",
+            &format!("./testing/data/{}", $ref_path_str),
             $rtol,
             $rtol,
         )
@@ -266,8 +266,8 @@ macro_rules! test_B_magnet {
     (@large, $magnet: expr, $ref_path_str: expr, $rtol: expr, $p95_rtol: expr) => {
         compare_B_with_file(
             $magnet,
-            "./tests/test-data/points-large.csv",
-            &format!("./tests/test-data/{}", $ref_path_str),
+            "./testing/data/points-large.csv",
+            &format!("./testing/data/{}", $ref_path_str),
             $rtol,
             $p95_rtol,
         )
@@ -275,8 +275,8 @@ macro_rules! test_B_magnet {
     (@large, $magnet: expr, $ref_path_str: expr, $rtol: expr) => {
         compare_B_with_file(
             $magnet,
-            "./tests/test-data/points-large.csv",
-            &format!("./tests/test-data/{}", $ref_path_str),
+            "./testing/data/points-large.csv",
+            &format!("./testing/data/{}", $ref_path_str),
             $rtol,
             $rtol,
         )
@@ -284,8 +284,8 @@ macro_rules! test_B_magnet {
     ($magnet: expr, $ref_path_str: expr, $rtol: expr, $p95_rtol: expr) => {
         compare_B_with_file(
             $magnet,
-            "./tests/test-data/points.csv",
-            &format!("./tests/test-data/{}", $ref_path_str),
+            "./testing/data/points.csv",
+            &format!("./testing/data/{}", $ref_path_str),
             $rtol,
             $p95_rtol,
         )
@@ -293,8 +293,8 @@ macro_rules! test_B_magnet {
     ($magnet: expr, $ref_path_str: expr, $rtol: expr) => {
         compare_B_with_file(
             $magnet,
-            "./tests/test-data/points.csv",
-            &format!("./tests/test-data/{}", $ref_path_str),
+            "./testing/data/points.csv",
+            &format!("./testing/data/{}", $ref_path_str),
             $rtol,
             $rtol,
         )
