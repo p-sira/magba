@@ -142,14 +142,24 @@ mod stl_tests {
 
     #[test]
     fn test_suzanne() {
-        let mut file =
-            std::fs::File::open("./tests/test-data/suzanne.stl").expect("Cannot open suzanne.stl");
+        let base_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("testing/data");
+        let stl_path = base_path.join("suzanne.stl");
+
+        if !stl_path.is_file() {
+            if std::env::var("MAGBA_REQUIRE_TEST_DATA").is_ok() {
+                panic!("Test data {:?} not found.", stl_path);
+            }
+            println!("Test data {:?} not found. Skipping test.", stl_path);
+            return;
+        }
+
+        let mut file = std::fs::File::open(&stl_path).expect("Cannot open suzanne.stl");
         let mesh: MeshMagnet<f64> =
             MeshMagnet::from_stl(&mut file, [0.0, 0.0, 1.0]).expect("Failed to read STL");
         compare_B_with_file(
             &mesh,
-            "./tests/test-data/points.csv",
-            "./tests/test-data/suzanne-stl.csv",
+            &base_path.join("points.csv").to_string_lossy(),
+            &base_path.join("suzanne-stl.csv").to_string_lossy(),
             1e-11,
             1e-11,
         );
