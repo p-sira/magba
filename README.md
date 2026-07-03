@@ -16,6 +16,9 @@
     <a href="https://docs.rs/magba" style="text-decoration:none">
         <img src="https://img.shields.io/badge/Docs-docs.rs-blue" alt="Documentation">
     </a>
+    <a href="https://doi.org/10.5281/zenodo.21150887" style="text-decoration:none">
+        <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.21150887.svg" alt="Preprint DOI">
+    </a>
 </p>
 
 -----
