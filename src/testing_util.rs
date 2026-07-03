@@ -222,12 +222,18 @@ pub fn compare_B_with_file<S: Source<T>, T: RealField + Copy + LowerExp + FromSt
     let points_path = Path::new(points_path_str);
     let ref_path = Path::new(ref_path_str);
     if !points_path.is_file() {
+        if std::env::var("MAGBA_REQUIRE_TEST_DATA").is_ok() {
+            panic!("Test data {:?} not found.", points_path);
+        }
         println!(
             "Test data {points_path:?} not found. Download from https://github.com/p-sira/magba/tree/main/testing/data."
         );
         return;
     }
     if !ref_path.is_file() {
+        if std::env::var("MAGBA_REQUIRE_TEST_DATA").is_ok() {
+            panic!("Test data {:?} not found.", ref_path);
+        }
         println!(
             "Test data {ref_path:?} not found. Download from https://github.com/p-sira/magba/tree/main/testing/data."
         );
