@@ -11,10 +11,10 @@ use crate::{
     base::{
         Float,
         coordinate::compute_in_local,
-        mesh::{TriMesh, Triangle, is_ray_hit},
+        mesh::{TriMesh, Triangle},
     },
     crate_utils::{impl_parallel, impl_parallel_sum},
-    fields::field_triangle::local_triangle_B,
+    fields::field_triangle::{local_triangle_B, solid_angle},
 };
 
 /// Computes B-field of a homogeneously magnetized mesh at point in local frame.
@@ -37,23 +37,67 @@ pub fn local_mesh_B<T: Float>(
 ) -> Vector3<T> {
     let mut b_total = Vector3::zeros();
 
-    let ray_origin = point.coords;
-    let ray_dir = Vector3::new(T::one(), T::zero(), T::zero());
-
-    let mut intersections = 0;
+    let mut total_solid_angle = T::zero();
     triangles.iter().for_each(|&triangle| {
-        b_total += local_triangle_B(point, polarization, triangle.vertices());
+        let vertices = triangle.vertices();
+        b_total += local_triangle_B(point, polarization, vertices);
 
-        if is_ray_hit(triangle, ray_origin, ray_dir, T::zero(), T::infinity()) {
-            intersections += 1;
-        }
+        let r_vecs = vertices.map(|vertex| vertex - point.coords);
+        let r_mags = r_vecs.map(|r| r.norm());
+        total_solid_angle += solid_angle(&r_vecs, &r_mags);
     });
 
-    if intersections % 2 != 0 {
+    if num_traits::Float::abs(total_solid_angle) > T::pi() * T::from(2.0).unwrap() {
         b_total += polarization;
     }
 
     b_total
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use approx::assert_relative_eq;
+    use nalgebra::{point, vector};
+
+    #[test]
+    fn cube_center_is_classified_inside_when_ray_crosses_shared_edge() {
+        let vertices = vec![
+            vector![-1.0, -1.0, -1.0],
+            vector![1.0, -1.0, -1.0],
+            vector![1.0, 1.0, -1.0],
+            vector![-1.0, 1.0, -1.0],
+            vector![-1.0, -1.0, 1.0],
+            vector![1.0, -1.0, 1.0],
+            vector![1.0, 1.0, 1.0],
+            vector![-1.0, 1.0, 1.0],
+        ];
+        let faces = vec![
+            [0, 2, 1],
+            [0, 3, 2],
+            [4, 5, 6],
+            [4, 6, 7],
+            [0, 1, 5],
+            [0, 5, 4],
+            [3, 7, 6],
+            [3, 6, 2],
+            [0, 4, 7],
+            [0, 7, 3],
+            [1, 2, 6],
+            [1, 6, 5],
+        ];
+        let mesh = TriMesh::new(vertices, faces).unwrap();
+
+        let actual = mesh_B(
+            point![0.0, 0.0, 0.0],
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            Vector3::z(),
+            &mesh,
+        );
+
+        assert_relative_eq!(actual, vector![0.0, 0.0, 2.0 / 3.0], epsilon = 1e-12);
+    }
 }
 
 /// Computes B-field of a homogeneously magnetized mesh at point (x, y, z).
