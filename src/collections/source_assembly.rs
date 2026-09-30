@@ -9,7 +9,7 @@ use std::fmt::Display;
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
 use crate::{
-    base::transform::{impl_group_transform, impl_transform},
+    base::transform::impl_group_transform,
     base::{Float, Pose, Source, Transform},
     collections::{
         SourceArray, node::Node, source_component::SourceComponent, utils::impl_group_compute_B,
@@ -60,7 +60,7 @@ impl<T: Float> SourceAssembly<T> {
     }
 
     pub fn components(&self) -> impl Iterator<Item = &SourceComponent<T>> {
-        self.nodes.iter().map(|n| &n.component)
+        self.nodes.iter().map(Node::component)
     }
 
     /// ```
@@ -156,7 +156,7 @@ impl<'a, T: Float> IntoIterator for &'a SourceAssembly<T> {
     >;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.nodes.iter().map(|n| &n.component)
+        self.nodes.iter().map(Node::component)
     }
 }
 
@@ -194,19 +194,18 @@ impl<T: Float> Index<usize> for SourceAssembly<T> {
     type Output = SourceComponent<T>;
 
     fn index(&self, index: usize) -> &Self::Output {
-        &self.nodes[index].component
+        self.nodes[index].component()
     }
 }
 
 impl<T: Float> IndexMut<usize> for SourceAssembly<T> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        &mut self.nodes[index].component
+        self.nodes[index].component_mut()
     }
 }
 
 // MARK: Transform
 
-impl_transform!(SourceAssembly<T> where T: Float);
 impl_group_transform!(SourceAssembly<T> where T: Float);
 
 // MARK: Source
@@ -251,7 +250,7 @@ impl<T: Float> PartialEq for SourceAssembly<T> {
         for node in &self.nodes {
             let found =
                 other.nodes.iter().enumerate().find(|(idx, other_node)| {
-                    !matched[*idx] && node.component == other_node.component
+                    !matched[*idx] && node.component() == other_node.component()
                 });
 
             match found {
