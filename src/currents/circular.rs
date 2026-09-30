@@ -14,10 +14,10 @@ define_source! {
     CircularCurrent
     field_fn: circular_B
     args: {
-        diameter: T = T::one();
+        diameter: @val T = T::one();
             validate diameter > T::zero();
             error "Diameter must be positive.",
-        current: T = T::one(),
+        current: @val T = T::one(),
     }
     arg_display: "d={}, I={}";
     arg_fmt: [format_float, format_float]

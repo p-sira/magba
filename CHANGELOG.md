@@ -4,9 +4,20 @@
 
 ### 0.6.3
 
+**Breaking Changes**
+
+- Encapsulate `Node` fields behind `component`, `component_mut`, `into_component`, and `local_offset` methods so mutable component access can be tracked safely.
+
 **Bug Fixes**
 
+- Correct mesh containment when a test ray crosses shared triangle edges or vertices.
+- Make mesh ray-intersection tolerances scale-aware for small `f32` geometry.
+- Preserve child edits with per-node dirty tracking while keeping untouched local offsets stable across repeated transformations.
+- Propagate collection pose changes through nested source and observer collections.
+- Preserve a linear Hall sensor's private sensitive axis across positive, negative, and zero sensitivity values.
 - Reject non-finite accuracy-test values and compare identical zero vectors correctly.
+- Use `openmesh`'s per-face relative tolerance so valid small and multiscale meshes are accepted without global rescaling.
+
 ### 0.6.2
 
 **Bug Fixes**

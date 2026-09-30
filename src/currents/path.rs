@@ -13,7 +13,7 @@ define_source! {
     PathCurrent
     field_fn: path_current_B
     args: {
-        current: T = T::zero(),
+        current: @val T = T::zero(),
         vertices: @ref Vec<Vector3<T>> = Vec::new(),
     }
     arg_display: "current={}, vertices count={}";

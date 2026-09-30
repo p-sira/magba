@@ -21,7 +21,7 @@ use crate::{
 #[inline]
 #[allow(non_snake_case)]
 #[replace_float_literals(T::from_f64(literal).unwrap())]
-fn solid_angle<T: Float>(r_vecs: &[Vector3<T>; 3], r_mags: &[T; 3]) -> T {
+pub(crate) fn solid_angle<T: Float>(r_vecs: &[Vector3<T>; 3], r_mags: &[T; 3]) -> T {
     let N = r_vecs[2].dot(&r_vecs[1].cross(&r_vecs[0]));
 
     let D = r_mags[0] * r_mags[1] * r_mags[2]
