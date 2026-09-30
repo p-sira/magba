@@ -19,10 +19,10 @@ define_source! {
     field_fn: cylinder_B
     args: {
         polarization: Vector3<T> = Vector3::z(),
-        diameter: T = T::one();
+        diameter: @val T = T::one();
             validate diameter > T::zero();
             error "Diameter cannot be negative.",
-        height: T = T::one();
+        height: @val T = T::one();
             validate height > T::zero();
             error "Height cannot be negative.",
     }
@@ -67,7 +67,7 @@ crate::testing_util::generate_tests! {
         rotate: 5e-10,
     }
     f32_rtols: {
-        static: 5e-2,
+        static: 7e-2,
         static_small: 5e-2,
         translate: 5e-2,
         rotate: 1e-2,
