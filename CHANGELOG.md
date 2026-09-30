@@ -2,6 +2,11 @@
 
 ## 0.6
 
+### 0.6.3
+
+**Bug Fixes**
+
+- Correct mesh containment when a test ray crosses shared triangle edges or vertices.
 ### 0.6.2
 
 **Bug Fixes**
