@@ -2,6 +2,11 @@
 
 ## 0.6
 
+### 0.6.3
+
+**Bug Fixes**
+
+- Preserve a linear Hall sensor's private sensitive axis across positive, negative, and zero sensitivity values.
 ### 0.6.2
 
 **Bug Fixes**
