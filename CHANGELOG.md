@@ -2,6 +2,11 @@
 
 ## 0.6
 
+### 0.6.3
+
+**Bug Fixes**
+
+- Reject non-finite accuracy-test values and compare identical zero vectors correctly.
 ### 0.6.2
 
 **Bug Fixes**
