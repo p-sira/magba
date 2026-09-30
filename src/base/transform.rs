@@ -107,14 +107,35 @@ pub(crate) use impl_transform;
 #[cfg(feature = "std")]
 macro_rules! impl_group_transform {
     ($name:ident < $( $args:ty ),* > where $( $bounds:tt )* ) => {
+        impl< $( $bounds )* > crate::base::transform::Transform<T> for $name< $( $args ),*> {
+            #[inline]
+            fn pose(&self) -> &crate::base::Pose<T> {
+                &self.pose
+            }
+
+            #[inline]
+            fn pose_mut(&mut self) -> &mut crate::base::Pose<T> {
+                &mut self.pose
+            }
+
+            #[inline]
+            fn set_pose(&mut self, new_pose: crate::base::Pose<T>) {
+                let old_pose_inv = self.pose.as_isometry().inverse();
+                for node in self.nodes.iter_mut() {
+                    node.sync_local_offset(&self.pose, &old_pose_inv);
+                }
+
+                self.pose = new_pose;
+                for node in self.nodes.iter_mut() {
+                    node.apply_parent_pose(&self.pose);
+                }
+            }
+        }
+
         impl< $( $bounds )* > $name< $( $args ),*> {
             #[inline]
             pub fn set_pose(&mut self, new_pose: impl Into<Pose<T>>) {
-                self.pose = new_pose.into();
-                for node in self.nodes.iter_mut() {
-                    let global_isometry = self.pose.as_isometry() * node.local_offset.as_isometry();
-                    node.component.set_pose(global_isometry.into());
-                }
+                crate::base::Transform::set_pose(self, new_pose.into());
             }
 
             delegate::delegate! {

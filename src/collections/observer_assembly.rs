@@ -11,7 +11,7 @@ use nalgebra::{Point3, Translation3, UnitQuaternion};
 use crate::{
     base::{
         Float, Observer, Pose, SensorOutput, Source, Transform,
-        transform::{impl_group_transform, impl_transform},
+        transform::impl_group_transform,
     },
     collections::{Node, ObserverArray, ObserverComponent},
 };
@@ -48,7 +48,7 @@ impl<T: Float> ObserverAssembly<T> {
     }
 
     pub fn components(&self) -> impl Iterator<Item = &ObserverComponent<T>> {
-        self.nodes.iter().map(|n| &n.component)
+        self.nodes.iter().map(Node::component)
     }
 
     pub fn iter(&self) -> impl Iterator<Item = &ObserverComponent<T>> {
@@ -59,7 +59,7 @@ impl<T: Float> ObserverAssembly<T> {
     pub fn read_all(&self, source: &dyn Source<T>) -> Vec<SensorOutput<T>> {
         self.nodes
             .iter()
-            .map(|node| node.component.read(source))
+            .map(|node| node.component().read(source))
             .collect()
     }
 }
@@ -142,7 +142,7 @@ impl<'a, T: Float> IntoIterator for &'a ObserverAssembly<T> {
     >;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.nodes.iter().map(|n| &n.component)
+        self.nodes.iter().map(Node::component)
     }
 }
 
@@ -180,19 +180,18 @@ impl<T: Float> Index<usize> for ObserverAssembly<T> {
     type Output = ObserverComponent<T>;
 
     fn index(&self, index: usize) -> &Self::Output {
-        &self.nodes[index].component
+        self.nodes[index].component()
     }
 }
 
 impl<T: Float> IndexMut<usize> for ObserverAssembly<T> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        &mut self.nodes[index].component
+        self.nodes[index].component_mut()
     }
 }
 
 // MARK: Transform
 
-impl_transform!(ObserverAssembly<T> where T: Float);
 impl_group_transform!(ObserverAssembly<T> where T: Float);
 
 // MARK: Display
@@ -233,7 +232,7 @@ impl<T: Float> PartialEq for ObserverAssembly<T> {
         for node in &self.nodes {
             let found =
                 other.nodes.iter().enumerate().find(|(idx, other_node)| {
-                    !matched[*idx] && node.component == other_node.component
+                    !matched[*idx] && node.component() == other_node.component()
                 });
 
             match found {

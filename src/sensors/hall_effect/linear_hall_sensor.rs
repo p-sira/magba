@@ -21,6 +21,8 @@ use crate::{
 #[getset(get = "pub")]
 pub struct LinearHallSensor<T: Float = f64> {
     pose: Pose<T>,
+    #[getset(skip)]
+    sensitive_axis: Vector3<T>,
     sensitivity_vector: Vector3<T>,
     quiescent_voltage: T,
     min_voltage: T,
@@ -57,12 +59,22 @@ impl<T: Float> LinearHallSensor<T> {
         if supply_voltage <= T::zero() {
             panic!("Supply voltage must be positive.");
         }
+        if !sensitivity.is_finite() {
+            panic!("Sensitivity must be finite.");
+        }
 
         let two = T::from_f64(2.0).unwrap();
-        let sensitivity_vector = sensitive_axis.into().normalize() * sensitivity;
+        let axis = sensitive_axis.into();
+        let axis_norm = axis.norm();
+        if axis_norm == T::zero() || !axis_norm.is_finite() {
+            panic!("Sensitive axis must be finite and non-zero.");
+        }
+        let sensitive_axis = axis / axis_norm;
+        let sensitivity_vector = sensitive_axis * sensitivity;
 
         Self {
             pose: Pose::new(position.into(), orientation),
+            sensitive_axis,
             sensitivity_vector,
             quiescent_voltage: supply_voltage / two,
             min_voltage: T::zero(),
@@ -120,12 +132,12 @@ impl<T: Float> LinearHallSensor<T> {
 
     #[inline]
     pub fn sensitivity(&self) -> T {
-        self.sensitivity_vector.magnitude()
+        self.sensitivity_vector.dot(&self.sensitive_axis)
     }
 
     #[inline]
     pub fn sensitive_axis(&self) -> Vector3<T> {
-        self.sensitivity_vector.normalize()
+        self.sensitive_axis
     }
 
     #[inline]
@@ -137,7 +149,10 @@ impl<T: Float> LinearHallSensor<T> {
 
     #[inline]
     pub fn set_sensitivity(&mut self, sensitivity: T) {
-        self.sensitivity_vector = self.sensitive_axis() * sensitivity;
+        if !sensitivity.is_finite() {
+            panic!("Sensitivity must be finite.");
+        }
+        self.sensitivity_vector = self.sensitive_axis * sensitivity;
     }
 
     #[inline]
@@ -169,6 +184,7 @@ impl<T: Float> Default for LinearHallSensor<T> {
     fn default() -> Self {
         Self {
             pose: Default::default(),
+            sensitive_axis: Vector3::z(),
             sensitivity_vector: Vector3::z(),
             quiescent_voltage: T::from(2.5).unwrap(),
             min_voltage: T::zero(),
@@ -227,5 +243,51 @@ mod tests {
     fn test_set_supply_voltage_validation() {
         let mut sensor = LinearHallSensor::default();
         sensor.set_supply_voltage(-5.0);
+    }
+
+    #[test]
+    fn sensitivity_recovers_after_zero() {
+        let mut sensor = LinearHallSensor::new(
+            [0.0; 3],
+            UnitQuaternion::identity(),
+            [0.0, 0.0, 1.0],
+            0.0,
+            5.0,
+        );
+
+        assert_eq!(sensor.sensitivity(), 0.0);
+        assert_eq!(sensor.sensitive_axis(), Vector3::z());
+
+        sensor.set_sensitivity(20.0);
+        assert_eq!(sensor.sensitivity(), 20.0);
+        assert_eq!(sensor.sensitive_axis(), Vector3::z());
+    }
+
+    #[test]
+    fn preserves_negative_sensitivity() {
+        let mut sensor = LinearHallSensor::<f64>::default();
+        sensor.set_sensitivity(-20.0);
+
+        assert_eq!(sensor.sensitivity(), -20.0);
+        assert_eq!(sensor.sensitive_axis(), Vector3::z());
+        assert_eq!(*sensor.sensitivity_vector(), -Vector3::z() * 20.0);
+    }
+
+    #[test]
+    #[should_panic(expected = "Sensitivity must be finite")]
+    fn rejects_non_finite_sensitivity() {
+        LinearHallSensor::<f64>::default().set_sensitivity(f64::NAN);
+    }
+
+    #[test]
+    #[should_panic(expected = "finite and non-zero")]
+    fn rejects_zero_sensitive_axis() {
+        let _ = LinearHallSensor::new(
+            [0.0; 3],
+            UnitQuaternion::identity(),
+            [0.0, 0.0, 0.0],
+            1.0,
+            5.0,
+        );
     }
 }
