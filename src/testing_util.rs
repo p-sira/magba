@@ -23,6 +23,9 @@ use crate::base::mesh::{TriMesh, Triangle};
 /// Calculate the relative Euclidean distance
 pub fn relative_vec_distance<T: RealField + Copy>(a: Vector3<T>, b: Vector3<T>) -> T {
     let dist = distance(&Point3::from(a), &Point3::from(b));
+    if dist == T::zero() {
+        return T::zero();
+    }
     (dist / a.magnitude()).max(dist / b.magnitude())
 }
 
@@ -90,6 +93,14 @@ pub fn assert_close_vec_vector<T: RealField + Copy + LowerExp>(
     let len = vecs1.len();
     if len != vecs2.len() {
         panic!("assert_close_vector fails. Two vecs of Vector3 must be the same length.")
+    }
+    if vecs1
+        .iter()
+        .chain(vecs2)
+        .flat_map(|vector| vector.iter())
+        .any(|value| !value.is_finite())
+    {
+        panic!("assert_close_vec_vector received a non-finite value")
     }
 
     let mut rdists: Vec<T> = vecs1
@@ -194,6 +205,30 @@ pub fn assert_close_vec_vector<T: RealField + Copy + LowerExp>(
             worst_params.0, worst_params.1, worst_params.2, worst_params.3, rtol
         );
         panic!("assert_close_vec_vector")
+    }
+}
+
+#[cfg(test)]
+mod comparison_tests {
+    use super::*;
+
+    #[test]
+    fn zero_vectors_have_zero_relative_distance() {
+        assert_eq!(
+            relative_vec_distance(Vector3::<f64>::zeros(), Vector3::zeros()),
+            0.0
+        );
+    }
+
+    #[test]
+    #[should_panic(expected = "non-finite")]
+    fn rejects_nan_against_finite_reference() {
+        assert_close_vec_vector(
+            &vec![Vector3::new(f64::NAN, 0.0, 0.0)],
+            &vec![Vector3::z()],
+            1e-12,
+            1e-12,
+        );
     }
 }
 
