@@ -37,13 +37,14 @@ pub fn is_ray_hit<T: Float>(
     t_min: T,
     t_max: T,
 ) -> bool {
-    let eps = T::epsilon() * T::from(16.0).unwrap();
     let e1 = triangle.v2 - triangle.v1;
     let e2 = triangle.v3 - triangle.v1;
     let p = ray_dir.cross(&e2);
 
     let det = e1.dot(&p);
-    if num_traits::Float::abs(det) < eps {
+    let det_scale = e1.norm() * e2.norm() * ray_dir.norm();
+    let eps = T::epsilon() * T::from(16.0).unwrap() * det_scale;
+    if num_traits::Float::abs(det) <= eps {
         return false;
     }
     let inv_det = T::one() / det;

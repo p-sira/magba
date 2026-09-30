@@ -98,6 +98,35 @@ mod tests {
 
         assert_relative_eq!(actual, vector![0.0, 0.0, 2.0 / 3.0], epsilon = 1e-12);
     }
+
+    #[test]
+    fn f32_millimeter_mesh_matches_tetrahedron() {
+        let vertices = [
+            vector![0.0_f32, 0.0, 0.0],
+            vector![0.001, 0.0, 0.0],
+            vector![0.0, 0.001, 0.0],
+            vector![0.0, 0.0, 0.001],
+        ];
+        let mesh = TriMesh::new_unchecked(vertices, [[0, 2, 1], [0, 1, 3], [1, 2, 3], [0, 3, 2]]);
+        let point = point![0.0001, 0.0002, 0.0003];
+
+        let actual = mesh_B(
+            point,
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            Vector3::z(),
+            &mesh,
+        );
+        let expected = crate::fields::tetrahedron_B(
+            point,
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            Vector3::z(),
+            vertices,
+        );
+
+        assert_relative_eq!(actual, expected, epsilon = 1e-5);
+    }
 }
 
 /// Computes B-field of a homogeneously magnetized mesh at point (x, y, z).
