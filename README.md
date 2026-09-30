@@ -115,7 +115,7 @@ let b_fields = source_assembly.compute_B_batch(&points);
 ## Testing
 
 Results are validated against MagpyLib and reference data.
-See `/tests/test-data` and the accuracy report for details.
+See `testing/data` and the accuracy report for details.
 
 ---
 
