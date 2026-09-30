@@ -6,6 +6,7 @@
 
 **Bug Fixes**
 
+- Propagate collection pose changes through nested source and observer collections.
 - Preserve a linear Hall sensor's private sensitive axis across positive, negative, and zero sensitivity values.
 
 ### 0.6.2

@@ -11,7 +11,7 @@ use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 use crate::{
     base::{
         Float, Pose, Source, Transform,
-        transform::{impl_group_transform, impl_transform},
+        transform::impl_group_transform,
     },
     collections::{node::Node, utils::impl_group_compute_B},
 };
@@ -86,7 +86,6 @@ impl<S: Source<T> + Default, T: Float, const N: usize> Default for SourceArray<S
 
 // MARK: Transform
 
-impl_transform!(SourceArray<S, N, T> where S: Source<T>, const N: usize, T: Float);
 impl_group_transform!(SourceArray<S, N, T> where S: Source<T>, const N: usize, T: Float);
 
 // MARK: Source
@@ -243,7 +242,7 @@ mod field_tests {
     use std::f64::consts::PI;
 
     use super::*;
-    use crate::{magnets::*, testing_util::*};
+    use crate::{collections::SourceAssembly, magnets::*, testing_util::*};
     use nalgebra::{Translation3, point};
 
     fn array() -> SourceArray<CylinderMagnet, 3, f64> {
@@ -269,6 +268,28 @@ mod field_tests {
             6e-3,
         );
         SourceArray::from([m1, m2, m3])
+    }
+
+    #[test]
+    fn trait_set_pose_propagates_to_children() {
+        let mut array = SourceArray::from([Dipole::default().with_position([1.0, 0.0, 0.0])]);
+
+        Transform::set_pose(
+            &mut array,
+            Pose::new([10.0, 0.0, 0.0], UnitQuaternion::identity()),
+        );
+
+        assert_eq!(array[0].position(), point![11.0, 0.0, 0.0]);
+    }
+
+    #[test]
+    fn transform_propagates_through_nested_collections() {
+        let inner = SourceAssembly::from([Dipole::default().with_position([1.0, 0.0, 0.0])]);
+        let mut outer = SourceArray::from([inner]);
+
+        outer.translate([10.0, 0.0, 0.0]);
+
+        assert_eq!(outer[0][0].pose().position(), point![11.0, 0.0, 0.0]);
     }
 
     #[test]
