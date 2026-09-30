@@ -2,6 +2,15 @@
 
 ## 0.6
 
+### 0.6.3
+
+**Breaking Changes**
+
+- Encapsulate `Node` fields behind `component`, `component_mut`, `into_component`, and `local_offset` methods so mutable component access can be tracked safely.
+
+**Bug Fixes**
+
+- Preserve child edits with per-node dirty tracking while keeping untouched local offsets stable across repeated transformations.
 ### 0.6.2
 
 **Bug Fixes**
