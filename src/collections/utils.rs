@@ -21,7 +21,7 @@ macro_rules! impl_group_compute_B {
                 // Parallel iterate over nodes directly to avoid collecting into a Vec
                 self.nodes
                     .par_iter()
-                    .map(|node| node.component.compute_B_batch(points))
+                    .map(|node| node.component().compute_B_batch(points))
                     .reduce(
                         || vec![Vector3::zeros(); points.len()],
                         |mut acc, child_batch| {

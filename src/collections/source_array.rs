@@ -67,7 +67,7 @@ impl<S: Source<T>, const N: usize, T: Float> SourceArray<S, N, T> {
     }
 
     pub fn components(&self) -> impl Iterator<Item = &S> {
-        self.nodes.iter().map(|n| &n.component)
+        self.nodes.iter().map(Node::component)
     }
 
     pub fn iter(&self) -> impl Iterator<Item = &S> {
@@ -100,13 +100,13 @@ impl<S: Source<T>, const N: usize, T: Float> Index<usize> for SourceArray<S, N, 
     type Output = S;
 
     fn index(&self, index: usize) -> &Self::Output {
-        &self.nodes[index].component
+        self.nodes[index].component()
     }
 }
 
 impl<S: Source<T>, const N: usize, T: Float> IndexMut<usize> for SourceArray<S, N, T> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        &mut self.nodes[index].component
+        self.nodes[index].component_mut()
     }
 }
 
@@ -149,7 +149,7 @@ impl<'a, S: Source<T>, const N: usize, T: Float> IntoIterator for &'a SourceArra
     type IntoIter = std::iter::Map<std::slice::Iter<'a, Node<S, T>>, fn(&'a Node<S, T>) -> &'a S>;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.nodes.iter().map(|n| &n.component)
+        self.nodes.iter().map(Node::component)
     }
 }
 
@@ -158,7 +158,7 @@ impl<S: Source<T>, const N: usize, T: Float> IntoIterator for SourceArray<S, N, 
     type IntoIter = std::iter::Map<std::array::IntoIter<Node<S, T>, N>, fn(Node<S, T>) -> S>;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.nodes.into_iter().map(|n| n.component)
+        self.nodes.into_iter().map(Node::into_component)
     }
 }
 
@@ -175,7 +175,7 @@ impl<S: Source<T> + PartialEq, T: Float, const N: usize> PartialEq for SourceArr
         for node in &self.nodes {
             let found =
                 other.nodes.iter().enumerate().find(|(idx, other_node)| {
-                    !matched[*idx] && node.component == other_node.component
+                    !matched[*idx] && node.component() == other_node.component()
                 });
 
             match found {
@@ -268,6 +268,27 @@ mod field_tests {
             6e-3,
         );
         SourceArray::from([m1, m2, m3])
+    }
+
+    #[test]
+    fn child_mutation_updates_local_offset_before_parent_transform() {
+        let mut array = SourceArray::from([
+            Dipole::default().with_position([1.0, 0.0, 0.0]),
+            Dipole::default().with_position([2.0, 0.0, 0.0]),
+        ]);
+        let untouched_offset = *array.nodes[1].local_offset();
+
+        array[0].set_position([5.0, 0.0, 0.0]);
+        array[1].set_moment([1.0, 0.0, 0.0]);
+        assert!(array.nodes[0].is_dirty());
+        assert!(array.nodes[1].is_dirty());
+
+        array.translate([10.0, 0.0, 0.0]);
+
+        assert_eq!(array[0].position(), point![15.0, 0.0, 0.0]);
+        assert_eq!(array[1].position(), point![12.0, 0.0, 0.0]);
+        assert_eq!(*array.nodes[1].local_offset(), untouched_offset);
+        assert!(!array.nodes[0].is_dirty());
     }
 
     #[test]
