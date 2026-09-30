@@ -2,6 +2,11 @@
 
 ## 0.6
 
+### 0.6.3
+
+**Bug Fixes**
+
+- Use `openmesh`'s per-face relative tolerance so valid small and multiscale meshes are accepted without global rescaling.
 ### 0.6.2
 
 **Bug Fixes**

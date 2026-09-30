@@ -94,7 +94,8 @@ impl<T: Float + core::iter::Sum> TriMesh<T> {
 
         let v_val: Vec<openmesh::Vertex<T>> = vertices.iter().map(|&v| v.into()).collect();
         let f_val: Vec<openmesh::Face> = faces.iter().map(|&f| f.into()).collect();
-        openmesh::core::validate_mesh(&v_val, &f_val, T::from(1e-4).unwrap())?;
+        let tolerance = openmesh::FaceTolerance::new(T::zero(), T::from(1e-4).unwrap())?;
+        openmesh::core::validate_mesh_with_tolerance(&v_val, &f_val, tolerance)?;
 
         Ok(Self::new_unchecked(vertices, faces))
     }
@@ -116,6 +117,51 @@ impl<T: Float + core::iter::Sum> TriMesh<T> {
             .collect();
         let faces: Vec<[usize; 3]> = mesh.faces.into_iter().map(|f| [f.0, f.1, f.2]).collect();
         Ok(Self::new_unchecked(vertices, faces))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use nalgebra::vector;
+
+    #[test]
+    fn validates_millimeter_scale_tetrahedron() {
+        let vertices = [
+            vector![0.0, 0.0, 0.0],
+            vector![0.001, 0.0, 0.0],
+            vector![0.0, 0.001, 0.0],
+            vector![0.0, 0.0, 0.001],
+        ];
+        let faces = [[0, 2, 1], [0, 1, 3], [1, 2, 3], [0, 3, 2]];
+
+        assert!(TriMesh::<f64>::new(vertices, faces).is_ok());
+    }
+
+    #[test]
+    fn validates_mixed_scale_geometry() {
+        let vertices = [
+            vector![0.0, 0.0, 0.0],
+            vector![0.001, 0.0, 0.0],
+            vector![0.0, 0.001, 0.0],
+            vector![0.0, 0.0, 0.001],
+            vector![1000.0, 0.0, 0.0],
+            vector![1001.0, 0.0, 0.0],
+            vector![1000.0, 1.0, 0.0],
+            vector![1000.0, 0.0, 1.0],
+        ];
+        let faces = [
+            [0, 2, 1],
+            [0, 1, 3],
+            [1, 2, 3],
+            [0, 3, 2],
+            [4, 6, 5],
+            [4, 5, 7],
+            [5, 6, 7],
+            [4, 7, 6],
+        ];
+
+        assert!(TriMesh::<f64>::new(vertices, faces).is_ok());
     }
 }
 
