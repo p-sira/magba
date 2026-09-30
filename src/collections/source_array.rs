@@ -246,6 +246,31 @@ mod field_tests {
     use crate::{magnets::*, testing_util::*};
     use nalgebra::{Translation3, point};
 
+    #[derive(Clone, Debug)]
+    struct ScalarOnlySource {
+        pose: Pose<f64>,
+    }
+
+    impl Transform<f64> for ScalarOnlySource {
+        fn pose(&self) -> &Pose<f64> {
+            &self.pose
+        }
+
+        fn pose_mut(&mut self) -> &mut Pose<f64> {
+            &mut self.pose
+        }
+    }
+
+    impl Source<f64> for ScalarOnlySource {
+        fn compute_B(&self, _point: Point3<f64>) -> Vector3<f64> {
+            Vector3::z()
+        }
+
+        fn compute_B_batch(&self, _points: &[Point3<f64>]) -> Vec<Vector3<f64>> {
+            panic!("small collection batches should use scalar evaluation")
+        }
+    }
+
     fn array() -> SourceArray<CylinderMagnet, 3, f64> {
         let m1 = CylinderMagnet::new(
             [0.0094, 0.0, -0.006],
@@ -269,6 +294,20 @@ mod field_tests {
             6e-3,
         );
         SourceArray::from([m1, m2, m3])
+    }
+
+    #[test]
+    fn small_batch_uses_scalar_collection_path() {
+        let sources: SourceArray<ScalarOnlySource, 8> = SourceArray::from(core::array::from_fn(
+            |_| ScalarOnlySource {
+                pose: Pose::default(),
+            },
+        ));
+
+        assert_eq!(
+            sources.compute_B_batch(&[Point3::origin()]),
+            vec![Vector3::z() * 8.0]
+        );
     }
 
     #[test]

@@ -14,6 +14,10 @@ macro_rules! impl_group_compute_B {
 
         #[inline]
         fn compute_B_batch(&self, points: &[Point3<T>]) -> Vec<Vector3<T>> {
+            if points.len().saturating_mul(self.nodes.len()) <= 512 {
+                return points.iter().map(|point| self.compute_B(*point)).collect();
+            }
+
             #[cfg(feature = "rayon")]
             {
                 use rayon::prelude::*;

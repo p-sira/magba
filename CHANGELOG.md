@@ -2,6 +2,11 @@
 
 ## 0.6
 
+### 0.6.3
+
+**Performance**
+
+- Avoid Rayon and intermediate batch allocations for small collection field computations.
 ### 0.6.2
 
 **Bug Fixes**
