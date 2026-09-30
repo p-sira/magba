@@ -2,6 +2,11 @@
 
 ## 0.6
 
+### 0.6.3
+
+**Bug Fixes**
+
+- Make mesh ray-intersection tolerances scale-aware for small `f32` geometry.
 ### 0.6.2
 
 **Bug Fixes**
