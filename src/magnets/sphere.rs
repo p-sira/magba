@@ -17,7 +17,7 @@ define_source! {
     field_fn: sphere_B
     args: {
         polarization: Vector3<T> = Vector3::z(),
-        diameter: T = T::one();
+        diameter: @val T = T::one();
             validate diameter > T::zero();
             error "Diameter cannot be negative.",
     }
