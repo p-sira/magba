@@ -2,6 +2,11 @@
 
 ## 0.6
 
+### 0.6.3
+
+**Performance**
+
+- Honor `sum_multiple_*` parallelization thresholds to avoid Rayon overhead on small batches.
 ### 0.6.2
 
 **Bug Fixes**

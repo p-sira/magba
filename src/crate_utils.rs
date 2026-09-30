@@ -148,15 +148,27 @@ macro_rules! impl_parallel_sum {
         {
             use rayon::prelude::*;
 
-            $out.par_iter_mut()
-                .zip($points.par_iter())
-                .for_each(|(o, p_ref)| {
-                    let $p = p_ref;
-                    *o = itertools::izip!($($vecs),+)
-                        .fold(nalgebra::Vector3::zeros(), |acc, ($($args),*)| {
-                            acc + $calc
-                        });
-                });
+            if $points.len() > $threshold {
+                $out.par_iter_mut()
+                    .zip($points.par_iter())
+                    .for_each(|(o, p_ref)| {
+                        let $p = p_ref;
+                        *o = itertools::izip!($($vecs),+)
+                            .fold(nalgebra::Vector3::zeros(), |acc, ($($args),*)| {
+                                acc + $calc
+                            });
+                    });
+            } else {
+                $out.iter_mut()
+                    .zip($points.iter())
+                    .for_each(|(o, p_ref)| {
+                        let $p = p_ref;
+                        *o = itertools::izip!($($vecs),+)
+                            .fold(nalgebra::Vector3::zeros(), |acc, ($($args),*)| {
+                                acc + $calc
+                            });
+                    });
+            }
         }
 
         #[cfg(not(feature = "rayon"))]
@@ -172,6 +184,36 @@ macro_rules! impl_parallel_sum {
     }};
 }
 pub(crate) use impl_parallel_sum;
+
+#[cfg(all(test, feature = "rayon"))]
+mod parallel_sum_tests {
+    use nalgebra::{Point3, Vector3};
+
+    fn serial_only_calc(
+        _point: &Point3<f64>,
+        _position: &Point3<f64>,
+        _strength: &f64,
+    ) -> Vector3<f64> {
+        assert!(rayon::current_thread_index().is_none());
+        Vector3::zeros()
+    }
+
+    #[test]
+    fn honors_serial_threshold() {
+        let points = vec![Point3::origin(); 32];
+        let positions = vec![Point3::origin(); 2];
+        let strengths = vec![1.0; 2];
+        let mut out = vec![Vector3::zeros(); points.len()];
+
+        impl_parallel_sum!(
+            out,
+            points,
+            usize::MAX,
+            [&positions, &strengths],
+            |point, position, strength| serial_only_calc(point, position, strength)
+        );
+    }
+}
 
 // MARK: define_source!
 
