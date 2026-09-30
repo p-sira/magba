@@ -798,9 +798,9 @@ checksum = "d6790f58c7ff633d8771f42965289203411a5e5c68388703c06e14f24770b41e"
 
 [[package]]
 name = "openmesh"
-version = "0.2.3"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "338581d9410de745119664f581e6f50ad75d376c3fa62025b5090a362241c0fd"
+checksum = "a9a3ea57ccd2acc76e0282f8059bda347d58e841d4f8153ce06406973dcc6d84"
 dependencies = [
  "hashbrown",
  "nalgebra",
