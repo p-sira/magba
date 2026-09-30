@@ -1,9 +1,10 @@
-use criterion::{Criterion, black_box, criterion_group, criterion_main};
+use criterion::{Criterion, criterion_group, criterion_main};
 use magba::base::Source;
 use magba::base::mesh::TriMesh;
 use magba::currents::*;
 use magba::magnets::*;
 use nalgebra::{Point3, UnitQuaternion, point, vector};
+use std::hint::black_box;
 use std::path::Path;
 
 fn get_points_f64() -> Vec<Point3<f64>> {
