@@ -11,6 +11,9 @@
 **Bug Fixes**
 
 - Preserve child edits with per-node dirty tracking while keeping untouched local offsets stable across repeated transformations.
+- Propagate collection pose changes through nested source and observer collections.
+- Preserve a linear Hall sensor's private sensitive axis across positive, negative, and zero sensitivity values.
+
 ### 0.6.2
 
 **Bug Fixes**

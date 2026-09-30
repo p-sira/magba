@@ -11,7 +11,7 @@ use nalgebra::{Point3, Translation3, UnitQuaternion};
 use crate::{
     base::{
         Float, Observer, Pose, SensorOutput, Source, Transform,
-        transform::{impl_group_transform, impl_transform},
+        transform::impl_group_transform,
     },
     collections::node::Node,
 };
@@ -67,7 +67,6 @@ impl<S: Observer<T> + Default, T: Float, const N: usize> Default for ObserverArr
 
 // MARK: Transform
 
-impl_transform!(ObserverArray<S, N, T> where S: Observer<T>, const N: usize, T: Float);
 impl_group_transform!(ObserverArray<S, N, T> where S: Observer<T>, const N: usize, T: Float);
 
 // MARK: Index
