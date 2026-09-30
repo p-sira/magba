@@ -2,6 +2,11 @@
 
 ## 0.6
 
+### 0.6.3
+
+**Bug Fixes**
+
+- Propagate collection pose changes through nested source and observer collections.
 ### 0.6.2
 
 **Bug Fixes**

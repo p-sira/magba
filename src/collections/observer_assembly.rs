@@ -11,7 +11,7 @@ use nalgebra::{Point3, Translation3, UnitQuaternion};
 use crate::{
     base::{
         Float, Observer, Pose, SensorOutput, Source, Transform,
-        transform::{impl_group_transform, impl_transform},
+        transform::impl_group_transform,
     },
     collections::{Node, ObserverArray, ObserverComponent},
 };
@@ -192,7 +192,6 @@ impl<T: Float> IndexMut<usize> for ObserverAssembly<T> {
 
 // MARK: Transform
 
-impl_transform!(ObserverAssembly<T> where T: Float);
 impl_group_transform!(ObserverAssembly<T> where T: Float);
 
 // MARK: Display

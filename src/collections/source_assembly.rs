@@ -9,7 +9,7 @@ use std::fmt::Display;
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
 use crate::{
-    base::transform::{impl_group_transform, impl_transform},
+    base::transform::impl_group_transform,
     base::{Float, Pose, Source, Transform},
     collections::{
         SourceArray, node::Node, source_component::SourceComponent, utils::impl_group_compute_B,
@@ -206,7 +206,6 @@ impl<T: Float> IndexMut<usize> for SourceAssembly<T> {
 
 // MARK: Transform
 
-impl_transform!(SourceAssembly<T> where T: Float);
 impl_group_transform!(SourceAssembly<T> where T: Float);
 
 // MARK: Source
