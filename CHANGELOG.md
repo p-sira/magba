@@ -20,6 +20,7 @@
 **Testing**
 
 - Reject non-finite accuracy-test values and compare identical zero vectors correctly ([#27](https://github.com/p-sira/magba/pull/27)).
+- Increase code coverage by adding tests for Traits.
 
 ## 0.6
 
