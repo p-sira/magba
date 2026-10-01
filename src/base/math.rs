@@ -85,3 +85,20 @@ impl Float for f64 {
         MU0_4PI
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use approx::assert_relative_eq;
+
+    #[test]
+    fn test_float_constants() {
+        assert_relative_eq!(<f32 as Float>::mu0(), 1.256637e-6_f32);
+        assert_relative_eq!(<f32 as Float>::recip_mu0(), 795774.7_f32);
+        assert_relative_eq!(<f32 as Float>::mu0_4pi(), 1e-7_f32);
+
+        assert_relative_eq!(<f64 as Float>::mu0(), 1.25663706127e-6);
+        assert_relative_eq!(<f64 as Float>::recip_mu0(), 795774.715564545);
+        assert_relative_eq!(<f64 as Float>::mu0_4pi(), 1e-7, max_relative = 1e-9);
+    }
+}

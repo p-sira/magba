@@ -9,7 +9,7 @@ use std::fmt::Display;
 use nalgebra::{Point3, Translation3, UnitQuaternion, Vector3};
 
 use crate::{
-    base::transform::{impl_group_transform, impl_transform},
+    base::transform::impl_group_transform,
     base::{Float, Pose, Source, Transform},
     collections::{
         SourceArray, node::Node, source_component::SourceComponent, utils::impl_group_compute_B,
@@ -60,7 +60,7 @@ impl<T: Float> SourceAssembly<T> {
     }
 
     pub fn components(&self) -> impl Iterator<Item = &SourceComponent<T>> {
-        self.nodes.iter().map(|n| &n.component)
+        self.nodes.iter().map(Node::component)
     }
 
     /// ```
@@ -156,7 +156,7 @@ impl<'a, T: Float> IntoIterator for &'a SourceAssembly<T> {
     >;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.nodes.iter().map(|n| &n.component)
+        self.nodes.iter().map(Node::component)
     }
 }
 
@@ -194,19 +194,18 @@ impl<T: Float> Index<usize> for SourceAssembly<T> {
     type Output = SourceComponent<T>;
 
     fn index(&self, index: usize) -> &Self::Output {
-        &self.nodes[index].component
+        self.nodes[index].component()
     }
 }
 
 impl<T: Float> IndexMut<usize> for SourceAssembly<T> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        &mut self.nodes[index].component
+        self.nodes[index].component_mut()
     }
 }
 
 // MARK: Transform
 
-impl_transform!(SourceAssembly<T> where T: Float);
 impl_group_transform!(SourceAssembly<T> where T: Float);
 
 // MARK: Source
@@ -249,10 +248,9 @@ impl<T: Float> PartialEq for SourceAssembly<T> {
 
         let mut matched = vec![false; other.nodes.len()];
         for node in &self.nodes {
-            let found =
-                other.nodes.iter().enumerate().find(|(idx, other_node)| {
-                    !matched[*idx] && node.component == other_node.component
-                });
+            let found = other.nodes.iter().enumerate().find(|(idx, other_node)| {
+                !matched[*idx] && node.component() == other_node.component()
+            });
 
             match found {
                 Some((idx, _)) => matched[idx] = true,
@@ -388,6 +386,53 @@ mod partial_eq_tests {
         assert_eq!(c1, c2);
         assert_ne!(c1, c3);
     }
+
+    #[test]
+    fn test_into_iterator_ref() {
+        let assembly = sources!(magnet1(), magnet2());
+        let count = (&assembly).into_iter().count();
+        assert_eq!(count, 2);
+    }
+
+    #[test]
+    fn test_index_mut() {
+        use nalgebra::point;
+        let mut assembly = sources!(magnet1());
+        assembly[0].set_pose(Pose::new([10.0, 0.0, 0.0], UnitQuaternion::identity()));
+        assert_eq!(assembly[0].pose().position(), point![10.0, 0.0, 0.0]);
+    }
+
+    #[test]
+    fn test_pose_mut() {
+        use nalgebra::point;
+        let mut assembly = sources!(magnet1());
+        let pose = Transform::pose_mut(&mut assembly);
+        assert_eq!(pose.position(), point![0.0, 0.0, 0.0]);
+    }
+
+    #[test]
+    fn test_builders_and_conversions() {
+        let mut def = SourceAssembly::<f64>::default().with_pose(Pose::default());
+        assert_eq!(def.components().count(), 0);
+
+        let vec_assembly = SourceAssembly::from(vec![magnet1()]);
+        let slice_input = [SourceComponent::from(magnet1())];
+        let slice_assembly = SourceAssembly::from(&slice_input[..]);
+        assert_eq!(vec_assembly.components().count(), 1);
+        assert_eq!(slice_assembly.components().count(), 1);
+
+        def.extend(vec![SourceComponent::from(magnet1())]);
+        assert_eq!(def.components().count(), 1);
+    }
+
+    #[test]
+    #[allow(non_snake_case)]
+    fn test_compute_B_single() {
+        use nalgebra::point;
+        let assembly = sources!(magnet1());
+        let b = Source::compute_B(&assembly, point![0.0, 0.0, 0.05]);
+        assert!(b.norm() > 0.0);
+    }
 }
 
 // MARK: Test Field
@@ -485,6 +530,7 @@ mod heterogeneous_collection_tests {
     #[test]
     fn test_static() {
         let sources = sources();
+        assert_eq!(sources.iter().count(), 3);
         test_B_magnet!(@small, &sources, "multi-sources.csv", 1e-10);
     }
 

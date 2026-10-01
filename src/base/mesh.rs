@@ -37,13 +37,14 @@ pub fn is_ray_hit<T: Float>(
     t_min: T,
     t_max: T,
 ) -> bool {
-    let eps = T::epsilon() * T::from(16.0).unwrap();
     let e1 = triangle.v2 - triangle.v1;
     let e2 = triangle.v3 - triangle.v1;
     let p = ray_dir.cross(&e2);
 
     let det = e1.dot(&p);
-    if num_traits::Float::abs(det) < eps {
+    let det_scale = e1.norm() * e2.norm() * ray_dir.norm();
+    let eps = T::epsilon() * T::from(16.0).unwrap() * det_scale;
+    if num_traits::Float::abs(det) <= eps {
         return false;
     }
     let inv_det = T::one() / det;
@@ -94,7 +95,8 @@ impl<T: Float + core::iter::Sum> TriMesh<T> {
 
         let v_val: Vec<openmesh::Vertex<T>> = vertices.iter().map(|&v| v.into()).collect();
         let f_val: Vec<openmesh::Face> = faces.iter().map(|&f| f.into()).collect();
-        openmesh::core::validate_mesh(&v_val, &f_val, T::from(1e-4).unwrap())?;
+        let tolerance = openmesh::FaceTolerance::new(T::zero(), T::from(1e-4).unwrap())?;
+        openmesh::core::validate_mesh_with_tolerance(&v_val, &f_val, tolerance)?;
 
         Ok(Self::new_unchecked(vertices, faces))
     }
@@ -104,8 +106,8 @@ impl<T: Float + core::iter::Sum> TriMesh<T> {
     where
         R: std::io::Read + std::io::Seek,
     {
-        let mesh: openmesh::Mesh<T> = openmesh::Mesh::from_stl(reader)
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
+        let mesh: openmesh::Mesh<T> =
+            openmesh::Mesh::from_stl(reader).map_err(|e| std::io::Error::other(e.to_string()))?;
         mesh.validate()
             .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e.to_string()))?;
 
@@ -157,5 +159,154 @@ impl<T: Float + core::iter::Sum> From<openmesh::Mesh<T>> for TriMesh<T> {
             .collect();
         let faces: Vec<[usize; 3]> = mesh.faces.into_iter().map(|f| [f.0, f.1, f.2]).collect();
         Self::new_unchecked(vertices, faces)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use nalgebra::vector;
+
+    #[test]
+    fn validates_millimeter_scale_tetrahedron() {
+        let vertices = [
+            vector![0.0, 0.0, 0.0],
+            vector![0.001, 0.0, 0.0],
+            vector![0.0, 0.001, 0.0],
+            vector![0.0, 0.0, 0.001],
+        ];
+        let faces = [[0, 2, 1], [0, 1, 3], [1, 2, 3], [0, 3, 2]];
+
+        assert!(TriMesh::<f64>::new(vertices, faces).is_ok());
+    }
+
+    #[test]
+    fn validates_mixed_scale_geometry() {
+        let vertices = [
+            vector![0.0, 0.0, 0.0],
+            vector![0.001, 0.0, 0.0],
+            vector![0.0, 0.001, 0.0],
+            vector![0.0, 0.0, 0.001],
+            vector![1000.0, 0.0, 0.0],
+            vector![1001.0, 0.0, 0.0],
+            vector![1000.0, 1.0, 0.0],
+            vector![1000.0, 0.0, 1.0],
+        ];
+        let faces = [
+            [0, 2, 1],
+            [0, 1, 3],
+            [1, 2, 3],
+            [0, 3, 2],
+            [4, 6, 5],
+            [4, 5, 7],
+            [5, 6, 7],
+            [4, 7, 6],
+        ];
+
+        assert!(TriMesh::<f64>::new(vertices, faces).is_ok());
+    }
+
+    #[test]
+    fn test_is_ray_hit() {
+        let tri = Triangle::new(
+            vector![0.0, 0.0, 0.0],
+            vector![1.0, 0.0, 0.0],
+            vector![0.0, 1.0, 0.0],
+        );
+        // Direct hit through center
+        assert!(is_ray_hit(
+            tri,
+            vector![0.25, 0.25, -1.0],
+            vector![0.0, 0.0, 1.0],
+            0.0,
+            10.0
+        ));
+        // Hit behind t_max
+        assert!(!is_ray_hit(
+            tri,
+            vector![0.25, 0.25, -1.0],
+            vector![0.0, 0.0, 1.0],
+            0.0,
+            0.5
+        ));
+        // Hit before t_min
+        assert!(!is_ray_hit(
+            tri,
+            vector![0.25, 0.25, -1.0],
+            vector![0.0, 0.0, 1.0],
+            2.0,
+            10.0
+        ));
+        // Miss outside triangle (u < 0 or u > 1)
+        assert!(!is_ray_hit(
+            tri,
+            vector![2.0, 2.0, -1.0],
+            vector![0.0, 0.0, 1.0],
+            0.0,
+            10.0
+        ));
+        assert!(!is_ray_hit(
+            tri,
+            vector![-0.5, 0.25, -1.0],
+            vector![0.0, 0.0, 1.0],
+            0.0,
+            10.0
+        ));
+        // Miss outside triangle (v < 0 or u + v > 1)
+        assert!(!is_ray_hit(
+            tri,
+            vector![0.25, -0.5, -1.0],
+            vector![0.0, 0.0, 1.0],
+            0.0,
+            10.0
+        ));
+        assert!(!is_ray_hit(
+            tri,
+            vector![0.8, 0.8, -1.0],
+            vector![0.0, 0.0, 1.0],
+            0.0,
+            10.0
+        ));
+        // Ray parallel to triangle plane (det <= eps)
+        assert!(!is_ray_hit(
+            tri,
+            vector![0.25, 0.25, -1.0],
+            vector![1.0, 0.0, 0.0],
+            0.0,
+            10.0
+        ));
+        // Degenerate triangle (det <= eps)
+        let degen = Triangle::new(
+            vector![0.0, 0.0, 0.0],
+            vector![0.0, 0.0, 0.0],
+            vector![0.0, 1.0, 0.0],
+        );
+        assert!(!is_ray_hit(
+            degen,
+            vector![0.0, 0.0, -1.0],
+            vector![0.0, 0.0, 1.0],
+            0.0,
+            10.0
+        ));
+    }
+
+    #[test]
+    fn test_from() {
+        // Openmesh
+        let open_m: openmesh::Mesh<f64> = openmesh::Mesh {
+            vertices: vec![
+                openmesh::Vertex(0.0, 0.0, 0.0),
+                openmesh::Vertex(1.0, 0.0, 0.0),
+                openmesh::Vertex(0.0, 1.0, 0.0),
+            ],
+            faces: vec![openmesh::Face(0, 1, 2)],
+        };
+        let tri_mesh = TriMesh::from(open_m);
+        assert_eq!(tri_mesh.triangles().len(), 1);
+
+        // Triangles
+        let triangles = tri_mesh.triangles().to_vec();
+        let from_tris = TriMesh::from_triangles(triangles);
+        assert_eq!(from_tris.triangles().len(), 1);
     }
 }

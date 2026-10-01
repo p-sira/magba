@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.7
+
+### 0.7.0
+
+**Breaking Changes**
+
+- Encapsulate `Node` fields behind `component`, `component_mut`, `into_component`, and `local_offset` methods so mutable component access can be tracked safely ([#23](https://github.com/p-sira/magba/pull/23)).
+
+**Bug Fixes**
+
+- Preserve child edits with per-node dirty tracking while keeping untouched local offsets stable across repeated transformations ([#23](https://github.com/p-sira/magba/pull/23)).
+- Correct mesh containment when a test ray crosses shared triangle edges or vertices ([#24](https://github.com/p-sira/magba/pull/24)).
+- Make mesh ray-intersection tolerances scale-aware for small `f32` geometry ([#25](https://github.com/p-sira/magba/pull/25)).
+- Preserve a linear Hall sensor's private sensitive axis across positive, negative, and zero sensitivity values ([#28](https://github.com/p-sira/magba/pull/28)).
+- Propagate collection pose changes through nested source and observer collections ([#22](https://github.com/p-sira/magba/pull/22)).
+- Use `openmesh`'s per-face relative tolerance so valid small and multiscale meshes are accepted without global rescaling ([#26](https://github.com/p-sira/magba/pull/26)).
+
+**Testing**
+
+- Reject non-finite accuracy-test values and compare identical zero vectors correctly ([#27](https://github.com/p-sira/magba/pull/27)).
+- Increase code coverage to 99% with comprehensive tests across traits, collections, sensors, and field boundary conditions.
+- Verify physical constants in `base::math` with numerical values.
+
 ## 0.6
 
 ### 0.6.2

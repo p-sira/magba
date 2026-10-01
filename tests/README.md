@@ -10,36 +10,36 @@ The observer points are generated using `get_points` and `get_points_small` func
 
 ## Accuracy Report
 
-This report is generated on AMD Ryzen 5 4600H with Radeon Graphics @4.0 GHz RAM 16 GB running x86_64-unknown-linux-gnu rustc 1.90.0 using magba v0.6.1. The performance is benchmarked using Criterion, and the average compute times are divided by the number of test cases (1,000) to get the approximate time to compute the field function for one observer point.
+This report is generated on AMD Ryzen 5 4600H with Radeon Graphics @4.0 GHz RAM 16 GB running x86_64-unknown-linux-gnu rustc 1.98.1 using magba v0.7.0. The performance is benchmarked using Criterion, and the average compute times are divided by the number of test cases (1,000) to get the approximate time to compute the field function for one observer point.
 
 ### Relative Error: f64
 
 | Function          | Median    | Mean      | P95       | Max       | Performance |
 |-------------------|-----------|-----------|-----------|-----------|-------------|
-| CircularCurrent   | 0.000     | 0.000     | 0.000     | 0.000     | 46.9 ns     |
-| PathCurrent       | 0.000     | 0.000     | 0.000     | 0.000     | 54.2 ns     |
-| SheetCurrent      | 0.000     | 0.000     | 0.000     | 0.000     | 208.1 ns    |
-| TriangleCurrent   | 0.000     | 0.000     | 0.000     | 0.000     | 78.6 ns     |
-| CylinderMagnet    | 2.947e-13 | 3.511e-12 | 2.543e-12 | 2.501e-10 | 63.3 ns     |
-| CuboidMagnet      | 0.000     | 6.930e-15 | 5.568e-14 | 2.103e-13 | 136.3 ns    |
-| Dipole            | 0.000     | 0.000     | 0.000     | 0.000     | 31.6 ns     |
-| SphereMagnet      | 0.000     | 8.086e-19 | 0.000     | 8.078e-16 | 26.9 ns     |
-| TetrahedronMagnet | 0.000     | 3.450e-13 | 7.618e-13 | 1.020e-10 | 111.5 ns    |
-| TriangleMagnet    | 0.000     | 1.066e-14 | 3.274e-14 | 2.405e-12 | 55.6 ns     |
-| MeshMagnet        | 0.000     | 3.450e-13 | 7.618e-13 | 1.020e-10 | 111.1 ns    |
+| CircularCurrent   | 0.000     | 0.000     | 0.000     | 0.000     | 38.6 ns     |
+| PathCurrent       | 0.000     | 0.000     | 0.000     | 0.000     | 47.3 ns     |
+| SheetCurrent      | 0.000     | 0.000     | 0.000     | 0.000     | 148.0 ns    |
+| TriangleCurrent   | 0.000     | 0.000     | 0.000     | 0.000     | 61.0 ns     |
+| CylinderMagnet    | 2.921e-13 | 8.067e-13 | 2.049e-12 | 1.609e-10 | 57.3 ns     |
+| CuboidMagnet      | 0.000     | 6.930e-15 | 5.568e-14 | 2.103e-13 | 111.4 ns    |
+| Dipole            | 0.000     | 0.000     | 0.000     | 0.000     | 26.4 ns     |
+| SphereMagnet      | 0.000     | 8.086e-19 | 0.000     | 8.078e-16 | 13.6 ns     |
+| TetrahedronMagnet | 0.000     | 3.450e-13 | 7.618e-13 | 1.020e-10 | 85.6 ns     |
+| TriangleMagnet    | 0.000     | 1.066e-14 | 3.274e-14 | 2.405e-12 | 43.4 ns     |
+| MeshMagnet        | 0.000     | 3.450e-13 | 7.618e-13 | 1.020e-10 | 94.6 ns     |
 
 ### Relative Error: f32
 
 | Function          | Median   | Mean     | P95      | Max      | Performance |
 |-------------------|----------|----------|----------|----------|-------------|
-| CircularCurrent   | 2.094e-7 | 3.216e-7 | 7.188e-7 | 1.907e-5 | 46.9 ns     |
-| PathCurrent       | 3.480e-7 | 5.141e-7 | 1.376e-6 | 1.201e-5 | 51.3 ns     |
-| SheetCurrent      | 3.661e-6 | 4.207e-5 | 8.781e-5 | 0.012    | 124.7 ns    |
-| TriangleCurrent   | 3.362e-6 | 5.663e-5 | 5.845e-5 | 0.015    | 59.9 ns     |
-| CylinderMagnet    | 2.511e-5 | 1.736e-4 | 2.912e-4 | 0.031    | 54.3 ns     |
-| CuboidMagnet      | 6.130e-6 | 9.213e-6 | 2.790e-5 | 9.530e-5 | 101.6 ns    |
-| Dipole            | 1.897e-7 | 2.186e-7 | 4.850e-7 | 8.763e-7 | 28.2 ns     |
-| SphereMagnet      | 1.766e-7 | 2.070e-7 | 4.614e-7 | 9.171e-7 | 26.8 ns     |
-| TetrahedronMagnet | 2.305e-5 | 1.174e-4 | 2.135e-4 | 0.031    | 107.7 ns    |
-| TriangleMagnet    | 1.285e-6 | 5.890e-6 | 1.609e-5 | 4.272e-4 | 54.5 ns     |
-| MeshMagnet        | 2.305e-5 | 1.174e-4 | 2.135e-4 | 0.031    | 104.2 ns    |
+| CircularCurrent   | 2.094e-7 | 3.216e-7 | 7.188e-7 | 1.907e-5 | 38.9 ns     |
+| PathCurrent       | 3.480e-7 | 5.141e-7 | 1.376e-6 | 1.201e-5 | 42.0 ns     |
+| SheetCurrent      | 3.661e-6 | 4.207e-5 | 8.781e-5 | 0.012    | 106.8 ns    |
+| TriangleCurrent   | 3.362e-6 | 5.663e-5 | 5.845e-5 | 0.015    | 49.5 ns     |
+| CylinderMagnet    | 2.506e-5 | 2.275e-4 | 2.912e-4 | 0.067    | 48.2 ns     |
+| CuboidMagnet      | 6.130e-6 | 9.213e-6 | 2.790e-5 | 9.530e-5 | 77.4 ns     |
+| Dipole            | 1.897e-7 | 2.186e-7 | 4.850e-7 | 8.763e-7 | 7.5 ns      |
+| SphereMagnet      | 1.766e-7 | 2.070e-7 | 4.614e-7 | 9.171e-7 | 7.1 ns      |
+| TetrahedronMagnet | 2.305e-5 | 1.174e-4 | 2.135e-4 | 0.031    | 76.9 ns     |
+| TriangleMagnet    | 1.285e-6 | 5.890e-6 | 1.609e-5 | 4.272e-4 | 39.6 ns     |
+| MeshMagnet        | 2.305e-5 | 1.174e-4 | 2.135e-4 | 0.031    | 79.3 ns     |

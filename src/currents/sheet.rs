@@ -130,3 +130,35 @@ crate::testing_util::generate_tests! {
         rotate: 1e-2,
     }
 }
+
+#[cfg(all(test, feature = "mesh"))]
+mod mesh_tests {
+    use super::*;
+    use nalgebra::vector;
+
+    #[test]
+    fn test_from_vertices_and_faces() {
+        let vertices = vec![
+            vector![0.0, 0.0, 0.0],
+            vector![0.001, 0.0, 0.0],
+            vector![0.0, 0.001, 0.0],
+            vector![0.0, 0.0, 0.001],
+        ];
+        let faces = vec![[0, 2, 1], [0, 1, 3], [1, 2, 3], [0, 3, 2]];
+        let current_densities = vec![vector![1.0, 0.0, 0.0]; 4];
+        let sheet = SheetCurrent::from_vertices_and_faces(vertices, faces, current_densities);
+        assert!(sheet.is_ok());
+    }
+
+    #[cfg(feature = "io-stl")]
+    #[test]
+    fn test_sheet_from_stl() {
+        let base_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("testing/data");
+        let stl_path = base_path.join("suzanne.stl");
+        assert!(stl_path.is_file(), "suzanne.stl must exist");
+        let mut file = std::fs::File::open(&stl_path).expect("Cannot open suzanne.stl");
+        let sheet: Result<SheetCurrent<f64>, _> =
+            SheetCurrent::from_stl(&mut file, vec![vector![1.0, 0.0, 0.0]; 968]);
+        assert!(sheet.is_ok());
+    }
+}

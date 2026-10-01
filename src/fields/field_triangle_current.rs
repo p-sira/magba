@@ -244,4 +244,61 @@ mod tests {
             |p, pos, ori, pol, vert| triangle_current_B(p, pos, ori, pol, vert)
         );
     }
+
+    #[test]
+    fn test_triangle_current_edge_cases_and_batch() {
+        let verts = [
+            vector![0.0, 0.0, 0.0],
+            vector![1.0, 0.0, 0.0],
+            vector![0.0, 1.0, 0.0],
+        ];
+
+        // Small negative z (|z| < 1e-15, z < 0)
+        let b_neg_z =
+            local_triangle_current_B(point![0.2, 0.2, -1e-16], vector![1.0, 0.0, 0.0], &verts);
+        assert!(b_neg_z.z.is_finite());
+
+        // Zero current density
+        let b_zero_curr =
+            local_triangle_current_B(point![0.2, 0.2, 1.0], vector![0.0, 0.0, 0.0], &verts);
+        assert_eq!(b_zero_curr, Vector3::zeros());
+
+        // Duplicate vertices 0 and 1 (u1 < 1e-15)
+        let b_dup_v = local_triangle_current_B(
+            point![0.2, 0.2, 1.0],
+            vector![1.0, 0.0, 0.0],
+            &[
+                vector![0.0, 0.0, 0.0],
+                vector![0.0, 0.0, 0.0],
+                vector![0.0, 1.0, 0.0],
+            ],
+        );
+        assert_eq!(b_dup_v, Vector3::zeros());
+
+        // Collinear vertices (n_norm < 1e-15)
+        let b_collinear = local_triangle_current_B(
+            point![0.2, 0.2, 1.0],
+            vector![1.0, 0.0, 0.0],
+            &[
+                vector![0.0, 0.0, 0.0],
+                vector![1.0, 0.0, 0.0],
+                vector![2.0, 0.0, 0.0],
+            ],
+        );
+        assert_eq!(b_collinear, Vector3::zeros());
+
+        // Batch with > 100 points for Rayon threshold
+        let points = vec![point![0.0, 0.0, 5.0]; 120];
+        let mut out = vec![Vector3::zeros(); 120];
+        triangle_current_B_batch(
+            &points,
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            vector![1.0, 0.0, 0.0],
+            verts,
+            &mut out,
+        );
+        assert_eq!(out.len(), 120);
+        assert!(out[0].z != 0.0);
+    }
 }

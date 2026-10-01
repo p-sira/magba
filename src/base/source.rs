@@ -94,3 +94,56 @@ need_std!(
         );
     }
 );
+
+#[cfg(all(test, feature = "std"))]
+mod tests {
+    use super::*;
+    use crate::magnets::Dipole;
+
+    struct DummySource(crate::base::Pose<f64>);
+    impl crate::base::Transform<f64> for DummySource {
+        fn pose(&self) -> &crate::base::Pose<f64> {
+            &self.0
+        }
+        fn pose_mut(&mut self) -> &mut crate::base::Pose<f64> {
+            &mut self.0
+        }
+    }
+    impl Source<f64> for DummySource {
+        fn compute_B(&self, _: Point3<f64>) -> Vector3<f64> {
+            Vector3::zeros()
+        }
+        fn compute_B_batch(&self, points: &[Point3<f64>]) -> Vec<Vector3<f64>> {
+            vec![Vector3::zeros(); points.len()]
+        }
+    }
+    impl Clone for DummySource {
+        fn clone(&self) -> Self {
+            DummySource(self.0)
+        }
+    }
+
+    #[test]
+    fn test_source_trait_defaults_and_box() {
+        let dummy = DummySource(crate::base::Pose::default());
+        let dyn_src: &dyn Source<f64> = &dummy;
+        let s = format!("{}", dyn_src);
+        assert!(s.contains("Source at"));
+
+        let mut dummy_box: Box<dyn Source<f64>> = Box::new(dummy.clone());
+        let _ = dummy_box.pose_mut();
+        let _ = dummy_box.compute_B(Point3::origin());
+        let _ = dummy_box.compute_B_batch(&[Point3::origin()]);
+        let _ = dummy_box.clone();
+
+        let boxed: Box<dyn Source<f64>> = Box::new(Dipole::<f64>::default());
+        let dbg = format!("{:?}", boxed);
+        assert!(dbg.contains("Dipole"));
+
+        let mut cloned = boxed.clone();
+        cloned.set_pose(crate::base::Pose::default());
+        let _ = cloned.pose_mut();
+        let _ = cloned.compute_B(Point3::origin());
+        let _ = cloned.compute_B_batch(&[Point3::origin()]);
+    }
+}

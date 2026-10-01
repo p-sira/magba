@@ -16,6 +16,9 @@
     <a href="https://docs.rs/magba" style="text-decoration:none">
         <img src="https://img.shields.io/badge/Docs-docs.rs-blue" alt="Documentation">
     </a>
+    <a href="https://codecov.io/gh/p-sira/magba" > 
+        <img src="https://codecov.io/gh/p-sira/magba/graph/badge.svg?token=S0CJ922MG0"/> 
+    </a>
     <a href="https://doi.org/10.5281/zenodo.21150887" style="text-decoration:none">
         <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.21150887.svg" alt="Preprint DOI">
     </a>
@@ -115,7 +118,7 @@ let b_fields = source_assembly.compute_B_batch(&points);
 ## Testing
 
 Results are validated against MagpyLib and reference data.
-See `/tests/test-data` and the accuracy report for details.
+See `testing/data` and the accuracy report for details.
 
 ---
 

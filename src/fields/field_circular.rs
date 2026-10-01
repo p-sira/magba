@@ -277,4 +277,29 @@ mod tests {
             |p, pos, ori, d, c| circular_B(p, pos, ori, d, c)
         );
     }
+
+    #[test]
+    fn test_circular_edge_cases_and_batch() {
+        // Zero diameter
+        let b_zero = local_circular_B(point![0.0, 0.0, 1.0], 0.0, 1.0);
+        assert_eq!(b_zero, Vector3::zeros());
+
+        // On the wire (singularity)
+        let b_wire = local_circular_B(point![1.0, 0.0, 0.0], 2.0, 1.0);
+        assert_eq!(b_wire, Vector3::zeros());
+
+        // circular_B_batch with > 350 points to trigger Rayon threshold
+        let points = vec![point![0.0, 0.0, 1.0]; 400];
+        let mut out = vec![Vector3::zeros(); 400];
+        circular_B_batch(
+            &points,
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            2.0,
+            1.0,
+            &mut out,
+        );
+        assert_eq!(out.len(), 400);
+        assert!(out[0].z != 0.0);
+    }
 }

@@ -80,3 +80,52 @@ need_std!(
         );
     }
 );
+
+#[cfg(all(test, feature = "std"))]
+mod tests {
+    use super::*;
+    use crate::sensors::hall_effect::LinearHallSensor;
+
+    struct DummyObserver(crate::base::Pose<f64>);
+    impl crate::base::Transform<f64> for DummyObserver {
+        fn pose(&self) -> &crate::base::Pose<f64> {
+            &self.0
+        }
+        fn pose_mut(&mut self) -> &mut crate::base::Pose<f64> {
+            &mut self.0
+        }
+    }
+    impl Observer<f64> for DummyObserver {
+        fn read(&self, _: &dyn Source<f64>) -> SensorOutput<f64> {
+            SensorOutput::Digital(0)
+        }
+    }
+    impl Clone for DummyObserver {
+        fn clone(&self) -> Self {
+            DummyObserver(self.0)
+        }
+    }
+
+    #[test]
+    fn test_observer_trait_defaults_and_box() {
+        let dummy = DummyObserver(crate::base::Pose::default());
+        let dyn_obs: &dyn Observer<f64> = &dummy;
+        let s = format!("{}", dyn_obs);
+        assert!(s.contains("Observer at"));
+
+        let source = crate::magnets::Dipole::<f64>::default();
+        let mut dummy_box: Box<dyn Observer<f64>> = Box::new(dummy.clone());
+        let _ = dummy_box.pose_mut();
+        let _ = dummy_box.read(&source);
+        let _ = dummy_box.clone();
+
+        let boxed: Box<dyn Observer<f64>> = Box::new(LinearHallSensor::<f64>::default());
+        let dbg = format!("{:?}", boxed);
+        assert!(dbg.contains("LinearHallSensor"));
+
+        let mut cloned = boxed.clone();
+        cloned.set_pose(crate::base::Pose::default());
+        let _ = cloned.pose_mut();
+        let _ = cloned.read(&source);
+    }
+}

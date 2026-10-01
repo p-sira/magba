@@ -55,3 +55,19 @@ macro_rules! impl_transitive_from {
 impl_transitive_from!(LinearHallSensor, HallLatch, HallSwitch);
 
 impl<T: Float> Eq for ObserverComponent<T> {}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_observer_component_eq() {
+        let sensor: ObserverComponent = LinearHallSensor::default().into();
+        let custom1: ObserverComponent = ObserverComponent::Custom(Box::new(LinearHallSensor::default()));
+        let custom2: ObserverComponent = ObserverComponent::Custom(Box::new(LinearHallSensor::default()));
+
+        assert_eq!(sensor, sensor.clone());
+        assert_ne!(sensor, custom1);
+        assert_ne!(custom1, custom2);
+    }
+}

@@ -11,7 +11,7 @@ use nalgebra::{Point3, Translation3, UnitQuaternion};
 use crate::{
     base::{
         Float, Observer, Pose, SensorOutput, Source, Transform,
-        transform::{impl_group_transform, impl_transform},
+        transform::impl_group_transform,
     },
     collections::node::Node,
 };
@@ -43,7 +43,7 @@ impl<S: Observer<T>, const N: usize, T: Float> ObserverArray<S, N, T> {
     }
 
     pub fn components(&self) -> impl Iterator<Item = &S> {
-        self.nodes.iter().map(|n| &n.component)
+        self.nodes.iter().map(Node::component)
     }
 
     pub fn iter(&self) -> impl Iterator<Item = &S> {
@@ -52,7 +52,7 @@ impl<S: Observer<T>, const N: usize, T: Float> ObserverArray<S, N, T> {
 
     /// Acquires a reading from all sensors in the array given a magnetic source.
     pub fn read_all(&self, source: &dyn Source<T>) -> [SensorOutput<T>; N] {
-        core::array::from_fn(|i| self.nodes[i].component.read(source))
+        core::array::from_fn(|i| self.nodes[i].component().read(source))
     }
 }
 
@@ -67,7 +67,6 @@ impl<S: Observer<T> + Default, T: Float, const N: usize> Default for ObserverArr
 
 // MARK: Transform
 
-impl_transform!(ObserverArray<S, N, T> where S: Observer<T>, const N: usize, T: Float);
 impl_group_transform!(ObserverArray<S, N, T> where S: Observer<T>, const N: usize, T: Float);
 
 // MARK: Index
@@ -76,13 +75,13 @@ impl<S: Observer<T>, const N: usize, T: Float> Index<usize> for ObserverArray<S,
     type Output = S;
 
     fn index(&self, index: usize) -> &Self::Output {
-        &self.nodes[index].component
+        self.nodes[index].component()
     }
 }
 
 impl<S: Observer<T>, const N: usize, T: Float> IndexMut<usize> for ObserverArray<S, N, T> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        &mut self.nodes[index].component
+        self.nodes[index].component_mut()
     }
 }
 
@@ -125,7 +124,7 @@ impl<'a, S: Observer<T>, const N: usize, T: Float> IntoIterator for &'a Observer
     type IntoIter = std::iter::Map<std::slice::Iter<'a, Node<S, T>>, fn(&'a Node<S, T>) -> &'a S>;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.nodes.iter().map(|n| &n.component)
+        self.nodes.iter().map(Node::component)
     }
 }
 
@@ -134,7 +133,7 @@ impl<S: Observer<T>, const N: usize, T: Float> IntoIterator for ObserverArray<S,
     type IntoIter = std::iter::Map<std::array::IntoIter<Node<S, T>, N>, fn(Node<S, T>) -> S>;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.nodes.into_iter().map(|n| n.component)
+        self.nodes.into_iter().map(Node::into_component)
     }
 }
 
@@ -150,7 +149,7 @@ impl<S: Observer<T> + PartialEq, T: Float, const N: usize> PartialEq for Observe
         for node in &self.nodes {
             let found =
                 other.nodes.iter().enumerate().find(|(idx, other_node)| {
-                    !matched[*idx] && node.component == other_node.component
+                    !matched[*idx] && node.component() == other_node.component()
                 });
 
             match found {
@@ -200,9 +199,9 @@ mod tests {
 
         let array: ObserverArray<LinearHallSensor, 3> = sensors.collect();
         assert_eq!(array.nodes.len(), 3);
-        assert_eq!(array.nodes[0].component.pose().position().x, 0.0);
-        assert_eq!(array.nodes[1].component.pose().position().x, 1.0);
-        assert_eq!(array.nodes[2].component.pose().position().x, 2.0);
+        assert_eq!(array.nodes[0].component().pose().position().x, 0.0);
+        assert_eq!(array.nodes[1].component().pose().position().x, 1.0);
+        assert_eq!(array.nodes[2].component().pose().position().x, 2.0);
     }
 
     #[test]
@@ -235,5 +234,72 @@ mod tests {
         });
 
         let _: ObserverArray<LinearHallSensor, 3> = sensors.collect();
+    }
+
+    #[test]
+    fn test_observer_array_methods() {
+        let make_sensor = |x: f64| {
+            LinearHallSensor::new(
+                [x, 0.0, 0.0],
+                UnitQuaternion::identity(),
+                [0.0, 0.0, 1.0],
+                30.0,
+                3.3,
+            )
+        };
+        let mut arr = ObserverArray::from([make_sensor(0.0), make_sensor(1.0)]);
+
+        // components and iter
+        assert_eq!(arr.components().count(), 2);
+        assert_eq!(arr.iter().count(), 2);
+
+        // Index and IndexMut
+        assert_eq!(arr[0].pose().position().x, 0.0);
+        arr[0].set_position([5.0, 0.0, 0.0]);
+        assert_eq!(arr[0].pose().position().x, 5.0);
+
+        // read_all
+        let source = crate::magnets::Dipole::default();
+        let readings = arr.read_all(&source);
+        assert_eq!(readings.len(), 2);
+
+        // IntoIterator for &ObserverArray
+        let mut count = 0;
+        for s in &arr {
+            count += 1;
+            assert!(s.sensitivity() > 0.0);
+        }
+        assert_eq!(count, 2);
+
+        // IntoIterator for ObserverArray
+        let vec: Vec<_> = arr.clone().into_iter().collect();
+        assert_eq!(vec.len(), 2);
+
+        // PartialEq
+        let arr2 = ObserverArray::from([make_sensor(1.0), make_sensor(5.0)]);
+        assert_eq!(arr, arr2);
+        let arr3 = ObserverArray::from([make_sensor(2.0), make_sensor(3.0)]);
+        assert_ne!(arr, arr3);
+
+        // Default
+        let def: ObserverArray<LinearHallSensor, 2> = ObserverArray::default();
+        assert_eq!(def.components().count(), 2);
+
+        // Transform::pose_mut
+        let pose = Transform::pose_mut(&mut arr);
+        assert_eq!(pose.position().x, 0.0);
+
+        // new
+        let custom_arr = ObserverArray::new(
+            [1.0, 0.0, 0.0],
+            UnitQuaternion::identity(),
+            [make_sensor(0.0), make_sensor(1.0)],
+        );
+        assert_eq!(custom_arr.position().x, 1.0);
+        assert_ne!(arr, custom_arr);
+
+        // Display
+        let s = format!("{}", arr);
+        assert!(s.contains("ObserverArray"));
     }
 }

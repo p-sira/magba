@@ -224,4 +224,12 @@ mod tests {
             |p, pos, ori, m| dipole_B(p, pos, ori, m)
         );
     }
+
+    #[test]
+    fn test_dipole_at_origin() {
+        let b = local_dipole_B(point![0.0, 0.0, 0.0], vector![-1.0, 0.0, 1.0]);
+        assert_eq!(b.x, f64::NEG_INFINITY);
+        assert_eq!(b.y, 0.0);
+        assert_eq!(b.z, f64::INFINITY);
+    }
 }

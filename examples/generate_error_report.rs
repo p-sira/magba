@@ -143,8 +143,8 @@ fn add_magnet_accuracy<T: magba::base::Float + std::str::FromStr>(
     source: Box<dyn Source<T> + Send + Sync>,
     ref_file: &str,
 ) -> Result<Report, Box<dyn Error>> {
-    let points_path = std::path::Path::new("./tests/test-data/points.csv");
-    let ref_path = std::path::Path::new("./tests/test-data/").join(ref_file);
+    let points_path = std::path::Path::new("./testing/data/points.csv");
+    let ref_path = std::path::Path::new("./testing/data/").join(ref_file);
 
     if !points_path.exists() || !ref_path.exists() {
         return Err(format!("Test data not found for {}", name).into());

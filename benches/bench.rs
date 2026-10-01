@@ -1,13 +1,14 @@
-use criterion::{Criterion, black_box, criterion_group, criterion_main};
+use criterion::{Criterion, criterion_group, criterion_main};
 use magba::base::Source;
 use magba::base::mesh::TriMesh;
 use magba::currents::*;
 use magba::magnets::*;
 use nalgebra::{Point3, UnitQuaternion, point, vector};
+use std::hint::black_box;
 use std::path::Path;
 
 fn get_points_f64() -> Vec<Point3<f64>> {
-    let path = Path::new("tests/test-data/points.csv");
+    let path = Path::new("testing/data/points.csv");
     let file = std::fs::File::open(path).unwrap();
     let mut reader = csv::ReaderBuilder::new()
         .has_headers(false)
@@ -24,7 +25,7 @@ fn get_points_f64() -> Vec<Point3<f64>> {
 }
 
 fn get_points_f32() -> Vec<Point3<f32>> {
-    let path = Path::new("tests/test-data/points.csv");
+    let path = Path::new("testing/data/points.csv");
     let file = std::fs::File::open(path).unwrap();
     let mut reader = csv::ReaderBuilder::new()
         .has_headers(false)

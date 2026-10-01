@@ -11,7 +11,7 @@ use nalgebra::{Point3, Translation3, UnitQuaternion};
 use crate::{
     base::{
         Float, Observer, Pose, SensorOutput, Source, Transform,
-        transform::{impl_group_transform, impl_transform},
+        transform::impl_group_transform,
     },
     collections::{Node, ObserverArray, ObserverComponent},
 };
@@ -48,7 +48,7 @@ impl<T: Float> ObserverAssembly<T> {
     }
 
     pub fn components(&self) -> impl Iterator<Item = &ObserverComponent<T>> {
-        self.nodes.iter().map(|n| &n.component)
+        self.nodes.iter().map(Node::component)
     }
 
     pub fn iter(&self) -> impl Iterator<Item = &ObserverComponent<T>> {
@@ -59,7 +59,7 @@ impl<T: Float> ObserverAssembly<T> {
     pub fn read_all(&self, source: &dyn Source<T>) -> Vec<SensorOutput<T>> {
         self.nodes
             .iter()
-            .map(|node| node.component.read(source))
+            .map(|node| node.component().read(source))
             .collect()
     }
 }
@@ -142,7 +142,7 @@ impl<'a, T: Float> IntoIterator for &'a ObserverAssembly<T> {
     >;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.nodes.iter().map(|n| &n.component)
+        self.nodes.iter().map(Node::component)
     }
 }
 
@@ -180,19 +180,18 @@ impl<T: Float> Index<usize> for ObserverAssembly<T> {
     type Output = ObserverComponent<T>;
 
     fn index(&self, index: usize) -> &Self::Output {
-        &self.nodes[index].component
+        self.nodes[index].component()
     }
 }
 
 impl<T: Float> IndexMut<usize> for ObserverAssembly<T> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        &mut self.nodes[index].component
+        self.nodes[index].component_mut()
     }
 }
 
 // MARK: Transform
 
-impl_transform!(ObserverAssembly<T> where T: Float);
 impl_group_transform!(ObserverAssembly<T> where T: Float);
 
 // MARK: Display
@@ -233,7 +232,7 @@ impl<T: Float> PartialEq for ObserverAssembly<T> {
         for node in &self.nodes {
             let found =
                 other.nodes.iter().enumerate().find(|(idx, other_node)| {
-                    !matched[*idx] && node.component == other_node.component
+                    !matched[*idx] && node.component() == other_node.component()
                 });
 
             match found {
@@ -247,11 +246,92 @@ impl<T: Float> PartialEq for ObserverAssembly<T> {
 
 #[cfg(test)]
 mod tests {
-    // TODO
+    use super::*;
+    use crate::collections::observers;
+    use crate::sensors::hall_effect::LinearHallSensor;
+
     #[test]
-    fn test_todo() {
-        use crate::collections::observers;
-        use crate::prelude::*;
-        let _: ObserverAssembly = observers!();
+    fn test_observer_assembly_methods() {
+        let make_sensor = |x: f64| {
+            LinearHallSensor::new(
+                [x, 0.0, 0.0],
+                UnitQuaternion::identity(),
+                [0.0, 0.0, 1.0],
+                30.0,
+                3.3,
+            )
+        };
+
+        let mut assembly = observers!(make_sensor(0.0), make_sensor(1.0));
+
+        // components and iter
+        assert_eq!(assembly.components().count(), 2);
+        assert_eq!(assembly.iter().count(), 2);
+
+        // Index and IndexMut
+        assert_eq!(assembly[0].pose().position().x, 0.0);
+        assembly[0].set_pose(Pose::new([5.0, 0.0, 0.0], UnitQuaternion::identity()));
+        assert_eq!(assembly[0].pose().position().x, 5.0);
+
+        // read_all
+        let source = crate::magnets::Dipole::default();
+        let readings = assembly.read_all(&source);
+        assert_eq!(readings.len(), 2);
+
+        // IntoIterator for &ObserverAssembly
+        let mut count = 0;
+        for s in &assembly {
+            count += 1;
+            assert_eq!(s.pose().position().y, 0.0);
+        }
+        assert_eq!(count, 2);
+
+        // PartialEq
+        let assembly2 = observers!(make_sensor(1.0), make_sensor(5.0));
+        assert_eq!(assembly, assembly2);
+        let assembly3 = observers!(make_sensor(2.0));
+        assert_ne!(assembly, assembly3);
+
+        // Transform::pose_mut
+        let pose = Transform::pose_mut(&mut assembly);
+        assert_eq!(pose.position().x, 0.0);
+
+        // new
+        let new_assembly = ObserverAssembly::new(
+            nalgebra::point![1.0, 0.0, 0.0],
+            UnitQuaternion::identity(),
+            vec![make_sensor(0.0)],
+        );
+        assert_eq!(new_assembly.position().x, 1.0);
+
+        // Default and builders
+        let mut def = ObserverAssembly::<f64>::default()
+            .with(make_sensor(0.0))
+            .with_position([1.0, 2.0, 3.0])
+            .with_orientation(UnitQuaternion::identity())
+            .with_pose(Pose::default());
+        assert_eq!(def.components().count(), 1);
+
+        // From Vec, From &[ObserverComponent], From ObserverArray
+        let vec_assembly = ObserverAssembly::from(vec![make_sensor(0.0)]);
+        let slice_input = [ObserverComponent::from(make_sensor(0.0))];
+        let slice_assembly = ObserverAssembly::from(&slice_input[..]);
+        let array_input = ObserverArray::from([make_sensor(0.0)]);
+        let array_assembly = ObserverAssembly::from(array_input);
+        assert_eq!(vec_assembly.components().count(), 1);
+        assert_eq!(slice_assembly.components().count(), 1);
+        assert_eq!(array_assembly.components().count(), 1);
+
+        // extend
+        def.extend(vec![ObserverComponent::from(make_sensor(1.0))]);
+        assert_eq!(def.components().count(), 2);
+
+        // Display
+        let s = format!("{}", assembly);
+        assert!(s.contains("ObserverAssembly"));
+
+        // PartialEq when mismatched element
+        let diff_elem = observers!(make_sensor(0.0), make_sensor(99.0));
+        assert_ne!(assembly, diff_elem);
     }
 }
