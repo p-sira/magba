@@ -248,10 +248,9 @@ impl<T: Float> PartialEq for SourceAssembly<T> {
 
         let mut matched = vec![false; other.nodes.len()];
         for node in &self.nodes {
-            let found =
-                other.nodes.iter().enumerate().find(|(idx, other_node)| {
-                    !matched[*idx] && node.component() == other_node.component()
-                });
+            let found = other.nodes.iter().enumerate().find(|(idx, other_node)| {
+                !matched[*idx] && node.component() == other_node.component()
+            });
 
             match found {
                 Some((idx, _)) => matched[idx] = true,
@@ -410,6 +409,30 @@ mod partial_eq_tests {
         let pose = Transform::pose_mut(&mut assembly);
         assert_eq!(pose.position(), point![0.0, 0.0, 0.0]);
     }
+
+    #[test]
+    fn test_builders_and_conversions() {
+        let mut def = SourceAssembly::<f64>::default().with_pose(Pose::default());
+        assert_eq!(def.components().count(), 0);
+
+        let vec_assembly = SourceAssembly::from(vec![magnet1()]);
+        let slice_input = [SourceComponent::from(magnet1())];
+        let slice_assembly = SourceAssembly::from(&slice_input[..]);
+        assert_eq!(vec_assembly.components().count(), 1);
+        assert_eq!(slice_assembly.components().count(), 1);
+
+        def.extend(vec![SourceComponent::from(magnet1())]);
+        assert_eq!(def.components().count(), 1);
+    }
+
+    #[test]
+    #[allow(non_snake_case)]
+    fn test_compute_B_single() {
+        use nalgebra::point;
+        let assembly = sources!(magnet1());
+        let b = Source::compute_B(&assembly, point![0.0, 0.0, 0.05]);
+        assert!(b.norm() > 0.0);
+    }
 }
 
 // MARK: Test Field
@@ -507,6 +530,7 @@ mod heterogeneous_collection_tests {
     #[test]
     fn test_static() {
         let sources = sources();
+        assert_eq!(sources.iter().count(), 3);
         test_B_magnet!(@small, &sources, "multi-sources.csv", 1e-10);
     }
 

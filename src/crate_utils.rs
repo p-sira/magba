@@ -417,3 +417,114 @@ macro_rules! define_source {
     }
 }
 pub(crate) use define_source;
+
+#[cfg(test)]
+mod tests {
+    use nalgebra::Vector3;
+
+    #[test]
+    fn test_formatters_and_getters() {
+        use crate::currents::*;
+        use crate::magnets::*;
+
+        let d = Dipole::<f64>::default();
+        assert_eq!(d.moment(), Vector3::z());
+        assert_eq!(
+            format!("{}", d),
+            "Dipole (m=[0.0, 0.0, 1.0]) at pos=[0.0, 0.0, 0.0], rot=[0.0, 0.0, 0.0]"
+        );
+        assert_eq!(
+            format!("{:.2}", d),
+            "Dipole (m=[0.00, 0.00, 1.00]) at pos=[0.0, 0.0, 0.0], rot=[0.0, 0.0, 0.0]"
+        );
+
+        let cub = CuboidMagnet::<f64>::default();
+        assert_eq!(cub.dimensions(), Vector3::new(1.0, 1.0, 1.0));
+        assert_eq!(cub.polarization(), Vector3::z());
+        assert!(
+            format!("{}", cub)
+                .starts_with("CuboidMagnet (pol=[0.0, 0.0, 1.0], dim=[1.0, 1.0, 1.0])")
+        );
+        assert!(
+            format!("{:.2}", cub)
+                .starts_with("CuboidMagnet (pol=[0.00, 0.00, 1.00], dim=[1.00, 1.00, 1.00])")
+        );
+
+        let cyl = CylinderMagnet::<f64>::default();
+        assert_eq!(cyl.diameter(), 1.0);
+        assert_eq!(cyl.height(), 1.0);
+        assert_eq!(cyl.polarization(), Vector3::z());
+        assert!(
+            format!("{}", cyl).starts_with("CylinderMagnet (pol=[0.0, 0.0, 1.0], d=1.0, h=1.0)")
+        );
+        assert!(
+            format!("{:.2}", cyl)
+                .starts_with("CylinderMagnet (pol=[0.00, 0.00, 1.00], d=1.00, h=1.00)")
+        );
+
+        let s = SphereMagnet::<f64>::default();
+        assert_eq!(s.diameter(), 1.0);
+        assert_eq!(s.polarization(), Vector3::z());
+        assert!(format!("{}", s).starts_with("SphereMagnet (pol=[0.0, 0.0, 1.0], d=1.0)"));
+        assert!(format!("{:.2}", s).starts_with("SphereMagnet (pol=[0.00, 0.00, 1.00], d=1.00)"));
+
+        let tet = TetrahedronMagnet::<f64>::default();
+        assert_eq!(tet.vertices().len(), 4);
+        assert_eq!(tet.polarization(), Vector3::z());
+        assert!(format!("{}", tet).starts_with("TetrahedronMagnet (pol=[0.0, 0.0, 1.0]"));
+        assert!(format!("{:.2}", tet).starts_with("TetrahedronMagnet (pol=[0.00, 0.00, 1.00]"));
+
+        let tri = TriangleMagnet::<f64>::default();
+        assert_eq!(tri.vertices().len(), 3);
+        assert_eq!(tri.polarization(), Vector3::z());
+        assert!(format!("{}", tri).starts_with("TriangleMagnet (pol=[0.0, 0.0, 1.0]"));
+        assert!(format!("{:.2}", tri).starts_with("TriangleMagnet (pol=[0.00, 0.00, 1.00]"));
+
+        let circ = CircularCurrent::<f64>::default();
+        assert_eq!(circ.diameter(), 1.0);
+        assert_eq!(circ.current(), 1.0);
+        assert!(format!("{}", circ).starts_with("CircularCurrent (d=1.0, I=1.0)"));
+        assert!(format!("{:.2}", circ).starts_with("CircularCurrent (d=1.00, I=1.00)"));
+
+        let path = PathCurrent::<f64>::default();
+        assert_eq!(path.vertices().len(), 0);
+        assert_eq!(path.current(), 0.0);
+        assert!(format!("{}", path).starts_with("PathCurrent (current=0.0, vertices count=0)"));
+        assert!(format!("{:.2}", path).starts_with("PathCurrent (current=0.00, vertices count=0)"));
+
+        let tc = TriangleCurrent::<f64>::default();
+        assert_eq!(tc.vertices().len(), 3);
+        assert_eq!(tc.current_density(), Vector3::zeros());
+        assert!(format!("{}", tc).starts_with("TriangleCurrent (current_density=[0.0, 0.0, 0.0]"));
+        assert!(
+            format!("{:.2}", tc).starts_with("TriangleCurrent (current_density=[0.00, 0.00, 0.00]")
+        );
+
+        #[cfg(feature = "mesh")]
+        {
+            let mm = MeshMagnet::<f64>::default();
+            assert_eq!(mm.mesh().triangles().len(), 0);
+            assert_eq!(mm.polarization(), Vector3::z());
+            assert!(
+                format!("{}", mm)
+                    .starts_with("MeshMagnet (pol=[0.0, 0.0, 1.0], triangles count: 0)")
+            );
+            assert!(
+                format!("{:.2}", mm)
+                    .starts_with("MeshMagnet (pol=[0.00, 0.00, 1.00], triangles count: 0)")
+            );
+
+            let sc = SheetCurrent::<f64>::default();
+            assert_eq!(sc.mesh().triangles().len(), 0);
+            assert_eq!(sc.current_densities().len(), 0);
+            assert!(
+                format!("{}", sc)
+                    .starts_with("SheetCurrent (current_densities_count: 0, triangles count: 0)")
+            );
+            assert!(
+                format!("{:.2}", sc)
+                    .starts_with("SheetCurrent (current_densities_count: 0, triangles count: 0)")
+            );
+        }
+    }
+}

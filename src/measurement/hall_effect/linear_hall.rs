@@ -58,3 +58,37 @@ pub fn linear_hall_voltage_batch<T: RealField + Copy>(
         args: [sensitivity, quiescent_voltage, min_voltage, max_voltage]
     )
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_linear_hall_voltage_batch() {
+        let b_fields = vec![Vector3::new(0.0, 0.0, 0.01); 100];
+        let mut out = vec![0.0; 100];
+        linear_hall_voltage_batch(
+            &b_fields,
+            Vector3::new(0.0, 0.0, 10.0),
+            2.5,
+            0.0,
+            5.0,
+            &mut out,
+        );
+        assert_eq!(out[0], 2.6);
+        assert_eq!(out[99], 2.6);
+
+        // Small batch (below threshold 60)
+        let b_fields_small = vec![Vector3::new(0.0, 0.0, 0.01); 5];
+        let mut out_small = vec![0.0; 5];
+        linear_hall_voltage_batch(
+            &b_fields_small,
+            Vector3::new(0.0, 0.0, 10.0),
+            2.5,
+            0.0,
+            5.0,
+            &mut out_small,
+        );
+        assert_eq!(out_small[0], 2.6);
+    }
+}

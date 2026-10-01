@@ -357,4 +357,29 @@ mod tests {
             |p, pos, ori, pol, dim| cuboid_B(p, pos, ori, pol, dim)
         );
     }
+
+    #[test]
+    fn test_cuboid_edge_and_batch() {
+        // Point on the cuboid edge: y = 1.0, z = 1.0, x = 0.5 (semi-dim = 1.0)
+        let b_edge = local_cuboid_B(
+            point![0.5, 1.0, 1.0],
+            vector![0.0, 0.0, 1.0],
+            vector![2.0, 2.0, 2.0],
+        );
+        assert_eq!(b_edge, Vector3::zeros());
+
+        // Batch with > 50 points to trigger Rayon threshold
+        let points = vec![point![0.0, 0.0, 5.0]; 60];
+        let mut out = vec![Vector3::zeros(); 60];
+        cuboid_B_batch(
+            &points,
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            vector![0.0, 0.0, 1.0],
+            vector![1.0, 1.0, 1.0],
+            &mut out,
+        );
+        assert_eq!(out.len(), 60);
+        assert!(out[0].z != 0.0);
+    }
 }

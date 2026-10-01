@@ -97,7 +97,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_node_default_and_eq() {
+    fn test_node_methods() {
         let node1 = Node::<String, f64>::default();
         let node2 = Node::<String, f64>::default();
         assert_eq!(node1, node2);

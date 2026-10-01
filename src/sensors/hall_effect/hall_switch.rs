@@ -185,4 +185,23 @@ mod tests {
     fn test_input_validation() {
         let _ = HallSwitch::new([0.0; 3], UnitQuaternion::identity(), [0.0, 0.0, 1.0], -1.0);
     }
+
+    #[test]
+    #[should_panic]
+    fn test_set_b_op_validation() {
+        let mut sensor = HallSwitch::default();
+        sensor.set_b_op(-1.0);
+    }
+
+    #[test]
+    fn test_display() {
+        let switch = HallSwitch::new(
+            [1.0, 2.0, 3.0],
+            UnitQuaternion::identity(),
+            [0.0, 0.0, 1.0],
+            0.02,
+        );
+        let s = format!("{}", switch);
+        assert!(s.contains("HallSwitch"));
+    }
 }

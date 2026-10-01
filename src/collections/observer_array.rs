@@ -288,5 +288,18 @@ mod tests {
         // Transform::pose_mut
         let pose = Transform::pose_mut(&mut arr);
         assert_eq!(pose.position().x, 0.0);
+
+        // new
+        let custom_arr = ObserverArray::new(
+            [1.0, 0.0, 0.0],
+            UnitQuaternion::identity(),
+            [make_sensor(0.0), make_sensor(1.0)],
+        );
+        assert_eq!(custom_arr.position().x, 1.0);
+        assert_ne!(arr, custom_arr);
+
+        // Display
+        let s = format!("{}", arr);
+        assert!(s.contains("ObserverArray"));
     }
 }

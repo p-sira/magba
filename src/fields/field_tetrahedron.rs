@@ -245,4 +245,49 @@ mod tests {
             |p, pos, ori, pol, vert| tetrahedron_B(p, pos, ori, pol, vert)
         );
     }
+
+    #[test]
+    fn test_tetrahedron_edge_cases_and_batch() {
+        // Vertices with negative determinant triggers swap(2, 3)
+        let verts_neg_det = [
+            vector![0.0, 0.0, 0.0],
+            vector![1.0, 0.0, 0.0],
+            vector![0.0, 0.0, 1.0],
+            vector![0.0, 1.0, 0.0],
+        ];
+        let (fixed_verts, _) = precompute_tetrahedron(verts_neg_det);
+        assert_eq!(fixed_verts[2], vector![0.0, 1.0, 0.0]);
+
+        // Point inside tetrahedron (centroid)
+        let b_inside: Vector3<f64> = local_tetrahedron_B(
+            point![0.1, 0.1, 0.1],
+            vector![0.0, 0.0, 1.0],
+            [
+                vector![0.0, 0.0, 0.0],
+                vector![1.0, 0.0, 0.0],
+                vector![0.0, 1.0, 0.0],
+                vector![0.0, 0.0, 1.0],
+            ],
+        );
+        assert!(b_inside.z.is_finite());
+
+        // Batch with > 100 points to trigger Rayon threshold
+        let points = vec![point![0.0, 0.0, 5.0]; 120];
+        let mut out = vec![Vector3::zeros(); 120];
+        tetrahedron_B_batch(
+            &points,
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            vector![0.0, 0.0, 1.0],
+            [
+                vector![0.0, 0.0, 0.0],
+                vector![1.0, 0.0, 0.0],
+                vector![0.0, 1.0, 0.0],
+                vector![0.0, 0.0, 1.0],
+            ],
+            &mut out,
+        );
+        assert_eq!(out.len(), 120);
+        assert!(out[0].z != 0.0);
+    }
 }

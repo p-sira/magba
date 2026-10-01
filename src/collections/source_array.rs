@@ -359,6 +359,47 @@ mod field_tests {
     }
 
     #[test]
+    fn test_default_and_from_iter() {
+        let def: SourceArray<Dipole<f64>, 2> = SourceArray::default();
+        assert_eq!(def.components().count(), 2);
+
+        let iter_arr: SourceArray<Dipole<f64>, 2> = vec![Dipole::default(), Dipole::default()].into_iter().collect();
+        assert_eq!(iter_arr.components().count(), 2);
+
+        let mut diff_pos = iter_arr.clone();
+        diff_pos.set_position([10.0, 0.0, 0.0]);
+        assert_ne!(iter_arr, diff_pos);
+    }
+
+    #[test]
+    fn test_rotate_anchor() {
+        let mut arr = SourceArray::from([Dipole::default().with_position([1.0, 0.0, 0.0])]);
+        let rot = UnitQuaternion::from_scaled_axis([0.0, 0.0, core::f64::consts::PI].into());
+        arr.rotate_anchor(rot, [1.0, 0.0, 0.0]);
+        assert_eq!(arr.position().x, 2.0);
+    }
+
+    #[test]
+    #[should_panic(expected = "fewer than N items")]
+    fn test_from_iter_too_few() {
+        let _: SourceArray<Dipole<f64>, 2> = vec![Dipole::default()].into_iter().collect();
+    }
+
+    #[test]
+    #[should_panic(expected = "more than N items")]
+    fn test_from_iter_too_many() {
+        let _: SourceArray<Dipole<f64>, 2> = vec![Dipole::default(), Dipole::default(), Dipole::default()].into_iter().collect();
+    }
+
+    #[test]
+    #[allow(non_snake_case)]
+    fn test_compute_B_single() {
+        let arr = SourceArray::from([Dipole::<f64>::default()]);
+        let b = Source::compute_B(&arr, point![0.0, 0.0, 0.05]);
+        assert!(b.norm() > 0.0);
+    }
+
+    #[test]
     fn test_static() {
         let arr = array();
         test_B_magnet!(@small, &arr, "cylinder-sources.csv", 5e-9);

@@ -145,13 +145,7 @@ mod stl_tests {
         let base_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("testing/data");
         let stl_path = base_path.join("suzanne.stl");
 
-        if !stl_path.is_file() {
-            if std::env::var("MAGBA_REQUIRE_TEST_DATA").is_ok() {
-                panic!("Test data {:?} not found.", stl_path);
-            }
-            println!("Test data {:?} not found. Skipping test.", stl_path);
-            return;
-        }
+        assert!(stl_path.is_file(), "Test data {:?} not found.", stl_path);
 
         let mut file = std::fs::File::open(&stl_path).expect("Cannot open suzanne.stl");
         let mesh: MeshMagnet<f64> =
@@ -163,5 +157,19 @@ mod stl_tests {
             1e-11,
             1e-11,
         );
+    }
+
+    #[test]
+    fn test_from_vertices_and_faces() {
+        use nalgebra::vector;
+        let vertices = vec![
+            vector![0.0, 0.0, 0.0],
+            vector![0.001, 0.0, 0.0],
+            vector![0.0, 0.001, 0.0],
+            vector![0.0, 0.0, 0.001],
+        ];
+        let faces = vec![[0, 2, 1], [0, 1, 3], [1, 2, 3], [0, 3, 2]];
+        let magnet = MeshMagnet::from_vertices_and_faces(vertices, faces, [0.0, 0.0, 1.0]);
+        assert!(magnet.is_ok());
     }
 }

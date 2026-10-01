@@ -213,3 +213,41 @@ macro_rules! impl_pose_methods {
     };
 }
 pub(crate) use impl_pose_methods;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::base::Transform;
+
+    #[test]
+    fn test_fmt() {
+        let pose: Pose<f64> = Pose::default();
+        assert_eq!(
+            format!("{}", pose),
+            "pos=[0.0, 0.0, 0.0], rot=[0.0, 0.0, 0.0]"
+        );
+        assert_eq!(
+            format!("{:.2}", pose),
+            "pos=[0.00, 0.00, 0.00], rot=[0.00, 0.00, 0.00]"
+        );
+        assert!(format!("{:e}", pose).contains("pos="));
+        assert!(format!("{:.2e}", pose).contains("pos="));
+
+        let iso = *pose.as_isometry();
+        let from_iso = Pose::from(iso);
+        assert_eq!(from_iso, pose);
+
+        let mut dipole = crate::magnets::Dipole::<f64>::default().with_pose(pose);
+        assert_eq!(*dipole.pose(), pose);
+        dipole.set_pose(Pose::default());
+        assert_eq!(*dipole.pose(), Pose::default());
+    }
+
+    #[test]
+    fn test_transformations() {
+        let mut pose: Pose<f64> = Pose::default();
+        let rot = UnitQuaternion::from_scaled_axis([0.0, 0.0, core::f64::consts::PI].into());
+        pose.rotate_anchor(rot, [1.0, 0.0, 0.0]);
+        assert_eq!(pose.as_isometry().translation.x, 2.0);
+    }
+}

@@ -302,4 +302,25 @@ mod tests {
             5.0,
         );
     }
+
+    #[test]
+    fn test_setters_and_read() {
+        let dipole = crate::magnets::Dipole::<f64>::default();
+        let mut sensor = LinearHallSensor::<f64>::default()
+            .with_position([0.0, 0.0, 1.0])
+            .with_sensitivity(10.0)
+            .with_supply_voltage(3.3);
+
+        assert_eq!(sensor.sensitivity(), 10.0);
+        assert_eq!(sensor.supply_voltage(), 3.3);
+
+        sensor.set_supply_voltage(5.0);
+        assert_eq!(sensor.supply_voltage(), 5.0);
+
+        let b_perp = sensor.compute_B_perp(&dipole);
+        assert!(b_perp.is_finite());
+
+        let out = sensor.read(&dipole);
+        assert!(matches!(out, SensorOutput::Scalar(v) if v.is_finite()));
+    }
 }

@@ -275,4 +275,19 @@ mod tests {
         let mut sensor = HallLatch::default().with_b_op(0.010).with_b_rp(-0.010);
         sensor.set_b_rp(0.020);
     }
+
+    #[test]
+    fn test_new_clone_eq_display() {
+        let latch = HallLatch::new(
+            [1.0, 2.0, 3.0],
+            UnitQuaternion::identity(),
+            [0.0, 0.0, 1.0],
+            0.02,
+            -0.02,
+        );
+        let latch2 = latch.clone();
+        assert_eq!(latch, latch2);
+        let s = format!("{}", latch);
+        assert!(s.contains("HallLatch"));
+    }
 }

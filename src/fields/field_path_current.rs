@@ -235,4 +235,50 @@ mod tests {
             |p, pos, ori, curr, vert| path_current_B(p, pos, ori, curr, &vert)
         );
     }
+
+    #[test]
+    fn test_path_current_edge_cases_and_batch() {
+        // Less than 2 vertices
+        let b_less = local_path_current_B(point![0.0, 0.0, 1.0], 1.0, &[vector![0.0, 0.0, 0.0]]);
+        assert_eq!(b_less, Vector3::zeros());
+
+        // Zero-length segment (duplicate vertex)
+        let b_zero_seg = local_path_current_B(
+            point![0.0, 0.0, 1.0],
+            1.0,
+            &[vector![0.0, 0.0, 0.0], vector![0.0, 0.0, 0.0]],
+        );
+        assert_eq!(b_zero_seg, Vector3::zeros());
+
+        // Collinear observer with segment (norm_o4 < 1e-15)
+        let b_collinear = local_path_current_B(
+            point![0.0, 0.0, 0.5],
+            1.0,
+            &[vector![0.0, 0.0, 0.0], vector![0.0, 0.0, 1.0]],
+        );
+        assert_eq!(b_collinear, Vector3::zeros());
+
+        // Collinear observer on extension of segment
+        let b_ext = local_path_current_B(
+            point![0.0, 0.0, 2.0],
+            1.0,
+            &[vector![0.0, 0.0, 0.0], vector![0.0, 0.0, 1.0]],
+        );
+        assert_eq!(b_ext, Vector3::zeros());
+
+        // Batch with > 200 points to trigger Rayon threshold
+        let points = vec![point![0.0, 1.0, 0.0]; 250];
+        let mut out = vec![Vector3::zeros(); 250];
+        let verts = [vector![0.0, 0.0, 0.0], vector![0.0, 0.0, 1.0]];
+        path_current_B_batch(
+            &points,
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            1.0,
+            &verts,
+            &mut out,
+        );
+        assert_eq!(out.len(), 250);
+        assert!(out[0].x != 0.0);
+    }
 }

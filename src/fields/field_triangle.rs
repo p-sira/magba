@@ -294,4 +294,49 @@ mod tests {
             |p, pos, ori, pol, vert| triangle_B(p, pos, ori, pol, vert)
         );
     }
+
+    #[test]
+    fn test_triangle_edge_cases_and_batch() {
+        // Colinear vertices (degenerate triangle)
+        let b_collinear = local_triangle_B(
+            point![0.0, 0.0, 1.0],
+            vector![0.0, 0.0, 1.0],
+            [
+                vector![0.0, 0.0, 0.0],
+                vector![1.0, 0.0, 0.0],
+                vector![2.0, 0.0, 0.0],
+            ],
+        );
+        assert_eq!(b_collinear, Vector3::zeros());
+
+        // Observer collinear with an edge ray
+        let b_edge_ext = local_triangle_B(
+            point![2.0, 0.0, 0.0],
+            vector![0.0, 0.0, 1.0],
+            [
+                vector![0.0, 0.0, 0.0],
+                vector![1.0, 0.0, 0.0],
+                vector![0.0, 1.0, 0.0],
+            ],
+        );
+        assert!(b_edge_ext.x.is_finite());
+
+        // Batch with > 100 points for Rayon threshold
+        let points = vec![point![0.0, 0.0, 5.0]; 120];
+        let mut out = vec![Vector3::zeros(); 120];
+        triangle_B_batch(
+            &points,
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            vector![0.0, 0.0, 1.0],
+            [
+                vector![0.0, 0.0, 0.0],
+                vector![1.0, 0.0, 0.0],
+                vector![0.0, 1.0, 0.0],
+            ],
+            &mut out,
+        );
+        assert_eq!(out.len(), 120);
+        assert!(out[0].z != 0.0);
+    }
 }

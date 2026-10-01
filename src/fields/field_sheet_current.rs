@@ -90,3 +90,63 @@ pub fn sum_multiple_sheet_current_B<T: Float>(
         |pos, p, o, cds, mesh| sheet_current_B(*pos, *p, *o, cds, mesh)
     )
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use nalgebra::{point, vector};
+
+    #[test]
+    fn test_sheet_current_batch_and_sum_multiple() {
+        let vertices = vec![
+            vector![0.0, 0.0, 0.0],
+            vector![0.001, 0.0, 0.0],
+            vector![0.0, 0.001, 0.0],
+            vector![0.0, 0.0, 0.001],
+        ];
+        let faces = vec![[0, 2, 1], [0, 1, 3], [1, 2, 3], [0, 3, 2]];
+        let mesh = TriMesh::new(vertices, faces).unwrap();
+        let current_densities = vec![vector![1.0, 0.0, 0.0]; 4];
+
+        // Batch > 100 points for Rayon threshold
+        let points = vec![point![0.0, 0.0, 1.0]; 120];
+        let mut out = vec![Vector3::zeros(); 120];
+        sheet_current_B_batch(
+            &points,
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            &current_densities,
+            &mesh,
+            &mut out,
+        );
+        assert_eq!(out.len(), 120);
+
+        // sum_multiple_sheet_current_B with < 10 points and > 10 points
+        let positions = [point![0.0, 0.0, 0.0], point![0.01, 0.0, 0.0]];
+        let orientations = [UnitQuaternion::identity(), UnitQuaternion::identity()];
+        let cds_list = [current_densities.clone(), current_densities];
+        let meshes = [&mesh, &mesh];
+
+        let mut out_small = vec![Vector3::zeros(); 2];
+        sum_multiple_sheet_current_B(
+            &points[..2],
+            &positions,
+            &orientations,
+            &cds_list,
+            &meshes,
+            &mut out_small,
+        );
+        assert_eq!(out_small.len(), 2);
+
+        let mut out_large = vec![Vector3::zeros(); 15];
+        sum_multiple_sheet_current_B(
+            &points[..15],
+            &positions,
+            &orientations,
+            &cds_list,
+            &meshes,
+            &mut out_large,
+        );
+        assert_eq!(out_large.len(), 15);
+    }
+}

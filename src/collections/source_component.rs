@@ -123,3 +123,28 @@ where
         SourceAssembly::from(value).into()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::currents::CircularCurrent;
+    use crate::magnets::Dipole;
+
+    #[test]
+    fn test_source_component_eq_and_from() {
+        let current: SourceComponent = CircularCurrent::default().into();
+        let current2: SourceComponent = CircularCurrent::default().into();
+        assert_eq!(current, current2);
+
+        let magnet: SourceComponent = Dipole::<f64>::default().into();
+        assert_ne!(current, magnet);
+
+        let custom1: SourceComponent = SourceComponent::Custom(Box::new(Dipole::<f64>::default()));
+        let custom2: SourceComponent = SourceComponent::Custom(Box::new(Dipole::<f64>::default()));
+        assert_ne!(custom1, custom2);
+        assert_ne!(magnet, custom1);
+
+        let arr_comp: SourceComponent = SourceArray::from([Dipole::<f64>::default()]).into();
+        assert_eq!(arr_comp, arr_comp.clone());
+    }
+}

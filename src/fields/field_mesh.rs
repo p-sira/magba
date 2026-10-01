@@ -54,81 +54,6 @@ pub fn local_mesh_B<T: Float>(
     b_total
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use approx::assert_relative_eq;
-    use nalgebra::{point, vector};
-
-    #[test]
-    fn cube_center_is_classified_inside_when_ray_crosses_shared_edge() {
-        let vertices = vec![
-            vector![-1.0, -1.0, -1.0],
-            vector![1.0, -1.0, -1.0],
-            vector![1.0, 1.0, -1.0],
-            vector![-1.0, 1.0, -1.0],
-            vector![-1.0, -1.0, 1.0],
-            vector![1.0, -1.0, 1.0],
-            vector![1.0, 1.0, 1.0],
-            vector![-1.0, 1.0, 1.0],
-        ];
-        let faces = vec![
-            [0, 2, 1],
-            [0, 3, 2],
-            [4, 5, 6],
-            [4, 6, 7],
-            [0, 1, 5],
-            [0, 5, 4],
-            [3, 7, 6],
-            [3, 6, 2],
-            [0, 4, 7],
-            [0, 7, 3],
-            [1, 2, 6],
-            [1, 6, 5],
-        ];
-        let mesh = TriMesh::new(vertices, faces).unwrap();
-
-        let actual = mesh_B(
-            point![0.0, 0.0, 0.0],
-            Point3::origin(),
-            UnitQuaternion::identity(),
-            Vector3::z(),
-            &mesh,
-        );
-
-        assert_relative_eq!(actual, vector![0.0, 0.0, 2.0 / 3.0], epsilon = 1e-12);
-    }
-
-    #[test]
-    fn f32_millimeter_mesh_matches_tetrahedron() {
-        let vertices = [
-            vector![0.0_f32, 0.0, 0.0],
-            vector![0.001, 0.0, 0.0],
-            vector![0.0, 0.001, 0.0],
-            vector![0.0, 0.0, 0.001],
-        ];
-        let mesh = TriMesh::new_unchecked(vertices, [[0, 2, 1], [0, 1, 3], [1, 2, 3], [0, 3, 2]]);
-        let point = point![0.0001, 0.0002, 0.0003];
-
-        let actual = mesh_B(
-            point,
-            Point3::origin(),
-            UnitQuaternion::identity(),
-            Vector3::z(),
-            &mesh,
-        );
-        let expected = crate::fields::tetrahedron_B(
-            point,
-            Point3::origin(),
-            UnitQuaternion::identity(),
-            Vector3::z(),
-            vertices,
-        );
-
-        assert_relative_eq!(actual, expected, epsilon = 1e-5);
-    }
-}
-
 /// Computes B-field of a homogeneously magnetized mesh at point (x, y, z).
 ///
 /// # Arguments
@@ -214,4 +139,132 @@ pub fn sum_multiple_mesh_B<T: Float>(
         [positions, orientations, polarizations, meshes],
         |pos, p, o, pol, mesh| mesh_B(*pos, *p, *o, *pol, mesh)
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use approx::assert_relative_eq;
+    use nalgebra::{point, vector};
+
+    #[test]
+    fn cube_center_is_classified_inside_when_ray_crosses_shared_edge() {
+        let vertices = vec![
+            vector![-1.0, -1.0, -1.0],
+            vector![1.0, -1.0, -1.0],
+            vector![1.0, 1.0, -1.0],
+            vector![-1.0, 1.0, -1.0],
+            vector![-1.0, -1.0, 1.0],
+            vector![1.0, -1.0, 1.0],
+            vector![1.0, 1.0, 1.0],
+            vector![-1.0, 1.0, 1.0],
+        ];
+        let faces = vec![
+            [0, 2, 1],
+            [0, 3, 2],
+            [4, 5, 6],
+            [4, 6, 7],
+            [0, 1, 5],
+            [0, 5, 4],
+            [3, 7, 6],
+            [3, 6, 2],
+            [0, 4, 7],
+            [0, 7, 3],
+            [1, 2, 6],
+            [1, 6, 5],
+        ];
+        let mesh = TriMesh::new(vertices, faces).unwrap();
+
+        let actual = mesh_B(
+            point![0.0, 0.0, 0.0],
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            Vector3::z(),
+            &mesh,
+        );
+
+        assert_relative_eq!(actual, vector![0.0, 0.0, 2.0 / 3.0], epsilon = 1e-12);
+    }
+
+    #[test]
+    fn f32_millimeter_mesh_matches_tetrahedron() {
+        let vertices = [
+            vector![0.0_f32, 0.0, 0.0],
+            vector![0.001, 0.0, 0.0],
+            vector![0.0, 0.001, 0.0],
+            vector![0.0, 0.0, 0.001],
+        ];
+        let mesh = TriMesh::new_unchecked(vertices, [[0, 2, 1], [0, 1, 3], [1, 2, 3], [0, 3, 2]]);
+        let point = point![0.0001, 0.0002, 0.0003];
+
+        let actual = mesh_B(
+            point,
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            Vector3::z(),
+            &mesh,
+        );
+        let expected = crate::fields::tetrahedron_B(
+            point,
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            Vector3::z(),
+            vertices,
+        );
+
+        assert_relative_eq!(actual, expected, epsilon = 1e-5);
+    }
+
+    #[test]
+    fn test_mesh_batch_and_sum_multiple() {
+        let vertices = vec![
+            vector![0.0, 0.0, 0.0],
+            vector![0.001, 0.0, 0.0],
+            vector![0.0, 0.001, 0.0],
+            vector![0.0, 0.0, 0.001],
+        ];
+        let faces = vec![[0, 2, 1], [0, 1, 3], [1, 2, 3], [0, 3, 2]];
+        let mesh = TriMesh::new(vertices, faces).unwrap();
+
+        // Batch > 100 points for Rayon threshold
+        let points = vec![point![0.0, 0.0, 1.0]; 120];
+        let mut out = vec![Vector3::zeros(); 120];
+        mesh_B_batch(
+            &points,
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            vector![0.0, 0.0, 1.0],
+            &mesh,
+            &mut out,
+        );
+        assert_eq!(out.len(), 120);
+
+        // sum_multiple_mesh_B with < 10 points and > 10 points
+        let positions = [point![0.0, 0.0, 0.0], point![0.01, 0.0, 0.0]];
+        let orientations = [UnitQuaternion::identity(), UnitQuaternion::identity()];
+        let polarizations = [vector![0.0, 0.0, 1.0], vector![0.0, 0.0, 1.0]];
+        let meshes = [&mesh, &mesh];
+
+        let mut out_small = vec![Vector3::zeros(); 2];
+        sum_multiple_mesh_B(
+            &points[..2],
+            &positions,
+            &orientations,
+            &polarizations,
+            &meshes,
+            &mut out_small,
+        );
+        assert_eq!(out_small.len(), 2);
+
+        let mut out_large = vec![Vector3::zeros(); 15];
+        sum_multiple_mesh_B(
+            &points[..15],
+            &positions,
+            &orientations,
+            &polarizations,
+            &meshes,
+            &mut out_large,
+        );
+        assert_eq!(out_large.len(), 15);
+    }
 }

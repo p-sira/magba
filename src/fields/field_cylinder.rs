@@ -480,4 +480,35 @@ mod tests {
             |p, pos, ori, pol, d, h| cylinder_B(p, pos, ori, pol, d, h)
         );
     }
+
+    #[test]
+    fn test_cylinder_edge_cases_and_batch() {
+        // Small r (< 0.05) with diametral polarization (Taylor series)
+        let b_small_r =
+            local_cylinder_B(point![0.001, 0.0, 0.05], vector![1.0, 0.0, 0.0], 2.0, 1.0);
+        assert!(b_small_r.x.is_finite());
+
+        // r = r0 (r = 1.0) with diametral polarization
+        let b_r1 = local_cylinder_B(point![1.0, 0.0, 0.1], vector![1.0, 0.0, 0.0], 2.0, 1.0);
+        assert!(b_r1.x.is_finite());
+
+        // Point on the cylinder edge: r = 1.0, z = 1.0 with radius = 1.0, height = 2.0 (z0 = 1.0)
+        let b_edge = cylinder_B_cyl(1.0, 0.0, 1.0, 1.0, 2.0, 0.0, 1.0);
+        assert_eq!(b_edge, Vector3::zeros());
+
+        // Batch with > 100 points to trigger Rayon threshold
+        let points = vec![point![0.0, 0.0, 5.0]; 150];
+        let mut out = vec![Vector3::zeros(); 150];
+        cylinder_B_batch(
+            &points,
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            vector![0.0, 0.0, 1.0],
+            1.0,
+            2.0,
+            &mut out,
+        );
+        assert_eq!(out.len(), 150);
+        assert!(out[0].z != 0.0);
+    }
 }

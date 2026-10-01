@@ -20,7 +20,8 @@
 **Testing**
 
 - Reject non-finite accuracy-test values and compare identical zero vectors correctly ([#27](https://github.com/p-sira/magba/pull/27)).
-- Increase code coverage by adding tests for Traits.
+- Increase code coverage to 99% with comprehensive tests across traits, collections, sensors, and field boundary conditions.
+- Verify physical constants in `base::math` with numerical values.
 
 ## 0.6
 

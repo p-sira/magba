@@ -295,5 +295,43 @@ mod tests {
         // Transform::pose_mut
         let pose = Transform::pose_mut(&mut assembly);
         assert_eq!(pose.position().x, 0.0);
+
+        // new
+        let new_assembly = ObserverAssembly::new(
+            nalgebra::point![1.0, 0.0, 0.0],
+            UnitQuaternion::identity(),
+            vec![make_sensor(0.0)],
+        );
+        assert_eq!(new_assembly.position().x, 1.0);
+
+        // Default and builders
+        let mut def = ObserverAssembly::<f64>::default()
+            .with(make_sensor(0.0))
+            .with_position([1.0, 2.0, 3.0])
+            .with_orientation(UnitQuaternion::identity())
+            .with_pose(Pose::default());
+        assert_eq!(def.components().count(), 1);
+
+        // From Vec, From &[ObserverComponent], From ObserverArray
+        let vec_assembly = ObserverAssembly::from(vec![make_sensor(0.0)]);
+        let slice_input = [ObserverComponent::from(make_sensor(0.0))];
+        let slice_assembly = ObserverAssembly::from(&slice_input[..]);
+        let array_input = ObserverArray::from([make_sensor(0.0)]);
+        let array_assembly = ObserverAssembly::from(array_input);
+        assert_eq!(vec_assembly.components().count(), 1);
+        assert_eq!(slice_assembly.components().count(), 1);
+        assert_eq!(array_assembly.components().count(), 1);
+
+        // extend
+        def.extend(vec![ObserverComponent::from(make_sensor(1.0))]);
+        assert_eq!(def.components().count(), 2);
+
+        // Display
+        let s = format!("{}", assembly);
+        assert!(s.contains("ObserverAssembly"));
+
+        // PartialEq when mismatched element
+        let diff_elem = observers!(make_sensor(0.0), make_sensor(99.0));
+        assert_ne!(assembly, diff_elem);
     }
 }
