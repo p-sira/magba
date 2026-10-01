@@ -290,4 +290,16 @@ mod tests {
             5.0,
         );
     }
+
+    #[test]
+    #[should_panic(expected = "Sensitivity must be finite")]
+    fn rejects_non_finite_sensitivity_in_constructor() {
+        let _ = LinearHallSensor::new(
+            [0.0; 3],
+            UnitQuaternion::identity(),
+            [0.0, 0.0, 1.0],
+            f64::NAN,
+            5.0,
+        );
+    }
 }

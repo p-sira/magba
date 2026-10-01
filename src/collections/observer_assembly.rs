@@ -246,11 +246,54 @@ impl<T: Float> PartialEq for ObserverAssembly<T> {
 
 #[cfg(test)]
 mod tests {
-    // TODO
+    use super::*;
+    use crate::collections::observers;
+    use crate::sensors::hall_effect::LinearHallSensor;
+
     #[test]
-    fn test_todo() {
-        use crate::collections::observers;
-        use crate::prelude::*;
-        let _: ObserverAssembly = observers!();
+    fn test_observer_assembly_methods() {
+        let make_sensor = |x: f64| {
+            LinearHallSensor::new(
+                [x, 0.0, 0.0],
+                UnitQuaternion::identity(),
+                [0.0, 0.0, 1.0],
+                30.0,
+                3.3,
+            )
+        };
+
+        let mut assembly = observers!(make_sensor(0.0), make_sensor(1.0));
+
+        // components and iter
+        assert_eq!(assembly.components().count(), 2);
+        assert_eq!(assembly.iter().count(), 2);
+
+        // Index and IndexMut
+        assert_eq!(assembly[0].pose().position().x, 0.0);
+        assembly[0].set_pose(Pose::new([5.0, 0.0, 0.0], UnitQuaternion::identity()));
+        assert_eq!(assembly[0].pose().position().x, 5.0);
+
+        // read_all
+        let source = crate::magnets::Dipole::default();
+        let readings = assembly.read_all(&source);
+        assert_eq!(readings.len(), 2);
+
+        // IntoIterator for &ObserverAssembly
+        let mut count = 0;
+        for s in &assembly {
+            count += 1;
+            assert_eq!(s.pose().position().y, 0.0);
+        }
+        assert_eq!(count, 2);
+
+        // PartialEq
+        let assembly2 = observers!(make_sensor(1.0), make_sensor(5.0));
+        assert_eq!(assembly, assembly2);
+        let assembly3 = observers!(make_sensor(2.0));
+        assert_ne!(assembly, assembly3);
+
+        // Transform::pose_mut
+        let pose = Transform::pose_mut(&mut assembly);
+        assert_eq!(pose.position().x, 0.0);
     }
 }

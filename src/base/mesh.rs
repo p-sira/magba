@@ -164,6 +164,90 @@ mod tests {
 
         assert!(TriMesh::<f64>::new(vertices, faces).is_ok());
     }
+
+    #[test]
+    fn test_is_ray_hit() {
+        let tri = Triangle::new(
+            vector![0.0, 0.0, 0.0],
+            vector![1.0, 0.0, 0.0],
+            vector![0.0, 1.0, 0.0],
+        );
+        // Direct hit through center
+        assert!(is_ray_hit(
+            tri,
+            vector![0.25, 0.25, -1.0],
+            vector![0.0, 0.0, 1.0],
+            0.0,
+            10.0
+        ));
+        // Hit behind t_max
+        assert!(!is_ray_hit(
+            tri,
+            vector![0.25, 0.25, -1.0],
+            vector![0.0, 0.0, 1.0],
+            0.0,
+            0.5
+        ));
+        // Hit before t_min
+        assert!(!is_ray_hit(
+            tri,
+            vector![0.25, 0.25, -1.0],
+            vector![0.0, 0.0, 1.0],
+            2.0,
+            10.0
+        ));
+        // Miss outside triangle (u < 0 or u > 1)
+        assert!(!is_ray_hit(
+            tri,
+            vector![2.0, 2.0, -1.0],
+            vector![0.0, 0.0, 1.0],
+            0.0,
+            10.0
+        ));
+        assert!(!is_ray_hit(
+            tri,
+            vector![-0.5, 0.25, -1.0],
+            vector![0.0, 0.0, 1.0],
+            0.0,
+            10.0
+        ));
+        // Miss outside triangle (v < 0 or u + v > 1)
+        assert!(!is_ray_hit(
+            tri,
+            vector![0.25, -0.5, -1.0],
+            vector![0.0, 0.0, 1.0],
+            0.0,
+            10.0
+        ));
+        assert!(!is_ray_hit(
+            tri,
+            vector![0.8, 0.8, -1.0],
+            vector![0.0, 0.0, 1.0],
+            0.0,
+            10.0
+        ));
+        // Ray parallel to triangle plane (det <= eps)
+        assert!(!is_ray_hit(
+            tri,
+            vector![0.25, 0.25, -1.0],
+            vector![1.0, 0.0, 0.0],
+            0.0,
+            10.0
+        ));
+        // Degenerate triangle (det <= eps)
+        let degen = Triangle::new(
+            vector![0.0, 0.0, 0.0],
+            vector![0.0, 0.0, 0.0],
+            vector![0.0, 1.0, 0.0],
+        );
+        assert!(!is_ray_hit(
+            degen,
+            vector![0.0, 0.0, -1.0],
+            vector![0.0, 0.0, 1.0],
+            0.0,
+            10.0
+        ));
+    }
 }
 
 impl<T: Float> TriMesh<T> {

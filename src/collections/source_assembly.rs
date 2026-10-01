@@ -387,6 +387,29 @@ mod partial_eq_tests {
         assert_eq!(c1, c2);
         assert_ne!(c1, c3);
     }
+
+    #[test]
+    fn test_into_iterator_ref() {
+        let assembly = sources!(magnet1(), magnet2());
+        let count = (&assembly).into_iter().count();
+        assert_eq!(count, 2);
+    }
+
+    #[test]
+    fn test_index_mut() {
+        use nalgebra::point;
+        let mut assembly = sources!(magnet1());
+        assembly[0].set_pose(Pose::new([10.0, 0.0, 0.0], UnitQuaternion::identity()));
+        assert_eq!(assembly[0].pose().position(), point![10.0, 0.0, 0.0]);
+    }
+
+    #[test]
+    fn test_pose_mut() {
+        use nalgebra::point;
+        let mut assembly = sources!(magnet1());
+        let pose = Transform::pose_mut(&mut assembly);
+        assert_eq!(pose.position(), point![0.0, 0.0, 0.0]);
+    }
 }
 
 // MARK: Test Field

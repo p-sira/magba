@@ -235,4 +235,58 @@ mod tests {
 
         let _: ObserverArray<LinearHallSensor, 3> = sensors.collect();
     }
+
+    #[test]
+    fn test_observer_array_methods() {
+        let make_sensor = |x: f64| {
+            LinearHallSensor::new(
+                [x, 0.0, 0.0],
+                UnitQuaternion::identity(),
+                [0.0, 0.0, 1.0],
+                30.0,
+                3.3,
+            )
+        };
+        let mut arr = ObserverArray::from([make_sensor(0.0), make_sensor(1.0)]);
+
+        // components and iter
+        assert_eq!(arr.components().count(), 2);
+        assert_eq!(arr.iter().count(), 2);
+
+        // Index and IndexMut
+        assert_eq!(arr[0].pose().position().x, 0.0);
+        arr[0].set_position([5.0, 0.0, 0.0]);
+        assert_eq!(arr[0].pose().position().x, 5.0);
+
+        // read_all
+        let source = crate::magnets::Dipole::default();
+        let readings = arr.read_all(&source);
+        assert_eq!(readings.len(), 2);
+
+        // IntoIterator for &ObserverArray
+        let mut count = 0;
+        for s in &arr {
+            count += 1;
+            assert!(s.sensitivity() > 0.0);
+        }
+        assert_eq!(count, 2);
+
+        // IntoIterator for ObserverArray
+        let vec: Vec<_> = arr.clone().into_iter().collect();
+        assert_eq!(vec.len(), 2);
+
+        // PartialEq
+        let arr2 = ObserverArray::from([make_sensor(1.0), make_sensor(5.0)]);
+        assert_eq!(arr, arr2);
+        let arr3 = ObserverArray::from([make_sensor(2.0), make_sensor(3.0)]);
+        assert_ne!(arr, arr3);
+
+        // Default
+        let def: ObserverArray<LinearHallSensor, 2> = ObserverArray::default();
+        assert_eq!(def.components().count(), 2);
+
+        // Transform::pose_mut
+        let pose = Transform::pose_mut(&mut arr);
+        assert_eq!(pose.position().x, 0.0);
+    }
 }

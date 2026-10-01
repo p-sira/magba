@@ -91,3 +91,19 @@ impl<S: PartialEq, T: Float> PartialEq for Node<S, T> {
 }
 
 impl<S: Eq, T: Float> Eq for Node<S, T> {}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_node_default_and_eq() {
+        let node1 = Node::<String, f64>::default();
+        let node2 = Node::<String, f64>::default();
+        assert_eq!(node1, node2);
+        assert!(!node1.is_dirty());
+        assert_eq!(node1.component(), "");
+        assert_eq!(node1.local_offset(), &Pose::default());
+        assert_eq!(node1.into_component(), "");
+    }
+}

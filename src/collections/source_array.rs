@@ -314,6 +314,51 @@ mod field_tests {
     }
 
     #[test]
+    fn trait_pose_mut_accessible() {
+        let mut array = SourceArray::from([Dipole::default().with_position([1.0, 0.0, 0.0])]);
+        let pose = Transform::pose_mut(&mut array);
+        assert_eq!(pose.position(), point![0.0, 0.0, 0.0]);
+    }
+
+    #[test]
+    fn test_into_iterator_ref() {
+        let arr = SourceArray::from([
+            Dipole::default().with_position([1.0, 0.0, 0.0]),
+            Dipole::default().with_position([2.0, 0.0, 0.0]),
+        ]);
+        let mut count = 0;
+        for s in &arr {
+            count += 1;
+            assert!(s.position().x > 0.0);
+        }
+        assert_eq!(count, 2);
+    }
+
+    #[test]
+    fn test_partial_eq() {
+        let arr1 = SourceArray::from([
+            Dipole::default().with_position([1.0, 0.0, 0.0]),
+            Dipole::default().with_position([2.0, 0.0, 0.0]),
+        ]);
+        let arr2 = SourceArray::from([
+            Dipole::default().with_position([2.0, 0.0, 0.0]),
+            Dipole::default().with_position([1.0, 0.0, 0.0]),
+        ]);
+        let arr3 = SourceArray::from([
+            Dipole::default().with_position([3.0, 0.0, 0.0]),
+            Dipole::default().with_position([1.0, 0.0, 0.0]),
+        ]);
+        assert_eq!(arr1, arr2);
+        assert_ne!(arr1, arr3);
+    }
+
+    #[test]
+    fn test_iter() {
+        let arr = SourceArray::from([Dipole::<f64>::default()]);
+        assert_eq!(arr.iter().count(), 1);
+    }
+
+    #[test]
     fn test_static() {
         let arr = array();
         test_B_magnet!(@small, &arr, "cylinder-sources.csv", 5e-9);

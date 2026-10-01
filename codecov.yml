@@ -1,0 +1,23 @@
+coverage:
+  precision: 2
+  round: down
+  range: "80...100"
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
+    patch:
+      default:
+        target: auto
+        threshold: 1%
+
+ignore:
+  - "benches/**/*"
+  - "examples/**/*"
+  - "src/testing_util.rs"
+
+comment:
+  layout: "reach,diff,flags,files"
+  behavior: default
+  require_changes: false
