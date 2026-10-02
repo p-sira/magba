@@ -374,7 +374,19 @@ mod tests {
         );
         assert!(b_edge_ext.x.is_finite());
 
-        // Batch with > 100 points for Rayon threshold
+        // Observer with NaN
+        let b_nan = local_triangle_B(
+            point![f64::NAN, 0.0, 0.0],
+            vector![0.0, 0.0, 1.0],
+            [
+                vector![0.0, 0.0, 0.0],
+                vector![1.0, 0.0, 0.0],
+                vector![0.0, 1.0, 0.0],
+            ],
+        );
+        assert_eq!(b_nan, Vector3::zeros());
+
+        // Batch with <= 300 points for serial threshold
         let points = vec![point![0.0, 0.0, 5.0]; 120];
         let mut out = vec![Vector3::zeros(); 120];
         triangle_B_batch(
@@ -391,5 +403,23 @@ mod tests {
         );
         assert_eq!(out.len(), 120);
         assert!(out[0].z != 0.0);
+
+        // Batch with > 300 points for Rayon threshold
+        let points_large = vec![point![0.0, 0.0, 5.0]; 350];
+        let mut out_large = vec![Vector3::zeros(); 350];
+        triangle_B_batch(
+            &points_large,
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            vector![0.0, 0.0, 1.0],
+            [
+                vector![0.0, 0.0, 0.0],
+                vector![1.0, 0.0, 0.0],
+                vector![0.0, 1.0, 0.0],
+            ],
+            &mut out_large,
+        );
+        assert_eq!(out_large.len(), 350);
+        assert!(out_large[0].z != 0.0);
     }
 }

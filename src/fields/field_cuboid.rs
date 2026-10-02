@@ -387,6 +387,36 @@ mod tests {
         );
         assert_eq!(b_edge, Vector3::zeros());
 
+        // Zero polarization
+        let b_zero = local_cuboid_B(
+            point![0.0, 0.0, 5.0],
+            Vector3::zeros(),
+            vector![1.0, 1.0, 1.0],
+        );
+        assert_eq!(b_zero, Vector3::zeros());
+
+        // Polarization without z-component (pol_z == 0.0)
+        let b_pol_x = local_cuboid_B(
+            point![0.0, 0.0, 5.0],
+            vector![1.0, 0.0, 0.0],
+            vector![1.0, 1.0, 1.0],
+        );
+        assert!(b_pol_x.x != 0.0);
+
+        // Batch with <= 50 points to trigger serial threshold
+        let small_points = vec![point![0.0, 0.0, 5.0]; 5];
+        let mut small_out = vec![Vector3::zeros(); 5];
+        cuboid_B_batch(
+            &small_points,
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            vector![0.0, 0.0, 1.0],
+            vector![1.0, 1.0, 1.0],
+            &mut small_out,
+        );
+        assert_eq!(small_out.len(), 5);
+        assert!(small_out[0].z != 0.0);
+
         // Batch with > 50 points to trigger Rayon threshold
         let points = vec![point![0.0, 0.0, 5.0]; 60];
         let mut out = vec![Vector3::zeros(); 60];

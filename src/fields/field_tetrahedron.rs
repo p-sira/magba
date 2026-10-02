@@ -294,5 +294,23 @@ mod tests {
         );
         assert_eq!(out.len(), 120);
         assert!(out[0].z != 0.0);
+
+        // Batch with <= 100 points to trigger serial threshold
+        let mut small_out = vec![Vector3::zeros(); 5];
+        tetrahedron_B_batch(
+            &points[..5],
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            vector![0.0, 0.0, 1.0],
+            [
+                vector![0.0, 0.0, 0.0],
+                vector![1.0, 0.0, 0.0],
+                vector![0.0, 1.0, 0.0],
+                vector![0.0, 0.0, 1.0],
+            ],
+            &mut small_out,
+        );
+        assert_eq!(small_out.len(), 5);
+        assert!(small_out[0].z != 0.0);
     }
 }

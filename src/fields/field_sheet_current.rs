@@ -140,6 +140,19 @@ mod tests {
         );
         assert_eq!(out.len(), 120);
 
+        // Batch with <= 100 points for serial threshold
+        let mut small_out = vec![Vector3::zeros(); 5];
+        sheet_current_B_batch(
+            &points[..5],
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            &current_densities,
+            &mesh,
+            &mut small_out,
+        );
+        assert_eq!(small_out.len(), 5);
+        assert!(small_out[0].z != 0.0);
+
         // sum_multiple_sheet_current_B with < 10 points and > 10 points
         let positions = [point![0.0, 0.0, 0.0], point![0.01, 0.0, 0.0]];
         let orientations = [UnitQuaternion::identity(), UnitQuaternion::identity()];

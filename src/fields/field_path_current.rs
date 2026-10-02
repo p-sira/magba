@@ -71,9 +71,6 @@ impl<T: Float> PrecomputedSegment<T> {
 
         let cros = (self.p2_n - self.p1_n).cross(&po_p4);
         let norm_cros = cros.norm();
-        if norm_cros == 0.0 {
-            return Vector3::zeros();
-        }
         let e_b = cros / norm_cros;
 
         let norm_o1 = (po_n - self.p1_n).norm();
@@ -328,10 +325,68 @@ mod tests {
         );
         assert_eq!(b_ext, Vector3::zeros());
 
+        // NaN observer
+        let b_nan = local_path_current_B(
+            point![f64::NAN, 0.0, 0.0],
+            1.0,
+            &[vector![0.0, 0.0, 0.0], vector![0.0, 0.0, 1.0]],
+        );
+        assert_eq!(b_nan, Vector3::zeros());
+
+        let verts = [vector![0.0, 0.0, 0.0], vector![0.0, 0.0, 1.0]];
+
+        // Batch with NaN observer
+        let mut out_nan = vec![Vector3::zeros(); 5];
+        path_current_B_batch(
+            &[point![f64::NAN, 0.0, 0.0]; 5],
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            1.0,
+            &verts,
+            &mut out_nan,
+        );
+        assert_eq!(out_nan[0], Vector3::zeros());
+
+        // Batch with current == 0.0
+        let mut out_zero = vec![Vector3::zeros(); 5];
+        path_current_B_batch(
+            &[point![0.0, 1.0, 0.0]; 5],
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            0.0,
+            &verts,
+            &mut out_zero,
+        );
+        assert_eq!(out_zero[0], Vector3::zeros());
+
+        // Batch with < 2 vertices
+        let mut out_less = vec![Vector3::zeros(); 5];
+        path_current_B_batch(
+            &[point![0.0, 1.0, 0.0]; 5],
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            1.0,
+            &[vector![0.0, 0.0, 0.0]],
+            &mut out_less,
+        );
+        assert_eq!(out_less[0], Vector3::zeros());
+
+        // Batch with <= 200 points to trigger serial threshold
+        let mut small_out = vec![Vector3::zeros(); 5];
+        path_current_B_batch(
+            &[point![0.0, 1.0, 0.0]; 5],
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            1.0,
+            &verts,
+            &mut small_out,
+        );
+        assert_eq!(small_out.len(), 5);
+        assert!(small_out[0].x != 0.0);
+
         // Batch with > 200 points to trigger Rayon threshold
         let points = vec![point![0.0, 1.0, 0.0]; 250];
         let mut out = vec![Vector3::zeros(); 250];
-        let verts = [vector![0.0, 0.0, 0.0], vector![0.0, 0.0, 1.0]];
         path_current_B_batch(
             &points,
             Point3::origin(),

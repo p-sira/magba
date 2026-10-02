@@ -519,6 +519,14 @@ mod tests {
 
     #[test]
     fn test_cylinder_edge_cases_and_batch() {
+        // Zero polarization
+        let b_zero = local_cylinder_B(point![0.0, 0.0, 5.0], Vector3::zeros(), 1.0, 2.0);
+        assert_eq!(b_zero, Vector3::zeros());
+
+        // Axial polarization with r > 0
+        let b_axial_r = local_cylinder_B(point![0.5, 0.0, 5.0], vector![0.0, 0.0, 1.0], 1.0, 2.0);
+        assert!(b_axial_r.z != 0.0);
+
         // Small r (< 0.05) with diametral polarization (Taylor series)
         let b_small_r =
             local_cylinder_B(point![0.001, 0.0, 0.05], vector![1.0, 0.0, 0.0], 2.0, 1.0);
@@ -531,6 +539,21 @@ mod tests {
         // Point on the cylinder edge: r = 1.0, z = 1.0 with radius = 1.0, height = 2.0 (z0 = 1.0)
         let b_edge = cylinder_B_cyl(1.0, 0.0, 1.0, 1.0, 2.0, 0.0, 1.0);
         assert_eq!(b_edge, Vector3::zeros());
+
+        // Batch with <= 100 points to trigger serial threshold
+        let small_points = vec![point![0.0, 0.0, 5.0]; 5];
+        let mut small_out = vec![Vector3::zeros(); 5];
+        cylinder_B_batch(
+            &small_points,
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            vector![0.0, 0.0, 1.0],
+            1.0,
+            2.0,
+            &mut small_out,
+        );
+        assert_eq!(small_out.len(), 5);
+        assert!(small_out[0].z != 0.0);
 
         // Batch with > 100 points to trigger Rayon threshold
         let points = vec![point![0.0, 0.0, 5.0]; 150];

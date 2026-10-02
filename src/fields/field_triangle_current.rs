@@ -347,6 +347,31 @@ mod tests {
         );
         assert_eq!(b_collinear, Vector3::zeros());
 
+        // Batch with zero current density
+        let mut out_zero = vec![Vector3::zeros(); 5];
+        triangle_current_B_batch(
+            &[point![0.0, 0.0, 5.0]; 5],
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            Vector3::zeros(),
+            verts,
+            &mut out_zero,
+        );
+        assert_eq!(out_zero[0], Vector3::zeros());
+
+        // Batch with <= 100 points for serial threshold
+        let mut small_out = vec![Vector3::zeros(); 5];
+        triangle_current_B_batch(
+            &[point![0.0, 0.0, 5.0]; 5],
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            vector![1.0, 0.0, 0.0],
+            verts,
+            &mut small_out,
+        );
+        assert_eq!(small_out.len(), 5);
+        assert!(small_out[0].z != 0.0);
+
         // Batch with > 100 points for Rayon threshold
         let points = vec![point![0.0, 0.0, 5.0]; 120];
         let mut out = vec![Vector3::zeros(); 120];

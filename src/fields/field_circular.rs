@@ -291,6 +291,20 @@ mod tests {
         let b_wire = local_circular_B(point![1.0, 0.0, 0.0], 2.0, 1.0);
         assert_eq!(b_wire, Vector3::zeros());
 
+        // circular_B_batch with <= 350 points to trigger serial threshold
+        let small_points = vec![point![0.0, 0.0, 1.0]; 5];
+        let mut small_out = vec![Vector3::zeros(); 5];
+        circular_B_batch(
+            &small_points,
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            2.0,
+            1.0,
+            &mut small_out,
+        );
+        assert_eq!(small_out.len(), 5);
+        assert!(small_out[0].z != 0.0);
+
         // circular_B_batch with > 350 points to trigger Rayon threshold
         let points = vec![point![0.0, 0.0, 1.0]; 400];
         let mut out = vec![Vector3::zeros(); 400];
