@@ -10,7 +10,7 @@ The observer points are generated using `get_points` and `get_points_small` func
 
 ## Accuracy Report
 
-This report is generated on AMD Ryzen 5 4600H with Radeon Graphics @3.9 GHz RAM 16 GB running x86_64-unknown-linux-gnu rustc 1.98.1 using magba v0.7.1. The performance is benchmarked using Criterion, and the average compute times are divided by the number of test cases (1,000) to get the approximate time to compute the field function for one observer point.
+This report is generated on AMD Ryzen 5 4600H with Radeon Graphics @4.0 GHz RAM 16 GB running x86_64-unknown-linux-gnu rustc 1.98.1 using magba v0.7.1. The performance is benchmarked using Criterion, and the average compute times are divided by the number of test cases (1,000) to get the approximate time to compute the field function for one observer point.
 
 ### Relative Error: f64
 
@@ -30,16 +30,19 @@ This report is generated on AMD Ryzen 5 4600H with Radeon Graphics @3.9 GHz RAM 
 
 ### Relative Error: f32
 
-| Function          | Median   | Mean     | P95      | Max      | Performance |
-|-------------------|----------|----------|----------|----------|-------------|
-| CircularCurrent   | 2.123e-7 | 3.224e-7 | 7.452e-7 | 1.906e-5 | 37.4 ns     |
-| PathCurrent       | 3.480e-7 | 5.141e-7 | 1.376e-6 | 1.201e-5 | 38.2 ns     |
-| SheetCurrent      | 3.635e-6 | 4.179e-5 | 8.854e-5 | 0.012    | 96.7 ns     |
-| TriangleCurrent   | 3.391e-6 | 5.683e-5 | 6.037e-5 | 0.015    | 49.0 ns     |
-| CylinderMagnet    | 2.506e-5 | 2.275e-4 | 2.912e-4 | 0.067    | 48.0 ns     |
-| CuboidMagnet      | 6.057e-6 | 8.972e-6 | 2.695e-5 | 9.380e-5 | 52.6 ns     |
-| Dipole            | 1.234e-7 | 1.411e-7 | 3.054e-7 | 5.281e-7 | 3.4 ns      |
-| SphereMagnet      | 1.153e-7 | 1.333e-7 | 2.824e-7 | 5.084e-7 | 2.8 ns      |
-| TetrahedronMagnet | 2.968e-5 | 1.176e-4 | 2.867e-4 | 0.024    | 80.2 ns     |
-| TriangleMagnet    | 1.604e-6 | 7.501e-6 | 2.040e-5 | 4.561e-4 | 42.8 ns     |
-| MeshMagnet        | 2.968e-5 | 1.176e-4 | 2.867e-4 | 0.024    | 75.3 ns     |
+> [!NOTE]
+> Reference solutions are computed in 64-bit double precision (`f64`). For single precision (`f32`), the machine epsilon is $\epsilon \approx 1.192 \times 10^{-7}$ ($2^{-23}$). Errors below are scaled by `f32::EPSILON` and expressed in units of machine epsilon ($\epsilon$).
+
+| Function          | Median (ε) | Mean (ε) | P95 (ε) | Max (ε) | Performance |
+|-------------------|------------|----------|---------|---------|-------------|
+| CircularCurrent   | 1.781      | 2.705    | 6.251   | 159.856 | 37.4 ns     |
+| PathCurrent       | 2.919      | 4.312    | 11.544  | 100.721 | 38.2 ns     |
+| SheetCurrent      | 30.494     | 350.535  | 742.726 | 9.861e4 | 96.7 ns     |
+| TriangleCurrent   | 28.448     | 476.754  | 506.403 | 1.251e5 | 49.0 ns     |
+| CylinderMagnet    | 210.260    | 1.908e3  | 2.443e3 | 5.603e5 | 48.0 ns     |
+| CuboidMagnet      | 50.810     | 75.263   | 226.049 | 786.855 | 52.6 ns     |
+| Dipole            | 1.035      | 1.183    | 2.562   | 4.430   | 3.4 ns      |
+| SphereMagnet      | 0.967      | 1.118    | 2.369   | 4.265   | 2.8 ns      |
+| TetrahedronMagnet | 248.989    | 986.615  | 2.405e3 | 1.981e5 | 80.2 ns     |
+| TriangleMagnet    | 13.454     | 62.923   | 171.095 | 3.826e3 | 42.8 ns     |
+| MeshMagnet        | 248.989    | 986.615  | 2.405e3 | 1.981e5 | 75.3 ns     |

@@ -18,4 +18,7 @@ This report is generated on {{TEST_ENV}}. The performance is benchmarked using C
 
 ### Relative Error: f32
 
+> [!NOTE]
+> Reference solutions are computed in 64-bit double precision (`f64`). For single precision (`f32`), the machine epsilon is $\epsilon \approx 1.192 \times 10^{-7}$ ($2^{-23}$). Errors below are scaled by `f32::EPSILON` and expressed in units of machine epsilon ($\epsilon$).
+
 {{ERROR_F32}}

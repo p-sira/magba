@@ -172,7 +172,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         ("MeshMagnet", "triangularmesh.csv"),
     ];
 
-    fn get_report() -> Report {
+    fn get_report_f64() -> Report {
         Report::new()
             .with_float_precision(3)
             .with_metric(metrics::rel_err)
@@ -187,6 +187,30 @@ fn main() -> Result<(), Box<dyn Error>> {
             )
     }
 
+    fn get_report_f32() -> Report {
+        let rel_err_f32_eps = |actual: &[f64], expected: &[f64]| {
+            let err = metrics::rel_err(actual, expected);
+            if let metrics::MetricValue::Numerical(err) = err {
+                metrics::MetricValue::Numerical(err / (f32::EPSILON as f64))
+            } else {
+                err
+            }
+        };
+
+        Report::new()
+            .with_float_precision(3)
+            .with_metric(rel_err_f32_eps)
+            .with_column(Column::accuracy("Median (ε)").with_stat(ColumnStat::Median))
+            .with_column(Column::accuracy("Mean (ε)").with_stat(ColumnStat::Mean))
+            .with_column(Column::accuracy("P95 (ε)").with_stat(ColumnStat::P95))
+            .with_column(Column::accuracy("Max (ε)").with_stat(ColumnStat::Max))
+            .with_column(
+                Column::<f64>::perf("Performance")
+                    .with_stat(ColumnStat::Mean)
+                    .postprocess(|perf| perf / 1000.0), // Divide by the number of test points
+            )
+    }
+
     let mut content = std::fs::read_to_string("tests/report_template.md")
         .expect("Cannot read the report template");
 
@@ -194,7 +218,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // f64 report
     {
-        let mut report = get_report();
+        let mut report = get_report_f64();
 
         for &(name, ref_file) in &magnets {
             let magnet = create_magnet::<f64>(name);
@@ -205,7 +229,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // f32 report
     {
-        let mut report = get_report();
+        let mut report = get_report_f32();
 
         for &(name, ref_file) in &magnets {
             let magnet = create_magnet::<f32>(name);
