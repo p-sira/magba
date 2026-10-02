@@ -10,10 +10,7 @@ use num_traits::Float as NumFloat;
 use numeric_literals::replace_float_literals;
 
 use crate::{
-    base::{
-        Float,
-        coordinate::compute_in_local,
-    },
+    base::{Float, coordinate::compute_in_local},
     crate_utils::{impl_parallel, impl_parallel_sum},
 };
 

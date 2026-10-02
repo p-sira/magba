@@ -126,26 +126,43 @@ impl<T: Float> PrecomputedTriangleCurrent<T> {
 
         let sqrt1 = NumFloat::sqrt(r2);
         let sqrt2 = NumFloat::sqrt(self.u1_2 - 2.0 * self.u1 * x + r2);
-        let sqrt3 = NumFloat::sqrt(self.u2_2 - 2.0 * self.u2 * x + self.v2_2 - 2.0 * self.v2 * y + r2);
+        let sqrt3 =
+            NumFloat::sqrt(self.u2_2 - 2.0 * self.u2 * x + self.v2_2 - 2.0 * self.v2 * y + r2);
 
         let v2_z = self.v2 * z;
 
         let H_x = (NumFloat::atan((-self.u2 * yz2 + self.v2 * x * y) / (v2_z * sqrt1))
-            + NumFloat::atan((self.v2 * y * (self.u1 - x) - (self.u1 - self.u2) * yz2) / (v2_z * sqrt2))
-            - NumFloat::atan((-self.u2 * yz2 - self.v2_2 * x + self.v2 * y * (self.u2 + x)) / (v2_z * sqrt3))
+            + NumFloat::atan(
+                (self.v2 * y * (self.u1 - x) - (self.u1 - self.u2) * yz2) / (v2_z * sqrt2),
+            )
             - NumFloat::atan(
-                (-self.u1 * (self.v2_2 - 2.0 * self.v2 * y + yz2) + self.u2 * yz2 + self.v2_2 * x - self.v2 * y * (self.u2 + x))
+                (-self.u2 * yz2 - self.v2_2 * x + self.v2 * y * (self.u2 + x)) / (v2_z * sqrt3),
+            )
+            - NumFloat::atan(
+                (-self.u1 * (self.v2_2 - 2.0 * self.v2 * y + yz2) + self.u2 * yz2 + self.v2_2 * x
+                    - self.v2 * y * (self.u2 + x))
                     / (v2_z * sqrt3),
             ))
             / (self.u1 * v2_z);
 
-        let H_z = -(self.ju * NumFloat::atanh(x / sqrt1) + self.ju * NumFloat::atanh((self.u1 - x) / sqrt2)
+        let H_z = -(self.ju * NumFloat::atanh(x / sqrt1)
+            + self.ju * NumFloat::atanh((self.u1 - x) / sqrt2)
             - self.ju_u1_u2_jv_v2_over_sqrt4
-                * NumFloat::atanh((self.u1_2 - self.u1 * (self.u2 + x) + self.u2 * x + self.v2 * y) / (self.sqrt4 * sqrt2))
+                * NumFloat::atanh(
+                    (self.u1_2 - self.u1 * (self.u2 + x) + self.u2 * x + self.v2 * y)
+                        / (self.sqrt4 * sqrt2),
+                )
             + self.ju_u1_u2_jv_v2_over_sqrt4
-                * NumFloat::atanh((self.u1 * (self.u2 - x) - self.u2_2 + self.u2 * x + self.v2 * (-self.v2 + y)) / (self.sqrt4 * sqrt3))
-            + self.ju_u2_jv_v2_over_sqrt5 * NumFloat::atanh((-self.u2 * x - self.v2 * y) / (self.sqrt5 * sqrt1))
-            - self.ju_u2_jv_v2_over_sqrt5 * NumFloat::atanh((self.u2_2 - self.u2 * x + self.v2 * (self.v2 - y)) / (self.sqrt5 * sqrt3)))
+                * NumFloat::atanh(
+                    (self.u1 * (self.u2 - x) - self.u2_2 + self.u2 * x + self.v2 * (-self.v2 + y))
+                        / (self.sqrt4 * sqrt3),
+                )
+            + self.ju_u2_jv_v2_over_sqrt5
+                * NumFloat::atanh((-self.u2 * x - self.v2 * y) / (self.sqrt5 * sqrt1))
+            - self.ju_u2_jv_v2_over_sqrt5
+                * NumFloat::atanh(
+                    (self.u2_2 - self.u2 * x + self.v2 * (self.v2 - y)) / (self.sqrt5 * sqrt3),
+                ))
             / self.u1_v2;
 
         let factor_z = self.factor * z;

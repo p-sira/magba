@@ -132,7 +132,8 @@ pub fn local_cuboid_B<T: RealField + Copy>(
     };
 
     let (bx_pol_x, by_pol_x, bz_pol_x) = if pol_x != 0.0 {
-        let ff1x = (ymb * zmc).atan2(xma * mmm) - (ymb * zmc).atan2(xpa * pmm)
+        let ff1x = (ymb * zmc).atan2(xma * mmm)
+            - (ymb * zmc).atan2(xpa * pmm)
             - (ypb * zmc).atan2(xma * mpm)
             + (ypb * zmc).atan2(xpa * ppm)
             - (ymb * zpc).atan2(xma * mmp)
@@ -145,7 +146,8 @@ pub fn local_cuboid_B<T: RealField + Copy>(
     };
 
     let (bx_pol_y, by_pol_y, bz_pol_y) = if pol_y != 0.0 {
-        let ff1y = (xma * zmc).atan2(ymb * mmm) - (xpa * zmc).atan2(ymb * pmm)
+        let ff1y = (xma * zmc).atan2(ymb * mmm)
+            - (xpa * zmc).atan2(ymb * pmm)
             - (xma * zmc).atan2(ypb * mpm)
             + (xpa * zmc).atan2(ypb * ppm)
             - (xma * zpc).atan2(ymb * mmp)
@@ -158,7 +160,8 @@ pub fn local_cuboid_B<T: RealField + Copy>(
     };
 
     let (bx_pol_z, by_pol_z, bz_pol_z) = if pol_z != 0.0 {
-        let ff1z = (xma * ymb).atan2(zmc * mmm) - (xpa * ymb).atan2(zmc * pmm)
+        let ff1z = (xma * ymb).atan2(zmc * mmm)
+            - (xpa * ymb).atan2(zmc * pmm)
             - (xma * ypb).atan2(zmc * mpm)
             + (xpa * ypb).atan2(zmc * ppm)
             - (xma * ymb).atan2(zpc * mmp)
