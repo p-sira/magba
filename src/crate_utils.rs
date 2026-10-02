@@ -106,32 +106,39 @@ macro_rules! assert_eq_lens {
 pub(crate) use assert_eq_lens;
 
 macro_rules! impl_parallel {
-    ($func:ident, rayon_threshold: $threshold:expr, input: $inputs:expr, output: $out:expr, args: [$($func_args:expr),* $(,)?]) => {
+    (
+        rayon_threshold: $threshold:expr,
+        input: $inputs:expr,
+        output: $out:expr,
+        |$p:ident| $calc:expr
+    ) => {{
+        assert_eq!(
+            $out.len(),
+            $inputs.len(),
+            "Output slice length must match input vectors length."
+        );
+
+        #[cfg(feature = "rayon")]
         {
-            assert_eq!($out.len(), $inputs.len(), "Output slice length must match input vectors length.");
-
-            #[cfg(feature = "rayon")]
-            {
-                if $inputs.len() > $threshold {
-                    use rayon::prelude::*;
-                    $out.par_iter_mut()
-                        .zip($inputs.par_iter())
-                        .for_each(|(o, p)| *o = $func(*p, $($func_args),*));
-                } else {
-                    $out.iter_mut()
-                        .zip($inputs.iter())
-                        .for_each(|(o, p)| *o = $func(*p, $($func_args),*));
-                }
-            }
-
-            #[cfg(not(feature = "rayon"))]
-            {
+            if $inputs.len() > $threshold {
+                use rayon::prelude::*;
+                $out.par_iter_mut()
+                    .zip($inputs.par_iter())
+                    .for_each(|(o, $p)| *o = $calc);
+            } else {
                 $out.iter_mut()
                     .zip($inputs.iter())
-                    .for_each(|(o, p)| *o = $func(*p, $($func_args),*));
+                    .for_each(|(o, $p)| *o = $calc);
             }
         }
-    };
+
+        #[cfg(not(feature = "rayon"))]
+        {
+            $out.iter_mut()
+                .zip($inputs.iter())
+                .for_each(|(o, $p)| *o = $calc);
+        }
+    }};
 }
 pub(crate) use impl_parallel;
 

@@ -252,8 +252,39 @@ pub fn local_cylinder_B<T: Float>(
     radius: T,
     height: T,
 ) -> Vector3<T> {
+    if polarization == Vector3::zeros() {
+        return Vector3::zeros();
+    }
+
+    // Fast-path for axial polarization: skips cylindrical angular conversions and trigonometric functions
+    if polarization.x == T::zero() && polarization.y == T::zero() {
+        let r = NumFloat::sqrt(point.x * point.x + point.y * point.y);
+        let b_cyl = cylinder_B_cyl(
+            r,
+            T::zero(),
+            point.z,
+            radius,
+            height,
+            T::zero(),
+            polarization.z,
+        );
+
+        let (bx, by) = if r > T::zero() {
+            let inv_r = T::from(1.0).unwrap() / r;
+            (b_cyl.x * point.x * inv_r, b_cyl.x * point.y * inv_r)
+        } else {
+            (T::zero(), T::zero())
+        };
+
+        return vector![bx, by, b_cyl.z];
+    }
+
     let (r, phi) = cart2cyl(point.x, point.y);
-    let (pol_r, theta) = cart2cyl(polarization.x, polarization.y);
+    let (pol_r, theta) = if polarization.y == T::zero() && polarization.x >= T::zero() {
+        (polarization.x, T::zero())
+    } else {
+        cart2cyl(polarization.x, polarization.y)
+    };
 
     let b_cyl = cylinder_B_cyl(
         r,
@@ -402,13 +433,18 @@ pub fn cylinder_B_batch<T: Float>(
     height: T,
     out: &mut [Vector3<T>],
 ) {
+    let inv_orientation = orientation.inverse();
+    let radius = diameter / T::from(2.0).unwrap();
     impl_parallel!(
-        cylinder_B,
         rayon_threshold: 100,
         input: points,
         output: out,
-        args: [position, orientation, polarization, diameter, height]
-    )
+        |p| {
+            let local_point = inv_orientation * Point3::from(p.coords - position.coords);
+            let local_b = local_cylinder_B(local_point, polarization, radius, height);
+            orientation * local_b
+        }
+    );
 }
 
 /// Computes net B-field at each given point in global frame for multiple cylindrical magnets.
@@ -483,6 +519,14 @@ mod tests {
 
     #[test]
     fn test_cylinder_edge_cases_and_batch() {
+        // Zero polarization
+        let b_zero = local_cylinder_B(point![0.0, 0.0, 5.0], Vector3::zeros(), 1.0, 2.0);
+        assert_eq!(b_zero, Vector3::zeros());
+
+        // Axial polarization with r > 0
+        let b_axial_r = local_cylinder_B(point![0.5, 0.0, 5.0], vector![0.0, 0.0, 1.0], 1.0, 2.0);
+        assert!(b_axial_r.z != 0.0);
+
         // Small r (< 0.05) with diametral polarization (Taylor series)
         let b_small_r =
             local_cylinder_B(point![0.001, 0.0, 0.05], vector![1.0, 0.0, 0.0], 2.0, 1.0);
@@ -495,6 +539,31 @@ mod tests {
         // Point on the cylinder edge: r = 1.0, z = 1.0 with radius = 1.0, height = 2.0 (z0 = 1.0)
         let b_edge = cylinder_B_cyl(1.0, 0.0, 1.0, 1.0, 2.0, 0.0, 1.0);
         assert_eq!(b_edge, Vector3::zeros());
+
+        // Batch with <= 100 points to trigger serial threshold (verified against magpylib)
+        let small_points = [
+            point![0.0, 0.0, 3.0],
+            point![0.25, 0.0, 3.0],
+            point![0.0, 0.75, 3.0],
+        ];
+        let mut small_out = vec![Vector3::zeros(); 3];
+        cylinder_B_batch(
+            &small_points,
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            vector![0.0, 0.0, 1.0],
+            1.0,
+            2.0,
+            &mut small_out,
+        );
+        let expected = [
+            vector![0.0, 0.0, 0.011_067_688_284_167_91],
+            vector![0.001510292125676766, 0.0, 0.010780010996173256],
+            vector![0.0, 0.0038107814524458316, 0.008797178545834898],
+        ];
+        for (o, e) in small_out.iter().zip(expected.iter()) {
+            approx::assert_relative_eq!(o, e, epsilon = 1e-12, max_relative = 1e-7);
+        }
 
         // Batch with > 100 points to trigger Rayon threshold
         let points = vec![point![0.0, 0.0, 5.0]; 150];

@@ -2,6 +2,20 @@
 
 ## 0.7
 
+### 0.7.1
+
+**Performance Improvements**
+
+- Optimize `local_circular_B` by using direct Cartesian projection, eliminating Cartesian-to-cylindrical transformations, inverse trigonometric functions (`atan2`), and trigonometric projections (`cos`, `sin`).
+- Optimize `local_cuboid_B` by eliminating matrix allocation/multiplication overhead in sign determination, combining paired logarithms into single division evaluations ($\ln(A) - \ln(B) = \ln(A/B)$), and conditionally skipping zero-polarization field components.
+- Optimize `local_cylinder_B` with an axial-polarization fast path, skipping coordinate transformations when transverse polarization components are zero.
+- Optimize `local_dipole_B` and `dipole_B_batch` by pre-rotating dipole moments once in global coordinates, reusing $r^2$ to compute $r$, $1/r^3$, and $1/r^5$ with a single square root, and avoiding per-observer coordinate transformations.
+- Optimize `local_sphere_B` and `sphere_B_batch` by checking squared distance to skip square roots inside the sphere, pre-rotating polarization once in global coordinates, and avoiding per-observer coordinate transformations.
+- Optimize `local_triangle_B` and `local_mesh_B` by returning solid angle from local triangle evaluations, eliminating duplicate displacement, distance, and solid angle calculations across faces in mesh evaluations.
+- Optimize `local_triangle_current_B`, `triangle_current_B_batch`, and `local_sheet_current_B` by precomputing observer-independent local triangle coordinate systems and geometric constants outside observer loops.
+- Optimize `path_current_B_batch` by precomputing line segment parameters outside the observer evaluation loop.
+- Optimize batch field evaluations (`*_B_batch`) across all field sources by precomputing inverse orientation quaternions once outside observer loops.
+
 ### 0.7.0
 
 **Breaking Changes**

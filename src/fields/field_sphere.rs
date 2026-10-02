@@ -9,7 +9,7 @@ use nalgebra::{Point3, UnitQuaternion, Vector3};
 use numeric_literals::replace_float_literals;
 
 use crate::{
-    base::{Float, coordinate::compute_in_local},
+    base::Float,
     crate_utils::{impl_parallel, impl_parallel_sum},
 };
 
@@ -40,14 +40,15 @@ pub fn local_sphere_B<T: Float>(
     diameter: T,
 ) -> Vector3<T> {
     let p = Vector3::from(point.coords);
-    let r = p.norm();
+    let r2 = p.norm_squared();
     let r_sphere = num_traits::Float::abs(diameter) / 2.0;
+    let r_sphere2 = r_sphere * r_sphere;
 
-    if r > r_sphere {
+    if r2 > r_sphere2 {
         // Outside: Dipole field
-        let r2 = r * r;
+        let r = num_traits::Float::sqrt(r2);
         let r5 = r2 * r2 * r;
-        let r_sphere3 = r_sphere * r_sphere * r_sphere;
+        let r_sphere3 = r_sphere2 * r_sphere;
 
         (p * (3.0 * polarization.dot(&p)) - polarization * r2) * (r_sphere3 / (3.0 * r5))
     } else {
@@ -82,13 +83,9 @@ pub fn sphere_B<T: Float>(
     polarization: Vector3<T>,
     diameter: T,
 ) -> Vector3<T> {
-    compute_in_local!(
-        local_sphere_B,
-        point,
-        position,
-        orientation,
-        (polarization, diameter),
-    )
+    let pol_global = orientation * polarization;
+    let p = Point3::from(point - position);
+    local_sphere_B(p, pol_global, diameter)
 }
 
 /// Computes B-field at points in global frame for a homogeneously magnetized sphere.
@@ -114,13 +111,16 @@ pub fn sphere_B_batch<T: Float>(
     diameter: T,
     out: &mut [Vector3<T>],
 ) {
+    let pol_global = orientation * polarization;
     impl_parallel!(
-        sphere_B,
         rayon_threshold: 3100,
         input: points,
         output: out,
-        args: [position, orientation, polarization, diameter]
-    )
+        |p| {
+            let disp = Point3::from(p - position);
+            local_sphere_B(disp, pol_global, diameter)
+        }
+    );
 }
 
 /// Computes B-field at each given points in global frame for multiple homogeneously magnetized spheres.

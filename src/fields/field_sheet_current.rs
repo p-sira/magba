@@ -10,7 +10,7 @@ use nalgebra::{Point3, UnitQuaternion, Vector3};
 use crate::{
     base::{Float, coordinate::compute_in_local, mesh::TriMesh},
     crate_utils::{impl_parallel, impl_parallel_sum},
-    fields::field_triangle_current::local_triangle_current_B,
+    fields::field_triangle_current::{PrecomputedTriangleCurrent, local_triangle_current_B},
 };
 
 /// Computes B-field of a current sheet mesh at point in local frame.
@@ -63,13 +63,32 @@ pub fn sheet_current_B_batch<T: Float>(
     mesh: &TriMesh<T>,
     out: &mut [Vector3<T>],
 ) {
+    let count = core::cmp::min(current_densities.len(), mesh.triangles().len());
+    let precomputed: alloc::vec::Vec<_> = mesh
+        .triangles()
+        .iter()
+        .take(count)
+        .enumerate()
+        .filter_map(|(i, triangle)| {
+            let j = current_densities[i];
+            PrecomputedTriangleCurrent::new(j, &triangle.vertices())
+        })
+        .collect();
+
+    let inv_orientation = orientation.inverse();
     impl_parallel!(
-        sheet_current_B,
         rayon_threshold: 100,
         input: points,
         output: out,
-        args: [position, orientation, current_densities, mesh]
-    )
+        |p| {
+            let local_point = inv_orientation * Point3::from(p.coords - position.coords);
+            let mut b_total = Vector3::zeros();
+            for tri in &precomputed {
+                b_total += tri.compute_B(local_point);
+            }
+            orientation * b_total
+        }
+    );
 }
 
 /// Computes B-field at each given points in global frame for multiple current sheet meshes.
@@ -120,6 +139,42 @@ mod tests {
             &mut out,
         );
         assert_eq!(out.len(), 120);
+
+        // Batch with <= 100 points for serial threshold (verified against magpylib)
+        let small_points = [
+            point![0.05, 0.05, 0.05],
+            point![0.1, 0.2, 0.3],
+            point![0.01, -0.02, 0.03],
+        ];
+        let mut small_out = vec![Vector3::zeros(); 3];
+        sheet_current_B_batch(
+            &small_points,
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            &current_densities,
+            &mesh,
+            &mut small_out,
+        );
+        let expected = [
+            vector![
+                -3.0005902292428774e-25,
+                -1.453159186266714e-11,
+                1.4531591862659427e-11
+            ],
+            vector![
+                -5.534500315293388e-14,
+                -9.606788267894514e-13,
+                6.58610488538159e-13
+            ],
+            vector![
+                -2.7943863253616106e-11,
+                -9.612690279835812e-11,
+                -5.6231544404270135e-11
+            ],
+        ];
+        for (o, e) in small_out.iter().zip(expected.iter()) {
+            approx::assert_relative_eq!(o, e, epsilon = 1e-14, max_relative = 1e-10);
+        }
 
         // sum_multiple_sheet_current_B with < 10 points and > 10 points
         let positions = [point![0.0, 0.0, 0.0], point![0.01, 0.0, 0.0]];

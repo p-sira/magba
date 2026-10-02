@@ -51,11 +51,10 @@ pub fn linear_hall_voltage_batch<T: RealField + Copy>(
     out: &mut [T],
 ) {
     impl_parallel!(
-        linear_hall_voltage,
         rayon_threshold: 60,
         input: b_fields,
         output: out,
-        args: [sensitivity, quiescent_voltage, min_voltage, max_voltage]
+        |p| linear_hall_voltage(*p, sensitivity, quiescent_voltage, min_voltage, max_voltage)
     )
 }
 

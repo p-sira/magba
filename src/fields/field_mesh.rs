@@ -14,7 +14,7 @@ use crate::{
         mesh::{TriMesh, Triangle},
     },
     crate_utils::{impl_parallel, impl_parallel_sum},
-    fields::field_triangle::{local_triangle_B, solid_angle},
+    fields::field_triangle::local_triangle_B_with_solid_angle,
 };
 
 /// Computes B-field of a homogeneously magnetized mesh at point in local frame.
@@ -36,15 +36,13 @@ pub fn local_mesh_B<T: Float>(
     triangles: &[Triangle<T>],
 ) -> Vector3<T> {
     let mut b_total = Vector3::zeros();
-
     let mut total_solid_angle = T::zero();
+
     triangles.iter().for_each(|&triangle| {
         let vertices = triangle.vertices();
-        b_total += local_triangle_B(point, polarization, vertices);
-
-        let r_vecs = vertices.map(|vertex| vertex - point.coords);
-        let r_mags = r_vecs.map(|r| r.norm());
-        total_solid_angle += solid_angle(&r_vecs, &r_mags);
+        let (b_face, omega) = local_triangle_B_with_solid_angle(point, polarization, vertices);
+        b_total += b_face;
+        total_solid_angle += omega;
     });
 
     if num_traits::Float::abs(total_solid_angle) > T::pi() * T::from(2.0).unwrap() {
@@ -104,13 +102,18 @@ pub fn mesh_B_batch<T: Float>(
     mesh: &TriMesh<T>,
     out: &mut [Vector3<T>],
 ) {
+    let inv_orientation = orientation.inverse();
+    let triangles = mesh.triangles();
     impl_parallel!(
-        mesh_B,
         rayon_threshold: 100,
         input: points,
         output: out,
-        args: [position, orientation, polarization, mesh]
-    )
+        |p| {
+            let local_point = inv_orientation * Point3::from(p.coords - position.coords);
+            let local_b = local_mesh_B(local_point, polarization, triangles);
+            orientation * local_b
+        }
+    );
 }
 
 /// Computes B-field at each given points in global frame for multiple meshes.
@@ -238,6 +241,42 @@ mod tests {
             &mut out,
         );
         assert_eq!(out.len(), 120);
+
+        // Batch with <= 100 points for serial threshold (verified against magpylib)
+        let small_points = [
+            point![0.05, 0.05, 0.05],
+            point![0.1, 0.2, 0.3],
+            point![0.01, -0.02, 0.03],
+        ];
+        let mut small_out = vec![Vector3::zeros(); 3];
+        mesh_B_batch(
+            &small_points,
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            vector![0.0, 0.0, 1.0],
+            &mesh,
+            &mut small_out,
+        );
+        let expected = [
+            vector![
+                2.0728340382113465e-08,
+                2.0728340382113465e-08,
+                1.393369198233324e-19
+            ],
+            vector![
+                1.6309465566011645e-10,
+                3.265976692984299e-10,
+                2.360953478678851e-10
+            ],
+            vector![
+                1.6018157241643468e-07,
+                -3.3266181333030693e-07,
+                2.3286089750517369e-07
+            ],
+        ];
+        for (o, e) in small_out.iter().zip(expected.iter()) {
+            approx::assert_relative_eq!(o, e, epsilon = 1e-14, max_relative = 1e-10);
+        }
 
         // sum_multiple_mesh_B with < 10 points and > 10 points
         let positions = [point![0.0, 0.0, 0.0], point![0.01, 0.0, 0.0]];
