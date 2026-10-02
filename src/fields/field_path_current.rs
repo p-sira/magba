@@ -11,7 +11,7 @@ use numeric_literals::replace_float_literals;
 
 use crate::{
     base::{Float, coordinate::compute_in_local},
-    crate_utils::impl_parallel_sum,
+    crate_utils::{impl_parallel, impl_parallel_sum},
 };
 
 /// Computes B-field of a current path (sequence of straight wire segments) at point in local frame.
@@ -207,43 +207,23 @@ pub fn path_current_B_batch<T: Float>(
         .collect();
     let current_term = current * T::mu0_4pi();
     let inv_orientation = orientation.inverse();
-
-    #[cfg(feature = "rayon")]
-    {
-        if points.len() > 200 {
-            use rayon::prelude::*;
-            out.par_iter_mut()
-                .zip(points.par_iter())
-                .for_each(|(o, p)| {
-                    let local_p = inv_orientation * Point3::from(p.coords - position.coords);
-                    let mut b_total = Vector3::zeros();
-                    for seg in &segments {
-                        b_total += seg.compute_B(local_p.coords, current_term);
-                    }
-                    if b_total.x.is_nan() || b_total.y.is_nan() || b_total.z.is_nan() {
-                        *o = Vector3::zeros();
-                    } else {
-                        *o = orientation * b_total;
-                    }
-                });
-            return;
-        }
-    }
-
-    out.iter_mut()
-        .zip(points.iter())
-        .for_each(|(o, p)| {
+    impl_parallel!(
+        rayon_threshold: 200,
+        input: points,
+        output: out,
+        |p| {
             let local_p = inv_orientation * Point3::from(p.coords - position.coords);
             let mut b_total = Vector3::zeros();
             for seg in &segments {
                 b_total += seg.compute_B(local_p.coords, current_term);
             }
             if b_total.x.is_nan() || b_total.y.is_nan() || b_total.z.is_nan() {
-                *o = Vector3::zeros();
+                Vector3::zeros()
             } else {
-                *o = orientation * b_total;
+                orientation * b_total
             }
-        });
+        }
+    );
 }
 
 /// Computes B-field at each given points in global frame for multiple current paths.

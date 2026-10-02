@@ -11,7 +11,7 @@ use numeric_literals::replace_float_literals;
 
 use crate::{
     base::{Float, coordinate::compute_in_local},
-    crate_utils::impl_parallel_sum,
+    crate_utils::{impl_parallel, impl_parallel_sum},
 };
 
 #[derive(Clone, Copy)]
@@ -206,11 +206,6 @@ pub fn triangle_current_B_batch<T: Float>(
     vertices: [Vector3<T>; 3],
     out: &mut [Vector3<T>],
 ) {
-    assert_eq!(
-        out.len(),
-        points.len(),
-        "Output slice length must match input vectors length."
-    );
     let pre = match PrecomputedTriangleCurrent::new(current_density, &vertices) {
         Some(p) => p,
         None => {
@@ -219,29 +214,16 @@ pub fn triangle_current_B_batch<T: Float>(
         }
     };
     let inv_orientation = orientation.inverse();
-
-    #[cfg(feature = "rayon")]
-    {
-        if points.len() > 100 {
-            use rayon::prelude::*;
-            out.par_iter_mut()
-                .zip(points.par_iter())
-                .for_each(|(o, p)| {
-                    let local_point = inv_orientation * Point3::from(p.coords - position.coords);
-                    let local_b = pre.compute_B(local_point);
-                    *o = orientation * local_b;
-                });
-            return;
-        }
-    }
-
-    out.iter_mut()
-        .zip(points.iter())
-        .for_each(|(o, p)| {
+    impl_parallel!(
+        rayon_threshold: 100,
+        input: points,
+        output: out,
+        |p| {
             let local_point = inv_orientation * Point3::from(p.coords - position.coords);
             let local_b = pre.compute_B(local_point);
-            *o = orientation * local_b;
-        });
+            orientation * local_b
+        }
+    );
 }
 
 /// Computes B-field at each given points in global frame for multiple triangles.

@@ -10,7 +10,7 @@ use numeric_literals::replace_float_literals;
 
 use crate::{
     base::Float,
-    crate_utils::impl_parallel_sum,
+    crate_utils::{impl_parallel, impl_parallel_sum},
 };
 
 /// Computes B-field of a magnetic dipole moment at point (x, y, z) in local frame.
@@ -162,42 +162,16 @@ pub fn dipole_B_batch<T: Float>(
     moment: Vector3<T>,
     out: &mut [Vector3<T>],
 ) {
-    assert_eq!(
-        out.len(),
-        points.len(),
-        "Output slice length must match input vectors length."
-    );
     let moment_global = orientation * moment;
-
-    #[cfg(feature = "rayon")]
-    {
-        if points.len() > 2500 {
-            use rayon::prelude::*;
-            out.par_iter_mut()
-                .zip(points.par_iter())
-                .for_each(|(o, p)| {
-                    let disp = Point3::from(p - position);
-                    *o = local_dipole_B(disp, moment_global);
-                });
-        } else {
-            out.iter_mut()
-                .zip(points.iter())
-                .for_each(|(o, p)| {
-                    let disp = Point3::from(p - position);
-                    *o = local_dipole_B(disp, moment_global);
-                });
+    impl_parallel!(
+        rayon_threshold: 2500,
+        input: points,
+        output: out,
+        |p| {
+            let disp = Point3::from(p - position);
+            local_dipole_B(disp, moment_global)
         }
-    }
-
-    #[cfg(not(feature = "rayon"))]
-    {
-        out.iter_mut()
-            .zip(points.iter())
-            .for_each(|(o, p)| {
-                let disp = Point3::from(p - position);
-                *o = local_dipole_B(disp, moment_global);
-            });
-    }
+    );
 }
 
 /// Computes B-field at each given points in global frame for multiple magnetic dipole moments.

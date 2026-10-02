@@ -9,7 +9,7 @@ use nalgebra::{Matrix3, Point3, UnitQuaternion, Vector3};
 
 use crate::{
     base::{Float, coordinate::compute_in_local},
-    crate_utils::impl_parallel_sum,
+    crate_utils::{impl_parallel, impl_parallel_sum},
     fields::field_triangle::local_triangle_B,
 };
 
@@ -162,38 +162,19 @@ pub fn tetrahedron_B_batch<T: Float>(
     vertices: [Vector3<T>; 4],
     out: &mut [Vector3<T>],
 ) {
-    assert_eq!(
-        out.len(),
-        points.len(),
-        "Output slice length must match input vectors length."
-    );
     let (vertices, mat_inv) = precompute_tetrahedron(vertices);
     let inv_orientation = orientation.inverse();
-
-    #[cfg(feature = "rayon")]
-    {
-        if points.len() > 100 {
-            use rayon::prelude::*;
-            out.par_iter_mut()
-                .zip(points.par_iter())
-                .for_each(|(o, p)| {
-                    let local_point = inv_orientation * Point3::from(p.coords - position.coords);
-                    let local_b =
-                        local_tetrahedron_B_precomputed(local_point, polarization, vertices, mat_inv);
-                    *o = orientation * local_b;
-                });
-            return;
-        }
-    }
-
-    out.iter_mut()
-        .zip(points.iter())
-        .for_each(|(o, p)| {
+    impl_parallel!(
+        rayon_threshold: 100,
+        input: points,
+        output: out,
+        |p| {
             let local_point = inv_orientation * Point3::from(p.coords - position.coords);
             let local_b =
                 local_tetrahedron_B_precomputed(local_point, polarization, vertices, mat_inv);
-            *o = orientation * local_b;
-        });
+            orientation * local_b
+        }
+    );
 }
 
 /// Computes B-field at each given points in global frame for multiple tetrahedrons.

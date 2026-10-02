@@ -10,7 +10,7 @@ use numeric_literals::replace_float_literals;
 
 use crate::{
     base::Float,
-    crate_utils::impl_parallel_sum,
+    crate_utils::{impl_parallel, impl_parallel_sum},
 };
 
 /// Computes B-field of a homogeneously magnetized sphere at point (x, y, z) in local frame.
@@ -111,42 +111,16 @@ pub fn sphere_B_batch<T: Float>(
     diameter: T,
     out: &mut [Vector3<T>],
 ) {
-    assert_eq!(
-        out.len(),
-        points.len(),
-        "Output slice length must match input vectors length."
-    );
     let pol_global = orientation * polarization;
-
-    #[cfg(feature = "rayon")]
-    {
-        if points.len() > 3100 {
-            use rayon::prelude::*;
-            out.par_iter_mut()
-                .zip(points.par_iter())
-                .for_each(|(o, p)| {
-                    let disp = Point3::from(p - position);
-                    *o = local_sphere_B(disp, pol_global, diameter);
-                });
-        } else {
-            out.iter_mut()
-                .zip(points.iter())
-                .for_each(|(o, p)| {
-                    let disp = Point3::from(p - position);
-                    *o = local_sphere_B(disp, pol_global, diameter);
-                });
+    impl_parallel!(
+        rayon_threshold: 3100,
+        input: points,
+        output: out,
+        |p| {
+            let disp = Point3::from(p - position);
+            local_sphere_B(disp, pol_global, diameter)
         }
-    }
-
-    #[cfg(not(feature = "rayon"))]
-    {
-        out.iter_mut()
-            .zip(points.iter())
-            .for_each(|(o, p)| {
-                let disp = Point3::from(p - position);
-                *o = local_sphere_B(disp, pol_global, diameter);
-            });
-    }
+    );
 }
 
 /// Computes B-field at each given points in global frame for multiple homogeneously magnetized spheres.

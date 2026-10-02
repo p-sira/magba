@@ -14,7 +14,7 @@ use crate::{
         Float,
         coordinate::compute_in_local,
     },
-    crate_utils::impl_parallel_sum,
+    crate_utils::{impl_parallel, impl_parallel_sum},
 };
 
 const MAX_ITER: usize = 10;
@@ -205,35 +205,17 @@ pub fn circular_B_batch<T: Float>(
     current: T,
     out: &mut [Vector3<T>],
 ) {
-    assert_eq!(
-        out.len(),
-        points.len(),
-        "Output slice length must match input vectors length."
-    );
     let inv_orientation = orientation.inverse();
-
-    #[cfg(feature = "rayon")]
-    {
-        if points.len() > 350 {
-            use rayon::prelude::*;
-            out.par_iter_mut()
-                .zip(points.par_iter())
-                .for_each(|(o, p)| {
-                    let local_point = inv_orientation * Point3::from(p.coords - position.coords);
-                    let local_b = local_circular_B(local_point, diameter, current);
-                    *o = orientation * local_b;
-                });
-            return;
-        }
-    }
-
-    out.iter_mut()
-        .zip(points.iter())
-        .for_each(|(o, p)| {
+    impl_parallel!(
+        rayon_threshold: 350,
+        input: points,
+        output: out,
+        |p| {
             let local_point = inv_orientation * Point3::from(p.coords - position.coords);
             let local_b = local_circular_B(local_point, diameter, current);
-            *o = orientation * local_b;
-        });
+            orientation * local_b
+        }
+    );
 }
 
 /// Computes net B-field at each given point in global frame for multiple circular current loops.

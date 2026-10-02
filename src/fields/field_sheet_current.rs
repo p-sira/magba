@@ -9,7 +9,7 @@ use nalgebra::{Point3, UnitQuaternion, Vector3};
 
 use crate::{
     base::{Float, coordinate::compute_in_local, mesh::TriMesh},
-    crate_utils::impl_parallel_sum,
+    crate_utils::{impl_parallel, impl_parallel_sum},
     fields::field_triangle_current::{PrecomputedTriangleCurrent, local_triangle_current_B},
 };
 
@@ -63,11 +63,6 @@ pub fn sheet_current_B_batch<T: Float>(
     mesh: &TriMesh<T>,
     out: &mut [Vector3<T>],
 ) {
-    assert_eq!(
-        out.len(),
-        points.len(),
-        "Output slice length must match input vectors length."
-    );
     let count = core::cmp::min(current_densities.len(), mesh.triangles().len());
     let precomputed: alloc::vec::Vec<_> = mesh
         .triangles()
@@ -81,35 +76,19 @@ pub fn sheet_current_B_batch<T: Float>(
         .collect();
 
     let inv_orientation = orientation.inverse();
-
-    #[cfg(feature = "rayon")]
-    {
-        if points.len() > 100 {
-            use rayon::prelude::*;
-            out.par_iter_mut()
-                .zip(points.par_iter())
-                .for_each(|(o, p)| {
-                    let local_point = inv_orientation * Point3::from(p.coords - position.coords);
-                    let mut b_total = Vector3::zeros();
-                    for tri in &precomputed {
-                        b_total += tri.compute_B(local_point);
-                    }
-                    *o = orientation * b_total;
-                });
-            return;
-        }
-    }
-
-    out.iter_mut()
-        .zip(points.iter())
-        .for_each(|(o, p)| {
+    impl_parallel!(
+        rayon_threshold: 100,
+        input: points,
+        output: out,
+        |p| {
             let local_point = inv_orientation * Point3::from(p.coords - position.coords);
             let mut b_total = Vector3::zeros();
             for tri in &precomputed {
                 b_total += tri.compute_B(local_point);
             }
-            *o = orientation * b_total;
-        });
+            orientation * b_total
+        }
+    );
 }
 
 /// Computes B-field at each given points in global frame for multiple current sheet meshes.

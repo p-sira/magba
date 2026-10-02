@@ -10,7 +10,7 @@ use numeric_literals::replace_float_literals;
 
 use crate::{
     base::coordinate::compute_in_local,
-    crate_utils::impl_parallel_sum,
+    crate_utils::{impl_parallel, impl_parallel_sum},
 };
 
 /// Computes B-field of a homogeneous cuboid magnet at point (x, y, z) in the local frame.
@@ -296,35 +296,17 @@ pub fn cuboid_B_batch<T: RealField + Copy>(
     dimensions: Vector3<T>,
     out: &mut [Vector3<T>],
 ) {
-    assert_eq!(
-        out.len(),
-        points.len(),
-        "Output slice length must match input vectors length."
-    );
     let inv_orientation = orientation.inverse();
-
-    #[cfg(feature = "rayon")]
-    {
-        if points.len() > 50 {
-            use rayon::prelude::*;
-            out.par_iter_mut()
-                .zip(points.par_iter())
-                .for_each(|(o, p)| {
-                    let local_point = inv_orientation * Point3::from(p.coords - position.coords);
-                    let local_b = local_cuboid_B(local_point, polarization, dimensions);
-                    *o = orientation * local_b;
-                });
-            return;
-        }
-    }
-
-    out.iter_mut()
-        .zip(points.iter())
-        .for_each(|(o, p)| {
+    impl_parallel!(
+        rayon_threshold: 50,
+        input: points,
+        output: out,
+        |p| {
             let local_point = inv_orientation * Point3::from(p.coords - position.coords);
             let local_b = local_cuboid_B(local_point, polarization, dimensions);
-            *o = orientation * local_b;
-        });
+            orientation * local_b
+        }
+    );
 }
 
 /// Computes net B-field at each given point in global frame for multiple cuboid magnets.
