@@ -126,7 +126,7 @@ macro_rules! find_threshold {
                     points.iter().zip(out.iter_mut()).for_each(|(p, o)| {
                         *o = $func_name(*p, $($args),*);
                     });
-                    criterion::black_box(&out);
+                    std::hint::black_box(&out);
                 });
             });
 
@@ -135,7 +135,7 @@ macro_rules! find_threshold {
                     points.par_iter().zip(out.par_iter_mut()).for_each(|(p, o)| {
                         *o = $func_name(*p, $($args),*);
                     });
-                    criterion::black_box(&out);
+                    std::hint::black_box(&out);
                 });
             });
 
@@ -167,7 +167,7 @@ macro_rules! find_threshold {
                             points.iter().zip(out.iter_mut()).for_each(|(p, o)| {
                                 *o = $func_name(*p, $($args),*);
                             });
-                            criterion::black_box(&out);
+                            std::hint::black_box(&out);
                         });
                     });
 
@@ -176,7 +176,7 @@ macro_rules! find_threshold {
                             points.par_iter().zip(out.par_iter_mut()).for_each(|(p, o)| {
                                 *o = $func_name(*p, $($args),*);
                             });
-                            criterion::black_box(&out);
+                            std::hint::black_box(&out);
                         });
                     });
 
