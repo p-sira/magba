@@ -19,6 +19,9 @@
     <a href="https://codecov.io/gh/p-sira/magba">
         <img src="https://codecov.io/gh/p-sira/magba/graph/badge.svg?token=S0CJ922MG0"/> 
     </a>
+    <a href="https://app.codspeed.io/p-sira/magba?utm_source=badge" style="text-decoration:none">
+        <img src="https://img.shields.io/endpoint?url=https://codspeed.io/badge.json" alt="CodSpeed"/>
+    </a>
     <a href="https://doi.org/10.5281/zenodo.21150887" style="text-decoration:none">
         <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.21150887.svg" alt="Preprint DOI">
     </a>
