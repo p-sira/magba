@@ -16,7 +16,7 @@
     <a href="https://docs.rs/magba" style="text-decoration:none">
         <img src="https://img.shields.io/badge/Docs-docs.rs-blue" alt="Documentation">
     </a>
-    <a href="https://codecov.io/gh/p-sira/magba" > 
+    <a href="https://codecov.io/gh/p-sira/magba">
         <img src="https://codecov.io/gh/p-sira/magba/graph/badge.svg?token=S0CJ922MG0"/> 
     </a>
     <a href="https://doi.org/10.5281/zenodo.21150887" style="text-decoration:none">

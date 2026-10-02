@@ -62,11 +62,11 @@ pub(crate) fn solid_angle<T: Float>(r_vecs: &[Vector3<T>; 3], r_mags: &[T; 3]) -
 #[inline]
 #[allow(non_snake_case)]
 #[replace_float_literals(T::from_f64(literal).unwrap())]
-pub fn local_triangle_B<T: Float>(
+pub(crate) fn local_triangle_B_with_solid_angle<T: Float>(
     point: Point3<T>,
     polarization: Vector3<T>,
     vertices: [Vector3<T>; 3],
-) -> Vector3<T> {
+) -> (Vector3<T>, T) {
     let p = Vector3::from(point.coords);
 
     // Normal vector
@@ -76,7 +76,7 @@ pub fn local_triangle_B<T: Float>(
     let n_norm = n_cross.norm();
 
     if n_norm == T::zero() {
-        return Vector3::zeros();
+        return (Vector3::zeros(), T::zero());
     }
     let n = n_cross / n_norm;
 
@@ -84,7 +84,18 @@ pub fn local_triangle_B<T: Float>(
 
     // vertex <-> observer
     let r_vecs = [vertices[0] - p, vertices[1] - p, vertices[2] - p];
-    let r_mags = [r_vecs[0].norm(), r_vecs[1].norm(), r_vecs[2].norm()];
+    let r_sq = [
+        r_vecs[0].norm_squared(),
+        r_vecs[1].norm_squared(),
+        r_vecs[2].norm_squared(),
+    ];
+    let r_mags = [
+        NumFloat::sqrt(r_sq[0]),
+        NumFloat::sqrt(r_sq[1]),
+        NumFloat::sqrt(r_sq[2]),
+    ];
+
+    let omega = solid_angle(&r_vecs, &r_mags);
 
     // vertex <-> vertex
     let L = [
@@ -92,7 +103,16 @@ pub fn local_triangle_B<T: Float>(
         vertices[2] - vertices[1],
         vertices[0] - vertices[2],
     ];
-    let l_mags = [L[0].norm(), L[1].norm(), L[2].norm()];
+    let l_sq = [
+        L[0].norm_squared(),
+        L[1].norm_squared(),
+        L[2].norm_squared(),
+    ];
+    let l_mags = [
+        NumFloat::sqrt(l_sq[0]),
+        NumFloat::sqrt(l_sq[1]),
+        NumFloat::sqrt(l_sq[2]),
+    ];
 
     let b_vals = [
         r_vecs[0].dot(&L[0]),
@@ -109,10 +129,7 @@ pub fn local_triangle_B<T: Float>(
         let I = if ind > 1.0e-12 {
             (1.0 / l_mags[i])
                 * NumFloat::ln(
-                    (NumFloat::sqrt(
-                        l_mags[i] * l_mags[i] + 2.0 * b_vals[i] + r_mags[i] * r_mags[i],
-                    ) + l_mags[i]
-                        + bl_val)
+                    (NumFloat::sqrt(l_sq[i] + 2.0 * b_vals[i] + r_sq[i]) + l_mags[i] + bl_val)
                         / ind,
                 )
         } else {
@@ -123,14 +140,46 @@ pub fn local_triangle_B<T: Float>(
         PQR += L[i] * I;
     }
 
-    let mut B = (n * solid_angle(&r_vecs, &r_mags) - n.cross(&PQR)) * sigma;
+    let mut B = (n * omega - n.cross(&PQR)) * sigma;
     B /= 4.0 * T::pi();
 
-    if B.x.is_nan() || B.y.is_nan() || B.z.is_nan() {
+    let B = if B.x.is_nan() || B.y.is_nan() || B.z.is_nan() {
         Vector3::zeros()
     } else {
         B
-    }
+    };
+
+    (B, omega)
+}
+
+/// Computes B-field of a homogeneously magnetized triangular surface at point in local frame.
+///
+/// The charge is proportional to the projection of the polarization vectors onto the
+/// triangle surfaces. The order of the triangle vertices defines the sign of the
+/// surface normal vector (right-hand-rule).
+///
+/// # Arguments
+///
+/// - `point`: Observer position (m)
+/// - `polarization`: Polarization vector (T)
+/// - `vertices`: Triangle vertices `[P1, P2, P3]` in local coords (m)
+///
+/// # Returns
+///
+/// - B-field vector (T) at point (x, y, z)
+///
+/// # References
+///
+/// - Guptasarma, D., and B. Singh. "New scheme for computing the magnetic field of a flat triangular surface." Geophysics 64.1 (1999): 70-74.
+/// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
+#[inline]
+#[allow(non_snake_case)]
+pub fn local_triangle_B<T: Float>(
+    point: Point3<T>,
+    polarization: Vector3<T>,
+    vertices: [Vector3<T>; 3],
+) -> Vector3<T> {
+    local_triangle_B_with_solid_angle(point, polarization, vertices).0
 }
 
 /// Computes B-field of a homogeneously magnetized triangular surface at point (x, y, z).
@@ -183,13 +232,17 @@ pub fn triangle_B_batch<T: Float>(
     vertices: [Vector3<T>; 3],
     out: &mut [Vector3<T>],
 ) {
+    let inv_orientation = orientation.inverse();
     impl_parallel!(
-        triangle_B,
-        rayon_threshold: 300,
+        rayon_threshold: 250,
         input: points,
         output: out,
-        args: [position, orientation, polarization, vertices]
-    )
+        |p| {
+            let local_point = inv_orientation * Point3::from(p.coords - position.coords);
+            let local_b = local_triangle_B(local_point, polarization, vertices);
+            orientation * local_b
+        }
+    );
 }
 
 /// Computes B-field at each given points in global frame for multiple triangles.
@@ -321,11 +374,27 @@ mod tests {
         );
         assert!(b_edge_ext.x.is_finite());
 
-        // Batch with > 100 points for Rayon threshold
-        let points = vec![point![0.0, 0.0, 5.0]; 120];
-        let mut out = vec![Vector3::zeros(); 120];
+        // Observer with NaN
+        let b_nan = local_triangle_B(
+            point![f64::NAN, 0.0, 0.0],
+            vector![0.0, 0.0, 1.0],
+            [
+                vector![0.0, 0.0, 0.0],
+                vector![1.0, 0.0, 0.0],
+                vector![0.0, 1.0, 0.0],
+            ],
+        );
+        assert_eq!(b_nan, Vector3::zeros());
+
+        // Batch with <= 300 points for serial threshold (verified against magpylib)
+        let small_points = [
+            point![0.0, 0.0, 2.0],
+            point![0.5, 0.0, 2.0],
+            point![0.0, 0.5, 2.0],
+        ];
+        let mut small_out = vec![Vector3::zeros(); 3];
         triangle_B_batch(
-            &points,
+            &small_points,
             Point3::origin(),
             UnitQuaternion::identity(),
             vector![0.0, 0.0, 1.0],
@@ -334,9 +403,45 @@ mod tests {
                 vector![1.0, 0.0, 0.0],
                 vector![0.0, 1.0, 0.0],
             ],
-            &mut out,
+            &mut small_out,
         );
-        assert_eq!(out.len(), 120);
-        assert!(out[0].z != 0.0);
+        let expected = [
+            vector![
+                -0.001_442_531_192_916_713,
+                -0.0014425311929167218,
+                0.008860236400615005
+            ],
+            vector![
+                0.0007102551326673291,
+                -0.0014473673192635988,
+                0.009130835638716228
+            ],
+            vector![
+                -0.0014473673192635767,
+                0.0007102551326673512,
+                0.009130835638716228
+            ],
+        ];
+        for (o, e) in small_out.iter().zip(expected.iter()) {
+            approx::assert_relative_eq!(o, e, epsilon = 1e-14, max_relative = 1e-12);
+        }
+
+        // Batch with > 300 points for Rayon threshold
+        let points_large = vec![point![0.0, 0.0, 5.0]; 350];
+        let mut out_large = vec![Vector3::zeros(); 350];
+        triangle_B_batch(
+            &points_large,
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            vector![0.0, 0.0, 1.0],
+            [
+                vector![0.0, 0.0, 0.0],
+                vector![1.0, 0.0, 0.0],
+                vector![0.0, 1.0, 0.0],
+            ],
+            &mut out_large,
+        );
+        assert_eq!(out_large.len(), 350);
+        assert!(out_large[0].z != 0.0);
     }
 }

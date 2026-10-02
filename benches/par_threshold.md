@@ -1,13 +1,13 @@
 | Function                  | Threshold | Parallel Time | Serial Time | Ratio | Exit Condition |
 |---------------------------|-----------|---------------|-------------|-------|----------------|
-| circular_B                | 350       | 27.138 µs     | 28.636 µs   | 0.948 | Converged      |
-| path_current_B            | 200       | 21.441 µs     | 25.789 µs   | 0.831 | Min step size  |
-| cuboid_B                  | 50        | 18.809 µs     | 22.424 µs   | 0.839 | Min step size  |
-| cylinder_B                | 100       | 19.268 µs     | 18.607 µs   | 1.036 | Converged      |
-| dipole_B                  | 2500      | 34.228 µs     | 34.617 µs   | 0.989 | Converged      |
-| sphere_B                  | 3100      | 36.434 µs     | 40.027 µs   | 0.910 | Converged      |
-| triangle_B                | 300       | 26.763 µs     | 29.183 µs   | 0.917 | Converged      |
-| tetrahedron_B_precomputed | 100       | 24.224 µs     | 38.996 µs   | 0.621 | Min step size  |
-| mesh_B                    | 100       | 23.642 µs     | 40.206 µs   | 0.588 | Min step size  |
-| triangle_current_B        | 100       | 19.631 µs     | 19.797 µs   | 0.992 | Converged      |
-| sheet_current_B           | 100       | 28.841 µs     | 73.609 µs   | 0.392 | Min step size  |
+| circular_B                | 350       | 26.155 µs     | 24.775 µs   | 1.056 | Converged      |
+| path_current_B            | 200       | 22.855 µs     | 25.646 µs   | 0.891 | Min step size  |
+| cuboid_B                  | 150       | 25.881 µs     | 28.034 µs   | 0.923 | Converged      |
+| cylinder_B                | 150       | 20.100 µs     | 17.920 µs   | 1.122 | Min step size  |
+| dipole_B                  | 7500      | 46.438 µs     | 50.250 µs   | 0.924 | Converged      |
+| sphere_B                  | 10000     | 61.466 µs     | 51.572 µs   | 1.192 | Min step size  |
+| triangle_B                | 250       | 25.204 µs     | 25.490 µs   | 0.989 | Converged      |
+| tetrahedron_B_precomputed | 100       | 25.417 µs     | 43.103 µs   | 0.590 | Min step size  |
+| triangle_current_B        | 150       | 25.453 µs     | 30.704 µs   | 0.829 | Min step size  |
+| mesh_B                    | 100       | 25.112 µs     | 44.604 µs   | 0.563 | Min step size  |
+| sheet_current_B           | 50        | 29.016 µs     | 36.316 µs   | 0.799 | Min step size  |

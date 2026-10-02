@@ -9,7 +9,7 @@ use nalgebra::{Point3, UnitQuaternion, Vector3};
 use numeric_literals::replace_float_literals;
 
 use crate::{
-    base::{Float, coordinate::compute_in_local},
+    base::Float,
     crate_utils::{impl_parallel, impl_parallel_sum},
 };
 
@@ -32,9 +32,9 @@ use crate::{
 #[replace_float_literals(T::from_f64(literal).unwrap())]
 pub fn local_dipole_B<T: Float>(point: Point3<T>, moment: Vector3<T>) -> Vector3<T> {
     let p = Vector3::from(point.coords);
-    let r = p.norm();
+    let r2 = p.norm_squared();
 
-    if r == T::zero() {
+    if r2 == T::zero() {
         return Vector3::from_iterator(moment.iter().map(|&m| {
             if m > 0.0 {
                 T::infinity()
@@ -46,9 +46,11 @@ pub fn local_dipole_B<T: Float>(point: Point3<T>, moment: Vector3<T>) -> Vector3
         }));
     }
 
-    (p * (3.0 * moment.component_mul(&p).sum() * (1.0 / num_traits::Float::powi(r, 5)))
-        - moment * (1.0 / num_traits::Float::powi(r, 3)))
-        * T::mu0_4pi()
+    let r = num_traits::Float::sqrt(r2);
+    let inv_r3 = 1.0 / (r2 * r);
+    let inv_r5 = inv_r3 / r2;
+
+    (p * (3.0 * moment.dot(&p) * inv_r5) - moment * inv_r3) * T::mu0_4pi()
 }
 
 /// Computes B-field of a magnetic dipole moment at point (x, y, z).
@@ -90,7 +92,9 @@ pub fn dipole_B<T: Float>(
     orientation: UnitQuaternion<T>,
     moment: Vector3<T>,
 ) -> Vector3<T> {
-    compute_in_local!(local_dipole_B, point, position, orientation, (moment),)
+    let moment_global = orientation * moment;
+    let p = Point3::from(point - position);
+    local_dipole_B(p, moment_global)
 }
 
 /// Computes B-field at points in global frame for a magnetic dipole moment.
@@ -158,9 +162,16 @@ pub fn dipole_B_batch<T: Float>(
     moment: Vector3<T>,
     out: &mut [Vector3<T>],
 ) {
+    let moment_global = orientation * moment;
     impl_parallel!(
-        dipole_B, rayon_threshold: 2500, input: points, output: out, args: [position, orientation, moment]
-    )
+        rayon_threshold: 7500,
+        input: points,
+        output: out,
+        |p| {
+            let disp = Point3::from(p - position);
+            local_dipole_B(disp, moment_global)
+        }
+    );
 }
 
 /// Computes B-field at each given points in global frame for multiple magnetic dipole moments.
