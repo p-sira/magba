@@ -15,7 +15,7 @@ use crate::{
         Float,
         coordinate::{cart2cyl, compute_in_local, vec_cyl2cart},
     },
-    crate_utils::{impl_parallel, impl_parallel_sum},
+    crate_utils::impl_parallel_sum,
 };
 
 /// Computes B-field of a cylindrical magnet with unit axial (z-axis) polarization
@@ -252,8 +252,39 @@ pub fn local_cylinder_B<T: Float>(
     radius: T,
     height: T,
 ) -> Vector3<T> {
+    if polarization == Vector3::zeros() {
+        return Vector3::zeros();
+    }
+
+    // Fast-path for axial polarization: skips cylindrical angular conversions and trigonometric functions
+    if polarization.x == T::zero() && polarization.y == T::zero() {
+        let r = NumFloat::sqrt(point.x * point.x + point.y * point.y);
+        let b_cyl = cylinder_B_cyl(
+            r,
+            T::zero(),
+            point.z,
+            radius,
+            height,
+            T::zero(),
+            polarization.z,
+        );
+
+        let (bx, by) = if r > T::zero() {
+            let inv_r = T::from(1.0).unwrap() / r;
+            (b_cyl.x * point.x * inv_r, b_cyl.x * point.y * inv_r)
+        } else {
+            (T::zero(), T::zero())
+        };
+
+        return vector![bx, by, b_cyl.z];
+    }
+
     let (r, phi) = cart2cyl(point.x, point.y);
-    let (pol_r, theta) = cart2cyl(polarization.x, polarization.y);
+    let (pol_r, theta) = if polarization.y == T::zero() && polarization.x >= T::zero() {
+        (polarization.x, T::zero())
+    } else {
+        cart2cyl(polarization.x, polarization.y)
+    };
 
     let b_cyl = cylinder_B_cyl(
         r,
@@ -402,13 +433,36 @@ pub fn cylinder_B_batch<T: Float>(
     height: T,
     out: &mut [Vector3<T>],
 ) {
-    impl_parallel!(
-        cylinder_B,
-        rayon_threshold: 100,
-        input: points,
-        output: out,
-        args: [position, orientation, polarization, diameter, height]
-    )
+    assert_eq!(
+        out.len(),
+        points.len(),
+        "Output slice length must match input vectors length."
+    );
+    let inv_orientation = orientation.inverse();
+    let radius = diameter / T::from(2.0).unwrap();
+
+    #[cfg(feature = "rayon")]
+    {
+        if points.len() > 100 {
+            use rayon::prelude::*;
+            out.par_iter_mut()
+                .zip(points.par_iter())
+                .for_each(|(o, p)| {
+                    let local_point = inv_orientation * Point3::from(p.coords - position.coords);
+                    let local_b = local_cylinder_B(local_point, polarization, radius, height);
+                    *o = orientation * local_b;
+                });
+            return;
+        }
+    }
+
+    out.iter_mut()
+        .zip(points.iter())
+        .for_each(|(o, p)| {
+            let local_point = inv_orientation * Point3::from(p.coords - position.coords);
+            let local_b = local_cylinder_B(local_point, polarization, radius, height);
+            *o = orientation * local_b;
+        });
 }
 
 /// Computes net B-field at each given point in global frame for multiple cylindrical magnets.

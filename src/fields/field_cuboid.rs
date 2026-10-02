@@ -5,12 +5,12 @@
 
 //! Analytical B-field computation for cuboid magnets.
 
-use nalgebra::{Matrix3, Point3, RealField, UnitQuaternion, Vector3, vector};
+use nalgebra::{Point3, RealField, UnitQuaternion, Vector3, vector};
 use numeric_literals::replace_float_literals;
 
 use crate::{
     base::coordinate::compute_in_local,
-    crate_utils::{impl_parallel, impl_parallel_sum},
+    crate_utils::impl_parallel_sum,
 };
 
 /// Computes B-field of a homogeneous cuboid magnet at point (x, y, z) in the local frame.
@@ -62,33 +62,27 @@ pub fn local_cuboid_B<T: RealField + Copy>(
         return Vector3::zeros();
     }
 
-    let mut qsign = Matrix3::from_element(1.0);
-    // Avoid indeterminate form by mapping to the bottQ4 counterpart, according to MagpyLib
-    // and apply sign flips
-    if x < 0.0 {
+    let (pol_x, pol_y, pol_z) = (polarization.x, polarization.y, polarization.z);
+    if pol_x == 0.0 && pol_y == 0.0 && pol_z == 0.0 {
+        return Vector3::zeros();
+    }
+
+    let flip_x = x < 0.0;
+    if flip_x {
         x = -x;
-        qsign.component_mul_assign(&Matrix3::from([
-            [1.0, -1.0, -1.0],
-            [-1.0, 1.0, 1.0],
-            [-1.0, 1.0, 1.0],
-        ]));
     }
-    if y > 0.0 {
+    let flip_y = y > 0.0;
+    if flip_y {
         y = -y;
-        qsign.component_mul_assign(&Matrix3::from([
-            [1.0, -1.0, 1.0],
-            [-1.0, 1.0, -1.0],
-            [1.0, -1.0, 1.0],
-        ]));
     }
-    if z > 0.0 {
+    let flip_z = z > 0.0;
+    if flip_z {
         z = -z;
-        qsign.component_mul_assign(&Matrix3::from([
-            [1.0, 1.0, -1.0],
-            [1.0, 1.0, -1.0],
-            [-1.0, -1.0, 1.0],
-        ]));
     }
+
+    let q01 = if flip_x ^ flip_y { -1.0 } else { 1.0 };
+    let q02 = if flip_x ^ flip_z { -1.0 } else { 1.0 };
+    let q12 = if flip_y ^ flip_z { -1.0 } else { 1.0 };
 
     let xma = x - a;
     let xpa = x + a;
@@ -113,50 +107,68 @@ pub fn local_cuboid_B<T: RealField + Copy>(
     let ppm = (xpa2 + ypb2 + zmc2).sqrt();
     let mpp = (xma2 + ypb2 + zpc2).sqrt();
 
-    let ff2x = ((xma + mmm) * (xpa + ppm) * (xpa + pmp) * (xma + mpp)).ln()
-        - ((xpa + pmm) * (xma + mpm) * (xma + mmp) * (xpa + ppp)).ln();
+    let ff2x = if pol_y != 0.0 || pol_z != 0.0 {
+        let num = (xma + mmm) * (xpa + ppm) * (xpa + pmp) * (xma + mpp);
+        let den = (xpa + pmm) * (xma + mpm) * (xma + mmp) * (xpa + ppp);
+        (num / den).ln()
+    } else {
+        0.0
+    };
 
-    let ff2y = ((-ymb + mmm) * (-ypb + ppm) * (-ymb + pmp) * (-ypb + mpp)).ln()
-        - ((-ymb + pmm) * (-ypb + mpm) * (ymb - mmp) * (ypb - ppp)).ln();
+    let ff2y = if pol_x != 0.0 || pol_z != 0.0 {
+        let num = (-ymb + mmm) * (-ypb + ppm) * (-ymb + pmp) * (-ypb + mpp);
+        let den = (-ymb + pmm) * (-ypb + mpm) * (ymb - mmp) * (ypb - ppp);
+        (num / den).ln()
+    } else {
+        0.0
+    };
 
-    let ff2z = ((-zmc + mmm) * (-zmc + ppm) * (-zpc + pmp) * (-zpc + mpp)).ln()
-        - ((-zmc + pmm) * (zmc - mpm) * (-zpc + mmp) * (zpc - ppp)).ln();
+    let ff2z = if pol_x != 0.0 || pol_y != 0.0 {
+        let num = (-zmc + mmm) * (-zmc + ppm) * (-zpc + pmp) * (-zpc + mpp);
+        let den = (-zmc + pmm) * (zmc - mpm) * (-zpc + mmp) * (zpc - ppp);
+        (num / den).ln()
+    } else {
+        0.0
+    };
 
-    let ff1x =
-        (ymb * zmc).atan2(xma * mmm) - (ymb * zmc).atan2(xpa * pmm) - (ypb * zmc).atan2(xma * mpm)
+    let (bx_pol_x, by_pol_x, bz_pol_x) = if pol_x != 0.0 {
+        let ff1x = (ymb * zmc).atan2(xma * mmm) - (ymb * zmc).atan2(xpa * pmm)
+            - (ypb * zmc).atan2(xma * mpm)
             + (ypb * zmc).atan2(xpa * ppm)
             - (ymb * zpc).atan2(xma * mmp)
             + (ymb * zpc).atan2(xpa * pmp)
             + (ypb * zpc).atan2(xma * mpp)
             - (ypb * zpc).atan2(xpa * ppp);
-    let ff1y =
-        (xma * zmc).atan2(ymb * mmm) - (xpa * zmc).atan2(ymb * pmm) - (xma * zmc).atan2(ypb * mpm)
+        (pol_x * ff1x, pol_x * ff2z * q01, pol_x * ff2y * q02)
+    } else {
+        (0.0, 0.0, 0.0)
+    };
+
+    let (bx_pol_y, by_pol_y, bz_pol_y) = if pol_y != 0.0 {
+        let ff1y = (xma * zmc).atan2(ymb * mmm) - (xpa * zmc).atan2(ymb * pmm)
+            - (xma * zmc).atan2(ypb * mpm)
             + (xpa * zmc).atan2(ypb * ppm)
             - (xma * zpc).atan2(ymb * mmp)
             + (xpa * zpc).atan2(ymb * pmp)
             + (xma * zpc).atan2(ypb * mpp)
             - (xpa * zpc).atan2(ypb * ppp);
-    let ff1z =
-        (xma * ymb).atan2(zmc * mmm) - (xpa * ymb).atan2(zmc * pmm) - (xma * ypb).atan2(zmc * mpm)
+        (pol_y * ff2z * q01, pol_y * ff1y, -pol_y * ff2x * q12)
+    } else {
+        (0.0, 0.0, 0.0)
+    };
+
+    let (bx_pol_z, by_pol_z, bz_pol_z) = if pol_z != 0.0 {
+        let ff1z = (xma * ymb).atan2(zmc * mmm) - (xpa * ymb).atan2(zmc * pmm)
+            - (xma * ypb).atan2(zmc * mpm)
             + (xpa * ypb).atan2(zmc * ppm)
             - (xma * ymb).atan2(zpc * mmp)
             + (xpa * ymb).atan2(zpc * pmp)
             + (xma * ypb).atan2(zpc * mpp)
             - (xpa * ypb).atan2(zpc * ppp);
-
-    let (pol_x, pol_y, pol_z) = (polarization.x, polarization.y, polarization.z);
-    // Contributions from x-polarization
-    let bx_pol_x = pol_x * ff1x * qsign[(0, 0)];
-    let by_pol_x = pol_x * ff2z * qsign[(0, 1)];
-    let bz_pol_x = pol_x * ff2y * qsign[(0, 2)];
-    // Contributions from y-polarization
-    let bx_pol_y = pol_y * ff2z * qsign[(1, 0)];
-    let by_pol_y = pol_y * ff1y * qsign[(1, 1)];
-    let bz_pol_y = -pol_y * ff2x * qsign[(1, 2)];
-    // Contributions from z-polarization
-    let bx_pol_z = pol_z * ff2y * qsign[(2, 0)];
-    let by_pol_z = -pol_z * ff2x * qsign[(2, 1)];
-    let bz_pol_z = pol_z * ff1z * qsign[(2, 2)];
+        (pol_z * ff2y * q02, -pol_z * ff2x * q12, pol_z * ff1z)
+    } else {
+        (0.0, 0.0, 0.0)
+    };
 
     // Sum all contributions
     let bx_tot = bx_pol_x + bx_pol_y + bx_pol_z;
@@ -284,13 +296,35 @@ pub fn cuboid_B_batch<T: RealField + Copy>(
     dimensions: Vector3<T>,
     out: &mut [Vector3<T>],
 ) {
-    impl_parallel!(
-        cuboid_B,
-        rayon_threshold: 50,
-        input: points,
-        output: out,
-        args: [position, orientation, polarization, dimensions]
-    )
+    assert_eq!(
+        out.len(),
+        points.len(),
+        "Output slice length must match input vectors length."
+    );
+    let inv_orientation = orientation.inverse();
+
+    #[cfg(feature = "rayon")]
+    {
+        if points.len() > 50 {
+            use rayon::prelude::*;
+            out.par_iter_mut()
+                .zip(points.par_iter())
+                .for_each(|(o, p)| {
+                    let local_point = inv_orientation * Point3::from(p.coords - position.coords);
+                    let local_b = local_cuboid_B(local_point, polarization, dimensions);
+                    *o = orientation * local_b;
+                });
+            return;
+        }
+    }
+
+    out.iter_mut()
+        .zip(points.iter())
+        .for_each(|(o, p)| {
+            let local_point = inv_orientation * Point3::from(p.coords - position.coords);
+            let local_b = local_cuboid_B(local_point, polarization, dimensions);
+            *o = orientation * local_b;
+        });
 }
 
 /// Computes net B-field at each given point in global frame for multiple cuboid magnets.

@@ -11,8 +11,91 @@ use numeric_literals::replace_float_literals;
 
 use crate::{
     base::{Float, coordinate::compute_in_local},
-    crate_utils::{impl_parallel, impl_parallel_sum},
+    crate_utils::impl_parallel_sum,
 };
+
+/// Computes B-field of a current path (sequence of straight wire segments) at point in local frame.
+///
+/// # Arguments
+///
+/// - `point`: Observer position (m)
+/// - `current`: Current (A)
+/// - `vertices`: Vertices defining the current path `[P1, P2, ...]` in local coords (m)
+///
+/// # Returns
+///
+/// - B-field vector (T) at point (x, y, z)
+///
+/// # References
+///
+/// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
+#[derive(Clone, Copy)]
+struct PrecomputedSegment<T: Float> {
+    p1_n: Vector3<T>,
+    p2_n: Vector3<T>,
+    p12_n: Vector3<T>,
+    norm_12: T,
+}
+
+impl<T: Float> PrecomputedSegment<T> {
+    fn from_points(p1: Vector3<T>, p2: Vector3<T>) -> Option<Self> {
+        let p12 = p1 - p2;
+        let norm_12 = p12.norm();
+        if norm_12 == T::zero() {
+            return None;
+        }
+        let p1_n = p1 / norm_12;
+        let p2_n = p2 / norm_12;
+        let p12_n = p1_n - p2_n;
+        Some(Self {
+            p1_n,
+            p2_n,
+            p12_n,
+            norm_12,
+        })
+    }
+
+    #[inline]
+    #[allow(non_snake_case)]
+    #[replace_float_literals(T::from_f64(literal).unwrap())]
+    fn compute_B(&self, po: Vector3<T>, current_term: T) -> Vector3<T> {
+        let po_n = po / self.norm_12;
+        let t = (po_n - self.p1_n).dot(&self.p12_n);
+        let p4_n = self.p1_n + self.p12_n * t;
+
+        let po_p4 = po_n - p4_n;
+        let norm_o4 = po_p4.norm();
+        if norm_o4 < 1e-15 {
+            return Vector3::zeros();
+        }
+
+        let cros = (self.p2_n - self.p1_n).cross(&po_p4);
+        let norm_cros = cros.norm();
+        if norm_cros == 0.0 {
+            return Vector3::zeros();
+        }
+        let e_b = cros / norm_cros;
+
+        let norm_o1 = (po_n - self.p1_n).norm();
+        let norm_o2 = (po_n - self.p2_n).norm();
+        let norm_41 = (p4_n - self.p1_n).norm();
+        let norm_42 = (p4_n - self.p2_n).norm();
+
+        let sin_th1 = norm_41 / norm_o1;
+        let sin_th2 = norm_42 / norm_o2;
+
+        let delta_sin = if norm_41 > 1.0 && norm_41 > norm_42 {
+            NumFloat::abs(sin_th1 - sin_th2)
+        } else if norm_42 > 1.0 && norm_42 > norm_41 {
+            NumFloat::abs(sin_th2 - sin_th1)
+        } else {
+            NumFloat::abs(sin_th1 + sin_th2)
+        };
+
+        let b_mag = (delta_sin / norm_o4) * (1.0 / self.norm_12) * current_term;
+        e_b * b_mag
+    }
+}
 
 /// Computes B-field of a current path (sequence of straight wire segments) at point in local frame.
 ///
@@ -37,65 +120,18 @@ pub fn local_path_current_B<T: Float>(
     current: T,
     vertices: &[Vector3<T>],
 ) -> Vector3<T> {
-    let mut b_total = Vector3::zeros();
-    let n = vertices.len();
-    if n < 2 {
-        return b_total;
+    if vertices.len() < 2 || current == T::zero() {
+        return Vector3::zeros();
     }
 
     let po = Vector3::from(point.coords);
+    let current_term = current * T::mu0_4pi();
+    let mut b_total = Vector3::zeros();
 
-    for i in 0..n - 1 {
-        let p1 = vertices[i];
-        let p2 = vertices[i + 1];
-
-        let p12 = p1 - p2;
-        let norm_12 = p12.norm();
-        if norm_12 == 0.0 {
-            continue;
+    for i in 0..vertices.len() - 1 {
+        if let Some(seg) = PrecomputedSegment::from_points(vertices[i], vertices[i + 1]) {
+            b_total += seg.compute_B(po, current_term);
         }
-
-        // Normalize points to make dimensionless as in magpylib (avoid precision issues)
-        let p1_n = p1 / norm_12;
-        let p2_n = p2 / norm_12;
-        let po_n = po / norm_12;
-
-        let p12_n = p1_n - p2_n;
-        let t = (po_n - p1_n).dot(&p12_n);
-        let p4_n = p1_n + p12_n * t;
-
-        let po_p4 = po_n - p4_n;
-        let norm_o4 = po_p4.norm();
-
-        if norm_o4 < 1e-15 {
-            continue;
-        }
-
-        let cros = (p2_n - p1_n).cross(&po_p4);
-        let norm_cros = cros.norm();
-        if norm_cros == 0.0 {
-            continue;
-        }
-        let e_b = cros / norm_cros;
-
-        let norm_o1 = (po_n - p1_n).norm();
-        let norm_o2 = (po_n - p2_n).norm();
-        let norm_41 = (p4_n - p1_n).norm();
-        let norm_42 = (p4_n - p2_n).norm();
-
-        let sin_th1 = norm_41 / norm_o1;
-        let sin_th2 = norm_42 / norm_o2;
-
-        let delta_sin = if norm_41 > 1.0 && norm_41 > norm_42 {
-            NumFloat::abs(sin_th1 - sin_th2)
-        } else if norm_42 > 1.0 && norm_42 > norm_41 {
-            NumFloat::abs(sin_th2 - sin_th1)
-        } else {
-            NumFloat::abs(sin_th1 + sin_th2)
-        };
-
-        let b_mag = (delta_sin / norm_o4) * (1.0 / norm_12) * current * T::mu0_4pi();
-        b_total += e_b * b_mag;
     }
 
     if b_total.x.is_nan() || b_total.y.is_nan() || b_total.z.is_nan() {
@@ -155,13 +191,59 @@ pub fn path_current_B_batch<T: Float>(
     vertices: &[Vector3<T>],
     out: &mut [Vector3<T>],
 ) {
-    impl_parallel!(
-        path_current_B,
-        rayon_threshold: 200,
-        input: points,
-        output: out,
-        args: [position, orientation, current, vertices]
-    )
+    assert_eq!(
+        out.len(),
+        points.len(),
+        "Output slice length must match input vectors length."
+    );
+    if vertices.len() < 2 || current == T::zero() {
+        out.fill(Vector3::zeros());
+        return;
+    }
+
+    let segments: alloc::vec::Vec<_> = vertices
+        .windows(2)
+        .filter_map(|w| PrecomputedSegment::from_points(w[0], w[1]))
+        .collect();
+    let current_term = current * T::mu0_4pi();
+    let inv_orientation = orientation.inverse();
+
+    #[cfg(feature = "rayon")]
+    {
+        if points.len() > 200 {
+            use rayon::prelude::*;
+            out.par_iter_mut()
+                .zip(points.par_iter())
+                .for_each(|(o, p)| {
+                    let local_p = inv_orientation * Point3::from(p.coords - position.coords);
+                    let mut b_total = Vector3::zeros();
+                    for seg in &segments {
+                        b_total += seg.compute_B(local_p.coords, current_term);
+                    }
+                    if b_total.x.is_nan() || b_total.y.is_nan() || b_total.z.is_nan() {
+                        *o = Vector3::zeros();
+                    } else {
+                        *o = orientation * b_total;
+                    }
+                });
+            return;
+        }
+    }
+
+    out.iter_mut()
+        .zip(points.iter())
+        .for_each(|(o, p)| {
+            let local_p = inv_orientation * Point3::from(p.coords - position.coords);
+            let mut b_total = Vector3::zeros();
+            for seg in &segments {
+                b_total += seg.compute_B(local_p.coords, current_term);
+            }
+            if b_total.x.is_nan() || b_total.y.is_nan() || b_total.z.is_nan() {
+                *o = Vector3::zeros();
+            } else {
+                *o = orientation * b_total;
+            }
+        });
 }
 
 /// Computes B-field at each given points in global frame for multiple current paths.

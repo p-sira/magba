@@ -5,89 +5,161 @@
 
 //! Analytical B-field computation for a homogeneously charged triangular current sheet.
 
-use nalgebra::{Point3, UnitQuaternion, Vector2, Vector3};
+use nalgebra::{Point3, UnitQuaternion, Vector3};
 use num_traits::Float as NumFloat;
 use numeric_literals::replace_float_literals;
 
 use crate::{
     base::{Float, coordinate::compute_in_local},
-    crate_utils::{impl_parallel, impl_parallel_sum},
+    crate_utils::impl_parallel_sum,
 };
 
-/// Computes B-field of an elementar current sheet in the local frame.
-#[inline]
-#[allow(non_snake_case)]
-#[replace_float_literals(T::from_f64(literal).unwrap())]
-fn elementar_current_sheet_Bfield<T: Float>(
-    point_local: Vector3<T>,
+#[derive(Clone, Copy)]
+pub(crate) struct PrecomputedTriangleCurrent<T: Float> {
+    translation: Vector3<T>,
+    ex: Vector3<T>,
+    ey: Vector3<T>,
+    ez: Vector3<T>,
     u1: T,
     u2: T,
     v2: T,
-    j_uv: Vector2<T>,
-) -> Vector3<T> {
-    let x = point_local.x;
-    let y = point_local.y;
-    let mut z = point_local.z;
-    let ju = j_uv.x;
-    let jv = j_uv.y;
+    u1_2: T,
+    u2_2: T,
+    v2_2: T,
+    sqrt4: T,
+    sqrt5: T,
+    ju: T,
+    jv: T,
+    ju_u1_u2_jv_v2_over_sqrt4: T,
+    ju_u2_jv_v2_over_sqrt5: T,
+    factor: T,
+    u1_v2: T,
+}
 
-    if NumFloat::abs(z) < 1e-15 {
-        z = if z < 0.0 { -1e-15 } else { 1e-15 };
+#[allow(non_snake_case)]
+impl<T: Float> PrecomputedTriangleCurrent<T> {
+    #[replace_float_literals(T::from_f64(literal).unwrap())]
+    pub fn new(current_density: Vector3<T>, vertices: &[Vector3<T>; 3]) -> Option<Self> {
+        if current_density == Vector3::zeros() {
+            return None;
+        }
+
+        let translation = vertices[0];
+        let v1 = vertices[1] - translation;
+        let v2_vec = vertices[2] - translation;
+
+        let u1 = v1.norm();
+        if u1 < 1e-15 {
+            return None;
+        }
+
+        let ex = v1 / u1;
+        let cross = ex.cross(&v2_vec);
+        let n_norm = cross.norm();
+        if n_norm < 1e-15 {
+            return None;
+        }
+        let ez = cross / n_norm;
+        let ey = ez.cross(&ex);
+
+        let u2 = v2_vec.dot(&ex);
+        let v2 = v2_vec.dot(&ey);
+
+        let ju = current_density.dot(&ex);
+        let jv = current_density.dot(&ey);
+
+        let u1_2 = u1 * u1;
+        let u2_2 = u2 * u2;
+        let v2_2 = v2 * v2;
+
+        let sqrt4 = NumFloat::sqrt(u1_2 - 2.0 * u1 * u2 + u2_2 + v2_2);
+        let sqrt5 = NumFloat::sqrt(u2_2 + v2_2);
+
+        let ju_u1_u2_jv_v2 = ju * (u1 - u2) - jv * v2;
+        let ju_u2_jv_v2 = ju * u2 + jv * v2;
+
+        let ju_u1_u2_jv_v2_over_sqrt4 = ju_u1_u2_jv_v2 / sqrt4;
+        let ju_u2_jv_v2_over_sqrt5 = ju_u2_jv_v2 / sqrt5;
+
+        let factor = u1 * v2 * T::mu0_4pi();
+        let u1_v2 = u1 * v2;
+
+        Some(Self {
+            translation,
+            ex,
+            ey,
+            ez,
+            u1,
+            u2,
+            v2,
+            u1_2,
+            u2_2,
+            v2_2,
+            sqrt4,
+            sqrt5,
+            ju,
+            jv,
+            ju_u1_u2_jv_v2_over_sqrt4,
+            ju_u2_jv_v2_over_sqrt5,
+            factor,
+            u1_v2,
+        })
     }
 
-    let y_2 = y * y;
-    let z_2 = z * z;
-    let yz2 = y_2 + z_2;
-    let x_2 = x * x;
-    let r2 = x_2 + yz2;
+    #[inline]
+    #[replace_float_literals(T::from_f64(literal).unwrap())]
+    pub fn compute_B(&self, point: Point3<T>) -> Vector3<T> {
+        let point_trans = point.coords - self.translation;
+        let x = point_trans.dot(&self.ex);
+        let y = point_trans.dot(&self.ey);
+        let mut z = point_trans.dot(&self.ez);
 
-    let u1_2 = u1 * u1;
-    let u2_2 = u2 * u2;
-    let v2_2 = v2 * v2;
+        if NumFloat::abs(z) < 1e-15 {
+            z = if z < 0.0 { -1e-15 } else { 1e-15 };
+        }
 
-    let sqrt1 = NumFloat::sqrt(r2);
-    let sqrt2 = NumFloat::sqrt(u1_2 - 2.0 * u1 * x + r2);
-    let sqrt3 = NumFloat::sqrt(u2_2 - 2.0 * u2 * x + v2_2 - 2.0 * v2 * y + r2);
-    let sqrt4 = NumFloat::sqrt(u1_2 - 2.0 * u1 * u2 + u2_2 + v2_2);
-    let sqrt5 = NumFloat::sqrt(u2_2 + v2_2);
+        let y_2 = y * y;
+        let z_2 = z * z;
+        let yz2 = y_2 + z_2;
+        let x_2 = x * x;
+        let r2 = x_2 + yz2;
 
-    let mut H = Vector3::zeros();
+        let sqrt1 = NumFloat::sqrt(r2);
+        let sqrt2 = NumFloat::sqrt(self.u1_2 - 2.0 * self.u1 * x + r2);
+        let sqrt3 = NumFloat::sqrt(self.u2_2 - 2.0 * self.u2 * x + self.v2_2 - 2.0 * self.v2 * y + r2);
 
-    let v2_z = v2 * z;
+        let v2_z = self.v2 * z;
 
-    H.x = (NumFloat::atan((-u2 * yz2 + v2 * x * y) / (v2_z * sqrt1))
-        + NumFloat::atan((v2 * y * (u1 - x) - (u1 - u2) * yz2) / (v2_z * sqrt2))
-        - NumFloat::atan((-u2 * yz2 - v2_2 * x + v2 * y * (u2 + x)) / (v2_z * sqrt3))
-        - NumFloat::atan(
-            (-u1 * (v2_2 - 2.0 * v2 * y + yz2) + u2 * yz2 + v2_2 * x - v2 * y * (u2 + x))
-                / (v2_z * sqrt3),
-        ))
-        / (u1 * v2_z);
+        let H_x = (NumFloat::atan((-self.u2 * yz2 + self.v2 * x * y) / (v2_z * sqrt1))
+            + NumFloat::atan((self.v2 * y * (self.u1 - x) - (self.u1 - self.u2) * yz2) / (v2_z * sqrt2))
+            - NumFloat::atan((-self.u2 * yz2 - self.v2_2 * x + self.v2 * y * (self.u2 + x)) / (v2_z * sqrt3))
+            - NumFloat::atan(
+                (-self.u1 * (self.v2_2 - 2.0 * self.v2 * y + yz2) + self.u2 * yz2 + self.v2_2 * x - self.v2 * y * (self.u2 + x))
+                    / (v2_z * sqrt3),
+            ))
+            / (self.u1 * v2_z);
 
-    H.y = H.x;
+        let H_z = -(self.ju * NumFloat::atanh(x / sqrt1) + self.ju * NumFloat::atanh((self.u1 - x) / sqrt2)
+            - self.ju_u1_u2_jv_v2_over_sqrt4
+                * NumFloat::atanh((self.u1_2 - self.u1 * (self.u2 + x) + self.u2 * x + self.v2 * y) / (self.sqrt4 * sqrt2))
+            + self.ju_u1_u2_jv_v2_over_sqrt4
+                * NumFloat::atanh((self.u1 * (self.u2 - x) - self.u2_2 + self.u2 * x + self.v2 * (-self.v2 + y)) / (self.sqrt4 * sqrt3))
+            + self.ju_u2_jv_v2_over_sqrt5 * NumFloat::atanh((-self.u2 * x - self.v2 * y) / (self.sqrt5 * sqrt1))
+            - self.ju_u2_jv_v2_over_sqrt5 * NumFloat::atanh((self.u2_2 - self.u2 * x + self.v2 * (self.v2 - y)) / (self.sqrt5 * sqrt3)))
+            / self.u1_v2;
 
-    let ju_u1_u2_jv_v2 = ju * (u1 - u2) - jv * v2;
-    let ju_u2_jv_v2 = ju * u2 + jv * v2;
+        let factor_z = self.factor * z;
+        let B_local_x = H_x * self.jv * factor_z;
+        let B_local_y = -H_x * self.ju * factor_z;
+        let B_local_z = H_z * self.factor;
 
-    H.z = -(ju * NumFloat::atanh(x / sqrt1) + ju * NumFloat::atanh((u1 - x) / sqrt2)
-        - ju_u1_u2_jv_v2
-            * NumFloat::atanh((u1_2 - u1 * (u2 + x) + u2 * x + v2 * y) / (sqrt4 * sqrt2))
-            / sqrt4
-        + ju_u1_u2_jv_v2
-            * NumFloat::atanh((u1 * (u2 - x) - u2_2 + u2 * x + v2 * (-v2 + y)) / (sqrt4 * sqrt3))
-            / sqrt4
-        + ju_u2_jv_v2 * NumFloat::atanh((-u2 * x - v2 * y) / (sqrt5 * sqrt1)) / sqrt5
-        - ju_u2_jv_v2 * NumFloat::atanh((u2_2 - u2 * x + v2 * (v2 - y)) / (sqrt5 * sqrt3)) / sqrt5)
-        / (u1 * v2);
-
-    let factor = u1 * v2 * T::mu0_4pi();
-    let factor_z = factor * z;
-
-    let H0 = H.x * jv * factor_z;
-    let H1 = -H.y * ju * factor_z;
-    let H2 = H.z * factor;
-
-    Vector3::new(H0, H1, H2)
+        let B = self.ex * B_local_x + self.ey * B_local_y + self.ez * B_local_z;
+        if B.x.is_nan() || B.y.is_nan() || B.z.is_nan() {
+            Vector3::zeros()
+        } else {
+            B
+        }
+    }
 }
 
 /// Computes B-field of a triangular current sheet at point in local frame.
@@ -99,49 +171,9 @@ pub fn local_triangle_current_B<T: Float>(
     current_density: Vector3<T>,
     vertices: &[Vector3<T>; 3],
 ) -> Vector3<T> {
-    if current_density == Vector3::zeros() {
-        return Vector3::zeros();
-    }
-
-    let translation = vertices[0];
-    let v1 = vertices[1] - translation;
-    let v2 = vertices[2] - translation;
-
-    let u1 = v1.norm();
-    if u1 < 1e-15 {
-        return Vector3::zeros();
-    }
-
-    let ex = v1 / u1;
-    let cross = ex.cross(&v2);
-    let n_norm = cross.norm();
-    if n_norm < 1e-15 {
-        return Vector3::zeros();
-    }
-    let ez = cross / n_norm;
-    let ey = ez.cross(&ex);
-
-    let point_trans = point.coords - translation;
-    let x = point_trans.dot(&ex);
-    let y = point_trans.dot(&ey);
-    let z = point_trans.dot(&ez);
-
-    let u2 = v2.dot(&ex);
-    let v_2 = v2.dot(&ey);
-
-    let ju = current_density.dot(&ex);
-    let jv = current_density.dot(&ey);
-
-    let B_local =
-        elementar_current_sheet_Bfield(Vector3::new(x, y, z), u1, u2, v_2, Vector2::new(ju, jv));
-
-    // Transform to global frame
-    let B = ex * B_local.x + ey * B_local.y + ez * B_local.z;
-
-    if B.x.is_nan() || B.y.is_nan() || B.z.is_nan() {
-        Vector3::zeros()
-    } else {
-        B
+    match PrecomputedTriangleCurrent::new(current_density, vertices) {
+        Some(pre) => pre.compute_B(point),
+        None => Vector3::zeros(),
     }
 }
 
@@ -174,13 +206,42 @@ pub fn triangle_current_B_batch<T: Float>(
     vertices: [Vector3<T>; 3],
     out: &mut [Vector3<T>],
 ) {
-    impl_parallel!(
-        triangle_current_B,
-        rayon_threshold: 100,
-        input: points,
-        output: out,
-        args: [position, orientation, current_density, vertices]
-    )
+    assert_eq!(
+        out.len(),
+        points.len(),
+        "Output slice length must match input vectors length."
+    );
+    let pre = match PrecomputedTriangleCurrent::new(current_density, &vertices) {
+        Some(p) => p,
+        None => {
+            out.fill(Vector3::zeros());
+            return;
+        }
+    };
+    let inv_orientation = orientation.inverse();
+
+    #[cfg(feature = "rayon")]
+    {
+        if points.len() > 100 {
+            use rayon::prelude::*;
+            out.par_iter_mut()
+                .zip(points.par_iter())
+                .for_each(|(o, p)| {
+                    let local_point = inv_orientation * Point3::from(p.coords - position.coords);
+                    let local_b = pre.compute_B(local_point);
+                    *o = orientation * local_b;
+                });
+            return;
+        }
+    }
+
+    out.iter_mut()
+        .zip(points.iter())
+        .for_each(|(o, p)| {
+            let local_point = inv_orientation * Point3::from(p.coords - position.coords);
+            let local_b = pre.compute_B(local_point);
+            *o = orientation * local_b;
+        });
 }
 
 /// Computes B-field at each given points in global frame for multiple triangles.

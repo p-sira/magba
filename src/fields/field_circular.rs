@@ -12,9 +12,9 @@ use numeric_literals::replace_float_literals;
 use crate::{
     base::{
         Float,
-        coordinate::{cart2cyl, compute_in_local, vec_cyl2cart},
+        coordinate::compute_in_local,
     },
-    crate_utils::{impl_parallel, impl_parallel_sum},
+    crate_utils::impl_parallel_sum,
 };
 
 const MAX_ITER: usize = 10;
@@ -88,12 +88,9 @@ pub fn local_circular_B<T: Float>(point: Point3<T>, diameter: T, current: T) -> 
         return Vector3::zeros();
     }
 
-    let (mut r, phi) = cart2cyl(point.x, point.y);
-    let mut z = point.z;
-
-    // Invariant
-    r /= r0;
-    z /= r0;
+    let orig_r = NumFloat::sqrt(point.x * point.x + point.y * point.y);
+    let r = orig_r / r0;
+    let z = point.z / r0;
 
     // Special case: at singularity (on the loop)
     if NumFloat::abs(r - 1.0) < 1e-15 && NumFloat::abs(z) < 1e-15 {
@@ -122,7 +119,12 @@ pub fn local_circular_B<T: Float>(point: Point3<T>, diameter: T, current: T) -> 
     ss = 2.0 * q * (k4 / p - (4.0 / x0) * p);
     let hz = -pf * cel_iter(q, p, 1.0, cc, ss, p, q);
 
-    let (bx, by) = vec_cyl2cart(hr, 0.0, phi);
+    let (bx, by) = if orig_r > 0.0 {
+        let inv_orig_r = 1.0 / orig_r;
+        (hr * point.x * inv_orig_r, hr * point.y * inv_orig_r)
+    } else {
+        (0.0, 0.0)
+    };
     Vector3::new(bx, by, hz) * T::mu0()
 }
 
@@ -203,13 +205,35 @@ pub fn circular_B_batch<T: Float>(
     current: T,
     out: &mut [Vector3<T>],
 ) {
-    impl_parallel!(
-        circular_B,
-        rayon_threshold: 350,
-        input: points,
-        output: out,
-        args: [position, orientation, diameter, current]
-    )
+    assert_eq!(
+        out.len(),
+        points.len(),
+        "Output slice length must match input vectors length."
+    );
+    let inv_orientation = orientation.inverse();
+
+    #[cfg(feature = "rayon")]
+    {
+        if points.len() > 350 {
+            use rayon::prelude::*;
+            out.par_iter_mut()
+                .zip(points.par_iter())
+                .for_each(|(o, p)| {
+                    let local_point = inv_orientation * Point3::from(p.coords - position.coords);
+                    let local_b = local_circular_B(local_point, diameter, current);
+                    *o = orientation * local_b;
+                });
+            return;
+        }
+    }
+
+    out.iter_mut()
+        .zip(points.iter())
+        .for_each(|(o, p)| {
+            let local_point = inv_orientation * Point3::from(p.coords - position.coords);
+            let local_b = local_circular_B(local_point, diameter, current);
+            *o = orientation * local_b;
+        });
 }
 
 /// Computes net B-field at each given point in global frame for multiple circular current loops.
