@@ -371,18 +371,29 @@ mod tests {
         );
         assert_eq!(out_less[0], Vector3::zeros());
 
-        // Batch with <= 200 points to trigger serial threshold
-        let mut small_out = vec![Vector3::zeros(); 5];
+        // Batch with <= 200 points to trigger serial threshold (verified against magpylib)
+        let small_points = [
+            point![0.0, 1.0, 0.0],
+            point![0.5, 1.0, 0.0],
+            point![0.0, 1.0, 0.5],
+        ];
+        let mut small_out = vec![Vector3::zeros(); 3];
         path_current_B_batch(
-            &[point![0.0, 1.0, 0.0]; 5],
+            &small_points,
             Point3::origin(),
             UnitQuaternion::identity(),
             1.0,
             &verts,
             &mut small_out,
         );
-        assert_eq!(small_out.len(), 5);
-        assert!(small_out[0].x != 0.0);
+        let expected = [
+            vector![-7.071067810931863e-08, 0.0, 0.0],
+            vector![-5.333333332629158e-08, 2.666666666314579e-08, 0.0],
+            vector![-8.944271908818222e-08, 0.0, 0.0],
+        ];
+        for (o, e) in small_out.iter().zip(expected.iter()) {
+            approx::assert_relative_eq!(o, e, epsilon = 1e-14, max_relative = 1e-12);
+        }
 
         // Batch with > 200 points to trigger Rayon threshold
         let points = vec![point![0.0, 1.0, 0.0]; 250];

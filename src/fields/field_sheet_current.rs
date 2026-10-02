@@ -140,18 +140,41 @@ mod tests {
         );
         assert_eq!(out.len(), 120);
 
-        // Batch with <= 100 points for serial threshold
-        let mut small_out = vec![Vector3::zeros(); 5];
+        // Batch with <= 100 points for serial threshold (verified against magpylib)
+        let small_points = [
+            point![0.05, 0.05, 0.05],
+            point![0.1, 0.2, 0.3],
+            point![0.01, -0.02, 0.03],
+        ];
+        let mut small_out = vec![Vector3::zeros(); 3];
         sheet_current_B_batch(
-            &points[..5],
+            &small_points,
             Point3::origin(),
             UnitQuaternion::identity(),
             &current_densities,
             &mesh,
             &mut small_out,
         );
-        assert_eq!(small_out.len(), 5);
-        assert!(small_out[0].z != 0.0);
+        let expected = [
+            vector![
+                -3.0005902292428774e-25,
+                -1.453159186266714e-11,
+                1.4531591862659427e-11
+            ],
+            vector![
+                -5.534500315293388e-14,
+                -9.606788267894514e-13,
+                6.58610488538159e-13
+            ],
+            vector![
+                -2.7943863253616106e-11,
+                -9.612690279835812e-11,
+                -5.6231544404270135e-11
+            ],
+        ];
+        for (o, e) in small_out.iter().zip(expected.iter()) {
+            approx::assert_relative_eq!(o, e, epsilon = 1e-14, max_relative = 1e-10);
+        }
 
         // sum_multiple_sheet_current_B with < 10 points and > 10 points
         let positions = [point![0.0, 0.0, 0.0], point![0.01, 0.0, 0.0]];

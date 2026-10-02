@@ -291,9 +291,13 @@ mod tests {
         let b_wire = local_circular_B(point![1.0, 0.0, 0.0], 2.0, 1.0);
         assert_eq!(b_wire, Vector3::zeros());
 
-        // circular_B_batch with <= 350 points to trigger serial threshold
-        let small_points = vec![point![0.0, 0.0, 1.0]; 5];
-        let mut small_out = vec![Vector3::zeros(); 5];
+        // circular_B_batch with <= 350 points to trigger serial threshold (verified against magpylib)
+        let small_points = [
+            point![0.0, 0.0, 1.0],
+            point![0.5, 0.0, 1.0],
+            point![0.0, 0.5, 1.0],
+        ];
+        let mut small_out = vec![Vector3::zeros(); 3];
         circular_B_batch(
             &small_points,
             Point3::origin(),
@@ -302,8 +306,14 @@ mod tests {
             1.0,
             &mut small_out,
         );
-        assert_eq!(small_out.len(), 5);
-        assert!(small_out[0].z != 0.0);
+        let expected = [
+            vector![0.0, 0.0, 2.22144146878588e-07],
+            vector![7.887867348048176e-08, 0.0, 1.8954556071701232e-07],
+            vector![0.0, 7.887867348048176e-08, 1.8954556071701232e-07],
+        ];
+        for (o, e) in small_out.iter().zip(expected.iter()) {
+            approx::assert_relative_eq!(o, e, epsilon = 1e-14, max_relative = 1e-12);
+        }
 
         // circular_B_batch with > 350 points to trigger Rayon threshold
         let points = vec![point![0.0, 0.0, 1.0]; 400];

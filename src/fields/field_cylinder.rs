@@ -540,9 +540,13 @@ mod tests {
         let b_edge = cylinder_B_cyl(1.0, 0.0, 1.0, 1.0, 2.0, 0.0, 1.0);
         assert_eq!(b_edge, Vector3::zeros());
 
-        // Batch with <= 100 points to trigger serial threshold
-        let small_points = vec![point![0.0, 0.0, 5.0]; 5];
-        let mut small_out = vec![Vector3::zeros(); 5];
+        // Batch with <= 100 points to trigger serial threshold (verified against magpylib)
+        let small_points = [
+            point![0.0, 0.0, 3.0],
+            point![0.25, 0.0, 3.0],
+            point![0.0, 0.75, 3.0],
+        ];
+        let mut small_out = vec![Vector3::zeros(); 3];
         cylinder_B_batch(
             &small_points,
             Point3::origin(),
@@ -552,8 +556,14 @@ mod tests {
             2.0,
             &mut small_out,
         );
-        assert_eq!(small_out.len(), 5);
-        assert!(small_out[0].z != 0.0);
+        let expected = [
+            vector![0.0, 0.0, 0.011_067_688_284_167_91],
+            vector![0.001510292125676766, 0.0, 0.010780010996173256],
+            vector![0.0, 0.0038107814524458316, 0.008797178545834898],
+        ];
+        for (o, e) in small_out.iter().zip(expected.iter()) {
+            approx::assert_relative_eq!(o, e, epsilon = 1e-12, max_relative = 1e-7);
+        }
 
         // Batch with > 100 points to trigger Rayon threshold
         let points = vec![point![0.0, 0.0, 5.0]; 150];

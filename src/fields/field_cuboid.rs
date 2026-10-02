@@ -403,9 +403,13 @@ mod tests {
         );
         assert!(b_pol_x.x != 0.0);
 
-        // Batch with <= 50 points to trigger serial threshold
-        let small_points = vec![point![0.0, 0.0, 5.0]; 5];
-        let mut small_out = vec![Vector3::zeros(); 5];
+        // Batch with <= 50 points to trigger serial threshold (verified against magpylib)
+        let small_points = [
+            point![0.0, 0.0, 2.0],
+            point![0.5, 0.5, 2.0],
+            point![0.0, 1.0, 2.0],
+        ];
+        let mut small_out = vec![Vector3::zeros(); 3];
         cuboid_B_batch(
             &small_points,
             Point3::origin(),
@@ -414,8 +418,18 @@ mod tests {
             vector![1.0, 1.0, 1.0],
             &mut small_out,
         );
-        assert_eq!(small_out.len(), 5);
-        assert!(small_out[0].z != 0.0);
+        let expected = [
+            vector![0.0, 0.0, 0.019638572073859738],
+            vector![
+                0.005479556786092402,
+                0.005479556786092402,
+                0.01387787690720842
+            ],
+            vector![0.0, 0.00849842607524803, 0.00998603237445673],
+        ];
+        for (o, e) in small_out.iter().zip(expected.iter()) {
+            approx::assert_relative_eq!(o, e, epsilon = 1e-14, max_relative = 1e-12);
+        }
 
         // Batch with > 50 points to trigger Rayon threshold
         let points = vec![point![0.0, 0.0, 5.0]; 60];

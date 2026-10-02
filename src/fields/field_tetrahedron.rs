@@ -295,10 +295,15 @@ mod tests {
         assert_eq!(out.len(), 120);
         assert!(out[0].z != 0.0);
 
-        // Batch with <= 100 points to trigger serial threshold
-        let mut small_out = vec![Vector3::zeros(); 5];
+        // Batch with <= 100 points to trigger serial threshold (verified against magpylib)
+        let small_points = [
+            point![0.0, 0.0, 2.0],
+            point![0.5, 0.0, 2.0],
+            point![0.0, 0.5, 2.0],
+        ];
+        let mut small_out = vec![Vector3::zeros(); 3];
         tetrahedron_B_batch(
-            &points[..5],
+            &small_points,
             Point3::origin(),
             UnitQuaternion::identity(),
             vector![0.0, 0.0, 1.0],
@@ -310,7 +315,25 @@ mod tests {
             ],
             &mut small_out,
         );
-        assert_eq!(small_out.len(), 5);
-        assert!(small_out[0].z != 0.0);
+        let expected = [
+            vector![
+                -0.0008966518882894266,
+                -0.00089665188828956,
+                0.004678366162412425
+            ],
+            vector![
+                0.0011378198558144143,
+                -0.0008424502851323464,
+                0.004454545270989185
+            ],
+            vector![
+                -0.0008424502851322848,
+                0.0011378198558144143,
+                0.004454545270989168
+            ],
+        ];
+        for (o, e) in small_out.iter().zip(expected.iter()) {
+            approx::assert_relative_eq!(o, e, epsilon = 1e-14, max_relative = 1e-12);
+        }
     }
 }

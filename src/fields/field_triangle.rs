@@ -386,11 +386,15 @@ mod tests {
         );
         assert_eq!(b_nan, Vector3::zeros());
 
-        // Batch with <= 300 points for serial threshold
-        let points = vec![point![0.0, 0.0, 5.0]; 120];
-        let mut out = vec![Vector3::zeros(); 120];
+        // Batch with <= 300 points for serial threshold (verified against magpylib)
+        let small_points = [
+            point![0.0, 0.0, 2.0],
+            point![0.5, 0.0, 2.0],
+            point![0.0, 0.5, 2.0],
+        ];
+        let mut small_out = vec![Vector3::zeros(); 3];
         triangle_B_batch(
-            &points,
+            &small_points,
             Point3::origin(),
             UnitQuaternion::identity(),
             vector![0.0, 0.0, 1.0],
@@ -399,10 +403,28 @@ mod tests {
                 vector![1.0, 0.0, 0.0],
                 vector![0.0, 1.0, 0.0],
             ],
-            &mut out,
+            &mut small_out,
         );
-        assert_eq!(out.len(), 120);
-        assert!(out[0].z != 0.0);
+        let expected = [
+            vector![
+                -0.001_442_531_192_916_713,
+                -0.0014425311929167218,
+                0.008860236400615005
+            ],
+            vector![
+                0.0007102551326673291,
+                -0.0014473673192635988,
+                0.009130835638716228
+            ],
+            vector![
+                -0.0014473673192635767,
+                0.0007102551326673512,
+                0.009130835638716228
+            ],
+        ];
+        for (o, e) in small_out.iter().zip(expected.iter()) {
+            approx::assert_relative_eq!(o, e, epsilon = 1e-14, max_relative = 1e-12);
+        }
 
         // Batch with > 300 points for Rayon threshold
         let points_large = vec![point![0.0, 0.0, 5.0]; 350];

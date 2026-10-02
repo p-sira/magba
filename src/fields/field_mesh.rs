@@ -242,18 +242,41 @@ mod tests {
         );
         assert_eq!(out.len(), 120);
 
-        // Batch with <= 100 points for serial threshold
-        let mut small_out = vec![Vector3::zeros(); 5];
+        // Batch with <= 100 points for serial threshold (verified against magpylib)
+        let small_points = [
+            point![0.05, 0.05, 0.05],
+            point![0.1, 0.2, 0.3],
+            point![0.01, -0.02, 0.03],
+        ];
+        let mut small_out = vec![Vector3::zeros(); 3];
         mesh_B_batch(
-            &points[..5],
+            &small_points,
             Point3::origin(),
             UnitQuaternion::identity(),
             vector![0.0, 0.0, 1.0],
             &mesh,
             &mut small_out,
         );
-        assert_eq!(small_out.len(), 5);
-        assert!(small_out[0].z != 0.0);
+        let expected = [
+            vector![
+                2.0728340382113465e-08,
+                2.0728340382113465e-08,
+                1.393369198233324e-19
+            ],
+            vector![
+                1.6309465566011645e-10,
+                3.265976692984299e-10,
+                2.360953478678851e-10
+            ],
+            vector![
+                1.6018157241643468e-07,
+                -3.3266181333030693e-07,
+                2.3286089750517369e-07
+            ],
+        ];
+        for (o, e) in small_out.iter().zip(expected.iter()) {
+            approx::assert_relative_eq!(o, e, epsilon = 1e-14, max_relative = 1e-10);
+        }
 
         // sum_multiple_mesh_B with < 10 points and > 10 points
         let positions = [point![0.0, 0.0, 0.0], point![0.01, 0.0, 0.0]];
