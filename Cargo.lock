@@ -697,6 +697,7 @@ dependencies = [
  "getset",
  "itertools 0.14.0",
  "nalgebra",
+ "num-lazy",
  "num-traits",
  "numeric_literals",
  "openmesh",

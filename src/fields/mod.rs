@@ -65,6 +65,8 @@
 //! cargo add magba --features unstable
 //! ```
 
+mod bulirsch_cel_axial;
+
 mod field_circular;
 mod field_cuboid;
 mod field_cylinder;

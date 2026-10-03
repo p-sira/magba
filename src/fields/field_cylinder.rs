@@ -16,6 +16,7 @@ use crate::{
         coordinate::{cart2cyl, compute_in_local, vec_cyl2cart},
     },
     crate_utils::{impl_parallel, impl_parallel_sum},
+    fields::bulirsch_cel_axial::cel_axial,
 };
 
 /// Computes B-field of a cylindrical magnet with unit axial (z-axis) polarization
@@ -51,13 +52,13 @@ pub fn unit_axial_cylinder_B_cyl<T: Float>(r: T, z: T, z0: T) -> Vector3<T> {
     let km = NumFloat::sqrt((zm2 + rm2) / (zm2 + rp2));
 
     let gamma = rm / rp;
-    let gamma2 = gamma * gamma;
 
-    let br =
-        (cel(kp, 1.0, 1.0, -1.0).unwrap() / sq1 - cel(km, 1.0, 1.0, -1.0).unwrap() / sq0) / T::pi();
-    let bz = (zp * cel(kp, gamma2, 1.0, gamma).unwrap() / sq1
-        - zm * cel(km, gamma2, 1.0, gamma).unwrap() / sq0)
-        / (rp * T::pi());
+    let (cr_p, cz_p) = cel_axial(kp, gamma);
+    let (cr_m, cz_m) = cel_axial(km, gamma);
+
+    let br = (cr_p / sq1 - cr_m / sq0) / T::pi();
+    let bz = (zp * cz_p / sq1 - zm * cz_m / sq0) / (rp * T::pi());
+
     // bphi = 0
     vector![br, 0.0, bz]
 }
