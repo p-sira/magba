@@ -48,7 +48,7 @@ concat-idents = "1.1.5"
 delegate = "0.13.5"
 derive_more = { version = "2.1.1", optional = true, features = ["display"] }
 dyn-clone = { version = "1.0.20", optional = true }
-ellip = { version = "1.1.1", default-features = false, features = ["unstable"] }
+ellip = { version = "1.2.2", default-features = false, features = ["unstable"] }
 enum_dispatch = "0.3.13"
 getset = "0.1.6"
 itertools = { version = "0.14.0", default-features = false }
@@ -64,6 +64,7 @@ rayon = { version = "1.10.0", optional = true }
 csv = { version = "1.3.1", optional = true }
 regex = { version = "1.12.2", optional = true }
 stl_io = { version = "0.11", optional = true }
+num-lazy = "0.4.1"
 
 [dev-dependencies]
 approx = "0.5.1"
@@ -92,6 +93,8 @@ mesh = ["alloc"]
 io-stl = ["mesh", "std", "openmesh/stl"]
 test-utils = ["std", "dep:csv", "dep:regex"]
 unstable = []
+# For code coverage testing only
+test_force_fail = []
 
 [package.metadata.docs.rs]
 all-features = true
