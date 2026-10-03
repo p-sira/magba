@@ -9,7 +9,7 @@ jobs:
       CARGO_TERM_COLOR: always
       MAGBA_REQUIRE_TEST_DATA: "1"
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
       - name: Install Rust
@@ -19,7 +19,7 @@ jobs:
       - name: Generate code coverage
         run: cargo llvm-cov -p magba --lcov --output-path lcov.info --ignore-filename-regex 'benches/.*|examples/.*|src/testing_util\.rs'
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: lcov.info
