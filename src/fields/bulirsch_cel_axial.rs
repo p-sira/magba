@@ -39,18 +39,16 @@ pub(crate) fn cel_axial_pair<T: Float>(kc_p: T, kc_m: T, gamma: T) -> ((T, T), (
     let mut done_m = false;
 
     for _ in 0..CEL_AXIAL_MAX_ITER {
-        if !done_p {
-            if let Some(ans) = cel_axial_step(&mut state_p) {
+        if !done_p
+            && let Some(ans) = cel_axial_step(&mut state_p) {
                 ans_p = ans;
                 done_p = true;
             }
-        }
-        if !done_m {
-            if let Some(ans) = cel_axial_step(&mut state_m) {
+        if !done_m
+            && let Some(ans) = cel_axial_step(&mut state_m) {
                 ans_m = ans;
                 done_m = true;
             }
-        }
         if done_p && done_m {
             return (ans_p, ans_m);
         }
