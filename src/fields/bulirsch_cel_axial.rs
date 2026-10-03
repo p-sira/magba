@@ -32,7 +32,7 @@ pub(crate) fn cel_axial<T: Float>(kc: T, gamma: T) -> (T, T) {
         1e-8
     };
 
-    for _ in 0..16 {
+    for _ in 0..MAX_ITER {
         bb_r = (c_r * kc + bb_r) * 2.0;
         c_r = aa_r;
         let f_z = aa_z;
@@ -57,4 +57,28 @@ pub(crate) fn cel_axial<T: Float>(kc: T, gamma: T) -> (T, T) {
         cel(kc, 1.0, 1.0, -1.0).unwrap(),
         cel(kc, gamma * gamma, 1.0, gamma).unwrap(),
     )
+}
+
+#[cfg(not(feature = "test_force_fail"))]
+const MAX_ITER: usize = 16;
+
+#[cfg(feature = "test_force_fail")]
+const MAX_ITER: usize = 1;
+
+#[cfg(not(feature = "test_force_fail"))]
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_cel_axial() {
+        let (r, z) = super::cel_axial(0.3, 0.7);
+        let ref_r = ellip::cel(0.3, 1.0, 1.0, -1.0).unwrap();
+        let ref_z = ellip::cel(0.3, 0.49, 1.0, 0.7).unwrap();
+        approx::assert_relative_eq!(r, ref_r, epsilon = 1e-14);
+        approx::assert_relative_eq!(z, ref_z, epsilon = 1e-14);
+    }
+}
+
+#[cfg(feature = "test_force_fail")]
+crate::test_force_unreachable! {
+    let _ = cel_axial(0.3, 0.7);
 }

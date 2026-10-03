@@ -93,6 +93,8 @@ mesh = ["alloc"]
 io-stl = ["mesh", "std", "openmesh/stl"]
 test-utils = ["std", "dep:csv", "dep:regex"]
 unstable = []
+# For code coverage testing only
+test_force_fail = []
 
 [package.metadata.docs.rs]
 all-features = true
