@@ -25,9 +25,9 @@ pub(crate) fn cel_axial<T: Float>(kc: T, gamma: T) -> (T, T) {
 
 /// Fused Bulirsch CEL evaluation for axial coordinates:
 /// `(cel(kc, 1.0, 1.0, -1.0), cel(kc, gamma^2, 1.0, gamma))`
-/// 
+///
 /// This routine takes two complementary moduli with the same `gamma`
-/// and shares the computation loop. 
+/// and shares the computation loop.
 #[inline]
 pub(crate) fn cel_axial_pair<T: Float>(kc_p: T, kc_m: T, gamma: T) -> ((T, T), (T, T)) {
     let mut state_p = cel_axial_state(kc_p, gamma);
@@ -100,7 +100,7 @@ fn cel_axial_state<T: Float>(kc: T, gamma: T) -> CelAxialState<T> {
 #[inline]
 #[replace_float_literals(T::from(literal).unwrap())]
 fn cel_axial_step<T: Float>(state: &mut CelAxialState<T>) -> Option<(T, T)> {
-    let ca = if std::mem::size_of::<T>() <= 4 {
+    let ca = if core::mem::size_of::<T>() <= 4 {
         1e-3
     } else {
         1e-8
