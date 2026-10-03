@@ -5,7 +5,7 @@
 
 //! Analytical B-field computation for cylindrical magnets.
 
-use ellip::{bulirsch::cel, ellipe, ellipk};
+use ellip::{bulirsch::cel, ellipke};
 use nalgebra::{Point3, UnitQuaternion, Vector3, vector};
 use num_traits::Float as NumFloat;
 use numeric_literals::replace_float_literals;
@@ -137,8 +137,9 @@ pub fn unit_diametric_cylinder_B_cyl<T: Float>(r: T, phi: T, z: T, z0: T) -> Vec
     };
 
     // Computes elliptics
-    let (ellk_p, ellk_m) = (ellipk(argp).unwrap(), ellipk(argm).unwrap());
-    let (elle_p, elle_m) = (ellipe(argp).unwrap(), ellipe(argm).unwrap());
+    let (ellk_p, elle_p) = ellipke(argp).unwrap();
+    let (ellk_m, elle_m) = ellipke(argm).unwrap();
+
     let (ellpi_p, ellpi_m) = (
         cel(NumFloat::sqrt(1.0 - argp), 1.0 - argc, 1.0, 1.0).unwrap(),
         cel(NumFloat::sqrt(1.0 - argm), 1.0 - argc, 1.0, 1.0).unwrap(),
