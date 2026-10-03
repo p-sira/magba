@@ -125,7 +125,7 @@ fn cel_axial_fallback<T: Float>(kc: T, gamma: T) -> (T, T) {
     )
 }
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "test_force_fail")))]
 mod tests {
     use super::*;
 
@@ -170,4 +170,16 @@ mod tests {
             approx::assert_relative_eq!(f_mz, ref_m.1, epsilon = 1e-12);
         }
     }
+}
+
+#[cfg(feature = "test_force_fail")]
+crate::test_force_unreachable! {
+    // Cover cel_axial_fallback and both fallback branches of cel_axial_pair.
+    let gamma = 0.7f64;
+    let kc = 0.3f64;
+    let (r, z) = cel_axial_fallback(kc, gamma);
+    let ref_r = ellip::cel(kc, 1.0, 1.0, -1.0).unwrap();
+    let ref_z = ellip::cel(kc, gamma * gamma, 1.0, gamma).unwrap();
+    approx::assert_relative_eq!(r, ref_r, epsilon = 1e-14);
+    approx::assert_relative_eq!(z, ref_z, epsilon = 1e-14);
 }
