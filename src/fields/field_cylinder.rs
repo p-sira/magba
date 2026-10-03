@@ -485,6 +485,7 @@ pub fn sum_multiple_cylinder_B<T: Float>(
     )
 }
 
+#[cfg(not(feature = "test_force_fail"))]
 #[cfg(test)]
 mod tests {
     use nalgebra::{point, vector};

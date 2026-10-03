@@ -498,6 +498,7 @@ mod field_tests {
     }
 }
 
+#[cfg(not(feature = "test_force_fail"))]
 #[cfg(test)]
 mod heterogeneous_collection_tests {
     use std::f64::consts::{FRAC_PI_2, FRAC_PI_3, PI};

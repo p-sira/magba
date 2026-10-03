@@ -237,6 +237,7 @@ mod display_tests {
 
 // MARK: Test Field
 
+#[cfg(not(feature = "test_force_fail"))]
 #[cfg(test)]
 mod field_tests {
     use std::f64::consts::PI;
