@@ -29,6 +29,7 @@ pub(crate) fn cel_axial<T: Float>(kc: T, gamma: T) -> (T, T) {
 /// This routine takes two complementary moduli with the same `gamma`
 /// and shares the computation loop.
 #[inline]
+#[allow(dead_code)]
 pub(crate) fn cel_axial_pair<T: Float>(kc_p: T, kc_m: T, gamma: T) -> ((T, T), (T, T)) {
     let mut state_p = cel_axial_state(kc_p, gamma);
     let mut state_m = cel_axial_state(kc_m, gamma);
