@@ -9,27 +9,12 @@ use numeric_literals::replace_float_literals;
 
 num_lazy::declare_nums! {@constant T}
 
-/// Fused Bulirsch evaluation for axial coordinates:
-/// `(cel(kc, 1.0, 1.0, -1.0), cel(kc, gamma^2, 1.0, gamma))`
-/// simultaneously by sharing the common AGM/Landen sequence for complementary modulus `kc`.
-#[inline]
-pub(crate) fn cel_axial<T: Float>(kc: T, gamma: T) -> (T, T) {
-    let mut state = cel_axial_state(kc, gamma);
-    for _ in 0..CEL_AXIAL_MAX_ITER {
-        if let Some(ans) = cel_axial_step(&mut state) {
-            return ans;
-        }
-    }
-    cel_axial_fallback(state.kc, gamma)
-}
-
 /// Fused Bulirsch CEL evaluation for axial coordinates:
 /// `(cel(kc, 1.0, 1.0, -1.0), cel(kc, gamma^2, 1.0, gamma))`
 ///
 /// This routine takes two complementary moduli with the same `gamma`
 /// and shares the computation loop.
 #[inline]
-#[allow(dead_code)]
 pub(crate) fn cel_axial_pair<T: Float>(kc_p: T, kc_m: T, gamma: T) -> ((T, T), (T, T)) {
     let mut state_p = cel_axial_state(kc_p, gamma);
     let mut state_m = cel_axial_state(kc_m, gamma);
@@ -39,16 +24,14 @@ pub(crate) fn cel_axial_pair<T: Float>(kc_p: T, kc_m: T, gamma: T) -> ((T, T), (
     let mut done_m = false;
 
     for _ in 0..CEL_AXIAL_MAX_ITER {
-        if !done_p
-            && let Some(ans) = cel_axial_step(&mut state_p) {
-                ans_p = ans;
-                done_p = true;
-            }
-        if !done_m
-            && let Some(ans) = cel_axial_step(&mut state_m) {
-                ans_m = ans;
-                done_m = true;
-            }
+        if !done_p && let Some(ans) = cel_axial_step(&mut state_p) {
+            ans_p = ans;
+            done_p = true;
+        }
+        if !done_m && let Some(ans) = cel_axial_step(&mut state_m) {
+            ans_m = ans;
+            done_m = true;
+        }
         if done_p && done_m {
             return (ans_p, ans_m);
         }
@@ -145,6 +128,20 @@ fn cel_axial_fallback<T: Float>(kc: T, gamma: T) -> (T, T) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Fused Bulirsch evaluation for axial coordinates:
+    /// `(cel(kc, 1.0, 1.0, -1.0), cel(kc, gamma^2, 1.0, gamma))`
+    /// simultaneously by sharing the common AGM/Landen sequence for complementary modulus `kc`.
+    #[inline]
+    fn cel_axial<T: Float>(kc: T, gamma: T) -> (T, T) {
+        let mut state = cel_axial_state(kc, gamma);
+        for _ in 0..CEL_AXIAL_MAX_ITER {
+            if let Some(ans) = cel_axial_step(&mut state) {
+                return ans;
+            }
+        }
+        cel_axial_fallback(state.kc, gamma)
+    }
 
     #[test]
     fn test_cel_axial_pair() {
