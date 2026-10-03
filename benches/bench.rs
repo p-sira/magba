@@ -47,7 +47,7 @@ fn bench_field_functions(c: &mut Criterion) {
         let points = get_points_f64();
         let pos = Point3::<f64>::origin();
         let ori = UnitQuaternion::<f64>::identity();
-        let pol = vector![1.0, 0.0, 0.0];
+        let pol = vector![1.0, -1.0, 1.0];
         let dim = vector![0.01, 0.01, 0.01];
         let height = 0.02;
         let diameter = 0.02;
