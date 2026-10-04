@@ -4,7 +4,7 @@
  */
 
 use std::io::Write;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
 use magba::fields::*;
@@ -14,10 +14,10 @@ use tabled::{Table, Tabled, settings::Style};
 #[cfg(feature = "rayon")]
 use rayon::prelude::*;
 
-const MAX_THRESHOLD: usize = 10000;
-const ACCEPT_THRESHOLD: f64 = 0.1;
-const STEP: usize = 50;
-const MAX_ITER: usize = 15;
+const MAX_THRESHOLD: usize = 30000;
+const ACCEPT_THRESHOLD: f64 = 0.05;
+const MIN_STEP: usize = 5;
+const MAX_ITER: usize = 20;
 
 fn get_points(n: usize) -> Vec<Point3<f64>> {
     (0..n)
@@ -71,6 +71,33 @@ fn format_performance(val: &f64) -> String {
     }
 }
 
+fn parse_performance(s: &str) -> f64 {
+    let s = s.trim();
+    if s == "-" {
+        return f64::NAN;
+    }
+    if let Some(num) = s.strip_suffix("ns") {
+        num.trim().parse::<f64>().unwrap_or(f64::NAN)
+    } else if let Some(num) = s.strip_suffix("µs").or_else(|| s.strip_suffix("us")) {
+        num.trim()
+            .parse::<f64>()
+            .map(|v| v * 1e3)
+            .unwrap_or(f64::NAN)
+    } else if let Some(num) = s.strip_suffix("ms") {
+        num.trim()
+            .parse::<f64>()
+            .map(|v| v * 1e6)
+            .unwrap_or(f64::NAN)
+    } else if let Some(num) = s.strip_suffix("s") {
+        num.trim()
+            .parse::<f64>()
+            .map(|v| v * 1e9)
+            .unwrap_or(f64::NAN)
+    } else {
+        f64::NAN
+    }
+}
+
 #[derive(Tabled)]
 struct Record {
     #[tabled(rename = "Function")]
@@ -87,160 +114,244 @@ struct Record {
     exit_cond: ExitCond,
 }
 
+fn load_results(path: &Path) -> Vec<Record> {
+    let Ok(content) = std::fs::read_to_string(path) else {
+        return Vec::new();
+    };
+    let mut records = Vec::new();
+    for line in content.lines().skip(2) {
+        let line = line.trim();
+        if line.is_empty() || !line.starts_with('|') {
+            continue;
+        }
+        let parts: Vec<&str> = line.split('|').map(|s| s.trim()).collect();
+        if parts.len() >= 7 {
+            let function_name = parts[1].to_string();
+            let Ok(threshold) = parts[2].parse::<usize>() else {
+                continue;
+            };
+            let par_time = parse_performance(parts[3]);
+            let ser_time = parse_performance(parts[4]);
+            let ratio = parts[5].parse::<f64>().unwrap_or(f64::NAN);
+            let exit_cond = match parts[6] {
+                "Converged" => ExitCond::Converged,
+                "Min step size" => ExitCond::MinStep,
+                "Max iteration" => ExitCond::MaxIter,
+                "Max threshold" => ExitCond::MaxThres,
+                _ => ExitCond::None,
+            };
+            records.push(Record {
+                function_name,
+                threshold,
+                par_time,
+                ser_time,
+                ratio,
+                exit_cond,
+            });
+        }
+    }
+    records
+}
+
+fn update_or_push_record(results: &mut Vec<Record>, record: Record) {
+    if let Some(pos) = results
+        .iter()
+        .position(|r| r.function_name == record.function_name)
+    {
+        results[pos] = record;
+    } else {
+        results.push(record);
+    }
+}
+
 fn save_results(path: &Path, results: &[Record]) {
     let result_str = Table::new(results).with(Style::markdown()).to_string();
     let mut file = std::fs::File::create(path).unwrap();
     file.write_all(result_str.as_bytes()).unwrap();
 }
 
+fn get_criterion_root() -> PathBuf {
+    if Path::new("target/criterion").exists() || !Path::new("../target/criterion").exists() {
+        PathBuf::from("target/criterion")
+    } else {
+        PathBuf::from("../target/criterion")
+    }
+}
+
+fn get_record_file() -> PathBuf {
+    if Path::new("benches/par_threshold.md").exists()
+        || !Path::new("../benches/par_threshold.md").exists()
+    {
+        PathBuf::from("benches/par_threshold.md")
+    } else {
+        PathBuf::from("../benches/par_threshold.md")
+    }
+}
+
 macro_rules! find_threshold {
     ($c:ident, $results:ident, $func_name:ident, ($($args:expr),*), $init_step:expr, $record_file:expr) => {
-        let mut group = $c.benchmark_group(format!("threshold_{}", stringify!($func_name)));
-        let root_path = Path::new("target/criterion");
-        let func_str = stringify!($func_name);
-        let par_path = root_path.join(format!("threshold_{}/batch", func_str));
-        let ser_path = root_path.join(format!("threshold_{}/serial", func_str));
+        'bench_block: {
+            let mut group = $c.benchmark_group(format!("threshold_{}", stringify!($func_name)));
+            let root_path = get_criterion_root();
+            let func_str = stringify!($func_name);
+            let par_path = root_path.join(format!("threshold_{}/batch", func_str));
+            let ser_path = root_path.join(format!("threshold_{}/serial", func_str));
 
-        let mut record = Record {
-            function_name: func_str.to_string(),
-            threshold: $init_step,
-            par_time: f64::NAN,
-            ser_time: f64::NAN,
-            ratio: f64::NAN,
-            exit_cond: ExitCond::None,
-        };
+            let mut record = Record {
+                function_name: func_str.to_string(),
+                threshold: $init_step,
+                par_time: f64::NAN,
+                ser_time: f64::NAN,
+                ratio: f64::NAN,
+                exit_cond: ExitCond::None,
+            };
 
-        // --- 1. Expansion phase ---
-        let mut low = STEP;
-        let mut high = $init_step;
+            // Track benchmarked sizes to prevent duplicate benchmark IDs.
+            let mut seen: std::collections::HashSet<usize> = std::collections::HashSet::new();
 
-        loop {
-            record.threshold = ((high + STEP / 2) / STEP) * STEP;
-            record.threshold = record.threshold.max(STEP);
-
-            let points = get_points(record.threshold);
-            let mut out = vec![Vector3::zeros(); record.threshold];
-
-            group.bench_with_input(BenchmarkId::new("serial", record.threshold), &record.threshold, |b, _| {
-                b.iter(|| {
-                    points.iter().zip(out.iter_mut()).for_each(|(p, o)| {
-                        *o = $func_name(*p, $($args),*);
-                    });
-                    std::hint::black_box(&out);
-                });
-            });
-
-            group.bench_with_input(BenchmarkId::new("batch", record.threshold), &record.threshold, |b, _| {
-                b.iter(|| {
-                    points.par_iter().zip(out.par_iter_mut()).for_each(|(p, o)| {
-                        *o = $func_name(*p, $($args),*);
-                    });
-                    std::hint::black_box(&out);
-                });
-            });
-
-            record.par_time = reproducible::benchmark::extract_criterion_mean_ns(
-                &par_path.join(record.threshold.to_string()).join("new").join("estimates.json")
-            ).unwrap();
-            record.ser_time = reproducible::benchmark::extract_criterion_mean_ns(
-                &ser_path.join(record.threshold.to_string()).join("new").join("estimates.json")
-            ).unwrap();
-            record.ratio = record.par_time / record.ser_time;
-
-            if record.ratio < 1.0 {
-                // Overshoot found
-                // --- 2. Binary search phase ---
-                let mut last_mid = record.threshold;
-
-                for n in 0..MAX_ITER {
-                    let mid = ((low + high) / 2 / STEP) * STEP;
-                    if mid == last_mid {
-                        record.exit_cond = ExitCond::MinStep;
-                        break;
-                    }
-
-                    let points = get_points(mid);
-                    let mut out = vec![Vector3::zeros(); mid];
-
-                    group.bench_with_input(BenchmarkId::new("serial", mid), &mid, |b, _| {
-                        b.iter(|| {
-                            points.iter().zip(out.iter_mut()).for_each(|(p, o)| {
-                                *o = $func_name(*p, $($args),*);
+            macro_rules! run_size {
+                ($size:expr) => {{
+                    let size = $size;
+                    if !seen.contains(&size) {
+                        seen.insert(size);
+                        let points = get_points(size);
+                        let mut out = vec![Vector3::zeros(); size];
+                        group.bench_with_input(BenchmarkId::new("serial", size), &size, |b, _| {
+                            b.iter(|| {
+                                points.iter().zip(out.iter_mut()).for_each(|(p, o)| {
+                                    *o = $func_name(*p, $($args),*);
+                                });
+                                std::hint::black_box(&out);
                             });
-                            std::hint::black_box(&out);
                         });
-                    });
-
-                    group.bench_with_input(BenchmarkId::new("batch", mid), &mid, |b, _| {
-                        b.iter(|| {
-                            points.par_iter().zip(out.par_iter_mut()).for_each(|(p, o)| {
-                                *o = $func_name(*p, $($args),*);
+                        group.bench_with_input(BenchmarkId::new("batch", size), &size, |b, _| {
+                            b.iter(|| {
+                                points.par_iter().zip(out.par_iter_mut()).for_each(|(p, o)| {
+                                    *o = $func_name(*p, $($args),*);
+                                });
+                                std::hint::black_box(&out);
                             });
-                            std::hint::black_box(&out);
                         });
-                    });
-
-                    let par_time = reproducible::benchmark::extract_criterion_mean_ns(
-                        &par_path.join(mid.to_string()).join("new").join("estimates.json")
-                    ).unwrap();
-                    let ser_time = reproducible::benchmark::extract_criterion_mean_ns(
-                        &ser_path.join(mid.to_string()).join("new").join("estimates.json")
-                    ).unwrap();
-                    let ratio = par_time / ser_time;
-
-                    if ratio < 1.0 - ACCEPT_THRESHOLD {
-                        high = mid;
-                    } else if ratio > 1.0 + ACCEPT_THRESHOLD {
-                        low = mid;
-                    } else {
-                        record.threshold = mid;
-                        record.par_time = par_time;
-                        record.ser_time = ser_time;
-                        record.ratio = ratio;
-                        record.exit_cond = ExitCond::Converged;
-                        break;
                     }
+                }};
+            }
 
-                    if high - low <= STEP {
-                        record.threshold = high;
-                        record.par_time = par_time;
-                        record.ser_time = ser_time;
-                        record.ratio = ratio;
-                        record.exit_cond = ExitCond::MinStep;
-                        break;
+            // --- 1. Expansion phase ---
+            let mut low = MIN_STEP;
+            let mut high = $init_step;
+
+            loop {
+                record.threshold = ((high + MIN_STEP / 2) / MIN_STEP) * MIN_STEP;
+                record.threshold = record.threshold.max(MIN_STEP);
+
+                run_size!(record.threshold);
+
+                let Ok(par_time) = reproducible::benchmark::extract_criterion_mean_ns(
+                    &par_path.join(record.threshold.to_string()).join("new").join("estimates.json")
+                ) else {
+                    group.finish();
+                    break 'bench_block;
+                };
+                let Ok(ser_time) = reproducible::benchmark::extract_criterion_mean_ns(
+                    &ser_path.join(record.threshold.to_string()).join("new").join("estimates.json")
+                ) else {
+                    group.finish();
+                    break 'bench_block;
+                };
+                record.par_time = par_time;
+                record.ser_time = ser_time;
+                record.ratio = record.par_time / record.ser_time;
+
+                if record.ratio < 1.0 {
+                    // Overshoot found
+                    // --- 2. Binary search phase ---
+                    let mut last_mid = record.threshold;
+
+                    for n in 0..MAX_ITER {
+                        let mid = ((low + high) / 2 / MIN_STEP) * MIN_STEP;
+                        if mid == last_mid {
+                            record.exit_cond = ExitCond::MinStep;
+                            break;
+                        }
+
+                        run_size!(mid);
+
+                        let Ok(par_time) = reproducible::benchmark::extract_criterion_mean_ns(
+                            &par_path.join(mid.to_string()).join("new").join("estimates.json")
+                        ) else {
+                            group.finish();
+                            break 'bench_block;
+                        };
+                        let Ok(ser_time) = reproducible::benchmark::extract_criterion_mean_ns(
+                            &ser_path.join(mid.to_string()).join("new").join("estimates.json")
+                        ) else {
+                            group.finish();
+                            break 'bench_block;
+                        };
+                        let ratio = par_time / ser_time;
+
+                        if ratio < 1.0 - ACCEPT_THRESHOLD {
+                            high = mid;
+                        } else if ratio > 1.0 + ACCEPT_THRESHOLD {
+                            low = mid;
+                        } else {
+                            record.threshold = mid;
+                            record.par_time = par_time;
+                            record.ser_time = ser_time;
+                            record.ratio = ratio;
+                            record.exit_cond = ExitCond::Converged;
+                            break;
+                        }
+
+                        if high - low <= MIN_STEP {
+                            record.threshold = high;
+                            record.par_time = par_time;
+                            record.ser_time = ser_time;
+                            record.ratio = ratio;
+                            record.exit_cond = ExitCond::MinStep;
+                            break;
+                        }
+
+                        if n == MAX_ITER - 1 {
+                            record.threshold = high;
+                            record.exit_cond = ExitCond::MaxIter;
+                        }
+
+                        last_mid = mid;
                     }
-
-                    if n == MAX_ITER - 1 {
-                        record.threshold = high;
-                        record.exit_cond = ExitCond::MaxIter;
-                    }
-
-                    last_mid = mid;
+                    break;
                 }
-                break;
-            }
 
-            low = high;
-            high *= 2;
-            if high > MAX_THRESHOLD {
-                record.exit_cond = ExitCond::MaxThres;
-                break;
+                low = high;
+                high *= 2;
+                if high > MAX_THRESHOLD {
+                    record.exit_cond = ExitCond::MaxThres;
+                    break;
+                }
             }
+            update_or_push_record(&mut $results, record);
+            save_results($record_file, &$results);
+            group.finish();
         }
-        $results.push(record);
-        save_results($record_file, &$results);
-        group.finish();
+    };
+}
+
+macro_rules! find_thresholds {
+    ($c:ident, $results:ident, $record_file:expr => { $(( $func:ident, $n_args:tt $(: $test_file_name:expr)?, $init_step:expr )),* $(,)? }) => {
+        $(
+            find_threshold!($c, $results, $func, $n_args $(: $test_file_name)?, $init_step, &$record_file);
+        )*
     };
 }
 
 fn bench_thresholds(c: &mut Criterion) {
     let pos = Point3::origin();
     let ori = UnitQuaternion::identity();
-    let pol = vector![1.0, 0.0, 0.0];
+    let pol = vector![1.0, -1.0, 1.0];
     let dim = vector![0.01, 0.01, 0.01];
     let height = 0.02;
     let diameter = 0.02;
-    let moment = vector![0.0, 0.0, 1e-3];
+    let moment = vector![1e-3, -1e-3, 1e-3];
     let current = 1.0;
 
     let vertices_triangle = [
@@ -263,15 +374,12 @@ fn bench_thresholds(c: &mut Criterion) {
     ];
     let (vertices_tetra, mat_inv_tetra) = magba::fields::precompute_tetrahedron(vertices_tetra);
 
-    use magba::base::mesh::TriMesh;
-    let vertices_mesh = vec![
-        vector![-0.1, -0.1, -0.1],
-        vector![0.1, -0.1, -0.1],
-        vector![0.0, 0.1, -0.1],
-        vector![0.0, 0.0, 0.1],
-    ];
-    let faces_mesh = vec![[0, 2, 1], [0, 1, 3], [1, 2, 3], [0, 3, 2]];
-    let mesh = TriMesh::new(vertices_mesh, faces_mesh).unwrap();
+    let base_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("testing/data");
+    let stl_path = base_path.join("suzanne.stl"); // About 700 triangles
+    let mut file = std::fs::File::open(stl_path).expect("Failed to open mesh.stl");
+    let openmesh = openmesh::Mesh::from_stl(&mut file).expect("Failed to read STL");
+
+    let mesh = magba::base::mesh::TriMesh::from(openmesh);
 
     let vertices_triangle_current = [
         vector![0.0, 0.0, 0.0],
@@ -281,76 +389,22 @@ fn bench_thresholds(c: &mut Criterion) {
     let current_density = vector![1.0, 2.0, 3.0];
     let sheet_current_densities = vec![vector![1.0, 2.0, 3.0]; 4];
 
-    let mut results = Vec::new();
-    let record_file = Path::new("benches/par_threshold.md");
+    let record_file = get_record_file();
+    let mut results = load_results(&record_file);
 
-    find_threshold!(
-        c,
-        results,
-        circular_B,
-        (pos, ori, diameter, current),
-        500,
-        record_file
-    );
-    find_threshold!(
-        c,
-        results,
-        path_current_B,
-        (pos, ori, current, &vertices_path_current),
-        150,
-        record_file
-    );
-    find_threshold!(c, results, cuboid_B, (pos, ori, pol, dim), 50, record_file);
-    find_threshold!(
-        c,
-        results,
-        cylinder_B,
-        (pos, ori, pol, diameter, height),
-        150,
-        record_file
-    );
-    find_threshold!(c, results, dipole_B, (pos, ori, moment), 5000, record_file);
-    find_threshold!(
-        c,
-        results,
-        sphere_B,
-        (pos, ori, pol, diameter),
-        2500,
-        record_file
-    );
-    find_threshold!(
-        c,
-        results,
-        triangle_B,
-        (pos, ori, pol, vertices_triangle),
-        3100,
-        record_file
-    );
-    find_threshold!(
-        c,
-        results,
-        tetrahedron_B_precomputed,
-        (pos, ori, pol, vertices_tetra, mat_inv_tetra),
-        1550,
-        record_file
-    );
-    find_threshold!(
-        c,
-        results,
-        triangle_current_B,
-        (pos, ori, current_density, vertices_triangle_current),
-        100,
-        record_file
-    );
-    find_threshold!(c, results, mesh_B, (pos, ori, pol, &mesh), 400, record_file);
-    find_threshold!(
-        c,
-        results,
-        sheet_current_B,
-        (pos, ori, &sheet_current_densities, &mesh),
-        100,
-        record_file
-    );
+    find_thresholds!( c, results, record_file => {
+        (circular_B, (pos, ori, diameter, current), 370),
+        (path_current_B, (pos, ori, current, &vertices_path_current), 250),
+        (cuboid_B, (pos, ori, pol, dim), 55),
+        (cylinder_B, (pos, ori, pol, diameter, height), 100),
+        (dipole_B, (pos, ori, moment), 6250),
+        (sphere_B, (pos, ori, pol, diameter), 9060),
+        (triangle_B, (pos, ori, pol, vertices_triangle), 310),
+        (tetrahedron_B_precomputed, (pos, ori, pol, vertices_tetra, mat_inv_tetra), 50),
+        (triangle_current_B, (pos, ori, current_density, vertices_triangle_current), 200),
+        (mesh_B, (pos, ori, pol, &mesh), 10),
+        (sheet_current_B, (pos, ori, &sheet_current_densities, &mesh), 45),
+    });
 }
 
 criterion_group!(benches, bench_thresholds);

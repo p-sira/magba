@@ -2,7 +2,7 @@
 
     impl_parallel!(
         circular_B,
-        rayon_threshold: 350,
+        rayon_threshold: 340,
         input: points,
         output: out,
         args: [position, orientation, diameter, current]
@@ -10,7 +10,7 @@
 
     impl_parallel!(
         path_current_B,
-        rayon_threshold: 200,
+        rayon_threshold: 220,
         input: points,
         output: out,
         args: [position, orientation, current, vertices]
@@ -18,7 +18,7 @@
 
     impl_parallel!(
         cuboid_B,
-        rayon_threshold: 150,
+        rayon_threshold: 80,
         input: points,
         output: out,
         args: [position, orientation, polarization, dimensions]
@@ -26,7 +26,7 @@
 
     impl_parallel!(
         cylinder_B,
-        rayon_threshold: 150,
+        rayon_threshold: 160,
         input: points,
         output: out,
         args: [position, orientation, polarization, diameter, height]
@@ -34,7 +34,7 @@
 
     impl_parallel!(
         dipole_B,
-        rayon_threshold: 7500,
+        rayon_threshold: 6250,
         input: points,
         output: out,
         args: [position, orientation, moment]
@@ -42,7 +42,7 @@
 
     impl_parallel!(
         sphere_B,
-        rayon_threshold: 10000,
+        rayon_threshold: 9060,
         input: points,
         output: out,
         args: [position, orientation, polarization, diameter]
@@ -50,7 +50,7 @@
 
     impl_parallel!(
         triangle_B,
-        rayon_threshold: 250,
+        rayon_threshold: 310,
         input: points,
         output: out,
         args: [position, orientation, polarization, vertices]
@@ -58,7 +58,7 @@
 
     impl_parallel!(
         tetrahedron_B_precomputed,
-        rayon_threshold: 100,
+        rayon_threshold: 70,
         input: points,
         output: out,
         args: [position, orientation, polarization, vertices, mat_inv]
@@ -66,7 +66,7 @@
 
     impl_parallel!(
         mesh_B,
-        rayon_threshold: 100,
+        rayon_threshold: 10,
         input: points,
         output: out,
         args: [position, orientation, polarization, mesh]
@@ -82,7 +82,7 @@
 
     impl_parallel!(
         sheet_current_B,
-        rayon_threshold: 50,
+        rayon_threshold: 25,
         input: points,
         output: out,
         args: [position, orientation, current_densities, mesh]

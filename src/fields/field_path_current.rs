@@ -205,7 +205,7 @@ pub fn path_current_B_batch<T: Float>(
     let current_term = current * T::mu0_4pi();
     let inv_orientation = orientation.inverse();
     impl_parallel!(
-        rayon_threshold: 200,
+        rayon_threshold: 220,
         input: points,
         output: out,
         |p| {

@@ -37,7 +37,7 @@ name = "bench"
 [[bench]]
 harness = false
 name = "threshold"
-required-features = ["unstable"]
+required-features = ["unstable", "io-stl"]
 
 [[example]]
 name = "generate_error_report"
