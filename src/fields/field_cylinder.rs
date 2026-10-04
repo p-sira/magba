@@ -5,7 +5,7 @@
 
 //! Analytical B-field computation for cylindrical magnets.
 
-use ellip::{bulirsch::cel, ellipe, ellipk};
+use ellip::{bulirsch::cel, ellipke};
 use nalgebra::{Point3, UnitQuaternion, Vector3, vector};
 use num_traits::Float as NumFloat;
 use numeric_literals::replace_float_literals;
@@ -16,6 +16,7 @@ use crate::{
         coordinate::{cart2cyl, compute_in_local, vec_cyl2cart},
     },
     crate_utils::{impl_parallel, impl_parallel_sum},
+    fields::bulirsch_cel_axial::cel_axial,
 };
 
 /// Computes B-field of a cylindrical magnet with unit axial (z-axis) polarization
@@ -51,13 +52,13 @@ pub fn unit_axial_cylinder_B_cyl<T: Float>(r: T, z: T, z0: T) -> Vector3<T> {
     let km = NumFloat::sqrt((zm2 + rm2) / (zm2 + rp2));
 
     let gamma = rm / rp;
-    let gamma2 = gamma * gamma;
 
-    let br =
-        (cel(kp, 1.0, 1.0, -1.0).unwrap() / sq1 - cel(km, 1.0, 1.0, -1.0).unwrap() / sq0) / T::pi();
-    let bz = (zp * cel(kp, gamma2, 1.0, gamma).unwrap() / sq1
-        - zm * cel(km, gamma2, 1.0, gamma).unwrap() / sq0)
-        / (rp * T::pi());
+    let (cr_p, cz_p) = cel_axial(kp, gamma);
+    let (cr_m, cz_m) = cel_axial(km, gamma);
+
+    let br = (cr_p / sq1 - cr_m / sq0) / T::pi();
+    let bz = (zp * cz_p / sq1 - zm * cz_m / sq0) / (rp * T::pi());
+
     // bphi = 0
     vector![br, 0.0, bz]
 }
@@ -137,8 +138,9 @@ pub fn unit_diametric_cylinder_B_cyl<T: Float>(r: T, phi: T, z: T, z0: T) -> Vec
     };
 
     // Computes elliptics
-    let (ellk_p, ellk_m) = (ellipk(argp).unwrap(), ellipk(argm).unwrap());
-    let (elle_p, elle_m) = (ellipe(argp).unwrap(), ellipe(argm).unwrap());
+    let (ellk_p, elle_p) = ellipke(argp).unwrap();
+    let (ellk_m, elle_m) = ellipke(argm).unwrap();
+
     let (ellpi_p, ellpi_m) = (
         cel(NumFloat::sqrt(1.0 - argp), 1.0 - argc, 1.0, 1.0).unwrap(),
         cel(NumFloat::sqrt(1.0 - argm), 1.0 - argc, 1.0, 1.0).unwrap(),
@@ -436,7 +438,7 @@ pub fn cylinder_B_batch<T: Float>(
     let inv_orientation = orientation.inverse();
     let radius = diameter / T::from(2.0).unwrap();
     impl_parallel!(
-        rayon_threshold: 150,
+        rayon_threshold: 160,
         input: points,
         output: out,
         |p| {
@@ -483,6 +485,7 @@ pub fn sum_multiple_cylinder_B<T: Float>(
     )
 }
 
+#[cfg(not(feature = "test_force_fail"))]
 #[cfg(test)]
 mod tests {
     use nalgebra::{point, vector};

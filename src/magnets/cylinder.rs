@@ -49,6 +49,7 @@ define_source! {
     }
 }
 
+#[cfg(not(feature = "test_force_fail"))]
 #[cfg(all(test, feature = "std"))]
 crate::testing_util::generate_tests! {
     CylinderMagnet

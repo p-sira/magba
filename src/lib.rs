@@ -58,6 +58,24 @@ need_std!(
     pub mod testing_util;
 );
 
+/// Macro to test fallback branches that are unreachable under normal convergence.
+/// Enabled only with `--features test_force_fail`.
+#[cfg(feature = "test_force_fail")]
+#[macro_export]
+macro_rules! test_force_unreachable {
+    ($($inner:tt)*) => {
+        mod tests {
+            #[allow(unused_imports)]
+            use super::*;
+
+            #[test]
+            fn force_unreachable() {
+                $($inner)*
+            }
+        }
+    };
+}
+
 /// Re-exports of commonly used Magba structs, traits, and methods.
 pub mod prelude {
     use super::*;

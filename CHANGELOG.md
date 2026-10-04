@@ -2,6 +2,17 @@
 
 ## 0.7
 
+### 0.7.2
+
+**Performance Improvements**
+
+- Use specialized math routines for cylinder field function ([#36](https://github.com/p-sira/magba/pull/36)).
+- Retune parallelization threshold.
+
+**API Improvements**
+
+- Loosen bound for `magba::Float` trait by removing `ellip::bulirsch::BulirschConst` bound constraint.
+
 ### 0.7.1
 
 **Performance Improvements**
