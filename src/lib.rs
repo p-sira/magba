@@ -42,6 +42,10 @@ extern crate alloc;
 pub(crate) mod crate_utils;
 use crate::crate_utils::need_std;
 
+#[cfg(feature = "threshold-calibration")]
+#[doc(hidden)]
+pub mod threshold_calibration;
+
 pub mod base;
 pub mod conversion;
 pub mod fields;

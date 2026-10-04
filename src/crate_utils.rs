@@ -120,7 +120,13 @@ macro_rules! impl_parallel {
 
         #[cfg(feature = "rayon")]
         {
-            if $inputs.len() > $threshold {
+            #[cfg(feature = "threshold-calibration")]
+            let use_parallel =
+                crate::threshold_calibration::should_parallel($inputs.len() > $threshold);
+            #[cfg(not(feature = "threshold-calibration"))]
+            let use_parallel = $inputs.len() > $threshold;
+
+            if use_parallel {
                 use rayon::prelude::*;
                 $out.par_iter_mut()
                     .zip($inputs.par_iter())
@@ -155,15 +161,32 @@ macro_rules! impl_parallel_sum {
         {
             use rayon::prelude::*;
 
-            $out.par_iter_mut()
-                .zip($points.par_iter())
-                .for_each(|(o, p_ref)| {
-                    let $p = p_ref;
-                    *o = itertools::izip!($($vecs),+)
-                        .fold(nalgebra::Vector3::zeros(), |acc, ($($args),*)| {
-                            acc + $calc
-                        });
-                });
+            #[cfg(feature = "threshold-calibration")]
+            let use_parallel = crate::threshold_calibration::should_parallel(true);
+            #[cfg(not(feature = "threshold-calibration"))]
+            let use_parallel = true;
+
+            if use_parallel {
+                $out.par_iter_mut()
+                    .zip($points.par_iter())
+                    .for_each(|(o, p_ref)| {
+                        let $p = p_ref;
+                        *o = itertools::izip!($($vecs),+)
+                            .fold(nalgebra::Vector3::zeros(), |acc, ($($args),*)| {
+                                acc + $calc
+                            });
+                    });
+            } else {
+                $out.iter_mut()
+                    .zip($points.iter())
+                    .for_each(|(o, p_ref)| {
+                        let $p = p_ref;
+                        *o = itertools::izip!($($vecs),+)
+                            .fold(nalgebra::Vector3::zeros(), |acc, ($($args),*)| {
+                                acc + $calc
+                            });
+                    });
+            }
         }
 
         #[cfg(not(feature = "rayon"))]

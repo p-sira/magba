@@ -18,19 +18,35 @@ macro_rules! impl_group_compute_B {
             {
                 use rayon::prelude::*;
 
-                // Parallel iterate over nodes directly to avoid collecting into a Vec
-                self.nodes
-                    .par_iter()
-                    .map(|node| node.component().compute_B_batch(points))
-                    .reduce(
-                        || vec![Vector3::zeros(); points.len()],
-                        |mut acc, child_batch| {
+                #[cfg(feature = "threshold-calibration")]
+                let use_parallel = crate::threshold_calibration::should_parallel(true);
+                #[cfg(not(feature = "threshold-calibration"))]
+                let use_parallel = true;
+
+                if use_parallel {
+                    // Parallel iterate over nodes directly to avoid collecting into a Vec
+                    self.nodes
+                        .par_iter()
+                        .map(|node| node.component().compute_B_batch(points))
+                        .reduce(
+                            || vec![Vector3::zeros(); points.len()],
+                            |mut acc, child_batch| {
+                                acc.iter_mut()
+                                    .zip(child_batch)
+                                    .for_each(|(sum, b)| *sum += b);
+                                acc
+                            },
+                        )
+                } else {
+                    self.components()
+                        .fold(vec![Vector3::zeros(); points.len()], |mut acc, source| {
+                            let child_batch = source.compute_B_batch(points);
                             acc.iter_mut()
                                 .zip(child_batch)
                                 .for_each(|(sum, b)| *sum += b);
                             acc
-                        },
-                    )
+                        })
+                }
             }
 
             #[cfg(not(feature = "rayon"))]
