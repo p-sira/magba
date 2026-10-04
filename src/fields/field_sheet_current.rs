@@ -77,7 +77,7 @@ pub fn sheet_current_B_batch<T: Float>(
 
     let inv_orientation = orientation.inverse();
     impl_parallel!(
-        rayon_threshold: 25,
+        rayon_threshold: 47,
         input: points,
         output: out,
         |p| {

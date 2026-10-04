@@ -301,7 +301,7 @@ pub fn cuboid_B_batch<T: RealField + Copy>(
 ) {
     let inv_orientation = orientation.inverse();
     impl_parallel!(
-        rayon_threshold: 80,
+        rayon_threshold: 159,
         input: points,
         output: out,
         |p| {

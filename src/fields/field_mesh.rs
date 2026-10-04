@@ -104,11 +104,9 @@ pub fn mesh_B_batch<T: Float>(
 ) {
     let inv_orientation = orientation.inverse();
     let triangles = mesh.triangles();
-    // Parallelization threshold depends wildly by mesh complexity,
-    // With a reasonable mesh size like Suzanne (~700 tris),
-    // a threshold of 10 is optimal.
+    // Conservative across the calibrated 16- and 128-triangle fixtures.
     impl_parallel!(
-        rayon_threshold: 10,
+        rayon_threshold: 15,
         input: points,
         output: out,
         |p| {

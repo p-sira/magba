@@ -232,7 +232,7 @@ pub fn triangle_current_B_batch<T: Float>(
     };
     let inv_orientation = orientation.inverse();
     impl_parallel!(
-        rayon_threshold: 150,
+        rayon_threshold: 255,
         input: points,
         output: out,
         |p| {

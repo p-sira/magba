@@ -234,7 +234,7 @@ pub fn triangle_B_batch<T: Float>(
 ) {
     let inv_orientation = orientation.inverse();
     impl_parallel!(
-        rayon_threshold: 310,
+        rayon_threshold: 818,
         input: points,
         output: out,
         |p| {

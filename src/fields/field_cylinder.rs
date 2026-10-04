@@ -438,7 +438,7 @@ pub fn cylinder_B_batch<T: Float>(
     let inv_orientation = orientation.inverse();
     let radius = diameter / T::from(2.0).unwrap();
     impl_parallel!(
-        rayon_threshold: 160,
+        rayon_threshold: 767,
         input: points,
         output: out,
         |p| {

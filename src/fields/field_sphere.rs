@@ -113,7 +113,7 @@ pub fn sphere_B_batch<T: Float>(
 ) {
     let pol_global = orientation * polarization;
     impl_parallel!(
-        rayon_threshold: 9060,
+        rayon_threshold: 24575,
         input: points,
         output: out,
         |p| {
