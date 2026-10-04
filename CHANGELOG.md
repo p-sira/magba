@@ -7,6 +7,7 @@
 **Performance Improvements**
 
 - Use specialized math routines for cylinder field function ([#36](https://github.com/p-sira/magba/pull/36)).
+- Retune parallelization threshold.
 
 **API Improvements**
 
