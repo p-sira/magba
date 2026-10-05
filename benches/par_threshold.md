@@ -9,5 +9,5 @@
 | triangle_B                | 310       | 39.003 µs     | 37.283 µs   | 1.046 | Converged      |
 | tetrahedron_B_precomputed | 70        | 33.138 µs     | 32.003 µs   | 1.035 | Converged      |
 | triangle_current_B        | 150       | 33.002 µs     | 31.607 µs   | 1.044 | Converged      |
-| mesh_B                    | 10        | 460.566 µs    | 385.624 µs  | 1.194 | Min step size  |
-| sheet_current_B           | 25        | 16.550 µs     | 14.271 µs   | 1.160 | Min step size  |
+| mesh_B                    | 10        | 415.642 µs    | 389.768 µs  | 1.066 | Min step size  |
+| sheet_current_B           | 25        | 19.371 µs     | 18.954 µs   | 1.022 | Converged      |

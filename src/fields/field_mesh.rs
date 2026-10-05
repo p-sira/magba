@@ -7,6 +7,8 @@
 
 use nalgebra::{Point3, UnitQuaternion, Vector3};
 
+#[cfg(feature = "rayon")]
+use crate::crate_utils::adaptive_rayon_threshold;
 use crate::{
     base::{
         Float,
@@ -104,11 +106,11 @@ pub fn mesh_B_batch<T: Float>(
 ) {
     let inv_orientation = orientation.inverse();
     let triangles = mesh.triangles();
-    // Parallelization threshold depends wildly by mesh complexity,
-    // With a reasonable mesh size like Suzanne (~700 tris),
-    // a threshold of 10 is optimal.
+    // Tuned with a 698-triangle mesh at a 10-observer crossover.
+    #[cfg(feature = "rayon")]
+    const PARALLEL_WORK_THRESHOLD: usize = 6_980;
     impl_parallel!(
-        rayon_threshold: 10,
+        rayon_threshold: adaptive_rayon_threshold(PARALLEL_WORK_THRESHOLD, triangles.len()),
         input: points,
         output: out,
         |p| {
