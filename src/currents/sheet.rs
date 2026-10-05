@@ -17,6 +17,7 @@ define_source! {
     /// A meshed current sheet.
     SheetCurrent
     field_fn: sheet_current_B
+    relative_complexity: |source| source.mesh.triangles().len().saturating_mul(6);
     args: {
         current_densities: @ref Vec<Vector3<T>> = Vec::new(),
         mesh: @ref TriMesh<T> = TriMesh::new_unchecked(Vec::new(), Vec::new()),

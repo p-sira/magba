@@ -13,6 +13,7 @@ define_source! {
     /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
     CircularCurrent
     field_fn: circular_B
+    relative_complexity: |_source| 3;
     args: {
         diameter: @val T = T::one();
             validate diameter > T::zero();

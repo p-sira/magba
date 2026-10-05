@@ -39,6 +39,11 @@ harness = false
 name = "threshold"
 required-features = ["unstable", "io-stl"]
 
+[[bench]]
+harness = false
+name = "collection_threshold"
+required-features = ["threshold-calibration", "mesh"]
+
 [[example]]
 name = "generate_error_report"
 required-features = ["test-utils", "io-stl"]
@@ -93,6 +98,7 @@ mesh = ["alloc"]
 io-stl = ["mesh", "std", "openmesh/stl"]
 test-utils = ["std", "dep:csv", "dep:regex"]
 unstable = []
+threshold-calibration = ["rayon"]
 # For code coverage testing only
 test_force_fail = []
 

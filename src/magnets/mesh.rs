@@ -16,6 +16,7 @@ define_source! {
     /// Triangular mesh with homogeneous magnetic surface charge.
     MeshMagnet
     field_fn: mesh_B
+    relative_complexity: |source| source.mesh.triangles().len().saturating_mul(4);
     args: {
         polarization: Vector3<T> = Vector3::z(),
         mesh: @ref TriMesh<T> = TriMesh::new_unchecked(Vec::new(), Vec::new()),
