@@ -6,7 +6,7 @@
 
 **Performance Improvements**
 
-- Scale the Rayon parallelization thresholds for mesh and sheet-current batch field computations by the number of triangles evaluated per observer.
+- Scale the Rayon parallelization thresholds for path-current, mesh, and sheet-current batch field computations by the number of segments or triangles evaluated per observer.
 
 ### 0.7.2
 

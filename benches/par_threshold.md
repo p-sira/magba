@@ -1,7 +1,7 @@
 | Function                  | Threshold | Parallel Time | Serial Time | Ratio | Exit Condition |
 |---------------------------|-----------|---------------|-------------|-------|----------------|
 | circular_B                | 340       | 34.261 µs     | 32.453 µs   | 1.056 | Min step size  |
-| path_current_B            | 220       | 31.797 µs     | 30.846 µs   | 1.031 | Converged      |
+| path_current_B            | 185       | 24.898 µs     | 25.112 µs   | 0.992 | Converged      |
 | cuboid_B                  | 80        | 37.793 µs     | 36.917 µs   | 1.024 | Converged      |
 | cylinder_B                | 160       | 36.275 µs     | 37.372 µs   | 0.971 | Converged      |
 | dipole_B                  | 6250      | 39.727 µs     | 41.706 µs   | 0.953 | Converged      |

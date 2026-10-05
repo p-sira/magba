@@ -110,7 +110,7 @@ pub(crate) use assert_eq_lens;
 /// A zero per-input cost keeps execution serial, which avoids dividing by zero
 /// and prevents Rayon overhead when there is no work to distribute.
 #[inline]
-#[cfg(any(all(feature = "rayon", feature = "mesh"), test))]
+#[cfg(any(feature = "rayon", test))]
 pub(crate) const fn adaptive_rayon_threshold(
     work_threshold: usize,
     work_per_input: usize,
