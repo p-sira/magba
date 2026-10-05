@@ -105,6 +105,22 @@ macro_rules! assert_eq_lens {
 }
 pub(crate) use assert_eq_lens;
 
+/// Converts a total work threshold into an input-count threshold.
+///
+/// A zero per-input cost keeps execution serial, which avoids dividing by zero
+/// and prevents Rayon overhead when there is no work to distribute.
+#[inline]
+#[cfg(any(feature = "rayon", test))]
+pub(crate) const fn adaptive_rayon_threshold(
+    work_threshold: usize,
+    work_per_input: usize,
+) -> usize {
+    match work_threshold.checked_div(work_per_input) {
+        Some(threshold) => threshold,
+        None => usize::MAX,
+    }
+}
+
 macro_rules! impl_parallel {
     (
         rayon_threshold: $threshold:expr,
@@ -427,7 +443,20 @@ pub(crate) use define_source;
 
 #[cfg(test)]
 mod tests {
+    use super::adaptive_rayon_threshold;
     use nalgebra::Vector3;
+
+    #[test]
+    fn adaptive_threshold_scales_with_work_per_input() {
+        assert_eq!(adaptive_rayon_threshold(100, 4), 25);
+        assert_eq!(adaptive_rayon_threshold(100, 10), 10);
+        assert_eq!(adaptive_rayon_threshold(100, 200), 0);
+    }
+
+    #[test]
+    fn adaptive_threshold_keeps_empty_work_serial() {
+        assert_eq!(adaptive_rayon_threshold(100, 0), usize::MAX);
+    }
 
     #[test]
     fn test_formatters_and_getters() {
