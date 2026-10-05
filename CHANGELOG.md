@@ -2,6 +2,21 @@
 
 ## 0.7
 
+### 0.7.3
+
+**Performance Improvements**
+
+- Scale the Rayon parallelization thresholds for path-current, mesh, and sheet-current batch field computations by the number of segments or triangles evaluated per observer.
+- Select serial or parallel source-collection evaluation from observer count, recursive source complexity, and direct child count, avoiding Rayon overhead for small collections.
+
+**API Improvements**
+
+- Add `Source::relative_complexity()` as an overridable scheduling hint, including geometry-aware and recursively aggregated estimates for built-in sources.
+
+**Testing**
+
+- Add calibration-only execution controls and separate primitive/collection branch instrumentation for repeatable Rayon crossover benchmarks.
+
 ### 0.7.2
 
 **Performance Improvements**

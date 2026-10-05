@@ -204,6 +204,21 @@ impl<S: Source<T>, const N: usize, T: Float> Display for SourceArray<S, N, T> {
     }
 }
 
+#[cfg(test)]
+mod complexity_tests {
+    use super::*;
+    use crate::magnets::Dipole;
+
+    #[test]
+    fn complexity_sums_children_and_allows_empty_arrays() {
+        let empty = SourceArray::<Dipole<f64>, 0>::from([]);
+        assert_eq!(empty.relative_complexity(), 0);
+
+        let array = SourceArray::from([Dipole::<f64>::default(), Dipole::default()]);
+        assert_eq!(array.relative_complexity(), 2);
+    }
+}
+
 // MARK: Test Display
 
 #[cfg(test)]

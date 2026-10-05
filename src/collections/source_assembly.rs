@@ -261,6 +261,81 @@ impl<T: Float> PartialEq for SourceAssembly<T> {
     }
 }
 
+#[cfg(test)]
+mod complexity_tests {
+    use super::*;
+    use approx::assert_relative_eq;
+    use crate::base::{Pose, Source, Transform};
+    use crate::magnets::Dipole;
+
+    #[derive(Clone, Debug)]
+    struct MaxComplexity(Pose<f64>);
+
+    impl Transform<f64> for MaxComplexity {
+        fn pose(&self) -> &Pose<f64> {
+            &self.0
+        }
+
+        fn pose_mut(&mut self) -> &mut Pose<f64> {
+            &mut self.0
+        }
+    }
+
+    impl Source<f64> for MaxComplexity {
+        fn relative_complexity(&self) -> usize {
+            usize::MAX
+        }
+
+        fn compute_B(&self, _: Point3<f64>) -> Vector3<f64> {
+            Vector3::zeros()
+        }
+
+        fn compute_B_batch(&self, points: &[Point3<f64>]) -> Vec<Vector3<f64>> {
+            vec![Vector3::zeros(); points.len()]
+        }
+    }
+
+    #[test]
+    fn complexity_is_recursive_and_empty_assembly_is_zero() {
+        assert_eq!(SourceAssembly::<f64>::default().relative_complexity(), 0);
+
+        let inner = SourceAssembly::from([Dipole::<f64>::default(), Dipole::default()]);
+        let outer = SourceAssembly::from([SourceComponent::from(inner)]);
+        assert_eq!(outer.relative_complexity(), 2);
+    }
+
+    #[test]
+    fn complexity_sum_saturates() {
+        let sources = SourceAssembly::from(vec![
+            SourceComponent::Custom(Box::new(MaxComplexity(Pose::default()))),
+            SourceComponent::from(Dipole::<f64>::default()),
+        ]);
+        assert_eq!(sources.relative_complexity(), usize::MAX);
+    }
+
+    #[test]
+    fn large_nested_batch_matches_pointwise_accumulation() {
+        let child = SourceAssembly::from([
+            Dipole::<f64>::default(),
+            Dipole::default(),
+            Dipole::default(),
+            Dipole::default(),
+        ]);
+        let sources = SourceAssembly::from([
+            SourceComponent::from(child.clone()),
+            SourceComponent::from(child),
+        ]);
+        let points = (0..5_001)
+            .map(|i| Point3::new(0.1 + i as f64 * 1e-5, 0.2, 0.3))
+            .collect::<Vec<_>>();
+
+        let batch = sources.compute_B_batch(&points);
+        for (actual, point) in batch.iter().zip(points) {
+            assert_relative_eq!(*actual, sources.compute_B(point), epsilon = 1e-12);
+        }
+    }
+}
+
 // MARK: Test Display
 
 #[cfg(test)]

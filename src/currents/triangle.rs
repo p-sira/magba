@@ -11,6 +11,7 @@ define_source! {
     /// A single triangular current sheet with homogeneous surface current density.
     TriangleCurrent
     field_fn: triangle_current_B
+    relative_complexity: |_source| 6;
     args: {
         current_density: Vector3<T> = Vector3::zeros(),
         vertices: @val [Vector3<T>; 3] = [Vector3::x(), Vector3::y(), Vector3::zeros()],

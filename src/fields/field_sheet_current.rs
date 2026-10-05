@@ -7,6 +7,8 @@
 
 use nalgebra::{Point3, UnitQuaternion, Vector3};
 
+#[cfg(feature = "rayon")]
+use crate::crate_utils::adaptive_rayon_threshold;
 use crate::{
     base::{Float, coordinate::compute_in_local, mesh::TriMesh},
     crate_utils::{impl_parallel, impl_parallel_sum},
@@ -76,8 +78,11 @@ pub fn sheet_current_B_batch<T: Float>(
         .collect();
 
     let inv_orientation = orientation.inverse();
+    // Tuned with four active triangles at a 25-observer crossover.
+    #[cfg(feature = "rayon")]
+    const PARALLEL_WORK_THRESHOLD: usize = 100;
     impl_parallel!(
-        rayon_threshold: 47,
+        rayon_threshold: adaptive_rayon_threshold(PARALLEL_WORK_THRESHOLD, precomputed.len()),
         input: points,
         output: out,
         |p| {

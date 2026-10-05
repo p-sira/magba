@@ -20,6 +20,7 @@ define_source! {
     /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
     TriangleMagnet
     field_fn: triangle_B
+    relative_complexity: |_source| 4;
     args: {
         polarization: Vector3<T> = Vector3::z(),
         vertices: @val [Vector3<T>; 3] = [Vector3::x(), Vector3::y(), Vector3::zeros()],

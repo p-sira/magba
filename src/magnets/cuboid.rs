@@ -15,6 +15,7 @@ define_source! {
     /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
     CuboidMagnet
     field_fn: cuboid_B
+    relative_complexity: |_source| 7;
     args: {
         polarization:Vector3<T> = Vector3::z(),
         dimensions:Vector3<T> = Vector3::from_element(T::one());
