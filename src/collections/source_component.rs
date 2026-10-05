@@ -147,4 +147,43 @@ mod tests {
         let arr_comp: SourceComponent = SourceArray::from([Dipole::<f64>::default()]).into();
         assert_eq!(arr_comp, arr_comp.clone());
     }
+
+    #[test]
+    fn relative_complexity_dispatches_through_enums() {
+        let path = PathCurrent::default().with_vertices(vec![
+            Vector3::zeros(),
+            Vector3::x(),
+            Vector3::y(),
+            Vector3::z(),
+        ]);
+        let current: Current = path.into();
+        assert_eq!(current.relative_complexity(), 6);
+
+        let component: SourceComponent = current.into();
+        assert_eq!(component.relative_complexity(), 6);
+
+        let magnet: Magnet = Dipole::<f64>::default().into();
+        assert_eq!(magnet.relative_complexity(), 1);
+    }
+
+    #[cfg(feature = "mesh")]
+    #[test]
+    fn mesh_complexity_tracks_current_topology() {
+        use crate::base::mesh::TriMesh;
+
+        let vertices: Vec<Vector3<f64>> = vec![
+            Vector3::zeros(),
+            Vector3::x(),
+            Vector3::y(),
+            Vector3::z(),
+        ];
+        let faces = vec![[0, 2, 1], [0, 1, 3], [1, 2, 3], [0, 3, 2]];
+        let mesh = TriMesh::new_unchecked(vertices, faces);
+
+        let magnet = MeshMagnet::default().with_mesh(mesh.clone());
+        assert_eq!(magnet.relative_complexity(), 16);
+
+        let sheet = SheetCurrent::default().with_mesh(mesh);
+        assert_eq!(sheet.relative_complexity(), 24);
+    }
 }
