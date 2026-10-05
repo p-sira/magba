@@ -108,5 +108,14 @@ fn bench_rayon_collections(c: &mut Criterion) {
     }
 }
 
-criterion_group!(benches, bench_rayon_collections);
+fn bench_rayon_sphere_direct(c: &mut Criterion) {
+    let pool = rayon::ThreadPoolBuilder::new().num_threads(THREADS).build().unwrap();
+    let sphere = SphereMagnet::<f64>::default();
+    let observers = points(30_000);
+    c.bench_function("rayon-sphere-direct/points=30000", |b| {
+        pool.install(|| b.iter(|| black_box(sphere.compute_B_batch(&observers))))
+    });
+}
+
+criterion_group!(benches, bench_rayon_collections, bench_rayon_sphere_direct);
 criterion_main!(benches);
