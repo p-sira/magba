@@ -17,7 +17,7 @@ jobs:
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
       - name: Generate code coverage
-        run: cargo llvm-cov -p magba --lcov --output-path lcov.info --ignore-filename-regex 'benches/.*|examples/.*|src/testing_util\.rs'
+        run: cargo llvm-cov -p magba --lcov --output-path lcov.info --ignore-filename-regex 'benches/.*|examples/.*|src/testing_util\.rs|src/threshold_calibration\.rs'
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v7
         with:
@@ -39,7 +39,7 @@ jobs:
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
       - name: Generate code coverage
-        run: cargo llvm-cov -p magba --lcov --output-path lcov.info --tests --features test_force_fail --ignore-filename-regex 'benches/.*|examples/.*|src/testing_util\.rs'
+        run: cargo llvm-cov -p magba --lcov --output-path lcov.info --tests --features test_force_fail --ignore-filename-regex 'benches/.*|examples/.*|src/testing_util\.rs|src/threshold_calibration\.rs'
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v7
         with:
