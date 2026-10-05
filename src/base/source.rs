@@ -16,6 +16,14 @@ use crate::{
 #[enum_dispatch]
 /// Physical representation of magnetic sources.
 pub trait Source<T: RealField>: Transform<T> + Send + Sync + DynClone {
+    /// Returns an estimate of this source's per-observer field-computation work.
+    ///
+    /// This is a scheduling hint, not a stable measure of operation count or
+    /// physical complexity. Implementations should use saturating arithmetic.
+    fn relative_complexity(&self) -> usize {
+        1
+    }
+
     /// Computes the magnetic field (B) at the given point.
     ///
     /// # Arguments
@@ -90,6 +98,7 @@ need_std!(
                 fn compute_B(&self, point: Point3<T>) -> Vector3<T>;
                 #[cfg(feature = "alloc")]
                 fn compute_B_batch(&self, points: &[Point3<T>]) -> Vec<Vector3<T>>;
+                fn relative_complexity(&self) -> usize;
             }
         );
     }
@@ -123,14 +132,43 @@ mod tests {
         }
     }
 
+    #[derive(Clone)]
+    struct ComplexSource(crate::base::Pose<f64>);
+
+    impl crate::base::Transform<f64> for ComplexSource {
+        fn pose(&self) -> &crate::base::Pose<f64> {
+            &self.0
+        }
+
+        fn pose_mut(&mut self) -> &mut crate::base::Pose<f64> {
+            &mut self.0
+        }
+    }
+
+    impl Source<f64> for ComplexSource {
+        fn relative_complexity(&self) -> usize {
+            usize::MAX
+        }
+
+        fn compute_B(&self, _: Point3<f64>) -> Vector3<f64> {
+            Vector3::zeros()
+        }
+
+        fn compute_B_batch(&self, points: &[Point3<f64>]) -> Vec<Vector3<f64>> {
+            vec![Vector3::zeros(); points.len()]
+        }
+    }
+
     #[test]
     fn test_source_trait_defaults_and_box() {
         let dummy = DummySource(crate::base::Pose::default());
         let dyn_src: &dyn Source<f64> = &dummy;
+        assert_eq!(dyn_src.relative_complexity(), 1);
         let s = format!("{}", dyn_src);
         assert!(s.contains("Source at"));
 
         let mut dummy_box: Box<dyn Source<f64>> = Box::new(dummy.clone());
+        assert_eq!(dummy_box.relative_complexity(), 1);
         let _ = dummy_box.pose_mut();
         let _ = dummy_box.compute_B(Point3::origin());
         let _ = dummy_box.compute_B_batch(&[Point3::origin()]);
@@ -145,5 +183,9 @@ mod tests {
         let _ = cloned.pose_mut();
         let _ = cloned.compute_B(Point3::origin());
         let _ = cloned.compute_B_batch(&[Point3::origin()]);
+
+        let complex_box: Box<dyn Source<f64>> =
+            Box::new(ComplexSource(crate::base::Pose::default()));
+        assert_eq!(complex_box.relative_complexity(), usize::MAX);
     }
 }

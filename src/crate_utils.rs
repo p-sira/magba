@@ -105,6 +105,22 @@ macro_rules! assert_eq_lens {
 }
 pub(crate) use assert_eq_lens;
 
+/// Converts a total work threshold into an input-count threshold.
+///
+/// A zero per-input cost keeps execution serial, which avoids dividing by zero
+/// and prevents Rayon overhead when there is no work to distribute.
+#[inline]
+#[cfg(any(feature = "rayon", test))]
+pub(crate) const fn adaptive_rayon_threshold(
+    work_threshold: usize,
+    work_per_input: usize,
+) -> usize {
+    match work_threshold.checked_div(work_per_input) {
+        Some(threshold) => threshold,
+        None => usize::MAX,
+    }
+}
+
 macro_rules! impl_parallel {
     (
         rayon_threshold: $threshold:expr,
@@ -120,7 +136,13 @@ macro_rules! impl_parallel {
 
         #[cfg(feature = "rayon")]
         {
-            if $inputs.len() > $threshold {
+            #[cfg(feature = "threshold-calibration")]
+            let use_parallel =
+                crate::threshold_calibration::should_parallel($inputs.len() > $threshold);
+            #[cfg(not(feature = "threshold-calibration"))]
+            let use_parallel = $inputs.len() > $threshold;
+
+            if use_parallel {
                 use rayon::prelude::*;
                 $out.par_iter_mut()
                     .zip($inputs.par_iter())
@@ -155,15 +177,32 @@ macro_rules! impl_parallel_sum {
         {
             use rayon::prelude::*;
 
-            $out.par_iter_mut()
-                .zip($points.par_iter())
-                .for_each(|(o, p_ref)| {
-                    let $p = p_ref;
-                    *o = itertools::izip!($($vecs),+)
-                        .fold(nalgebra::Vector3::zeros(), |acc, ($($args),*)| {
-                            acc + $calc
+            #[cfg(feature = "threshold-calibration")]
+            let use_parallel = crate::threshold_calibration::should_parallel(true);
+            #[cfg(not(feature = "threshold-calibration"))]
+            let use_parallel = true;
+
+            if use_parallel {
+                $out.par_iter_mut()
+                    .zip($points.par_iter())
+                    .for_each(|(o, p_ref)| {
+                        let $p = p_ref;
+                        *o = itertools::izip!($($vecs),+)
+                            .fold(nalgebra::Vector3::zeros(), |acc, ($($args),*)| {
+                                acc + $calc
+                            });
+                    });
+            } else {
+                $out.iter_mut()
+                    .zip($points.iter())
+                    .for_each(|(o, p_ref)| {
+                        let $p = p_ref;
+                        *o = itertools::izip!($($vecs),+)
+                            .fold(nalgebra::Vector3::zeros(), |acc, ($($args),*)| {
+                                acc + $calc
+                            });
                         });
-                });
+            }
         }
 
         #[cfg(not(feature = "rayon"))]
@@ -287,6 +326,7 @@ macro_rules! define_source {
         $(#[$meta:meta])*
         $name:ident
         field_fn: $field_fn:ident
+        $(relative_complexity: |$complexity_source:ident| $complexity:expr;)?
         args: {
             $(
                 $arg:ident : $(@$is_value:ident)? $arg_type:ty = $arg_default:expr
@@ -367,6 +407,13 @@ macro_rules! define_source {
 
         // MARK: Field
         impl<T: crate::base::Float> crate::base::Source<T> for $name<T> {
+            $(
+                fn relative_complexity(&self) -> usize {
+                    let $complexity_source = self;
+                    ($complexity).max(1)
+                }
+            )?
+
             fn compute_B(&self, point: nalgebra::Point3<T>) -> nalgebra::Vector3<T> {
                 crate::fields::$field_fn(
                     point,
@@ -427,7 +474,20 @@ pub(crate) use define_source;
 
 #[cfg(test)]
 mod tests {
+    use super::adaptive_rayon_threshold;
     use nalgebra::Vector3;
+
+    #[test]
+    fn adaptive_threshold_scales_with_work_per_input() {
+        assert_eq!(adaptive_rayon_threshold(100, 4), 25);
+        assert_eq!(adaptive_rayon_threshold(100, 10), 10);
+        assert_eq!(adaptive_rayon_threshold(100, 200), 0);
+    }
+
+    #[test]
+    fn adaptive_threshold_keeps_empty_work_serial() {
+        assert_eq!(adaptive_rayon_threshold(100, 0), usize::MAX);
+    }
 
     #[test]
     fn test_formatters_and_getters() {

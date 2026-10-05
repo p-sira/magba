@@ -11,6 +11,7 @@ define_source! {
     /// Tetrahedron with homogeneous magnetic surface charge.
     TetrahedronMagnet
     field_fn: tetrahedron_B
+    relative_complexity: |_source| 11;
     args: {
         polarization: Vector3<T> = Vector3::z(),
         vertices: @val [Vector3<T>; 4] = [Vector3::zeros(), Vector3::x(), Vector3::y(), Vector3::z()],

@@ -46,6 +46,7 @@ See the user guide at [docs.rs/magba](https://docs.rs/magba).
 - Using sensors to measure magnetic fields.
 - Grouping magnets and sensors into collections.
 - Parallelization using [Rayon](https://docs.rs/crate/rayon/latest) (enabled by default).
+- Adaptive parallel scheduling for source collections, based on their relative computational complexity.
 - Support calculation with `f32` and `f64`.
 
 ## Installation
