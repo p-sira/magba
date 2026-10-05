@@ -44,6 +44,11 @@ harness = false
 name = "collection_threshold"
 required-features = ["threshold-calibration", "mesh"]
 
+[[bench]]
+harness = false
+name = "rayon_collections"
+required-features = ["rayon", "mesh"]
+
 [[example]]
 name = "generate_error_report"
 required-features = ["test-utils", "io-stl"]
