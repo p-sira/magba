@@ -18,6 +18,17 @@ automatic so the measurement isolates the additional collection iterator.
 Benchmark IDs record source shape, observer count, and complexity score;
 Criterion retains the raw samples under `target/criterion`.
 
+To regenerate ready-to-copy `relative_complexity` clauses from the 5,000
+observer serial medians, run:
+
+```sh
+cargo bench --bench collection_threshold --features threshold-calibration,mesh
+cargo run --example generate_relative_complexity_code
+```
+
+The generated clauses are printed and saved to
+`benches/relative_complexity.txt`.
+
 The matrix includes every built-in source category, two path sizes, two
 mesh/sheet sizes, empty/singleton/two/many direct children, mixed sources, and
 flat/nested compositions. Inputs use non-zero field strengths and varied

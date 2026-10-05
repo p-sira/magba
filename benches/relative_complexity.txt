@@ -1,0 +1,27 @@
+// Generated from Criterion serial medians at 5,000 observers.
+
+// Fixed-cost sources
+// SphereMagnet (60554.4 ns; Sphere)
+relative_complexity: |_source| 1;
+// Dipole (82605.6 ns; Dipole)
+relative_complexity: |_source| 1;
+// CircularCurrent (232540.1 ns; Circular current)
+relative_complexity: |_source| 3;
+// CylinderMagnet (260818.8 ns; Cylinder)
+relative_complexity: |_source| 3;
+// TriangleMagnet (319758.8 ns; Triangle magnet)
+relative_complexity: |_source| 4;
+// TriangleCurrent (538747.4 ns; Triangle current)
+relative_complexity: |_source| 7;
+// CuboidMagnet (560422.4 ns; Cuboid)
+relative_complexity: |_source| 7;
+// TetrahedronMagnet (941485.7 ns; Tetrahedron)
+relative_complexity: |_source| 11;
+
+// Geometry-scaled sources
+// PathCurrent
+relative_complexity: |source| source.vertices.len().saturating_sub(1).saturating_mul(2);
+// MeshMagnet
+relative_complexity: |source| source.mesh.triangles().len().saturating_mul(4);
+// SheetCurrent
+relative_complexity: |source| source.mesh.triangles().len().saturating_mul(7);

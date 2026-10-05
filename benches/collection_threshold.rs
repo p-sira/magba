@@ -20,6 +20,7 @@ use magba::{
 use nalgebra::{Point3, point, vector};
 
 const CALIBRATION_THRESHOLD: usize = 40_000;
+const COMPLEXITY_CALIBRATION_OBSERVERS: usize = 5_000;
 
 fn points(count: usize) -> Vec<Point3<f64>> {
     (0..count)
@@ -164,7 +165,7 @@ fn bench_collection_threshold(c: &mut Criterion) {
         let observer_counts = if complexity == 0 {
             BTreeSet::from([0, 1, 100])
         } else {
-            [
+            let mut counts = [
                 CALIBRATION_THRESHOLD.saturating_sub(1),
                 CALIBRATION_THRESHOLD,
                 CALIBRATION_THRESHOLD + 1,
@@ -172,7 +173,9 @@ fn bench_collection_threshold(c: &mut Criterion) {
             ]
             .map(|work| work.div_ceil(complexity).max(1))
             .into_iter()
-            .collect()
+            .collect::<BTreeSet<_>>();
+            counts.insert(COMPLEXITY_CALIBRATION_OBSERVERS);
+            counts
         };
 
         let mut group = c.benchmark_group(format!("collection/{name}"));
