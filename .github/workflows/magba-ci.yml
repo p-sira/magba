@@ -32,7 +32,7 @@ jobs:
           restore-keys: |
             cargo-${{ runner.os }}-
       - name: Clippy
-        run: cargo clippy -- -D warnings
+        run: cargo clippy --features graphics -- -D warnings
 
   test:
     strategy:
@@ -103,7 +103,7 @@ jobs:
         run:
           RUSTFLAGS="-D warnings" cargo hack check --target thumbv7m-none-eabi
           --feature-powerset --exclude-features
-          default,std,rayon,mesh,io-stl,test-utils,test_force_fail,threshold-calibration
+          default,std,rayon,mesh,io-stl,graphics,test-utils,test_force_fail,threshold-calibration
           --features libm
 
   doc:

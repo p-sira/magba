@@ -56,7 +56,7 @@ To install Magba using `cargo`, run:
 cargo add magba
 ```
 
-By default, Magba installs with all stable features enabled, including parallelization with Rayon.
+By default, Magba enables `std`, `rayon`, and `mesh`. Graphics and file I/O are opt-in.
 
 ### Feature Flags
 
@@ -69,6 +69,7 @@ The available feature flags are:
 - `rayon`: Parallelization using [Rayon](https://github.com/rayon-rs/rayon).
 - `mesh`: Enable mesh features, such as `MeshMagnet` and `SheetCurrent`.
 - `io-stl`: Enable STL mesh loading features.
+- `graphics`: Enable interactive 3D visualization with Plotly (requires `std`).
 - `libm`: Use libm as the math backend. Must be enabled when compiling for `no_std`.
 - `unstable`: Enable unstable features. These features may change any time.
 
@@ -118,6 +119,83 @@ let b_fields = source_assembly.compute_B_batch(&points);
 //     [ -1.9136669915278972e-5,  -0.30697154302354923,  0.33360985034592394 ],
 // ]
 ```
+
+## Interactive 3D Graphics
+
+Enable visualization with `cargo add magba --features graphics`:
+
+```rust,no_run
+use magba::prelude::*;
+
+let magnet = CylinderMagnet::<f64>::default();
+let mut plot = magnet.plot();
+CuboidMagnet::<f64>::default()
+    .with_position([2.0, 0.0, 0.0])
+    .add_to_plot(&mut plot);
+std::fs::write("scene.html", plot.to_html()).expect("Cannot write scene.html");
+```
+
+Open the HTML file in a browser to rotate, pan, and zoom. Plotly.js is
+embedded, so viewing works offline. Built-in magnets, currents, sensors,
+and collections support `Graphics`; mesh objects require `mesh` as well.
+Dipoles, sensors, and custom collection components use point markers.
+Plots capture the objects' current geometry and poses in meters.
+Use the re-exported `magba::graphics::plotly` API to customize a plot.
+
+Magnet bodies are grey with red north and green south poles by default, using
+[Magpylib's DIN SPEC 91411 palette](https://magpylib.readthedocs.io/en/stable/_pages/user_guide/docs/docs_styles.html).
+Colors follow local polarization and rotate with the magnet. Neutral surfaces
+remain grey; curved surfaces have a grey equatorial belt.
+Choose orange/blue (`okabe-ito`) or red/blue (`trad`) with
+`MagnetColorScheme::OkabeIto` or `MagnetColorScheme::Trad`:
+
+```rust,no_run
+use magba::{graphics::MagnetColorScheme, prelude::*};
+let magnets = SourceArray::from([CuboidMagnet::<f64>::default()]);
+let plot = magnets.plot_with_color_scheme(MagnetColorScheme::OkabeIto);
+// To add to an existing plot, use add_to_plot_with_color_scheme(&mut plot, scheme).
+```
+
+Run `cargo run --example graphics --features graphics` for a combined scene.
+
+Field plotting is available on every `Source`, including collections:
+
+```rust,no_run
+use magba::prelude::*;
+use magba::graphics::{FieldComponent, FieldGrid, Plane, QuiverOptions};
+
+let magnet = SphereMagnet::<f64>::default().with_diameter(0.02);
+let grid = FieldGrid::new(Plane::XZ, 0.0, [-0.04, 0.04], [-0.04, 0.04], [21, 21])
+    .expect("Valid grid");
+let slice = magnet.sample_field(&grid).expect("Valid sample positions");
+let mut plot = slice.heatmap(FieldComponent::Magnitude);
+slice.add_quiver(&mut plot, QuiverOptions { scale: 0.002, normalize: true })
+    .expect("Valid arrow scale");
+std::fs::write("field.html", plot.to_html()).expect("Cannot write field.html");
+```
+
+Use `plot_field_2d` and `plot_quiver_2d` for direct plotting, or reuse a
+`FieldSlice` for several views without resampling. `plot_quiver` and
+`add_quiver` draw 3D arrows. `plot_field_lines` and `add_field_lines` trace 3D
+field lines; their `_2d` variants draw projected streamlines within a grid.
+`trace_field_lines` returns the trajectory coordinates for further analysis.
+All helpers support `f32` and `f64` sources; plotting coordinates use `f64` meters.
+
+See [runnable examples and rendered figures](examples/figures/README.md):
+
+| Example | Plot | Run with `--features graphics` |
+| --- | --- | --- |
+| [2D field](examples/field_2d.rs) | Magnitude heatmap and streamlines | `cargo run --example field_2d --features graphics` |
+| [Quiver](examples/field_quiver.rs) | Current-loop field arrows | `cargo run --example field_quiver --features graphics` |
+| [3D field](examples/field_3d.rs) | Source, field lines, and arrows | `cargo run --example field_3d --features graphics` |
+| [Cuboid](examples/field_cuboid.rs) | Geometry and 3D field lines | `cargo run --example field_cuboid --features graphics` |
+| [Cylinder](examples/field_cylinder.rs) | Geometry and 3D field lines | `cargo run --example field_cylinder --features graphics` |
+| [Tetrahedron](examples/field_tetrahedron.rs) | Geometry and 3D field lines | `cargo run --example field_tetrahedron --features graphics` |
+| [Triangle](examples/field_triangle.rs) | Geometry and 3D field lines | `cargo run --example field_triangle --features graphics` |
+| [Dipole](examples/field_dipole.rs) | Geometry and 3D field lines | `cargo run --example field_dipole --features graphics` |
+| [Path current](examples/field_path_current.rs) | Geometry and 3D field lines | `cargo run --example field_path_current --features graphics` |
+| [Triangle current](examples/field_triangle_current.rs) | Geometry and 3D field lines | `cargo run --example field_triangle_current --features graphics` |
+| [Source collection](examples/field_collection.rs) | Geometry and 3D field lines | `cargo run --example field_collection --features graphics` |
 
 ## Testing
 
