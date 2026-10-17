@@ -55,7 +55,7 @@ mod field;
 pub use field::FieldGraphics;
 
 use ::plotly::{
-    common::Mode,
+    common::{Line, Mode},
     layout::{AspectMode, Axis, LayoutScene},
 };
 use nalgebra::{Point3, Vector3};
@@ -135,13 +135,19 @@ fn coordinates<T: Float>(object: &impl Transform<T>, vertices: &[Vector3<T>]) ->
     xyz
 }
 
+struct SurfacePoles<'a, T: Float> {
+    polarization: Vector3<T>,
+    scheme: MagnetColorScheme,
+    vertex_normals: Option<&'a [Vector3<T>]>,
+}
+
 fn surface<T: Float>(
     plot: &mut Plot,
     object: &impl Transform<T>,
     vertices: &[Vector3<T>],
     faces: &[[usize; 3]],
     name: &str,
-    poles: Option<(Vector3<T>, MagnetColorScheme)>,
+    poles: Option<SurfacePoles<'_, T>>,
 ) {
     if faces.is_empty() {
         return;
@@ -158,22 +164,32 @@ fn surface<T: Float>(
     .name(name)
     .opacity(if poles.is_some() { 1.0 } else { 0.65 })
     .show_legend(true);
-    if let Some((polarization, scheme)) = poles {
+    if let Some(SurfacePoles {
+        polarization,
+        scheme,
+        vertex_normals,
+    }) = poles
+    {
         let [north, south] = scheme.poles();
         // Surface charge is proportional to the outward normal dotted with polarization.
         // Fade towards grey as charge vanishes. Work in local coordinates
         // so rotation and translation cannot change a face's pole color.
         let direction = polarization.try_normalize(T::zero());
-        let charges: Vec<_> = faces
-            .iter()
-            .map(|&[a, b, c]| {
-                let normal = (vertices[b] - vertices[a]).cross(&(vertices[c] - vertices[a]));
-                direction
-                    .and_then(|p| normal.try_normalize(T::zero()).map(|n| n.dot(&p)))
-                    .and_then(|q| q.to_f64())
-                    .unwrap_or(0.0)
-            })
-            .collect();
+        let charge = |normal: Vector3<T>| {
+            direction
+                .and_then(|p| normal.try_normalize(T::zero()).map(|n| n.dot(&p)))
+                .and_then(|q| q.to_f64())
+                .unwrap_or(0.0)
+        };
+        let charges: Vec<_> = match vertex_normals {
+            Some(normals) => normals.iter().copied().map(charge).collect(),
+            None => faces
+                .iter()
+                .map(|&[a, b, c]| {
+                    charge((vertices[b] - vertices[a]).cross(&(vertices[c] - vertices[a])))
+                })
+                .collect(),
+        };
         // Scale each pole separately so sloped polyhedra also show both poles.
         let north_charge = charges.iter().copied().fold(0.0_f64, f64::max);
         let south_charge = charges.iter().copied().fold(0.0_f64, f64::min);
@@ -187,6 +203,9 @@ fn surface<T: Float>(
                 } else {
                     return "grey".to_owned();
                 };
+                // Keep a neutral belt and ease into both grey and the full pole color.
+                let strength = ((strength - 0.15) / 0.85).clamp(0.0, 1.0);
+                let strength = strength * strength * (3.0 - 2.0 * strength);
                 let blended = rgb
                     .map(|channel| (128.0 + (f64::from(channel) - 128.0) * strength).round() as u8);
                 if blended == rgb {
@@ -198,7 +217,12 @@ fn surface<T: Float>(
                 }
             })
             .collect();
-        trace = trace.color("grey").face_color(colors);
+        trace = trace.color("grey");
+        trace = if vertex_normals.is_some() {
+            trace.vertex_color(colors)
+        } else {
+            trace.face_color(colors)
+        };
     }
     plot.add_trace(trace);
 }
@@ -213,7 +237,12 @@ fn line<T: Float>(
         return;
     }
     let [x, y, z] = coordinates(object, vertices);
-    plot.add_trace(Scatter3D::new(x, y, z).mode(Mode::Lines).name(name));
+    plot.add_trace(
+        Scatter3D::new(x, y, z)
+            .mode(Mode::Lines)
+            .line(Line::new().width(6.0))
+            .name(name),
+    );
 }
 
 fn marker<T: Float>(plot: &mut Plot, object: &(impl Transform<T> + ?Sized), name: &str) {
@@ -278,7 +307,11 @@ impl<T: Float> Graphics<T> for CuboidMagnet<T> {
                 [3, 4, 7],
             ],
             "Cuboid magnet",
-            Some((self.polarization(), scheme)),
+            Some(SurfacePoles {
+                polarization: self.polarization(),
+                scheme,
+                vertex_normals: None,
+            }),
         );
     }
 }
@@ -326,7 +359,11 @@ impl<T: Float> Graphics<T> for CylinderMagnet<T> {
             &vertices,
             &faces,
             "Cylinder magnet",
-            Some((self.polarization(), scheme)),
+            Some(SurfacePoles {
+                polarization: self.polarization(),
+                scheme,
+                vertex_normals: None,
+            }),
         );
     }
 }
@@ -367,7 +404,11 @@ impl<T: Float> Graphics<T> for SphereMagnet<T> {
             &vertices,
             &faces,
             "Sphere magnet",
-            Some((self.polarization(), scheme)),
+            Some(SurfacePoles {
+                polarization: self.polarization(),
+                scheme,
+                vertex_normals: Some(&vertices),
+            }),
         );
     }
 }
@@ -384,7 +425,11 @@ impl<T: Float> Graphics<T> for TriangleMagnet<T> {
             &self.vertices(),
             &[[0, 1, 2]],
             "Triangle magnet",
-            Some((self.polarization(), scheme)),
+            Some(SurfacePoles {
+                polarization: self.polarization(),
+                scheme,
+                vertex_normals: None,
+            }),
         );
     }
 }
@@ -408,7 +453,11 @@ impl<T: Float> Graphics<T> for TetrahedronMagnet<T> {
             &vertices,
             &[[0, 2, 1], [0, 1, 3], [1, 2, 3], [0, 3, 2]],
             "Tetrahedron magnet",
-            Some((self.polarization(), scheme)),
+            Some(SurfacePoles {
+                polarization: self.polarization(),
+                scheme,
+                vertex_normals: None,
+            }),
         );
     }
 }
@@ -457,7 +506,18 @@ mod mesh {
             .step_by(3)
             .map(|i| [i, i + 1, i + 2])
             .collect();
-        surface(plot, object, &vertices, &faces, name, poles);
+        surface(
+            plot,
+            object,
+            &vertices,
+            &faces,
+            name,
+            poles.map(|(polarization, scheme)| SurfacePoles {
+                polarization,
+                scheme,
+                vertex_normals: None,
+            }),
+        );
     }
     impl<T: Float> Graphics<T> for MeshMagnet<T> {
         fn add_to_plot(&self, plot: &mut Plot) {

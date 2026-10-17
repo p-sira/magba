@@ -7,17 +7,11 @@ use magba::{
     graphics::{FieldGrid, FieldLineOptions, Plane, QuiverOptions},
     prelude::*,
 };
-use nalgebra::Point3;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let magnet = SphereMagnet::<f64>::default().with_diameter(0.02);
     let magnet = Exterior(magnet);
-    let seeds: Vec<_> = (0..8)
-        .flat_map(|i| {
-            let angle = std::f64::consts::TAU * i as f64 / 8.0;
-            [0.014, 0.025].map(|r| Point3::new(r * angle.cos(), r * angle.sin(), 0.0))
-        })
-        .collect();
+    let seeds = common::sphere_field_seeds(8);
     let mut plot = magnet.plot();
     magnet.add_field_lines(
         &mut plot,

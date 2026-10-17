@@ -203,7 +203,7 @@ fn optional_palettes_propagate_through_nested_collections_and_arrays() {
         let array = SourceArray::from([SphereMagnet::<f64>::default()]);
         let plot: Value =
             serde_json::from_str(&array.plot_with_color_scheme(scheme).to_json()).unwrap();
-        let colors = plot["data"][0]["facecolor"].as_array().unwrap();
+        let colors = plot["data"][0]["vertexcolor"].as_array().unwrap();
         assert!(colors.iter().any(|c| c == north));
         assert!(colors.iter().any(|c| c == south));
         assert!(
@@ -215,18 +215,18 @@ fn optional_palettes_propagate_through_nested_collections_and_arrays() {
 }
 
 #[test]
-fn pole_colors_blend_with_grey_in_proportion_to_surface_charge() {
+fn pole_colors_ease_from_a_grey_belt_to_full_color() {
     use magba::graphics::MagnetColorScheme;
 
     let magnet = CuboidMagnet::<f64>::default().with_polarization([0.5, 0.0, 1.0]);
     for (scheme, north, south) in [
-        (MagnetColorScheme::Din, "rgb(180,73,73)", "rgb(64,152,104)"),
+        (MagnetColorScheme::Din, "rgb(166,87,87)", "rgb(81,146,110)"),
         (
             MagnetColorScheme::OkabeIto,
-            "rgb(179,144,64)",
-            "rgb(64,121,153)",
+            "rgb(166,139,81)",
+            "rgb(81,123,146)",
         ),
-        (MagnetColorScheme::Trad, "rgb(192,64,64)", "rgb(64,64,192)"),
+        (MagnetColorScheme::Trad, "rgb(175,81,81)", "rgb(81,81,175)"),
     ] {
         let plot: Value =
             serde_json::from_str(&magnet.plot_with_color_scheme(scheme).to_json()).unwrap();
@@ -241,7 +241,47 @@ fn pole_colors_blend_with_grey_in_proportion_to_surface_charge() {
             scaled_plot["data"][0]["facecolor"],
             plot["data"][0]["facecolor"]
         );
+        let near_neutral = magnet.clone().with_polarization([0.1, 0.0, 1.0]);
+        let neutral_plot: Value =
+            serde_json::from_str(&near_neutral.plot_with_color_scheme(scheme).to_json()).unwrap();
+        assert_eq!(neutral_plot["data"][0]["facecolor"][6], "grey");
+        assert_eq!(neutral_plot["data"][0]["facecolor"][10], "grey");
+        assert_eq!(
+            neutral_plot["data"][0]["facecolor"][2],
+            plot["data"][0]["facecolor"][2]
+        );
     }
+}
+
+#[test]
+fn sphere_colors_interpolate_between_vertices_and_follow_local_polarization() {
+    let magnet = SphereMagnet::<f64>::default();
+    let plot = data(&magnet);
+    let mesh = &plot["data"][0];
+    let colors = mesh["vertexcolor"].as_array().unwrap();
+    assert_eq!(colors.len(), mesh["x"].as_array().unwrap().len());
+    assert!(mesh["facecolor"].is_null());
+    assert_eq!(colors.first().unwrap(), "#e71111");
+    assert_eq!(colors.last().unwrap(), "#00b050");
+    assert_eq!(colors[1 + 11 * 48], "grey");
+    let rotated = magnet
+        .clone()
+        .with_orientation(UnitQuaternion::from_axis_angle(
+            &Vector3::y_axis(),
+            std::f64::consts::FRAC_PI_2,
+        ));
+    assert_eq!(
+        data(&rotated)["data"][0]["vertexcolor"],
+        mesh["vertexcolor"]
+    );
+    let neutral = magnet.with_polarization([0.0; 3]);
+    assert!(
+        data(&neutral)["data"][0]["vertexcolor"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|c| c == "grey")
+    );
 }
 
 #[test]
@@ -283,11 +323,15 @@ fn curved_magnets_and_enum_entry_points_render_solid_geometry() {
             1.0
         );
         assert!(
-            mesh["facecolor"]
-                .as_array()
-                .unwrap()
-                .iter()
-                .any(|color| color == "#e71111")
+            mesh[if mesh["vertexcolor"].is_array() {
+                "vertexcolor"
+            } else {
+                "facecolor"
+            }]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|color| color == "#e71111")
         );
     }
     assert_eq!(

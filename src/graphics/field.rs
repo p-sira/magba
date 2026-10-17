@@ -184,7 +184,8 @@ impl FieldSlice {
 /// Adaptive arc-length RK4 integration settings for field lines.
 ///
 /// Integration runs forwards and backwards from every seed using normalized B.
-/// Each direction stops at `max_steps`, bounds, zero/non-finite B, or a closed loop.
+/// Each direction stops at `max_steps`, bounds, zero/non-finite B, an unresolved
+/// turn, or a closed loop.
 /// These are visual approximations; decrease the step size to assess convergence.
 #[derive(Debug, Clone, Copy)]
 pub struct FieldLineOptions {
@@ -343,7 +344,19 @@ pub(crate) fn trace_lines<T: Float, S: Source<T> + ?Sized>(
                     let fine = rk4(p, h / 2.0).and_then(|mid| rk4(mid, h / 2.0));
                     if let (Some(coarse), Some(fine)) = (coarse, fine) {
                         let error = (fine - coarse).norm() / 15.0;
-                        if error <= options.step_size * options.tolerance {
+                        // Reject unresolved turns whose RK stages cancel or advance
+                        // against the field, even if coarse and fine steps agree.
+                        let delta = fine - p;
+                        let length = delta.norm();
+                        let tolerance = options.step_size * options.tolerance;
+                        let advances = length > h.abs() * 0.5
+                            && direction(p).is_some_and(|d| delta.dot(&d) * sign > 0.0);
+                        // Below the position tolerance, permit a kink across a
+                        // material boundary; larger segments must follow local B.
+                        let follows = length <= tolerance
+                            || direction(p + delta / 2.0)
+                                .is_some_and(|d| delta.dot(&d) * sign > length * 0.99);
+                        if error <= tolerance && advances && follows {
                             accepted = Some(fine);
                             if error < options.step_size * options.tolerance / 32.0 {
                                 h = sign * (2.0 * h.abs()).min(options.step_size);

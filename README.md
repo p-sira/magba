@@ -146,7 +146,8 @@ Magnet surfaces are opaque by default, with grey bodies, red north poles, and
 green south poles, using
 [Magpylib's DIN SPEC 91411 palette](https://magpylib.readthedocs.io/en/stable/_pages/user_guide/docs/docs_styles.html).
 Colors follow local polarization and rotate with the magnet. Neutral surfaces
-remain grey; pole colors fade toward grey as surface charge decreases.
+remain grey; pole colors ease smoothly into a grey belt near zero surface charge.
+Sphere colors interpolate between vertices to avoid bands between mesh faces.
 Choose orange/blue (`okabe-ito`) or red/blue (`trad`) with
 `MagnetColorScheme::OkabeIto` or `MagnetColorScheme::Trad`:
 
@@ -159,7 +160,7 @@ let plot = magnets.plot_with_color_scheme(MagnetColorScheme::OkabeIto);
 
 Run `cargo run --example graphics --features graphics-plotly` for a combined scene.
 
-The [2×2 showcase](examples/graphics_showcase.rs) combines source geometry, sensors,
+The [2×2 showcase](examples/graphics_showcase.rs) combines source geometry,
 collections, field magnitude and component heatmaps, 2D/3D arrows, and directed
 streamlines in one interactive figure:
 

@@ -107,3 +107,42 @@ fn adaptive_steps_close_lines_across_a_magnet_surface() {
     assert!(path.iter().any(|p| p.coords.norm() < 0.009));
     assert!(path.len() < 1000);
 }
+
+#[test]
+fn adaptive_steps_resolve_near_source_field_directions() {
+    let triangle = crate::magnets::TriangleMagnet::<f64>::default().with_vertices([
+        Vector3::new(-0.01, -0.008, 0.0),
+        Vector3::new(0.01, -0.008, 0.0),
+        Vector3::new(0.0, 0.01, 0.0),
+    ]);
+    let dipole = Dipole::<f64>::default();
+    for (source, seed) in [
+        (
+            &triangle as &dyn Source<f64>,
+            Point3::new(0.0, -0.002, 0.001),
+        ),
+        (&dipole as &dyn Source<f64>, Point3::new(0.014, 0.0, 0.0)),
+    ] {
+        let options = FieldLineOptions {
+            step_size: 0.0004,
+            max_steps: 1000,
+            bounds: Some([[-0.04, 0.04]; 3]),
+            ..Default::default()
+        };
+        let paths = source.trace_field_lines(&[seed], options).unwrap();
+        for path in paths {
+            for segment in path.windows(2) {
+                let delta = segment[1] - segment[0];
+                if delta.norm() > options.step_size * options.tolerance {
+                    let midpoint = segment[0] + delta / 2.0;
+                    let field = source.compute_B(midpoint);
+                    let alignment = delta.normalize().dot(&field.normalize());
+                    assert!(
+                        alignment > 0.99,
+                        "seed={seed:?}, midpoint={midpoint:?}, alignment={alignment}"
+                    );
+                }
+            }
+        }
+    }
+}

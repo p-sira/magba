@@ -13,10 +13,8 @@ use magba::{
         },
     },
     prelude::*,
-    sensors::hall_effect::LinearHallSensor,
     sources,
 };
-use nalgebra::Point3;
 use serde_json::{Value, json};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -30,17 +28,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         bounds: Some([[-0.04, 0.04]; 3]),
         ..Default::default()
     };
-    let seeds: Vec<_> = (0..6)
-        .flat_map(|i| {
-            let angle = std::f64::consts::TAU * i as f64 / 6.0;
-            [0.014, 0.025].map(|r| Point3::new(r * angle.cos(), r * angle.sin(), 0.0))
-        })
-        .collect();
+    let seeds = common::sphere_field_seeds(6);
     let mut geometry = sphere.plot();
     sphere.add_field_lines(&mut geometry, &seeds, lines)?;
-    LinearHallSensor::<f64>::default()
-        .with_position([0.0, 0.0, 0.025])
-        .add_to_plot(&mut geometry);
 
     let mut magnitude = slice.heatmap(FieldComponent::Magnitude);
     let seeds_2d: Vec<_> = [-1.0, 1.0]
@@ -105,7 +95,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 fn subplot_html(panels: [Plot; 4]) -> Result<String, Box<dyn std::error::Error>> {
     let mut data = Vec::new();
     let mut layout = json!({
-        "title": {"text": "Magba · Magnetic fields in four views", "x": 0.5},
+        "title": {
+            "text": "Magba · Magnetic fields in four views", "x": 0.5,
+            "font": {"size": 32},
+        },
         "width": 1400, "height": 1100,
         "margin": {"l": 75, "r": 110, "t": 100, "b": 90},
         "font": {"family": "Arial, sans-serif", "size": 14},
@@ -135,7 +128,7 @@ fn subplot_html(panels: [Plot; 4]) -> Result<String, Box<dyn std::error::Error>>
         if i == 0 || i == 3 {
             layout[scene] = panel["layout"]["scene"].clone();
             layout[scene]["domain"] = json!({"x": x, "y": y});
-            layout[scene]["camera"] = json!({"eye": {"x": 1.7, "y": 1.7, "z": 1.4}});
+            layout[scene]["camera"] = json!({"eye": {"x": 1.4, "y": 1.4, "z": 1.15}});
         } else {
             layout[xlayout] = panel["layout"]["xaxis"].clone();
             layout[ylayout] = panel["layout"]["yaxis"].clone();
@@ -163,7 +156,7 @@ fn subplot_html(panels: [Plot; 4]) -> Result<String, Box<dyn std::error::Error>>
                     trace["colorbar"]["y"] = json!((y[0] + y[1]) / 2.0);
                     trace["colorbar"]["len"] = json!(0.38);
                     trace["colorbar"]["thickness"] = json!(14);
-                    // Clip only the display scale so interior fields don't obscure the exterior.
+                    // Clip only the display scale so near-surface peaks don't obscure weaker fields.
                     if i == 1 {
                         trace["zmin"] = json!(0.0);
                         trace["zmax"] = json!(0.2);
@@ -181,7 +174,7 @@ fn subplot_html(panels: [Plot; 4]) -> Result<String, Box<dyn std::error::Error>>
             .push(json!({
                 "text": titles[i], "x": (x[0]+x[1])/2.0, "y": y[1]+0.035,
                 "xref": "paper", "yref": "paper", "showarrow": false,
-                "xanchor": "center", "font": {"size": 18},
+                "xanchor": "center", "font": {"size": 24},
             }));
     }
     let figure = json!({"data": data, "layout": layout});

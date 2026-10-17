@@ -31,7 +31,9 @@ cargo run --example field_2d --features graphics-plotly -- /tmp/sphere.html
 ```
 
 Use the plot toolbar's camera button to export a PNG. The figures below were
-exported at 1100 × 800 with a scale factor of 1.5.
+exported at 1100 × 800 with a scale factor of 1.5; the showcase uses 1400 × 1100
+with a scale factor of 1.25. Titles use 32 px, and legends and subplot titles use
+24 px.
 
 ## 2D magnitude and streamlines
 
@@ -53,26 +55,29 @@ magnitude, using `scale` in meters per tesla.
 ## 3D field lines and quiver
 
 [Source](../field_3d.rs). The same sphere magnet, with trajectories integrated in
-both directions from equatorial seeds and normalized B arrows sampled above it.
+both directions from two rings of equatorial seeds (14 and 35 mm radii),
+with four fan directions near each pole and a central axial line.
+Normalized B arrows are sampled above it.
 
 ![Sphere field in 3D](field_3d.png)
 
 Field lines use adaptive arc-length RK4 integration with step doubling.
 `step_size` sets the maximum step and `tolerance` controls the local error.
 Decrease either to assess convergence, especially near material boundaries or thin wires. Tracing stops at
-bounds, zero or non-finite fields, closed loops, or the step limit. A 2D streamline
+bounds, zero or non-finite fields, unresolved turns, closed loops, or the step limit. A 2D streamline
 follows the projected field and matches a 3D field line only where the normal
 field component vanishes.
 
 ## Additional primitive and collection scenes
 
-The cuboid, cylinder, tetrahedron, triangle, dipole, path-current, and
-triangle-current examples each trace field lines from three rings of seeds.
+The cuboid, cylinder, tetrahedron, dipole, and path-current examples each trace
+field lines from three rings of seeds.
 The collection example combines two oppositely polarized magnets and a current
 loop, tracing their total field. All share the output helper in `examples/common`.
 
 Magnet surfaces use grey for neutral faces, red for north, and green for south,
-with pole colors fading toward grey as surface charge decreases.
+with pole colors easing smoothly into a grey belt near zero surface charge.
+Sphere colors interpolate between vertices to avoid bands between mesh faces.
 The `graphics` example also shows the optional orange/blue (`OkabeIto`) and
 red/blue (`Trad`) palettes. Run it with `cargo run --example graphics --features graphics-plotly`.
 
@@ -90,6 +95,9 @@ red/blue (`Trad`) palettes. Run it with `cargo run --example graphics --features
 
 [Triangle magnet source](../field_triangle.rs)
 
+The triangle example seeds field lines on both sides of the charged surface.
+Coplanar seeds would keep the trajectories in the triangle's plane.
+
 ![Triangle magnet with 3D field lines](field_triangle.png)
 
 [Point dipole source](../field_dipole.rs)
@@ -102,6 +110,9 @@ red/blue (`Trad`) palettes. Run it with `cargo run --example graphics --features
 
 [Triangular current sheet source](../field_triangle_current.rs)
 
+The sheet carries a uniform surface current of 1000 A/m along x. Six seeds
+outside the sheet trace two loops in each of three planes of constant x.
+
 ![Triangular current sheet with 3D field lines](field_triangle_current.png)
 
 [Mixed source collection source](../field_collection.rs)
@@ -110,8 +121,9 @@ red/blue (`Trad`) palettes. Run it with `cargo run --example graphics --features
 
 ## 2×2 graphics showcase
 
-[Source](../graphics_showcase.rs). Geometry, sensors, collections, heatmaps,
+[Source](../graphics_showcase.rs). Geometry, collections, heatmaps,
 normalized 2D/3D quivers, and field lines with direction arrowheads in one figure.
+The sphere panel uses the same equatorial rings, polar fans, and axial line.
 
 ```sh
 cargo run --example graphics_showcase --features graphics-plotly

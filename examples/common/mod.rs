@@ -11,13 +11,14 @@ pub fn save(mut plot: Plot, title: &str, filename: &str) -> Result<(), Box<dyn s
     plot.set_layout(
         plot.layout()
             .clone()
-            .title(Title::with_text(title))
+            .title(Title::with_text(title).font(Font::new().size(32)))
             .width(1100)
             .height(800)
             .margin(Margin::new().top(140))
             .font(Font::new().family("Arial, sans-serif").size(15))
             .legend(
                 Legend::new()
+                    .font(Font::new().size(24))
                     .orientation(Orientation::Horizontal)
                     .x(0.0)
                     .y(1.08),
@@ -33,6 +34,36 @@ pub fn save_html(html: &str, filename: &str) -> Result<(), Box<dyn std::error::E
     std::fs::write(&path, html)?;
     println!("Open {path} in a browser. Use the camera button to export a PNG figure.");
     Ok(())
+}
+
+/// Seed the 20 mm sphere's equatorial loops, polar fans, and central axis.
+#[allow(dead_code)]
+pub fn sphere_field_seeds(azimuths: usize) -> Vec<nalgebra::Point3<f64>> {
+    use nalgebra::Point3;
+
+    let polar_angle = 20.0_f64.to_radians();
+    let mut seeds = Vec::new();
+    for i in 0..azimuths {
+        let angle = std::f64::consts::TAU * i as f64 / azimuths as f64;
+        for r in [0.014, 0.035] {
+            seeds.push(Point3::new(r * angle.cos(), r * angle.sin(), 0.0));
+        }
+    }
+    for i in 0..4 {
+        let angle = std::f64::consts::TAU * i as f64 / 4.0;
+        for sign in [-1.0, 1.0] {
+            seeds.push(Point3::new(
+                0.0105 * polar_angle.sin() * angle.cos(),
+                0.0105 * polar_angle.sin() * angle.sin(),
+                sign * 0.0105 * polar_angle.cos(),
+            ));
+        }
+    }
+    seeds.extend([
+        Point3::new(0.0, 0.0, -0.0105),
+        Point3::new(0.0, 0.0, 0.0105),
+    ]);
+    seeds
 }
 
 /// Render a primitive's field from three rings of equatorial seeds.
