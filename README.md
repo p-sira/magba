@@ -146,7 +146,7 @@ Magnet surfaces are opaque by default, with grey bodies, red north poles, and
 green south poles, using
 [Magpylib's DIN SPEC 91411 palette](https://magpylib.readthedocs.io/en/stable/_pages/user_guide/docs/docs_styles.html).
 Colors follow local polarization and rotate with the magnet. Neutral surfaces
-remain grey; curved surfaces have a grey equatorial belt.
+remain grey; pole colors fade toward grey as surface charge decreases.
 Choose orange/blue (`okabe-ito`) or red/blue (`trad`) with
 `MagnetColorScheme::OkabeIto` or `MagnetColorScheme::Trad`:
 

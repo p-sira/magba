@@ -206,7 +206,41 @@ fn optional_palettes_propagate_through_nested_collections_and_arrays() {
         let colors = plot["data"][0]["facecolor"].as_array().unwrap();
         assert!(colors.iter().any(|c| c == north));
         assert!(colors.iter().any(|c| c == south));
-        assert!(colors.iter().any(|c| c == "grey"));
+        assert!(
+            colors
+                .iter()
+                .any(|c| c.as_str().unwrap().starts_with("rgb("))
+        );
+    }
+}
+
+#[test]
+fn pole_colors_blend_with_grey_in_proportion_to_surface_charge() {
+    use magba::graphics::MagnetColorScheme;
+
+    let magnet = CuboidMagnet::<f64>::default().with_polarization([0.5, 0.0, 1.0]);
+    for (scheme, north, south) in [
+        (MagnetColorScheme::Din, "rgb(180,73,73)", "rgb(64,152,104)"),
+        (
+            MagnetColorScheme::OkabeIto,
+            "rgb(179,144,64)",
+            "rgb(64,121,153)",
+        ),
+        (MagnetColorScheme::Trad, "rgb(192,64,64)", "rgb(64,64,192)"),
+    ] {
+        let plot: Value =
+            serde_json::from_str(&magnet.plot_with_color_scheme(scheme).to_json()).unwrap();
+        let colors = plot["data"][0]["facecolor"].as_array().unwrap();
+        assert_eq!(colors[6], north);
+        assert!(colors.iter().any(|color| color == south));
+        assert!(colors.iter().any(|color| color == "grey"));
+        let scaled = magnet.clone().with_polarization([5.0, 0.0, 10.0]);
+        let scaled_plot: Value =
+            serde_json::from_str(&scaled.plot_with_color_scheme(scheme).to_json()).unwrap();
+        assert_eq!(
+            scaled_plot["data"][0]["facecolor"],
+            plot["data"][0]["facecolor"]
+        );
     }
 }
 

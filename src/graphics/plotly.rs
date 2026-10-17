@@ -159,9 +159,9 @@ fn surface<T: Float>(
     .opacity(if poles.is_some() { 1.0 } else { 0.65 })
     .show_legend(true);
     if let Some((polarization, scheme)) = poles {
-        let (north, south) = scheme.poles();
+        let [north, south] = scheme.poles();
         // Surface charge is proportional to the outward normal dotted with polarization.
-        // Neutral faces and the equatorial belt remain grey. Work in local coordinates
+        // Fade towards grey as charge vanishes. Work in local coordinates
         // so rotation and translation cannot change a face's pole color.
         let direction = polarization.try_normalize(T::zero());
         let charges: Vec<_> = faces
@@ -180,12 +180,21 @@ fn surface<T: Float>(
         let colors: Vec<_> = charges
             .into_iter()
             .map(|charge| {
-                if charge > north_charge * 0.5 {
-                    north
-                } else if charge < south_charge * 0.5 {
-                    south
+                let ((color, rgb), strength) = if charge > 0.0 {
+                    (north, charge / north_charge)
+                } else if charge < 0.0 {
+                    (south, charge / south_charge)
                 } else {
-                    "grey"
+                    return "grey".to_owned();
+                };
+                let blended = rgb
+                    .map(|channel| (128.0 + (f64::from(channel) - 128.0) * strength).round() as u8);
+                if blended == rgb {
+                    color.to_owned()
+                } else if blended == [128; 3] {
+                    "grey".to_owned()
+                } else {
+                    format!("rgb({},{},{})", blended[0], blended[1], blended[2])
                 }
             })
             .collect();

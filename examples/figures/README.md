@@ -71,7 +71,8 @@ triangle-current examples each trace field lines from three rings of seeds.
 The collection example combines two oppositely polarized magnets and a current
 loop, tracing their total field. All share the output helper in `examples/common`.
 
-Magnet surfaces use grey for neutral faces, red for north, and green for south.
+Magnet surfaces use grey for neutral faces, red for north, and green for south,
+with pole colors fading toward grey as surface charge decreases.
 The `graphics` example also shows the optional orange/blue (`OkabeIto`) and
 red/blue (`Trad`) palettes. Run it with `cargo run --example graphics --features graphics-plotly`.
 

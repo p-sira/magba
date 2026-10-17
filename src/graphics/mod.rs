@@ -20,7 +20,7 @@ pub mod plotly;
 #[cfg(feature = "graphics-plotly")]
 pub use plotly::{FieldGraphics, Graphics};
 
-/// Pole colors used for magnet surfaces. The uncharged body is always grey.
+/// Pole colors used for magnet surfaces, fading to grey as surface charge vanishes.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum MagnetColorScheme {
     /// Red north and green south, following Magpylib's DIN SPEC 91411 palette.
@@ -34,11 +34,11 @@ pub enum MagnetColorScheme {
 
 #[cfg(feature = "graphics-plotly")]
 impl MagnetColorScheme {
-    pub(super) fn poles(self) -> (&'static str, &'static str) {
+    pub(super) fn poles(self) -> [(&'static str, [u8; 3]); 2] {
         match self {
-            Self::Din => ("#e71111", "#00b050"),
-            Self::OkabeIto => ("#E69F00", "#0072B2"),
-            Self::Trad => ("red", "blue"),
+            Self::Din => [("#e71111", [231, 17, 17]), ("#00b050", [0, 176, 80])],
+            Self::OkabeIto => [("#E69F00", [230, 159, 0]), ("#0072B2", [0, 114, 178])],
+            Self::Trad => [("red", [255, 0, 0]), ("blue", [0, 0, 255])],
         }
     }
 }
