@@ -1,6 +1,8 @@
 //! Combined field of a heterogeneous source collection.
 mod common;
 
+use common::exterior::Exterior;
+
 use magba::{prelude::*, sources};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -17,6 +19,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .with_diameter(0.06)
             .with_current(10.0),
     );
+    let sources = Exterior(sources);
     common::field_scene(
         &sources,
         0.08,

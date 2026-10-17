@@ -1,3 +1,6 @@
+#[allow(dead_code)]
+pub mod exterior;
+
 use magba::graphics::plotly::{
     Plot,
     common::{Font, Orientation, Title},

@@ -11,6 +11,7 @@ fn slices_preserve_world_components_and_plane_coordinates() {
     let source = StableFieldMagnet::new(Vector3::new(3.0, 4.0, 12.0));
     for plane in [Plane::XY, Plane::XZ, Plane::YZ] {
         let grid = grid(plane);
+        assert_eq!(grid.plane(), plane);
         let slice = source.sample_field(&grid).unwrap();
         assert_eq!(slice.fields(), vec![Vector3::new(3.0, 4.0, 12.0); 15]);
         for component in [
@@ -94,11 +95,20 @@ fn zero_and_invalid_fields_stop_without_invalid_plot_coordinates() {
     )
     .unwrap();
     assert!(plot["data"][0]["z"][0][0].is_null());
+    let quiver = source
+        .sample_field(&grid(Plane::XY))
+        .unwrap()
+        .quiver(QuiverOptions::default())
+        .unwrap();
+    let quiver: Value = serde_json::from_str(&quiver.to_json()).unwrap();
+    assert_eq!(quiver["data"], json!([]));
 }
 
 #[test]
 fn parameters_are_validated_and_f32_trait_objects_work() {
-    assert!(FieldGrid::new(Plane::XY, 0.0, [1.0, -1.0], [0.0, 1.0], [2, 2]).is_err());
+    let error = FieldGrid::new(Plane::XY, 0.0, [1.0, -1.0], [0.0, 1.0], [2, 2]).unwrap_err();
+    assert!(error.to_string().contains("finite"));
+    let _: &dyn std::error::Error = &error;
     assert!(FieldGrid::new(Plane::XY, f64::NAN, [0.0, 1.0], [0.0, 1.0], [2, 2]).is_err());
     assert!(FieldGrid::new(Plane::XY, 0.0, [0.0, 1.0], [0.0, 1.0], [1, 2]).is_err());
     let source = StableFieldMagnet::<f32>::new(Vector3::z());

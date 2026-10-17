@@ -2,6 +2,8 @@
 #[allow(dead_code)]
 mod common;
 
+use common::exterior::Exterior;
+
 use magba::{
     graphics::{
         FieldComponent, FieldGrid, FieldLineOptions, MagnetColorScheme, Plane, QuiverOptions,
@@ -19,6 +21,7 @@ use serde_json::{Value, json};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let sphere = SphereMagnet::<f64>::default().with_diameter(0.02);
+    let sphere = Exterior(sphere);
     let grid = FieldGrid::new(Plane::XZ, 0.0, [-0.035, 0.035], [-0.035, 0.035], [101, 101])?;
     let slice = sphere.sample_field(&grid)?;
     let lines = FieldLineOptions {
@@ -42,7 +45,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut magnitude = slice.heatmap(FieldComponent::Magnitude);
     let seeds_2d: Vec<_> = [-1.0, 1.0]
         .into_iter()
-        .flat_map(|sign| [0.006, 0.014, 0.025].map(|x| [sign * x, 0.0]))
+        .flat_map(|sign| [0.014, 0.025].map(|x| [sign * x, 0.0]))
         .collect();
     sphere.add_field_lines_2d(&mut magnitude, &grid, &seeds_2d, lines)?;
     let angles: Vec<_> = (0..=100)
@@ -81,6 +84,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .with_diameter(0.06)
             .with_current(10.0),
     );
+    let collection = Exterior(collection);
     let mut combined = collection.plot_with_color_scheme(MagnetColorScheme::OkabeIto);
     let arrows = FieldGrid::new(Plane::XY, 0.025, [-0.03, 0.03], [-0.03, 0.03], [6, 6])?;
     collection.add_quiver(

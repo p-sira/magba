@@ -1,6 +1,8 @@
 //! A 3D source scene with true field lines and sampled field arrows.
 mod common;
 
+use common::exterior::Exterior;
+
 use magba::{
     graphics::{FieldGrid, FieldLineOptions, Plane, QuiverOptions},
     prelude::*,
@@ -9,6 +11,7 @@ use nalgebra::Point3;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let magnet = SphereMagnet::<f64>::default().with_diameter(0.02);
+    let magnet = Exterior(magnet);
     let seeds: Vec<_> = (0..8)
         .flat_map(|i| {
             let angle = std::f64::consts::TAU * i as f64 / 8.0;

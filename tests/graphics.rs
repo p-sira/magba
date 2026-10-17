@@ -28,6 +28,7 @@ fn cuboid_geometry_uses_dimensions_rotation_and_translation() {
         assert!((trace[axis][0].as_f64().unwrap() - expected).abs() < 1e-12);
     }
     assert_eq!(trace["i"].as_array().unwrap().len(), 12);
+    assert_eq!(trace["opacity"], 1.0);
     assert_eq!(plot["layout"]["scene"]["aspectmode"], "data");
     assert_eq!(plot["layout"]["scene"]["xaxis"]["title"]["text"], "x (m)");
 }
@@ -222,4 +223,58 @@ fn tetrahedron_poles_are_independent_of_vertex_winding() {
         data(&magnet)["data"],
         data(&magnet.clone().with_vertices(vertices))["data"]
     );
+}
+
+#[test]
+fn curved_magnets_and_enum_entry_points_render_solid_geometry() {
+    let cylinder = CylinderMagnet::<f64>::default()
+        .with_diameter(2.0)
+        .with_height(4.0);
+    let sphere = SphereMagnet::<f64>::default().with_diameter(2.0);
+    for plot in [
+        data(&cylinder),
+        data(&sphere),
+        data(&Magnet::from(cylinder)),
+        data(&Magnet::from(sphere)),
+    ] {
+        let mesh = &plot["data"][0];
+        assert_eq!(mesh["opacity"], 1.0);
+        assert_eq!(
+            mesh["x"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .filter_map(Value::as_f64)
+                .fold(f64::NEG_INFINITY, f64::max),
+            1.0
+        );
+        assert!(
+            mesh["facecolor"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|color| color == "#e71111")
+        );
+    }
+    assert_eq!(
+        data(&Current::from(CircularCurrent::<f64>::default()))["data"][0]["type"],
+        "scatter3d"
+    );
+    assert_eq!(
+        data(&Sensor::from(LinearHallSensor::<f64>::default()))["data"][0]["mode"],
+        "markers"
+    );
+}
+
+#[cfg(feature = "mesh")]
+#[test]
+fn mesh_enums_render_faces_and_empty_meshes_are_omitted() {
+    use magba::base::mesh::TriMesh;
+    let mesh = TriMesh::new_unchecked([Vector3::zeros(), Vector3::x(), Vector3::y()], [[0, 1, 2]]);
+    let magnet = Magnet::from(MeshMagnet::<f64>::default().with_mesh(mesh.clone()));
+    let current = Current::from(SheetCurrent::<f64>::default().with_mesh(mesh));
+    assert_eq!(data(&magnet)["data"][0]["opacity"], 1.0);
+    assert_eq!(data(&current)["data"][0]["opacity"], 0.65);
+    assert_eq!(data(&MeshMagnet::<f64>::default())["data"], json!([]));
+    assert_eq!(data(&SheetCurrent::<f64>::default())["data"], json!([]));
 }

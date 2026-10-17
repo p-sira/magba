@@ -3,7 +3,9 @@
 These PNG figures are exported from the runnable Plotly examples. The HTML output
 supports zoom, pan, hover, and PNG export; 3D scenes also support rotation.
 Plotly.js is embedded for offline viewing. All positions are in meters and B is
-in tesla.
+in tesla. Magnet surfaces are opaque. The examples exclude magnet interiors
+before evaluating fields: heatmaps have gaps, arrows are omitted, and field lines
+terminate at the surfaces.
 
 Run from the repository root:
 

@@ -142,7 +142,8 @@ Dipoles, sensors, and custom collection components use point markers.
 Plots capture the objects' current geometry and poses in meters.
 Use the re-exported `magba::graphics::plotly` API to customize a plot.
 
-Magnet bodies are grey with red north and green south poles by default, using
+Magnet surfaces are opaque by default, with grey bodies, red north poles, and
+green south poles, using
 [Magpylib's DIN SPEC 91411 palette](https://magpylib.readthedocs.io/en/stable/_pages/user_guide/docs/docs_styles.html).
 Colors follow local polarization and rotate with the magnet. Neutral surfaces
 remain grey; curved surfaces have a grey equatorial belt.
@@ -168,6 +169,9 @@ cargo run --example graphics_showcase --features graphics-plotly
 
 ![Magba graphics showcase](examples/figures/graphics_showcase.png)
 
+The examples skip magnet interiors before computing fields. Interior heatmap
+samples appear as gaps, arrows are omitted, and streamlines stop at the surfaces.
+
 Sampling grids, reusable field slices, and adaptive trajectory integration live
 in `magba::graphics` and are available with `std`, without a rendering dependency.
 Plotly-specific rendering lives in `magba::graphics::plotly` and is enabled by
@@ -180,7 +184,8 @@ use magba::prelude::*;
 use magba::graphics::{FieldComponent, FieldGrid, Plane, QuiverOptions};
 
 let magnet = SphereMagnet::<f64>::default().with_diameter(0.02);
-let grid = FieldGrid::new(Plane::XZ, 0.0, [-0.04, 0.04], [-0.04, 0.04], [21, 21])
+// Sample a plane outside the sphere (y = 0.02 m).
+let grid = FieldGrid::new(Plane::XZ, 0.02, [-0.04, 0.04], [-0.04, 0.04], [21, 21])
     .expect("Valid grid");
 let slice = magnet.sample_field(&grid).expect("Valid sample positions");
 let mut plot = slice.heatmap(FieldComponent::Magnitude);

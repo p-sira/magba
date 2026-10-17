@@ -36,7 +36,7 @@
 //! use magba::graphics::{FieldComponent, FieldGrid, FieldLineOptions, Plane};
 //!
 //! let magnet = SphereMagnet::<f64>::default().with_diameter(0.02);
-//! let grid = FieldGrid::new(Plane::XZ, 0.0, [-0.04, 0.04], [-0.04, 0.04], [101, 101])?;
+//! let grid = FieldGrid::new(Plane::XZ, 0.02, [-0.04, 0.04], [-0.04, 0.04], [101, 101])?;
 //! let mut plot = magnet.plot_field_2d(&grid, FieldComponent::Magnitude)?;
 //! magnet.add_field_lines_2d(&mut plot, &grid, &[[0.015, 0.0]], FieldLineOptions {
 //!     step_size: 0.0003, max_steps: 800, ..Default::default()
@@ -156,7 +156,7 @@ fn surface<T: Float>(
         Some(faces.iter().map(|f| f[2]).collect()),
     )
     .name(name)
-    .opacity(0.65)
+    .opacity(if poles.is_some() { 1.0 } else { 0.65 })
     .show_legend(true);
     if let Some((polarization, scheme)) = poles {
         let (north, south) = scheme.poles();
