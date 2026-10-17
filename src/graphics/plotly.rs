@@ -3,7 +3,7 @@
  * Copyright 2026 Sira Pornsiriprasert <code@psira.me>
  */
 
-//! Interactive 3D visualization, enabled by the `graphics` feature.
+//! Interactive 3D visualization, enabled by the `graphics-plotly` feature.
 //!
 //! Scenes use SI units and preserve the relative scale of all three axes.
 //! HTML output embeds Plotly.js and can be viewed offline. Objects are snapshots;
@@ -21,7 +21,7 @@
 //! # Ok::<(), std::io::Error>(())
 //! ```
 //!
-//! The re-exported [`plotly`] API allows further layout and trace customization.
+//! The re-exported Plotly API allows further layout and trace customization.
 //! Sensors, dipoles, and custom collection components appear as point markers,
 //! since they have no physical dimensions. Implement [`Graphics`] for custom
 //! types to supply their own geometry when adding them directly to a plot.
@@ -45,20 +45,20 @@
 //! # Ok::<(), Box<dyn std::error::Error>>(())
 //! ```
 
-pub use plotly;
+pub use super::{
+    FieldComponent, FieldGrid, FieldLineOptions, FieldSampler, FieldSlice, GraphicsError,
+    MagnetColorScheme, Plane, QuiverOptions,
+};
+pub use ::plotly::*;
 
 mod field;
-pub use field::{
-    FieldComponent, FieldGraphics, FieldGrid, FieldLineOptions, FieldSlice, GraphicsError, Plane,
-    QuiverOptions,
-};
+pub use field::FieldGraphics;
 
-use nalgebra::{Point3, Vector3};
-use plotly::{
-    Layout, Mesh3D, Plot, Scatter3D,
+use ::plotly::{
     common::Mode,
     layout::{AspectMode, Axis, LayoutScene},
 };
+use nalgebra::{Point3, Vector3};
 
 use crate::{
     base::{Float, Observer, Source, Transform},
@@ -78,28 +78,6 @@ use crate::{
 };
 
 const SEGMENTS: usize = 48;
-
-/// Pole colors used for magnet surfaces. The uncharged body is always grey.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub enum MagnetColorScheme {
-    /// Red north and green south, following Magpylib's DIN SPEC 91411 palette.
-    #[default]
-    Din,
-    /// Orange north and blue south from the Okabe–Ito palette (`okabe-ito`).
-    OkabeIto,
-    /// Traditional red north and blue south (`trad`).
-    Trad,
-}
-
-impl MagnetColorScheme {
-    fn poles(self) -> (&'static str, &'static str) {
-        match self {
-            Self::Din => ("#e71111", "#00b050"),
-            Self::OkabeIto => ("#E69F00", "#0072B2"),
-            Self::Trad => ("red", "blue"),
-        }
-    }
-}
 
 /// Geometry that can be added to an interactive Plotly scene.
 ///

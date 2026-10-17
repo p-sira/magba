@@ -8,24 +8,24 @@ in tesla.
 Run from the repository root:
 
 ```sh
-cargo run --example field_2d --features graphics
-cargo run --example field_quiver --features graphics
-cargo run --example field_3d --features graphics
-cargo run --example field_cuboid --features graphics
-cargo run --example field_cylinder --features graphics
-cargo run --example field_tetrahedron --features graphics
-cargo run --example field_triangle --features graphics
-cargo run --example field_dipole --features graphics
-cargo run --example field_path_current --features graphics
-cargo run --example field_triangle_current --features graphics
-cargo run --example field_collection --features graphics
+cargo run --example field_2d --features graphics-plotly
+cargo run --example field_quiver --features graphics-plotly
+cargo run --example field_3d --features graphics-plotly
+cargo run --example field_cuboid --features graphics-plotly
+cargo run --example field_cylinder --features graphics-plotly
+cargo run --example field_tetrahedron --features graphics-plotly
+cargo run --example field_triangle --features graphics-plotly
+cargo run --example field_dipole --features graphics-plotly
+cargo run --example field_path_current --features graphics-plotly
+cargo run --example field_triangle_current --features graphics-plotly
+cargo run --example field_collection --features graphics-plotly
 ```
 
 Each command writes a matching HTML file in the current directory. Pass an output
 path as the first argument, for example:
 
 ```sh
-cargo run --example field_2d --features graphics -- /tmp/sphere.html
+cargo run --example field_2d --features graphics-plotly -- /tmp/sphere.html
 ```
 
 Use the plot toolbar's camera button to export a PNG. The figures below were
@@ -71,7 +71,7 @@ loop, tracing their total field. All share the output helper in `examples/common
 
 Magnet surfaces use grey for neutral faces, red for north, and green for south.
 The `graphics` example also shows the optional orange/blue (`OkabeIto`) and
-red/blue (`Trad`) palettes. Run it with `cargo run --example graphics --features graphics`.
+red/blue (`Trad`) palettes. Run it with `cargo run --example graphics --features graphics-plotly`.
 
 [Cuboid magnet source](../field_cuboid.rs)
 
@@ -104,3 +104,14 @@ red/blue (`Trad`) palettes. Run it with `cargo run --example graphics --features
 [Mixed source collection source](../field_collection.rs)
 
 ![Mixed source collection with 3D field lines](field_collection.png)
+
+## 2×2 graphics showcase
+
+[Source](../graphics_showcase.rs). Geometry, sensors, collections, heatmaps,
+normalized 2D/3D quivers, and field lines with direction arrowheads in one figure.
+
+```sh
+cargo run --example graphics_showcase --features graphics-plotly
+```
+
+![Magba graphics showcase](graphics_showcase.png)

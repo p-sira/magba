@@ -20,10 +20,14 @@ pub fn save(mut plot: Plot, title: &str, filename: &str) -> Result<(), Box<dyn s
                     .y(1.08),
             ),
     );
+    save_html(&plot.to_html(), filename)
+}
+
+pub fn save_html(html: &str, filename: &str) -> Result<(), Box<dyn std::error::Error>> {
     let path = std::env::args()
         .nth(1)
         .unwrap_or_else(|| filename.to_owned());
-    std::fs::write(&path, plot.to_html())?;
+    std::fs::write(&path, html)?;
     println!("Open {path} in a browser. Use the camera button to export a PNG figure.");
     Ok(())
 }

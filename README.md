@@ -69,7 +69,7 @@ The available feature flags are:
 - `rayon`: Parallelization using [Rayon](https://github.com/rayon-rs/rayon).
 - `mesh`: Enable mesh features, such as `MeshMagnet` and `SheetCurrent`.
 - `io-stl`: Enable STL mesh loading features.
-- `graphics`: Enable interactive 3D visualization with Plotly (requires `std`).
+- `graphics-plotly`: Enable interactive 3D visualization with Plotly (requires `std`).
 - `libm`: Use libm as the math backend. Must be enabled when compiling for `no_std`.
 - `unstable`: Enable unstable features. These features may change any time.
 
@@ -122,7 +122,7 @@ let b_fields = source_assembly.compute_B_batch(&points);
 
 ## Interactive 3D Graphics
 
-Enable visualization with `cargo add magba --features graphics`:
+Enable visualization with `cargo add magba --features graphics-plotly`:
 
 ```rust,no_run
 use magba::prelude::*;
@@ -156,7 +156,22 @@ let plot = magnets.plot_with_color_scheme(MagnetColorScheme::OkabeIto);
 // To add to an existing plot, use add_to_plot_with_color_scheme(&mut plot, scheme).
 ```
 
-Run `cargo run --example graphics --features graphics` for a combined scene.
+Run `cargo run --example graphics --features graphics-plotly` for a combined scene.
+
+The [2×2 showcase](examples/graphics_showcase.rs) combines source geometry, sensors,
+collections, field magnitude and component heatmaps, 2D/3D arrows, and directed
+streamlines in one interactive figure:
+
+```sh
+cargo run --example graphics_showcase --features graphics-plotly
+```
+
+![Magba graphics showcase](examples/figures/graphics_showcase.png)
+
+Sampling grids, reusable field slices, and adaptive trajectory integration live
+in `magba::graphics` and are available with `std`, without a rendering dependency.
+Plotly-specific rendering lives in `magba::graphics::plotly` and is enabled by
+`graphics-plotly`. Additional backends can reuse the sampling and tracing layer.
 
 Field plotting is available on every `Source`, including collections:
 
@@ -177,25 +192,26 @@ std::fs::write("field.html", plot.to_html()).expect("Cannot write field.html");
 Use `plot_field_2d` and `plot_quiver_2d` for direct plotting, or reuse a
 `FieldSlice` for several views without resampling. `plot_quiver` and
 `add_quiver` draw 3D arrows. `plot_field_lines` and `add_field_lines` trace 3D
-field lines; their `_2d` variants draw projected streamlines within a grid.
+field lines with direction arrowheads; their `_2d` variants draw projected
+streamlines within a grid.
 `trace_field_lines` returns the trajectory coordinates for further analysis.
 All helpers support `f32` and `f64` sources; plotting coordinates use `f64` meters.
 
 See [runnable examples and rendered figures](examples/figures/README.md):
 
-| Example | Plot | Run with `--features graphics` |
+| Example | Plot | Run with `--features graphics-plotly` |
 | --- | --- | --- |
-| [2D field](examples/field_2d.rs) | Magnitude heatmap and streamlines | `cargo run --example field_2d --features graphics` |
-| [Quiver](examples/field_quiver.rs) | Current-loop field arrows | `cargo run --example field_quiver --features graphics` |
-| [3D field](examples/field_3d.rs) | Source, field lines, and arrows | `cargo run --example field_3d --features graphics` |
-| [Cuboid](examples/field_cuboid.rs) | Geometry and 3D field lines | `cargo run --example field_cuboid --features graphics` |
-| [Cylinder](examples/field_cylinder.rs) | Geometry and 3D field lines | `cargo run --example field_cylinder --features graphics` |
-| [Tetrahedron](examples/field_tetrahedron.rs) | Geometry and 3D field lines | `cargo run --example field_tetrahedron --features graphics` |
-| [Triangle](examples/field_triangle.rs) | Geometry and 3D field lines | `cargo run --example field_triangle --features graphics` |
-| [Dipole](examples/field_dipole.rs) | Geometry and 3D field lines | `cargo run --example field_dipole --features graphics` |
-| [Path current](examples/field_path_current.rs) | Geometry and 3D field lines | `cargo run --example field_path_current --features graphics` |
-| [Triangle current](examples/field_triangle_current.rs) | Geometry and 3D field lines | `cargo run --example field_triangle_current --features graphics` |
-| [Source collection](examples/field_collection.rs) | Geometry and 3D field lines | `cargo run --example field_collection --features graphics` |
+| [2D field](examples/field_2d.rs) | Magnitude heatmap and streamlines | `cargo run --example field_2d --features graphics-plotly` |
+| [Quiver](examples/field_quiver.rs) | Current-loop field arrows | `cargo run --example field_quiver --features graphics-plotly` |
+| [3D field](examples/field_3d.rs) | Source, field lines, and arrows | `cargo run --example field_3d --features graphics-plotly` |
+| [Cuboid](examples/field_cuboid.rs) | Geometry and 3D field lines | `cargo run --example field_cuboid --features graphics-plotly` |
+| [Cylinder](examples/field_cylinder.rs) | Geometry and 3D field lines | `cargo run --example field_cylinder --features graphics-plotly` |
+| [Tetrahedron](examples/field_tetrahedron.rs) | Geometry and 3D field lines | `cargo run --example field_tetrahedron --features graphics-plotly` |
+| [Triangle](examples/field_triangle.rs) | Geometry and 3D field lines | `cargo run --example field_triangle --features graphics-plotly` |
+| [Dipole](examples/field_dipole.rs) | Geometry and 3D field lines | `cargo run --example field_dipole --features graphics-plotly` |
+| [Path current](examples/field_path_current.rs) | Geometry and 3D field lines | `cargo run --example field_path_current --features graphics-plotly` |
+| [Triangle current](examples/field_triangle_current.rs) | Geometry and 3D field lines | `cargo run --example field_triangle_current --features graphics-plotly` |
+| [Source collection](examples/field_collection.rs) | Geometry and 3D field lines | `cargo run --example field_collection --features graphics-plotly` |
 
 ## Testing
 

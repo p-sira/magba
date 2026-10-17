@@ -50,51 +50,55 @@ required-features = ["test-utils", "io-stl"]
 
 [[example]]
 name = "graphics"
-required-features = ["graphics"]
+required-features = ["graphics-plotly"]
 
 [[example]]
 name = "field_2d"
-required-features = ["graphics"]
+required-features = ["graphics-plotly"]
 
 [[example]]
 name = "field_quiver"
-required-features = ["graphics"]
+required-features = ["graphics-plotly"]
 
 [[example]]
 name = "field_3d"
-required-features = ["graphics"]
+required-features = ["graphics-plotly"]
 
 [[example]]
 name = "field_cuboid"
-required-features = ["graphics"]
+required-features = ["graphics-plotly"]
 
 [[example]]
 name = "field_cylinder"
-required-features = ["graphics"]
+required-features = ["graphics-plotly"]
 
 [[example]]
 name = "field_dipole"
-required-features = ["graphics"]
+required-features = ["graphics-plotly"]
 
 [[example]]
 name = "field_tetrahedron"
-required-features = ["graphics"]
+required-features = ["graphics-plotly"]
 
 [[example]]
 name = "field_triangle"
-required-features = ["graphics"]
+required-features = ["graphics-plotly"]
 
 [[example]]
 name = "field_path_current"
-required-features = ["graphics"]
+required-features = ["graphics-plotly"]
 
 [[example]]
 name = "field_triangle_current"
-required-features = ["graphics"]
+required-features = ["graphics-plotly"]
 
 [[example]]
 name = "field_collection"
-required-features = ["graphics"]
+required-features = ["graphics-plotly"]
+
+[[example]]
+name = "graphics_showcase"
+required-features = ["graphics-plotly"]
 
 [dependencies]
 concat-idents = "1.1.5"
@@ -144,7 +148,7 @@ alloc = ["nalgebra/alloc"]
 rayon = ["std", "dep:rayon", "nalgebra/rayon"]
 libm = ["ellip/libm", "num-traits/libm", "nalgebra/libm", "openmesh/libm"]
 mesh = ["alloc"]
-graphics = ["std", "dep:plotly"]
+graphics-plotly = ["std", "dep:plotly"]
 io-stl = ["mesh", "std", "openmesh/stl"]
 test-utils = ["std", "dep:csv", "dep:regex"]
 unstable = []

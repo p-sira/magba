@@ -1,4 +1,4 @@
-#![cfg(feature = "graphics")]
+#![cfg(feature = "graphics-plotly")]
 
 use magba::{
     graphics::{Graphics, plotly::Plot},

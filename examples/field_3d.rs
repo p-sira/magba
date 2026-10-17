@@ -12,7 +12,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let seeds: Vec<_> = (0..8)
         .flat_map(|i| {
             let angle = std::f64::consts::TAU * i as f64 / 8.0;
-            [0.014, 0.025, 0.034].map(|r| Point3::new(r * angle.cos(), r * angle.sin(), 0.0))
+            [0.014, 0.025].map(|r| Point3::new(r * angle.cos(), r * angle.sin(), 0.0))
         })
         .collect();
     let mut plot = magnet.plot();
