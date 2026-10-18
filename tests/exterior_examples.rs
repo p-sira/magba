@@ -2,7 +2,7 @@
 #[path = "../examples/graphics/common/exterior.rs"]
 mod exterior;
 
-use exterior::{Exterior, Interior};
+use exterior::{Interior, exterior};
 use magba::{
     base::Pose,
     graphics::{FieldGrid, FieldLineOptions, Plane},
@@ -47,7 +47,7 @@ impl Source<f64> for GuardedSource {
 #[test]
 fn excluded_points_never_reach_the_source_during_sampling_or_integration() {
     let calls = Arc::new(AtomicUsize::new(0));
-    let source = Exterior(GuardedSource {
+    let source = exterior(GuardedSource {
         pose: Pose::default(),
         calls: calls.clone(),
     });
@@ -79,7 +79,12 @@ fn excluded_points_never_reach_the_source_during_sampling_or_integration() {
         .trace_field_lines(&[Point3::new(2.0, 0.0, 0.0)], options)
         .unwrap();
     assert!(!paths.is_empty());
-    assert!(paths.iter().flatten().all(|&p| !source.0.contains(p)));
+    assert!(
+        paths
+            .iter()
+            .flatten()
+            .all(|&p| !source.source().contains(p))
+    );
 }
 
 #[test]

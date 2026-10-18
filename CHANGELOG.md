@@ -6,11 +6,18 @@
 
 **New Features**
 
+- Add reusable `FieldMask` exclusion predicates for sampling and tracing without evaluating masked positions.
+- Expose `FieldGrid` resolution, ranges, and offset for downstream renderers.
 - Add backend-independent field sampling and adaptive field-line tracing behind the optional `graphics` feature.
 - Blend magnet pole colors continuously across primitive and mesh faces, fading through a grey center along local polarization.
 - Add backend-independent fluent `GraphicsOptions` and borrowed `GraphicsView` for palettes, opacity, visibility, and curved-geometry resolution.
 - Preserve custom source and observer geometry in collections through explicit `custom_graphics` constructors.
 - Add optional `graphics-plotly` visualization for magnets, currents, sensors, and collections, with configurable pole colors, heatmaps, 2D/3D arrows, directed field lines, and offline HTML output.
+
+**Release Improvements**
+
+- Declare Rust 1.88 as the minimum supported version, verify it in CI, and include the changelog in published packages.
+- Correct `alloc`, `std`, and `no_std` feature guidance.
 
 **Documentations**
 

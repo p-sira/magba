@@ -12,6 +12,8 @@
 //!
 //! [`GraphicsOptions`] controls object appearance and [`GraphicsView`] stores
 //! options alongside a borrowed object. Neither type depends on Plotly.
+//! [`FieldMask`] excludes selected positions before evaluating a source, producing
+//! heatmap gaps and stopping field lines at excluded regions.
 //!
 //! # Example
 //!
@@ -43,6 +45,9 @@
 
 mod options;
 pub use options::{GraphicsOptions, GraphicsView};
+
+mod mask;
+pub use mask::FieldMask;
 
 mod field;
 pub use field::{

@@ -2,7 +2,7 @@
 #[path = "../common/mod.rs"]
 mod common;
 
-use common::exterior::Exterior;
+use common::exterior::exterior;
 
 use magba::graphics::plotly::{
     Scatter,
@@ -15,7 +15,7 @@ use magba::{
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let magnet = SphereMagnet::<f64>::default().with_diameter(0.02);
-    let magnet = Exterior(magnet);
+    let magnet = exterior(magnet);
     let grid = FieldGrid::new(Plane::XZ, 0.0, [-0.04, 0.04], [-0.04, 0.04], [181, 181])?;
     let mut plot = magnet.plot_field_2d(&grid, FieldComponent::Magnitude)?;
     let seeds: Vec<_> = [-1.0, 1.0]

@@ -2,7 +2,7 @@
 #[allow(dead_code)]
 mod common;
 
-use common::exterior::Exterior;
+use common::exterior::exterior;
 
 use magba::{
     graphics::{
@@ -19,7 +19,7 @@ use serde_json::{Value, json};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let sphere = SphereMagnet::<f64>::default().with_diameter(0.02);
-    let sphere = Exterior(sphere);
+    let sphere = exterior(sphere);
     let grid = FieldGrid::new(Plane::XZ, 0.0, [-0.035, 0.035], [-0.035, 0.035], [101, 101])?;
     let slice = sphere.sample_field(&grid)?;
     let lines = FieldLineOptions {
@@ -74,7 +74,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .with_diameter(0.06)
             .with_current(10.0),
     );
-    let collection = Exterior(collection);
+    let collection = exterior(collection);
     let mut combined = collection.plot();
     let arrows = FieldGrid::new(Plane::XY, 0.025, [-0.03, 0.03], [-0.03, 0.03], [6, 6])?;
     collection.add_quiver(

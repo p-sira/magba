@@ -2,7 +2,7 @@
 #[path = "../common/mod.rs"]
 mod common;
 
-use common::exterior::Exterior;
+use common::exterior::exterior;
 
 use magba::prelude::*;
 
@@ -10,7 +10,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let source = CylinderMagnet::<f64>::default()
         .with_diameter(0.02)
         .with_height(0.012);
-    let source = Exterior(source);
+    let source = exterior(source);
     common::field_scene(
         &source,
         0.04,

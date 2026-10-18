@@ -81,6 +81,17 @@ jobs:
         run: RUSTFLAGS="-D warnings" cargo hack test --feature-powerset
           --exclude-features libm,test_force_fail --features std
 
+  msrv:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install minimum supported Rust
+        run: rustup toolchain install 1.88.0 --profile minimal
+      - name: Check minimum supported Rust
+        run: |
+          cargo +1.88.0 check --locked --all-features --lib
+          cargo +1.88.0 check --locked --no-default-features --features libm --lib
+
   check-no-std:
     runs-on: ubuntu-latest
     steps:

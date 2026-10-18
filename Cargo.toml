@@ -26,9 +26,10 @@ documentation.workspace = true
 license.workspace = true
 
 edition = "2024"
+rust-version = "1.88"
 readme = "README.md"
 description = "Magnetic computation library for Rust"
-include = ["/src", "/LICENSE"]
+include = ["/src", "/LICENSE", "/CHANGELOG.md"]
 
 [[bench]]
 harness = false

@@ -78,6 +78,10 @@
 //!
 //! # Field plots
 //!
+//! Wrap a source in [`super::FieldMask`] to exclude positions before field
+//! evaluation. Heatmaps leave gaps, arrows are omitted, and integration stops
+//! before excluded positions. The wrapper preserves source geometry rendering.
+//!
 //! Every source implements [`FieldGraphics`], providing 2D heatmaps, 2D/3D quivers,
 //! and field lines. Sample a [`FieldGrid`] once to reuse its [`FieldSlice`]:
 //!

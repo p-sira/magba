@@ -1,65 +1,14 @@
-//! Skip magnet interiors before evaluating fields in the plotting examples.
-use magba::{
-    base::Pose,
-    graphics::{Graphics, GraphicsOptions, plotly::Plot},
-    prelude::*,
-};
-use nalgebra::{Matrix3, Point3, Vector3};
+//! Exclude magnet interiors using the public sampling and tracing mask.
+use magba::{graphics::FieldMask, prelude::*};
+use nalgebra::{Matrix3, Point3};
 
 pub trait Interior {
     fn contains(&self, point: Point3<f64>) -> bool;
 }
 
 /// Mark excluded samples as gaps and stop streamlines at magnet surfaces.
-#[derive(Clone)]
-pub struct Exterior<S>(pub S);
-
-impl<S: Transform<f64>> Transform<f64> for Exterior<S> {
-    fn pose(&self) -> &Pose {
-        self.0.pose()
-    }
-    fn pose_mut(&mut self) -> &mut Pose {
-        self.0.pose_mut()
-    }
-    fn set_pose(&mut self, pose: Pose) {
-        self.0.set_pose(pose);
-    }
-}
-
-impl<S: Source<f64> + Interior + Clone> Source<f64> for Exterior<S> {
-    fn relative_complexity(&self) -> usize {
-        self.0.relative_complexity()
-    }
-
-    fn compute_B(&self, point: Point3<f64>) -> Vector3<f64> {
-        if self.0.contains(point) {
-            Vector3::repeat(f64::NAN)
-        } else {
-            self.0.compute_B(point)
-        }
-    }
-
-    fn compute_B_batch(&self, points: &[Point3<f64>]) -> Vec<Vector3<f64>> {
-        let exterior: Vec<_> = points
-            .iter()
-            .enumerate()
-            .filter(|(_, p)| !self.0.contains(**p))
-            .collect();
-        let samples: Vec<_> = exterior.iter().map(|(_, p)| **p).collect();
-        let mut fields = vec![Vector3::repeat(f64::NAN); points.len()];
-        if !samples.is_empty() {
-            for ((index, _), field) in exterior.into_iter().zip(self.0.compute_B_batch(&samples)) {
-                fields[index] = field;
-            }
-        }
-        fields
-    }
-}
-
-impl<S: Graphics> Graphics for Exterior<S> {
-    fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
-        self.0.add_to_plot_with_options(plot, options);
-    }
+pub fn exterior<S: Interior>(source: S) -> FieldMask<S, impl Fn(&S, Point3<f64>) -> bool + Clone> {
+    FieldMask::new(source, |source: &S, point| source.contains(point))
 }
 
 impl Interior for SphereMagnet<f64> {

@@ -2,7 +2,7 @@
 #[path = "../common/mod.rs"]
 mod common;
 
-use common::exterior::Exterior;
+use common::exterior::exterior;
 
 use magba::{
     graphics::{FieldGrid, FieldLineOptions, Plane, QuiverOptions},
@@ -11,7 +11,7 @@ use magba::{
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let magnet = SphereMagnet::<f64>::default().with_diameter(0.02);
-    let magnet = Exterior(magnet);
+    let magnet = exterior(magnet);
     let seeds = common::sphere_field_seeds(8);
     let mut plot = magnet.plot();
     magnet.add_field_lines(

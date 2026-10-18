@@ -56,16 +56,17 @@ To install Magba using `cargo`, run:
 cargo add magba
 ```
 
+Magba requires Rust 1.88 or later.
+
 By default, Magba enables `std`, `rayon`, and `mesh`. Graphics and file I/O are opt-in.
 
 ### Feature Flags
 
 The available feature flags are:
 - `default`: Enable std, rayon, and mesh.
-- `alloc`: Enable heap allocations, allowing collections and batch processing without the full `std` library.
-- `std`: Use std features, such as magnet and sources structs.
-  Disable the flag to use Magba in `no_std` environments. Without std,
-  you can still access the `fields` module to directly compute the fields.
+- `alloc`: Enable heap allocations for batch processing and `PathCurrent` without the full `std` library.
+- `std`: Enable source and observer collections and dynamically cloned trait objects (enables `alloc`).
+  Disable default features and enable `libm` for `no_std`; magnet, current, and sensor structs remain available, subject to their feature requirements.
 - `rayon`: Parallelization using [Rayon](https://github.com/rayon-rs/rayon).
 - `mesh`: Enable mesh features, such as `MeshMagnet` and `SheetCurrent`.
 - `io-stl`: Enable STL mesh loading features.

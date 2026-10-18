@@ -2,7 +2,7 @@
 #[path = "../common/mod.rs"]
 mod common;
 
-use common::exterior::Exterior;
+use common::exterior::exterior;
 
 use magba::prelude::*;
 use nalgebra::Vector3;
@@ -14,7 +14,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Vector3::new(0.0, 0.01, -0.006),
         Vector3::new(0.0, 0.0, 0.01),
     ]);
-    let source = Exterior(source);
+    let source = exterior(source);
     common::field_scene(
         &source,
         0.04,

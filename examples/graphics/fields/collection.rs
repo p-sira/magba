@@ -2,7 +2,7 @@
 #[path = "../common/mod.rs"]
 mod common;
 
-use common::exterior::Exterior;
+use common::exterior::exterior;
 
 use magba::{prelude::*, sources};
 
@@ -20,7 +20,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .with_diameter(0.06)
             .with_current(10.0),
     );
-    let sources = Exterior(sources);
+    let sources = exterior(sources);
     common::field_scene(
         &sources,
         0.08,

@@ -105,6 +105,26 @@ impl FieldGrid {
         self.plane
     }
 
+    /// Fixed world-space coordinate normal to the plane, in meters.
+    pub fn offset(&self) -> f64 {
+        self.offset
+    }
+
+    /// Inclusive horizontal range in meters.
+    pub fn horizontal(&self) -> [f64; 2] {
+        self.horizontal
+    }
+
+    /// Inclusive vertical range in meters.
+    pub fn vertical(&self) -> [f64; 2] {
+        self.vertical
+    }
+
+    /// Sample counts as `[columns, rows]`.
+    pub fn resolution(&self) -> [usize; 2] {
+        self.resolution
+    }
+
     /// World-space sample positions, ordered by rows, then columns.
     pub fn points(&self) -> Vec<Point3<f64>> {
         let [x, y] = self.axes();
