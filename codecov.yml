@@ -5,8 +5,8 @@ coverage:
   status:
     project:
       default:
-        target: auto
-        threshold: 1%
+        target: 99.1%
+        threshold: 0%
     patch:
       default:
         target: auto
@@ -15,6 +15,8 @@ coverage:
 ignore:
   - "benches/**/*"
   - "examples/**/*"
+  - "tests/**/*"
+  - "src/**/tests.rs"
   - "src/testing_util.rs"
 
 comment:

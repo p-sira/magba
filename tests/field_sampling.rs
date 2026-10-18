@@ -85,3 +85,46 @@ fn mask_preserves_grid_order_and_stops_tracing_before_excluded_positions() {
         source.source().pose().position()
     );
 }
+
+#[test]
+fn mask_delegates_pose_and_complexity_and_follows_pose_changes() {
+    let magnet = Dipole::<f64>::default();
+    let mut masked = FieldMask::new(magnet.clone(), |s: &Dipole, p: Point3<f64>| {
+        p.x <= s.position().x
+    });
+    assert_eq!(masked.relative_complexity(), magnet.relative_complexity());
+    assert_eq!(masked.pose(), magnet.pose());
+
+    let pose = *magnet.with_position([2.0, 0.0, 0.0]).pose();
+    masked.set_pose(pose);
+    assert_eq!(*masked.pose(), pose);
+    assert!(
+        masked
+            .compute_B(Point3::new(1.0, 1.0, 1.0))
+            .iter()
+            .all(|v| v.is_nan())
+    );
+    masked.pose_mut().set_position([0.0; 3]);
+    let point = Point3::new(1.0, 1.0, 1.0);
+    assert_eq!(masked.compute_B(point), masked.source().compute_B(point));
+}
+
+#[cfg(feature = "graphics-plotly")]
+#[test]
+fn mask_preserves_geometry_and_rendering_options() {
+    use magba::graphics::GraphicsOptions;
+
+    let magnet = CuboidMagnet::<f64>::default().with_position([1.0, 2.0, 3.0]);
+    let masked = FieldMask::new(magnet.clone(), |_: &CuboidMagnet, _: Point3<f64>| true);
+    let options = GraphicsOptions::default().with_opacity(0.25);
+    assert_eq!(
+        masked.plot_with_options(&options).to_json(),
+        magnet.plot_with_options(&options).to_json()
+    );
+    assert!(
+        masked
+            .compute_B(Point3::origin())
+            .iter()
+            .all(|v| v.is_nan())
+    );
+}
