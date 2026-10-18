@@ -8,6 +8,10 @@
 //! Available with `std`. Enable `graphics-plotly` for interactive Plotly rendering
 //! through the `plotly` module. Future renderers can reuse `FieldSampler` and
 //! `FieldSlice` without depending on Plotly.
+//!
+//! With `graphics-plotly`, `GraphicsOptions` controls object appearance and
+//! `GraphicsView` stores options alongside a borrowed graphical object. See
+//! `graphics::plotly` for scenes, custom collection geometry, and field-plot examples.
 
 mod field;
 pub use field::{
@@ -18,7 +22,9 @@ pub use field::{
 #[cfg(feature = "graphics-plotly")]
 pub mod plotly;
 #[cfg(feature = "graphics-plotly")]
-pub use plotly::{FieldGraphics, Graphics};
+pub use plotly::{
+    FieldGraphics, Graphics, GraphicsObserver, GraphicsOptions, GraphicsSource, GraphicsView,
+};
 
 /// Pole colors used for magnet surfaces, fading to grey as surface charge vanishes.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]

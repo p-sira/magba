@@ -1,7 +1,7 @@
 #![cfg(feature = "graphics-plotly")]
 
 use magba::{
-    graphics::{Graphics, plotly::Plot},
+    graphics::{Graphics, GraphicsOptions, GraphicsView, plotly::Plot},
     prelude::*,
     sensors::hall_effect::{HallLatch, HallSwitch, LinearHallSensor},
     sources,
@@ -140,6 +140,12 @@ fn mesh_objects_use_supplied_triangles_and_world_pose() {
     let sheet = SheetCurrent::<f64>::default()
         .with_mesh(mesh)
         .with_position([2.0, 3.0, 4.0]);
+    let options = GraphicsOptions::default().with_opacity(0.25);
+    for object in [&magnet as &dyn Graphics, &sheet] {
+        let plot: Value =
+            serde_json::from_str(&object.plot_with_options(&options).to_json()).unwrap();
+        assert_eq!(plot["data"][0]["opacity"], 0.25);
+    }
     for plot in [data(&magnet), data(&sheet)] {
         assert_eq!(plot["data"][0]["x"], json!([2.0, 3.0, 2.0]));
         assert_eq!(plot["data"][0]["i"], json!([0]));
@@ -192,8 +198,12 @@ fn optional_palettes_propagate_through_nested_collections_and_arrays() {
         (MagnetColorScheme::OkabeIto, "#E69F00", "#0072B2"),
         (MagnetColorScheme::Trad, "red", "blue"),
     ] {
-        let plot: Value =
-            serde_json::from_str(&assembly.plot_with_color_scheme(scheme).to_json()).unwrap();
+        let plot: Value = serde_json::from_str(
+            &assembly
+                .plot_with_options(&GraphicsOptions::default().with_color_scheme(scheme))
+                .to_json(),
+        )
+        .unwrap();
         for trace in plot["data"].as_array().unwrap() {
             let colors = trace["facecolor"].as_array().unwrap();
             for color in [north, south, "grey"] {
@@ -201,8 +211,12 @@ fn optional_palettes_propagate_through_nested_collections_and_arrays() {
             }
         }
         let array = SourceArray::from([SphereMagnet::<f64>::default()]);
-        let plot: Value =
-            serde_json::from_str(&array.plot_with_color_scheme(scheme).to_json()).unwrap();
+        let plot: Value = serde_json::from_str(
+            &array
+                .plot_with_options(&GraphicsOptions::default().with_color_scheme(scheme))
+                .to_json(),
+        )
+        .unwrap();
         let colors = plot["data"][0]["vertexcolor"].as_array().unwrap();
         assert!(colors.iter().any(|c| c == north));
         assert!(colors.iter().any(|c| c == south));
@@ -228,22 +242,34 @@ fn pole_colors_ease_from_a_grey_belt_to_full_color() {
         ),
         (MagnetColorScheme::Trad, "rgb(175,81,81)", "rgb(81,81,175)"),
     ] {
-        let plot: Value =
-            serde_json::from_str(&magnet.plot_with_color_scheme(scheme).to_json()).unwrap();
+        let plot: Value = serde_json::from_str(
+            &magnet
+                .plot_with_options(&GraphicsOptions::default().with_color_scheme(scheme))
+                .to_json(),
+        )
+        .unwrap();
         let colors = plot["data"][0]["facecolor"].as_array().unwrap();
         assert_eq!(colors[6], north);
         assert!(colors.iter().any(|color| color == south));
         assert!(colors.iter().any(|color| color == "grey"));
         let scaled = magnet.clone().with_polarization([5.0, 0.0, 10.0]);
-        let scaled_plot: Value =
-            serde_json::from_str(&scaled.plot_with_color_scheme(scheme).to_json()).unwrap();
+        let scaled_plot: Value = serde_json::from_str(
+            &scaled
+                .plot_with_options(&GraphicsOptions::default().with_color_scheme(scheme))
+                .to_json(),
+        )
+        .unwrap();
         assert_eq!(
             scaled_plot["data"][0]["facecolor"],
             plot["data"][0]["facecolor"]
         );
         let near_neutral = magnet.clone().with_polarization([0.1, 0.0, 1.0]);
-        let neutral_plot: Value =
-            serde_json::from_str(&near_neutral.plot_with_color_scheme(scheme).to_json()).unwrap();
+        let neutral_plot: Value = serde_json::from_str(
+            &near_neutral
+                .plot_with_options(&GraphicsOptions::default().with_color_scheme(scheme))
+                .to_json(),
+        )
+        .unwrap();
         assert_eq!(neutral_plot["data"][0]["facecolor"][6], "grey");
         assert_eq!(neutral_plot["data"][0]["facecolor"][10], "grey");
         assert_eq!(
@@ -355,4 +381,212 @@ fn mesh_enums_render_faces_and_empty_meshes_are_omitted() {
     assert_eq!(data(&current)["data"][0]["opacity"], 0.65);
     assert_eq!(data(&MeshMagnet::<f64>::default())["data"], json!([]));
     assert_eq!(data(&SheetCurrent::<f64>::default())["data"], json!([]));
+}
+
+#[test]
+fn options_and_views_propagate_through_all_geometry_kinds() {
+    let sources = sources!(
+        sources!(CylinderMagnet::<f64>::default()),
+        CircularCurrent::default(),
+        Dipole::default(),
+    );
+    let mut options = GraphicsOptions::default().with_segments(12);
+    options.set_opacity(0.4);
+    options.set_color_scheme(magba::graphics::MagnetColorScheme::Trad);
+    let expected = sources.plot_with_options(&options).to_json();
+    let view = GraphicsView::new(&sources)
+        .with_segments(12)
+        .with_opacity(0.4)
+        .with_color_scheme(magba::graphics::MagnetColorScheme::Trad);
+    assert_eq!(view.plot().to_json(), expected);
+    assert_eq!(view.options(), &options);
+    let value: Value = serde_json::from_str(&expected).unwrap();
+    let traces = value["data"].as_array().unwrap();
+    assert_eq!(traces.len(), 3);
+    for trace in traces {
+        assert_eq!(trace["opacity"], 0.4);
+    }
+    assert_eq!(traces[0]["x"].as_array().unwrap().len(), 26);
+    assert_eq!(traces[1]["x"].as_array().unwrap().len(), 13);
+    assert!(
+        traces[0]["facecolor"]
+            .as_array()
+            .unwrap()
+            .contains(&json!("red"))
+    );
+
+    let mut plot = sources.plot();
+    let original = plot.to_json();
+    GraphicsView::new(&sources)
+        .with_visible(false)
+        .add_to_plot(&mut plot);
+    assert_eq!(plot.to_json(), original);
+    let hidden = options.with_visible(false);
+    sources.add_to_plot_with_options(&mut plot, &hidden);
+    assert_eq!(plot.to_json(), original);
+    assert_eq!(
+        serde_json::from_str::<Value>(&sources.plot_with_options(&hidden).to_json()).unwrap()["data"],
+        json!([])
+    );
+
+    let array = SourceArray::from([CuboidMagnet::<f64>::default()]);
+    let observers = ObserverArray::from([LinearHallSensor::<f64>::default()]);
+    let observer_assembly = ObserverAssembly::from([LinearHallSensor::<f64>::default()]);
+    for object in [&array as &dyn Graphics, &observers, &observer_assembly] {
+        let plot = object.plot_with_options(&options);
+        let value: Value = serde_json::from_str(&plot.to_json()).unwrap();
+        assert_eq!(value["data"][0]["opacity"], 0.4);
+        assert_eq!(
+            object.plot().to_json(),
+            object
+                .plot_with_options(&GraphicsOptions::default())
+                .to_json()
+        );
+    }
+
+    let sphere = SphereMagnet::<f32>::default();
+    let erased: &dyn Graphics<f32> = &sphere;
+    let view = GraphicsView::new(erased).with_options(options.with_segments(6));
+    let value: Value = serde_json::from_str(&view.plot().to_json()).unwrap();
+    assert_eq!(value["data"][0]["x"].as_array().unwrap().len(), 14);
+    let mut appended = Plot::new();
+    view.add_to_plot(&mut appended);
+    assert_eq!(
+        serde_json::from_str::<Value>(&appended.to_json()).unwrap()["data"],
+        value["data"]
+    );
+}
+
+#[test]
+fn invalid_options_are_rejected_before_any_traces_are_added() {
+    for options in [
+        GraphicsOptions::default().with_opacity(f64::NAN),
+        GraphicsOptions::default().with_opacity(f64::INFINITY),
+        GraphicsOptions::default().with_opacity(-0.1),
+        GraphicsOptions::default().with_opacity(1.1),
+        GraphicsOptions::default().with_segments(5),
+    ] {
+        for visible in [false, true] {
+            let options = options.with_visible(visible);
+            let mut plot = Plot::new();
+            let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                SourceAssembly::<f64>::default().add_to_plot_with_options(&mut plot, &options);
+            }));
+            assert!(result.is_err());
+            assert_eq!(
+                serde_json::from_str::<Value>(&plot.to_json()).unwrap()["data"],
+                json!([])
+            );
+            assert!(
+                std::panic::catch_unwind(|| GraphicsView::new(&Dipole::<f64>::default())
+                    .with_options(options)
+                    .plot())
+                .is_err()
+            );
+        }
+    }
+    for opacity in [0.0, 1.0] {
+        GraphicsOptions::default().with_opacity(opacity).validate();
+    }
+}
+
+#[derive(Clone)]
+struct Custom<S>(S);
+
+impl<S: Transform<f64>> Transform<f64> for Custom<S> {
+    fn pose(&self) -> &magba::base::Pose {
+        self.0.pose()
+    }
+    fn pose_mut(&mut self) -> &mut magba::base::Pose {
+        self.0.pose_mut()
+    }
+    fn set_pose(&mut self, pose: magba::base::Pose) {
+        self.0.set_pose(pose);
+    }
+}
+
+impl<S: Source<f64> + Clone> Source<f64> for Custom<S> {
+    delegate::delegate! {
+        to self.0 {
+            fn compute_B(&self, point: nalgebra::Point3<f64>) -> Vector3<f64>;
+            fn compute_B_batch(&self, points: &[nalgebra::Point3<f64>]) -> Vec<Vector3<f64>>;
+            fn relative_complexity(&self) -> usize;
+            fn format(&self, f: &mut core::fmt::Formatter<'_>, indent: &str) -> core::fmt::Result;
+        }
+    }
+}
+
+impl<S: Observer<f64> + Clone> Observer<f64> for Custom<S> {
+    fn read(&self, source: &dyn Source<f64>) -> magba::base::SensorOutput {
+        self.0.read(source)
+    }
+    fn format(&self, f: &mut core::fmt::Formatter<'_>, indent: &str) -> core::fmt::Result {
+        self.0.format(f, indent)
+    }
+}
+
+impl<S: Graphics> Graphics for Custom<S> {
+    fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
+        self.0.add_to_plot_with_options(plot, options);
+    }
+}
+
+#[test]
+fn custom_collection_geometry_survives_cloning_and_transforms() {
+    let magnet = CylinderMagnet::<f64>::default();
+    let source = SourceComponent::custom_graphics(Custom(magnet.clone()));
+    assert_ne!(source, source.clone());
+    assert_eq!(source.relative_complexity(), magnet.relative_complexity());
+    let point = nalgebra::point![2.0, 3.0, 4.0];
+    assert_eq!(source.compute_B(point), magnet.compute_B(point));
+    assert_eq!(
+        source.compute_B_batch(&[point]),
+        magnet.compute_B_batch(&[point])
+    );
+    assert_eq!(
+        format!("{}", &source as &dyn Source<f64>),
+        format!("{magnet}")
+    );
+    let mut actual = sources!(sources!(source)).clone();
+    let mut expected = sources!(sources!(magnet));
+    let rotation = UnitQuaternion::from_axis_angle(&Vector3::y_axis(), 0.7);
+    actual.rotate(rotation);
+    expected.rotate(rotation);
+    actual.translate([1.0, 2.0, 3.0]);
+    expected.translate([1.0, 2.0, 3.0]);
+    let options = GraphicsOptions::default()
+        .with_opacity(0.3)
+        .with_segments(10);
+    assert_eq!(
+        actual.plot_with_options(&options).to_json(),
+        expected.plot_with_options(&options).to_json()
+    );
+    assert_eq!(actual.compute_B(point), expected.compute_B(point));
+
+    let sensor = LinearHallSensor::<f64>::default();
+    let observer = ObserverComponent::custom_graphics(Custom(sensor.clone()));
+    assert_ne!(observer, observer.clone());
+    assert_eq!(observer.read(&expected), sensor.read(&expected));
+    assert_eq!(
+        format!("{}", &observer as &dyn Observer<f64>),
+        format!("{sensor}")
+    );
+    let mut actual = ObserverAssembly::from([observer]).clone();
+    let mut expected_observers = ObserverAssembly::from([sensor]);
+    actual.rotate(rotation);
+    expected_observers.rotate(rotation);
+    actual.translate([2.0, 3.0, 4.0]);
+    expected_observers.translate([2.0, 3.0, 4.0]);
+    assert_eq!(
+        actual.plot_with_options(&options).to_json(),
+        expected_observers.plot_with_options(&options).to_json()
+    );
+    assert_eq!(
+        actual.components().next().unwrap().read(&expected),
+        expected_observers
+            .components()
+            .next()
+            .unwrap()
+            .read(&expected)
+    );
 }

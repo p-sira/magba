@@ -27,6 +27,27 @@ use crate::{
 pub enum ObserverComponent<T: Float = f64> {
     Sensor(Sensor<T>),
     Custom(Box<dyn Observer<T>>),
+    /// Custom physical object retaining its graphics inside collections.
+    #[cfg(feature = "graphics-plotly")]
+    CustomGraphics(Box<dyn crate::graphics::GraphicsObserver<T>>),
+}
+
+impl<T: Float> ObserverComponent<T> {
+    /// Preserve a custom object's geometry when rendering a collection.
+    /// Ordinary `Custom` components use a point marker instead.
+    ///
+    /// ```
+    /// # use magba::prelude::*;
+    /// # use magba::sensors::hall_effect::LinearHallSensor;
+    /// let object = LinearHallSensor::<f64>::default();
+    /// // The same constructor accepts your own Observer + Graphics implementation.
+    /// let component = ObserverComponent::custom_graphics(object);
+    /// let plot = component.plot();
+    /// ```
+    #[cfg(feature = "graphics-plotly")]
+    pub fn custom_graphics(object: impl crate::graphics::GraphicsObserver<T> + 'static) -> Self {
+        Self::CustomGraphics(Box::new(object))
+    }
 }
 
 impl<T: Float> PartialEq for ObserverComponent<T> {

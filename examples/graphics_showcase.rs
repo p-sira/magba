@@ -6,7 +6,8 @@ use common::exterior::Exterior;
 
 use magba::{
     graphics::{
-        FieldComponent, FieldGrid, FieldLineOptions, MagnetColorScheme, Plane, QuiverOptions,
+        FieldComponent, FieldGrid, FieldLineOptions, GraphicsOptions, MagnetColorScheme, Plane,
+        QuiverOptions,
         plotly::{
             Plot, Scatter,
             common::{Line, Mode},
@@ -75,7 +76,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .with_current(10.0),
     );
     let collection = Exterior(collection);
-    let mut combined = collection.plot_with_color_scheme(MagnetColorScheme::OkabeIto);
+    let mut combined = collection.plot_with_options(
+        &GraphicsOptions::default().with_color_scheme(MagnetColorScheme::OkabeIto),
+    );
     let arrows = FieldGrid::new(Plane::XY, 0.025, [-0.03, 0.03], [-0.03, 0.03], [6, 6])?;
     collection.add_quiver(
         &mut combined,

@@ -34,6 +34,26 @@ pub enum SourceComponent<T: Float = f64> {
     Current(Current<T>),
     Assembly(SourceAssembly<T>),
     Custom(Box<dyn Source<T>>),
+    /// Custom physical object retaining its graphics inside collections.
+    #[cfg(feature = "graphics-plotly")]
+    CustomGraphics(Box<dyn crate::graphics::GraphicsSource<T>>),
+}
+
+impl<T: Float> SourceComponent<T> {
+    /// Preserve a custom object's geometry when rendering a collection.
+    /// Ordinary `Custom` components use a point marker instead.
+    ///
+    /// ```
+    /// # use magba::prelude::*;
+    /// let object = CylinderMagnet::<f64>::default();
+    /// // The same constructor accepts your own Source + Graphics implementation.
+    /// let component = SourceComponent::custom_graphics(object);
+    /// let plot = component.plot();
+    /// ```
+    #[cfg(feature = "graphics-plotly")]
+    pub fn custom_graphics(object: impl crate::graphics::GraphicsSource<T> + 'static) -> Self {
+        Self::CustomGraphics(Box::new(object))
+    }
 }
 
 impl<T: Float> PartialEq for SourceComponent<T> {

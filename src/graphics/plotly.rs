@@ -22,9 +22,28 @@
 //! ```
 //!
 //! The re-exported Plotly API allows further layout and trace customization.
-//! Sensors, dipoles, and custom collection components appear as point markers,
-//! since they have no physical dimensions. Implement [`Graphics`] for custom
-//! types to supply their own geometry when adding them directly to a plot.
+//! Sensors, dipoles, and ordinary custom collection components appear as markers.
+//! Use [`SourceComponent::custom_graphics`] or [`ObserverComponent::custom_graphics`]
+//! to retain custom [`Graphics`] implementations inside collections.
+//!
+//! # Appearance and borrowed views
+//!
+//! ```
+//! use magba::{graphics::{GraphicsOptions, GraphicsView, MagnetColorScheme}, prelude::*};
+//! let magnet = CylinderMagnet::<f64>::default();
+//! let options = GraphicsOptions::default()
+//!     .with_color_scheme(MagnetColorScheme::OkabeIto)
+//!     .with_opacity(0.5)
+//!     .with_segments(96);
+//! let mut plot = magnet.plot_with_options(&options);
+//! let view = GraphicsView::new(&magnet).with_options(options);
+//! view.add_to_plot(&mut plot);
+//! ```
+//!
+//! Options apply to geometry and propagate through collections. Views borrow an
+//! object and store its appearance; recreate them after modifying the object.
+//! Rendering validates options even when visibility is disabled. Field plots
+//! retain their separate options.
 //!
 //! # Field plots
 //!
@@ -77,36 +96,41 @@ use crate::{
     },
 };
 
-const SEGMENTS: usize = 48;
+mod options;
+pub use options::{GraphicsOptions, GraphicsView};
+mod custom;
+pub use custom::{GraphicsObserver, GraphicsSource};
 
 /// Geometry that can be added to an interactive Plotly scene.
 ///
-/// Implementations convert local geometry to world coordinates before adding it.
-/// Collections already store components in world coordinates, so their parent
-/// transform is not applied a second time.
+/// Implementations convert local geometry to world coordinates. Collections already
+/// store world coordinates; do not apply their parent transform a second time.
+/// Custom renderers must validate options and honor visibility before adding traces.
 pub trait Graphics<T: Float = f64> {
-    /// Append this object's traces without changing the plot's layout.
-    fn add_to_plot(&self, plot: &mut Plot);
+    /// Append traces using default options, preserving the plot layout.
+    fn add_to_plot(&self, plot: &mut Plot) {
+        self.add_to_plot_with_options(plot, &GraphicsOptions::default());
+    }
 
-    /// Append traces using the chosen magnet pole palette.
+    /// Append traces with the supplied appearance, preserving the plot layout.
     ///
-    /// Custom implementations can override this to support palette selection.
-    fn add_to_plot_with_color_scheme(&self, plot: &mut Plot, _scheme: MagnetColorScheme) {
-        self.add_to_plot(plot);
-    }
+    /// # Panics
+    /// Panics if opacity is nonfinite or outside `[0, 1]`, or segments is below six.
+    fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions);
 
-    /// Create a scene using the chosen magnet pole palette, including collections.
-    fn plot_with_color_scheme(&self, scheme: MagnetColorScheme) -> Plot {
+    /// Create a scene with the supplied appearance and equal axis scales in meters.
+    fn plot_with_options(&self, options: &GraphicsOptions) -> Plot {
+        options.validate();
         let mut plot = scene();
-        self.add_to_plot_with_color_scheme(&mut plot, scheme);
+        if options.visible() {
+            self.add_to_plot_with_options(&mut plot, options);
+        }
         plot
     }
 
-    /// Create an interactive scene with equal axis scales and axes in meters.
+    /// Create an interactive scene using default appearance.
     fn plot(&self) -> Plot {
-        let mut plot = scene();
-        self.add_to_plot(&mut plot);
-        plot
+        self.plot_with_options(&GraphicsOptions::default())
     }
 }
 
@@ -148,6 +172,7 @@ fn surface<T: Float>(
     faces: &[[usize; 3]],
     name: &str,
     poles: Option<SurfacePoles<'_, T>>,
+    options: &GraphicsOptions,
 ) {
     if faces.is_empty() {
         return;
@@ -162,7 +187,11 @@ fn surface<T: Float>(
         Some(faces.iter().map(|f| f[2]).collect()),
     )
     .name(name)
-    .opacity(if poles.is_some() { 1.0 } else { 0.65 })
+    .opacity(
+        options
+            .opacity()
+            .unwrap_or(if poles.is_some() { 1.0 } else { 0.65 }),
+    )
     .show_legend(true);
     if let Some(SurfacePoles {
         polarization,
@@ -232,6 +261,7 @@ fn line<T: Float>(
     object: &impl Transform<T>,
     vertices: &[Vector3<T>],
     name: &str,
+    options: &GraphicsOptions,
 ) {
     if vertices.is_empty() {
         return;
@@ -239,13 +269,19 @@ fn line<T: Float>(
     let [x, y, z] = coordinates(object, vertices);
     plot.add_trace(
         Scatter3D::new(x, y, z)
+            .opacity(options.opacity().unwrap_or(1.0))
             .mode(Mode::Lines)
             .line(Line::new().width(6.0))
             .name(name),
     );
 }
 
-fn marker<T: Float>(plot: &mut Plot, object: &(impl Transform<T> + ?Sized), name: &str) {
+fn marker<T: Float>(
+    plot: &mut Plot,
+    object: &(impl Transform<T> + ?Sized),
+    name: &str,
+    options: &GraphicsOptions,
+) {
     let p = object.pose().position();
     plot.add_trace(
         Scatter3D::new(
@@ -253,6 +289,7 @@ fn marker<T: Float>(plot: &mut Plot, object: &(impl Transform<T> + ?Sized), name
             vec![p.y.to_f64().unwrap_or(f64::NAN)],
             vec![p.z.to_f64().unwrap_or(f64::NAN)],
         )
+        .opacity(options.opacity().unwrap_or(1.0))
         .mode(Mode::Markers)
         .name(name),
     );
@@ -263,11 +300,11 @@ fn scalar<T: Float>(n: f64) -> T {
 }
 
 impl<T: Float> Graphics<T> for CuboidMagnet<T> {
-    fn add_to_plot(&self, plot: &mut Plot) {
-        self.add_to_plot_with_color_scheme(plot, MagnetColorScheme::default());
-    }
-
-    fn add_to_plot_with_color_scheme(&self, plot: &mut Plot, scheme: MagnetColorScheme) {
+    fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
+        options.validate();
+        if !options.visible() {
+            return;
+        }
         let half = self.dimensions() / scalar::<T>(2.0);
         let vertices: Vec<_> = [
             (-1., -1., -1.),
@@ -309,17 +346,18 @@ impl<T: Float> Graphics<T> for CuboidMagnet<T> {
             "Cuboid magnet",
             Some(SurfacePoles {
                 polarization: self.polarization(),
-                scheme,
+                scheme: options.color_scheme(),
                 vertex_normals: None,
             }),
+            options,
         );
     }
 }
 
-fn ring<T: Float>(radius: T, height: T) -> Vec<Vector3<T>> {
-    (0..SEGMENTS)
+fn ring<T: Float>(radius: T, height: T, segments: usize) -> Vec<Vector3<T>> {
+    (0..segments)
         .map(|i| {
-            let angle = std::f64::consts::TAU * i as f64 / SEGMENTS as f64;
+            let angle = std::f64::consts::TAU * i as f64 / segments as f64;
             Vector3::new(
                 radius * scalar::<T>(angle.cos()),
                 radius * scalar::<T>(angle.sin()),
@@ -330,27 +368,31 @@ fn ring<T: Float>(radius: T, height: T) -> Vec<Vector3<T>> {
 }
 
 impl<T: Float> Graphics<T> for CylinderMagnet<T> {
-    fn add_to_plot(&self, plot: &mut Plot) {
-        self.add_to_plot_with_color_scheme(plot, MagnetColorScheme::default());
-    }
-
-    fn add_to_plot_with_color_scheme(&self, plot: &mut Plot, scheme: MagnetColorScheme) {
+    fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
+        options.validate();
+        if !options.visible() {
+            return;
+        }
         let half = self.height() / scalar::<T>(2.0);
         let radius = self.diameter() / scalar::<T>(2.0);
-        let mut vertices = ring(radius, -half);
-        vertices.extend(ring(radius, half));
+        let mut vertices = ring(radius, -half, options.segments());
+        vertices.extend(ring(radius, half, options.segments()));
         vertices.extend([
             Vector3::new(T::zero(), T::zero(), -half),
             Vector3::new(T::zero(), T::zero(), half),
         ]);
-        let mut faces = Vec::with_capacity(4 * SEGMENTS);
-        for i in 0..SEGMENTS {
-            let j = (i + 1) % SEGMENTS;
+        let mut faces = Vec::with_capacity(4 * options.segments());
+        for i in 0..options.segments() {
+            let j = (i + 1) % options.segments();
             faces.extend([
-                [i, j, j + SEGMENTS],
-                [i, j + SEGMENTS, i + SEGMENTS],
-                [2 * SEGMENTS, j, i],
-                [2 * SEGMENTS + 1, i + SEGMENTS, j + SEGMENTS],
+                [i, j, j + options.segments()],
+                [i, j + options.segments(), i + options.segments()],
+                [2 * options.segments(), j, i],
+                [
+                    2 * options.segments() + 1,
+                    i + options.segments(),
+                    j + options.segments(),
+                ],
             ]);
         }
         surface(
@@ -361,41 +403,43 @@ impl<T: Float> Graphics<T> for CylinderMagnet<T> {
             "Cylinder magnet",
             Some(SurfacePoles {
                 polarization: self.polarization(),
-                scheme,
+                scheme: options.color_scheme(),
                 vertex_normals: None,
             }),
+            options,
         );
     }
 }
 
 impl<T: Float> Graphics<T> for SphereMagnet<T> {
-    fn add_to_plot(&self, plot: &mut Plot) {
-        self.add_to_plot_with_color_scheme(plot, MagnetColorScheme::default());
-    }
-
-    fn add_to_plot_with_color_scheme(&self, plot: &mut Plot, scheme: MagnetColorScheme) {
+    fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
+        options.validate();
+        if !options.visible() {
+            return;
+        }
         let radius = self.diameter() / scalar::<T>(2.0);
         let mut vertices = vec![Vector3::new(T::zero(), T::zero(), radius)];
-        let latitudes = SEGMENTS / 2;
+        let latitudes = options.segments() / 2;
         for latitude in 1..latitudes {
             let angle = std::f64::consts::PI * latitude as f64 / latitudes as f64;
             vertices.extend(ring(
                 radius * scalar::<T>(angle.sin()),
                 radius * scalar::<T>(angle.cos()),
+                options.segments(),
             ));
         }
         let south = vertices.len();
         vertices.push(Vector3::new(T::zero(), T::zero(), -radius));
         let mut faces = Vec::new();
-        for i in 0..SEGMENTS {
-            let j = (i + 1) % SEGMENTS;
+        for i in 0..options.segments() {
+            let j = (i + 1) % options.segments();
             faces.push([0, 1 + i, 1 + j]);
             for latitude in 0..latitudes - 2 {
-                let a = 1 + latitude * SEGMENTS;
-                let b = a + SEGMENTS;
+                let a = 1 + latitude * options.segments();
+                let b = a + options.segments();
                 faces.extend([[a + i, b + i, b + j], [a + i, b + j, a + j]]);
             }
-            let last = 1 + (latitudes - 2) * SEGMENTS;
+            let last = 1 + (latitudes - 2) * options.segments();
             faces.push([south, last + j, last + i]);
         }
         surface(
@@ -406,19 +450,20 @@ impl<T: Float> Graphics<T> for SphereMagnet<T> {
             "Sphere magnet",
             Some(SurfacePoles {
                 polarization: self.polarization(),
-                scheme,
+                scheme: options.color_scheme(),
                 vertex_normals: Some(&vertices),
             }),
+            options,
         );
     }
 }
 
 impl<T: Float> Graphics<T> for TriangleMagnet<T> {
-    fn add_to_plot(&self, plot: &mut Plot) {
-        self.add_to_plot_with_color_scheme(plot, MagnetColorScheme::default());
-    }
-
-    fn add_to_plot_with_color_scheme(&self, plot: &mut Plot, scheme: MagnetColorScheme) {
+    fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
+        options.validate();
+        if !options.visible() {
+            return;
+        }
         surface(
             plot,
             self,
@@ -427,18 +472,19 @@ impl<T: Float> Graphics<T> for TriangleMagnet<T> {
             "Triangle magnet",
             Some(SurfacePoles {
                 polarization: self.polarization(),
-                scheme,
+                scheme: options.color_scheme(),
                 vertex_normals: None,
             }),
+            options,
         );
     }
 }
 impl<T: Float> Graphics<T> for TetrahedronMagnet<T> {
-    fn add_to_plot(&self, plot: &mut Plot) {
-        self.add_to_plot_with_color_scheme(plot, MagnetColorScheme::default());
-    }
-
-    fn add_to_plot_with_color_scheme(&self, plot: &mut Plot, scheme: MagnetColorScheme) {
+    fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
+        options.validate();
+        if !options.visible() {
+            return;
+        }
         let mut vertices = self.vertices();
         if (vertices[1] - vertices[0])
             .cross(&(vertices[2] - vertices[0]))
@@ -455,35 +501,64 @@ impl<T: Float> Graphics<T> for TetrahedronMagnet<T> {
             "Tetrahedron magnet",
             Some(SurfacePoles {
                 polarization: self.polarization(),
-                scheme,
+                scheme: options.color_scheme(),
                 vertex_normals: None,
             }),
+            options,
         );
     }
 }
 impl<T: Float> Graphics<T> for CircularCurrent<T> {
-    fn add_to_plot(&self, plot: &mut Plot) {
-        let mut vertices = ring(self.diameter() / scalar::<T>(2.0), T::zero());
+    fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
+        options.validate();
+        if !options.visible() {
+            return;
+        }
+        let mut vertices = ring(
+            self.diameter() / scalar::<T>(2.0),
+            T::zero(),
+            options.segments(),
+        );
         vertices.push(vertices[0]);
-        line(plot, self, &vertices, "Circular current");
+        line(plot, self, &vertices, "Circular current", options);
     }
 }
 impl<T: Float> Graphics<T> for PathCurrent<T> {
-    fn add_to_plot(&self, plot: &mut Plot) {
-        line(plot, self, self.vertices(), "Path current");
+    fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
+        options.validate();
+        if !options.visible() {
+            return;
+        }
+        line(plot, self, self.vertices(), "Path current", options);
     }
 }
 impl<T: Float> Graphics<T> for TriangleCurrent<T> {
-    fn add_to_plot(&self, plot: &mut Plot) {
+    fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
+        options.validate();
+        if !options.visible() {
+            return;
+        }
         let v = self.vertices();
-        line(plot, self, &[v[0], v[1], v[2], v[0]], "Triangle current");
+        line(
+            plot,
+            self,
+            &[v[0], v[1], v[2], v[0]],
+            "Triangle current",
+            options,
+        );
     }
 }
 
 macro_rules! markers {
     ($($ty:ident => $name:literal),* $(,)?) => {$(
         impl<T: Float> Graphics<T> for $ty<T> {
-            fn add_to_plot(&self, plot: &mut Plot) { marker(plot, self, $name); }
+            fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
+                options.validate();
+                if !options.visible() {
+                    return;
+                }
+                marker(plot, self, $name, options);
+            }
         }
     )*};
 }
@@ -499,7 +574,8 @@ mod mesh {
         object: &impl Transform<T>,
         mesh: &crate::base::mesh::TriMesh<T>,
         name: &str,
-        poles: Option<(Vector3<T>, MagnetColorScheme)>,
+        poles: Option<Vector3<T>>,
+        options: &GraphicsOptions,
     ) {
         let vertices: Vec<_> = mesh.triangles().iter().flat_map(|t| t.vertices()).collect();
         let faces: Vec<_> = (0..vertices.len())
@@ -512,31 +588,37 @@ mod mesh {
             &vertices,
             &faces,
             name,
-            poles.map(|(polarization, scheme)| SurfacePoles {
+            poles.map(|polarization| SurfacePoles {
                 polarization,
-                scheme,
+                scheme: options.color_scheme(),
                 vertex_normals: None,
             }),
+            options,
         );
     }
     impl<T: Float> Graphics<T> for MeshMagnet<T> {
-        fn add_to_plot(&self, plot: &mut Plot) {
-            self.add_to_plot_with_color_scheme(plot, MagnetColorScheme::default());
-        }
-
-        fn add_to_plot_with_color_scheme(&self, plot: &mut Plot, scheme: MagnetColorScheme) {
+        fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
+            options.validate();
+            if !options.visible() {
+                return;
+            }
             add_mesh(
                 plot,
                 self,
                 self.mesh(),
                 "Mesh magnet",
-                Some((self.polarization(), scheme)),
+                Some(self.polarization()),
+                options,
             );
         }
     }
     impl<T: Float> Graphics<T> for SheetCurrent<T> {
-        fn add_to_plot(&self, plot: &mut Plot) {
-            add_mesh(plot, self, self.mesh(), "Sheet current", None);
+        fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
+            options.validate();
+            if !options.visible() {
+                return;
+            }
+            add_mesh(plot, self, self.mesh(), "Sheet current", None, options);
         }
     }
 }
@@ -544,14 +626,14 @@ mod mesh {
 macro_rules! dispatch {
     ($ty:ident { $($variant:ident),* $(,)? } $(, mesh: $mesh:ident)?) => {
         impl<T: Float> Graphics<T> for $ty<T> {
-            fn add_to_plot(&self, plot: &mut Plot) {
-                self.add_to_plot_with_color_scheme(plot, MagnetColorScheme::default());
-            }
-
-            fn add_to_plot_with_color_scheme(&self, plot: &mut Plot, scheme: MagnetColorScheme) {
+            fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
+                options.validate();
+                if !options.visible() {
+                    return;
+                }
                 match self {
-                    $(Self::$variant(object) => object.add_to_plot_with_color_scheme(plot, scheme),)*
-                    $(#[cfg(feature = "mesh")] Self::$mesh(object) => object.add_to_plot_with_color_scheme(plot, scheme),)?
+                    $(Self::$variant(object) => object.add_to_plot_with_options(plot, options),)*
+                    $(#[cfg(feature = "mesh")] Self::$mesh(object) => object.add_to_plot_with_options(plot, options),)?
                 }
             }
         }
@@ -566,74 +648,76 @@ dispatch!(Sensor {
 });
 
 impl<T: Float> Graphics<T> for SourceComponent<T> {
-    fn add_to_plot(&self, plot: &mut Plot) {
-        self.add_to_plot_with_color_scheme(plot, MagnetColorScheme::default());
-    }
-
-    fn add_to_plot_with_color_scheme(&self, plot: &mut Plot, scheme: MagnetColorScheme) {
+    fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
+        options.validate();
+        if !options.visible() {
+            return;
+        }
         match self {
-            Self::Magnet(object) => object.add_to_plot_with_color_scheme(plot, scheme),
-            Self::Current(object) => object.add_to_plot_with_color_scheme(plot, scheme),
-            Self::Assembly(object) => object.add_to_plot_with_color_scheme(plot, scheme),
-            Self::Custom(object) => marker(plot, object.as_ref(), "Custom source"),
+            Self::Magnet(object) => object.add_to_plot_with_options(plot, options),
+            Self::Current(object) => object.add_to_plot_with_options(plot, options),
+            Self::Assembly(object) => object.add_to_plot_with_options(plot, options),
+            Self::Custom(object) => marker(plot, object.as_ref(), "Custom source", options),
+            Self::CustomGraphics(object) => object.add_to_plot_with_options(plot, options),
         }
     }
 }
 impl<T: Float> Graphics<T> for ObserverComponent<T> {
-    fn add_to_plot(&self, plot: &mut Plot) {
-        self.add_to_plot_with_color_scheme(plot, MagnetColorScheme::default());
-    }
-
-    fn add_to_plot_with_color_scheme(&self, plot: &mut Plot, scheme: MagnetColorScheme) {
+    fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
+        options.validate();
+        if !options.visible() {
+            return;
+        }
         match self {
-            Self::Sensor(object) => object.add_to_plot_with_color_scheme(plot, scheme),
-            Self::Custom(object) => marker(plot, object.as_ref(), "Custom observer"),
+            Self::Sensor(object) => object.add_to_plot_with_options(plot, options),
+            Self::Custom(object) => marker(plot, object.as_ref(), "Custom observer", options),
+            Self::CustomGraphics(object) => object.add_to_plot_with_options(plot, options),
         }
     }
 }
 impl<T: Float> Graphics<T> for SourceAssembly<T> {
-    fn add_to_plot(&self, plot: &mut Plot) {
-        self.add_to_plot_with_color_scheme(plot, MagnetColorScheme::default());
-    }
-
-    fn add_to_plot_with_color_scheme(&self, plot: &mut Plot, scheme: MagnetColorScheme) {
+    fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
+        options.validate();
+        if !options.visible() {
+            return;
+        }
         for object in self.components() {
-            object.add_to_plot_with_color_scheme(plot, scheme);
+            object.add_to_plot_with_options(plot, options);
         }
     }
 }
 impl<T: Float> Graphics<T> for ObserverAssembly<T> {
-    fn add_to_plot(&self, plot: &mut Plot) {
-        self.add_to_plot_with_color_scheme(plot, MagnetColorScheme::default());
-    }
-
-    fn add_to_plot_with_color_scheme(&self, plot: &mut Plot, scheme: MagnetColorScheme) {
+    fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
+        options.validate();
+        if !options.visible() {
+            return;
+        }
         for object in self.components() {
-            object.add_to_plot_with_color_scheme(plot, scheme);
+            object.add_to_plot_with_options(plot, options);
         }
     }
 }
 impl<T: Float, S: Source<T> + Graphics<T>, const N: usize> Graphics<T> for SourceArray<S, N, T> {
-    fn add_to_plot(&self, plot: &mut Plot) {
-        self.add_to_plot_with_color_scheme(plot, MagnetColorScheme::default());
-    }
-
-    fn add_to_plot_with_color_scheme(&self, plot: &mut Plot, scheme: MagnetColorScheme) {
+    fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
+        options.validate();
+        if !options.visible() {
+            return;
+        }
         for object in self.components() {
-            object.add_to_plot_with_color_scheme(plot, scheme);
+            object.add_to_plot_with_options(plot, options);
         }
     }
 }
 impl<T: Float, S: Observer<T> + Graphics<T>, const N: usize> Graphics<T>
     for ObserverArray<S, N, T>
 {
-    fn add_to_plot(&self, plot: &mut Plot) {
-        self.add_to_plot_with_color_scheme(plot, MagnetColorScheme::default());
-    }
-
-    fn add_to_plot_with_color_scheme(&self, plot: &mut Plot, scheme: MagnetColorScheme) {
+    fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
+        options.validate();
+        if !options.visible() {
+            return;
+        }
         for object in self.components() {
-            object.add_to_plot_with_color_scheme(plot, scheme);
+            object.add_to_plot_with_options(plot, options);
         }
     }
 }

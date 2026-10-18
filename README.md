@@ -138,7 +138,7 @@ std::fs::write("scene.html", plot.to_html()).expect("Cannot write scene.html");
 Open the HTML file in a browser to rotate, pan, and zoom. Plotly.js is
 embedded, so viewing works offline. Built-in magnets, currents, sensors,
 and collections support `Graphics`; mesh objects require `mesh` as well.
-Dipoles, sensors, and custom collection components use point markers.
+Dipoles, sensors, and ordinary custom collection components use point markers.
 Plots capture the objects' current geometry and poses in meters.
 Use the re-exported `magba::graphics::plotly` API to customize a plot.
 
@@ -152,11 +152,38 @@ Choose orange/blue (`okabe-ito`) or red/blue (`trad`) with
 `MagnetColorScheme::OkabeIto` or `MagnetColorScheme::Trad`:
 
 ```rust,no_run
-use magba::{graphics::MagnetColorScheme, prelude::*};
+use magba::{graphics::{GraphicsOptions, GraphicsView, MagnetColorScheme}, prelude::*};
 let magnets = SourceArray::from([CuboidMagnet::<f64>::default()]);
-let plot = magnets.plot_with_color_scheme(MagnetColorScheme::OkabeIto);
-// To add to an existing plot, use add_to_plot_with_color_scheme(&mut plot, scheme).
+let options = GraphicsOptions::default()
+    .with_color_scheme(MagnetColorScheme::OkabeIto)
+    .with_opacity(0.5)
+    .with_segments(96);
+let mut plot = magnets.plot_with_options(&options);
+
+// Store a borrowed object together with its appearance for repeated use.
+let view = GraphicsView::new(&magnets).with_options(options);
+view.add_to_plot(&mut plot);
 ```
+
+`GraphicsOptions` provides getters, `set_*` methods, and consuming `with_*`
+methods. Opacity setters accept a plain `f64`. The default keeps each object's
+usual opacity; explicit opacity applies to surfaces, lines, and markers.
+`with_visible(false)` emits no traces. Segment counts control circles and curved
+surfaces, with half as many latitude subdivisions for spheres. Rendering panics
+if opacity is nonfinite or outside `[0, 1]`, or segments is below six.
+Options propagate through nested collections and leave field-plot settings unchanged.
+
+`GraphicsView` works with every type implementing `Graphics`, including currents,
+sensors, collections, and custom types. It forwards rendering to the borrowed
+object. Recreate the view after mutating the object; plots remain snapshots.
+
+To preserve custom geometry inside collections, implement `Graphics` alongside
+`Source` or `Observer`, then use `SourceComponent::custom_graphics(object)` or
+`ObserverComponent::custom_graphics(object)`. Existing `Custom` variants retain
+marker rendering. Custom renderers implement
+`add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions)`;
+call `options.validate()` and honor `options.visible()` before emitting traces.
+The core physics traits require no rendering methods.
 
 Run `cargo run --example graphics --features graphics-plotly` for a combined scene.
 

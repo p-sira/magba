@@ -1,7 +1,7 @@
 //! Skip magnet interiors before evaluating fields in the plotting examples.
 use magba::{
     base::Pose,
-    graphics::{Graphics, MagnetColorScheme, plotly::Plot},
+    graphics::{Graphics, GraphicsOptions, plotly::Plot},
     prelude::*,
 };
 use nalgebra::{Matrix3, Point3, Vector3};
@@ -57,11 +57,8 @@ impl<S: Source<f64> + Interior + Clone> Source<f64> for Exterior<S> {
 }
 
 impl<S: Graphics> Graphics for Exterior<S> {
-    fn add_to_plot(&self, plot: &mut Plot) {
-        self.0.add_to_plot(plot);
-    }
-    fn add_to_plot_with_color_scheme(&self, plot: &mut Plot, scheme: MagnetColorScheme) {
-        self.0.add_to_plot_with_color_scheme(plot, scheme);
+    fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
+        self.0.add_to_plot_with_options(plot, options);
     }
 }
 

@@ -5,11 +5,13 @@
 **New Features**
 
 - Add backend-independent field sampling and adaptive field-line tracing with `std`.
+- Add fluent `GraphicsOptions` and borrowed `GraphicsView` for palettes, opacity, visibility, and curved-geometry resolution.
+- Preserve custom source and observer geometry in collections through explicit `custom_graphics` constructors.
 - Add optional `graphics-plotly` visualization for magnets, currents, sensors, and collections, with configurable pole colors, heatmaps, 2D/3D arrows, directed field lines, and offline HTML output.
 
 **Documentations**
 
-- Add graphics examples and rendered figures.
+- Add graphics examples, rendered figures, and guidance for appearance options, borrowed views, and custom collection renderers.
 
 ## 0.7
 
