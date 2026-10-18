@@ -1,4 +1,4 @@
-use magba::sensors::hall_effect::{HallLatch, HallSwitch};
+use magba::sensors::hall_effect::{HallLatch, HallSwitch, LinearHallSensor};
 use nalgebra::{Point3, UnitQuaternion, Vector3};
 use std::panic::{AssertUnwindSafe, catch_unwind};
 
@@ -83,6 +83,44 @@ macro_rules! validation_tests {
                 assert!(catch_unwind(|| switch(Vector3::z(), -0.01)).is_err());
                 for (op, rp) in [(0.01, 0.01), (-0.01, 0.01)] {
                     assert!(catch_unwind(|| latch(Vector3::z(), op, rp)).is_err());
+                }
+            }
+
+            #[test]
+            fn linear_supply_voltage_validation_preserves_configuration() {
+                for voltage in [T::NAN, T::INFINITY, T::NEG_INFINITY, 0.0, -1.0] {
+                    assert!(
+                        catch_unwind(|| LinearHallSensor::new(
+                            Point3::<T>::origin(),
+                            UnitQuaternion::identity(),
+                            Vector3::z(),
+                            20.0,
+                            voltage
+                        ))
+                        .is_err()
+                    );
+                    let mut sensor = LinearHallSensor::<T>::default();
+                    let before = sensor.clone();
+                    assert!(
+                        catch_unwind(AssertUnwindSafe(|| sensor.set_supply_voltage(voltage)))
+                            .is_err()
+                    );
+                    assert_eq!(sensor, before);
+                    assert!(catch_unwind(|| sensor.with_supply_voltage(voltage)).is_err());
+                }
+                for voltage in [T::MIN_POSITIVE, 3.3, T::MAX] {
+                    let mut sensor = LinearHallSensor::new(
+                        Point3::<T>::origin(),
+                        UnitQuaternion::identity(),
+                        Vector3::z(),
+                        20.0,
+                        voltage,
+                    );
+                    assert_eq!(sensor.supply_voltage(), voltage);
+                    sensor.set_supply_voltage(5.0);
+                    assert_eq!(sensor.supply_voltage(), 5.0);
+                    assert_eq!(*sensor.max_voltage(), 5.0);
+                    assert_eq!(*sensor.quiescent_voltage(), 2.5);
                 }
             }
 

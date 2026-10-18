@@ -183,7 +183,8 @@ mod tests {
         let magnet = MeshMagnet::default().with_mesh(mesh.clone());
         assert_eq!(magnet.relative_complexity(), 16);
 
-        let sheet = SheetCurrent::default().with_mesh(mesh);
+        let mut sheet = SheetCurrent::default();
+        sheet.set_mesh_and_current_densities(mesh, vec![Vector3::x(); 4]);
         assert_eq!(sheet.relative_complexity(), 24);
     }
 }

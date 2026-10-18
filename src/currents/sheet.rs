@@ -14,19 +14,31 @@ use crate::base::mesh::TriMesh;
 use crate::crate_utils::define_source;
 
 define_source! {
-    /// A meshed current sheet.
+    /// A meshed current sheet with exactly one current density per face.
+    ///
+    /// Individual mesh and density setters (and builders) panic on count mismatch.
+    /// Use [`Self::set_mesh_and_current_densities`] to change both together.
     SheetCurrent
     field_fn: sheet_current_B
     relative_complexity: |source| source.mesh.triangles().len().saturating_mul(6);
     args: {
-        current_densities: @ref Vec<Vector3<T>> = Vec::new(),
-        mesh: @ref TriMesh<T> = TriMesh::new_unchecked(Vec::new(), Vec::new()),
+        current_densities: @ref Vec<Vector3<T>> = Vec::new();
+            validate current_densities.len() == mesh.triangles().len();
+            error "Exactly one current density is required per mesh face.";
+            validate_set |source| current_densities.len() == source.mesh.triangles().len(),
+        mesh: @ref TriMesh<T> = TriMesh::new_unchecked(Vec::new(), Vec::new());
+            validate current_densities.len() == mesh.triangles().len();
+            error "Exactly one current density is required per mesh face.";
+            validate_set |source| source.current_densities.len() == mesh.triangles().len(),
     }
     arg_display: "current_densities_count: {}, triangles count: {}";
     arg_fmt: [format_vertices_count, format_trimesh_count]
     docs: {
         new: {
             /// Construct a [SheetCurrent].
+            ///
+            /// # Panics
+            /// Panics unless there is exactly one current density per mesh face.
             ///
             /// # Examples
             ///
@@ -50,6 +62,26 @@ define_source! {
     }
 }
 
+impl<T: Float> SheetCurrent<T> {
+    /// Replace the mesh and its per-face current densities together.
+    ///
+    /// # Panics
+    /// Panics on a count mismatch, preserving the previous configuration.
+    pub fn set_mesh_and_current_densities(
+        &mut self,
+        mesh: TriMesh<T>,
+        current_densities: Vec<Vector3<T>>,
+    ) {
+        assert_eq!(
+            current_densities.len(),
+            mesh.triangles().len(),
+            "Exactly one current density is required per mesh face."
+        );
+        self.mesh = mesh;
+        self.current_densities = current_densities;
+    }
+}
+
 impl<T: Float + core::iter::Sum> SheetCurrent<T> {
     /// Validates and constructs a [`SheetCurrent`] from a [TriMesh].
     ///
@@ -57,9 +89,12 @@ impl<T: Float + core::iter::Sum> SheetCurrent<T> {
     ///
     /// Returns a [MeshError] if the mesh has holes or zero-faces.
     ///
+    /// # Panics
+    /// Panics unless there is exactly one current density per mesh face.
+    ///
     /// # Notes
     ///
-    /// To construct a [SheetCurrent] without validation, use [SheetCurrent::new].
+    /// [SheetCurrent::new] skips mesh topology validation but still checks the density count.
     #[cfg(feature = "mesh")]
     #[inline]
     pub fn from_vertices_and_faces(
@@ -78,6 +113,7 @@ impl<T: Float + core::iter::Sum> SheetCurrent<T> {
     }
 
     /// Validates and constructs a [`SheetCurrent`] from an STL reader.
+    /// Returns [`std::io::ErrorKind::InvalidInput`] on a density/face count mismatch.
     #[cfg(feature = "io-stl")]
     #[inline]
     pub fn from_stl<R>(reader: &mut R, current_densities: Vec<Vector3<T>>) -> std::io::Result<Self>
@@ -85,6 +121,12 @@ impl<T: Float + core::iter::Sum> SheetCurrent<T> {
         R: std::io::Read + std::io::Seek,
     {
         let trimesh = TriMesh::from_stl(reader)?;
+        if current_densities.len() != trimesh.triangles().len() {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                "Exactly one current density is required per mesh face.",
+            ));
+        }
 
         Ok(Self::new(
             [T::zero(); 3],
@@ -158,8 +200,12 @@ mod mesh_tests {
         let stl_path = base_path.join("suzanne.stl");
         assert!(stl_path.is_file(), "suzanne.stl must exist");
         let mut file = std::fs::File::open(&stl_path).expect("Cannot open suzanne.stl");
-        let sheet: Result<SheetCurrent<f64>, _> =
-            SheetCurrent::from_stl(&mut file, vec![vector![1.0, 0.0, 0.0]; 968]);
+        let mesh = TriMesh::<f64>::from_stl(&mut file).expect("Invalid suzanne mesh");
+        std::io::Seek::rewind(&mut file).expect("Cannot rewind suzanne.stl");
+        let sheet: Result<SheetCurrent<f64>, _> = SheetCurrent::from_stl(
+            &mut file,
+            vec![vector![1.0, 0.0, 0.0]; mesh.triangles().len()],
+        );
         assert!(sheet.is_ok());
     }
 }

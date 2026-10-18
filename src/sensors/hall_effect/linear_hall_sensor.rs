@@ -36,6 +36,10 @@ impl<T: Float> LinearHallSensor<T> {
 
     /// Construct a [LinearHallSensor].
     ///
+    /// # Panics
+    /// Panics if the supply voltage is nonfinite or nonpositive, sensitivity is
+    /// nonfinite, or the sensitive axis has a zero or nonfinite norm.
+    ///
     /// # Examples
     ///
     /// ```
@@ -56,8 +60,8 @@ impl<T: Float> LinearHallSensor<T> {
         sensitivity: T,
         supply_voltage: T,
     ) -> Self {
-        if supply_voltage <= T::zero() {
-            panic!("Supply voltage must be positive.");
+        if !supply_voltage.is_finite() || supply_voltage <= T::zero() {
+            panic!("Supply voltage must be finite and positive.");
         }
         if !sensitivity.is_finite() {
             panic!("Sensitivity must be finite.");
@@ -150,10 +154,14 @@ impl<T: Float> LinearHallSensor<T> {
         self.sensitivity_vector = self.sensitive_axis * sensitivity;
     }
 
+    /// Set a finite, positive supply voltage and update the voltage limits.
+    ///
+    /// # Panics
+    /// Panics on invalid voltage, preserving the previous configuration.
     #[inline]
     pub fn set_supply_voltage(&mut self, supply_voltage: T) {
-        if supply_voltage <= T::zero() {
-            panic!("Supply voltage must be positive.");
+        if !supply_voltage.is_finite() || supply_voltage <= T::zero() {
+            panic!("Supply voltage must be finite and positive.");
         }
         let two = T::from_f64(2.0).unwrap();
         self.max_voltage = supply_voltage;
