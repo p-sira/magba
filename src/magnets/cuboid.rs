@@ -13,6 +13,7 @@ define_source! {
     /// # References
     ///
     /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
+    #[cfg_attr(feature = "graphics-plotly", doc = include_str!("graphics/cuboid.md"))]
     CuboidMagnet
     field_fn: cuboid_B
     relative_complexity: |_source| 7;

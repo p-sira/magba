@@ -9,6 +9,7 @@ use crate::crate_utils::define_source;
 
 define_source! {
     /// Tetrahedron with homogeneous magnetic surface charge.
+    #[cfg_attr(feature = "graphics-plotly", doc = include_str!("graphics/tetrahedron.md"))]
     TetrahedronMagnet
     field_fn: tetrahedron_B
     relative_complexity: |_source| 11;

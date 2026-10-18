@@ -1,0 +1,193 @@
+use super::*;
+use crate::magnets::{Dipole, StableFieldMagnet};
+
+#[test]
+fn field_lines_follow_uniform_field_and_stop_at_bounds() {
+    let source = StableFieldMagnet::new(Vector3::new(2.0, 0.0, 0.0));
+    let options = FieldLineOptions {
+        step_size: 0.125,
+        bounds: Some([[-1.0, 1.0]; 3]),
+        ..Default::default()
+    };
+    let paths = source
+        .trace_field_lines(&[Point3::origin()], options)
+        .unwrap();
+    let path = &paths[0];
+    assert_eq!(path.len(), 17);
+    assert_eq!(path.first().unwrap(), &Point3::new(-1.0, 0.0, 0.0));
+    assert_eq!(path.last().unwrap(), &Point3::new(1.0, 0.0, 0.0));
+    assert!(
+        path.windows(2)
+            .all(|p| (p[1].x - p[0].x - 0.125).abs() < 1e-15)
+    );
+}
+
+#[test]
+fn field_lines_reject_endpoints_in_a_field_gap() {
+    #[derive(Clone, Default)]
+    struct GappedField(crate::base::Pose);
+    impl crate::base::Transform<f64> for GappedField {
+        fn pose(&self) -> &crate::base::Pose {
+            &self.0
+        }
+        fn pose_mut(&mut self) -> &mut crate::base::Pose {
+            &mut self.0
+        }
+    }
+    impl Source<f64> for GappedField {
+        fn compute_B(&self, p: Point3<f64>) -> Vector3<f64> {
+            // The forward RK4 endpoint lies in this gap, while its trial stages
+            // sample on either side. The endpoint must be checked separately.
+            if (1.32574..=1.32575).contains(&p.x) {
+                Vector3::zeros()
+            } else {
+                Vector3::new(1.0, p.x, 0.0)
+            }
+        }
+        fn compute_B_batch(&self, points: &[Point3<f64>]) -> Vec<Vector3<f64>> {
+            points.iter().map(|&p| self.compute_B(p)).collect()
+        }
+    }
+    let source = GappedField::default();
+    let seed = Point3::new(1.0, 0.0, 0.0);
+    let paths = source
+        .trace_field_lines(
+            &[seed],
+            FieldLineOptions {
+                step_size: 0.5,
+                max_steps: 1,
+                ..Default::default()
+            },
+        )
+        .unwrap();
+    assert_eq!(paths.len(), 1);
+    assert_eq!(paths[0].len(), 2);
+    assert!(paths[0][0].x < seed.x);
+    assert_eq!(paths[0][1], seed);
+    assert!(paths[0].iter().all(|&p| source.compute_B(p).norm() > 0.0));
+}
+
+#[test]
+fn rk4_converges_to_analytic_dipole_line() {
+    // For a z dipole through (1, 0, 0), r = sin²(theta), hence r³ = x².
+    let source = Dipole::<f64>::default();
+    let mut errors = Vec::new();
+    for step_size in [0.04, 0.02] {
+        let paths = source
+            .trace_field_lines(
+                &[Point3::new(1.0, 0.0, 0.0)],
+                FieldLineOptions {
+                    step_size,
+                    max_steps: (0.8 / step_size) as usize,
+                    ..Default::default()
+                },
+            )
+            .unwrap();
+        let error = paths[0]
+            .iter()
+            .map(|p| (p.coords.norm().powi(3) - p.x.powi(2)).abs())
+            .fold(0.0, f64::max);
+        errors.push(error);
+    }
+    assert!(errors[1] < 1e-8);
+    assert!(errors[0] / errors[1] > 12.0, "RK4 errors: {errors:?}");
+}
+
+#[test]
+fn closed_lines_are_drawn_once() {
+    #[derive(Clone)]
+    struct CircularField(crate::base::Pose);
+    impl crate::base::Transform<f64> for CircularField {
+        fn pose(&self) -> &crate::base::Pose {
+            &self.0
+        }
+        fn pose_mut(&mut self) -> &mut crate::base::Pose {
+            &mut self.0
+        }
+    }
+    impl Source<f64> for CircularField {
+        fn compute_B(&self, p: Point3<f64>) -> Vector3<f64> {
+            Vector3::new(-p.y, p.x, 0.0)
+        }
+        fn compute_B_batch(&self, points: &[Point3<f64>]) -> Vec<Vector3<f64>> {
+            points.iter().map(|&p| self.compute_B(p)).collect()
+        }
+    }
+    let paths = CircularField(Default::default())
+        .trace_field_lines(
+            &[Point3::new(1.0, 0.0, 0.0)],
+            FieldLineOptions {
+                step_size: 0.02,
+                max_steps: 1000,
+                ..Default::default()
+            },
+        )
+        .unwrap();
+    let path = &paths[0];
+    assert_eq!(path.first(), path.last());
+    assert!(
+        path.len() > 300 && path.len() < 320,
+        "{} vertices",
+        path.len()
+    );
+    assert!(path.iter().all(|p| (p.coords.norm() - 1.0).abs() < 1e-8));
+}
+
+#[test]
+fn adaptive_steps_close_lines_across_a_magnet_surface() {
+    let source = crate::magnets::SphereMagnet::<f64>::default().with_diameter(0.02);
+    let seed = Point3::new(0.014, 0.0, 0.0);
+    let paths = source
+        .trace_field_lines(
+            &[seed],
+            FieldLineOptions {
+                step_size: 0.0004,
+                max_steps: 1000,
+                ..Default::default()
+            },
+        )
+        .unwrap();
+    let path = &paths[0];
+    assert_eq!(path.first(), path.last());
+    assert!(path.iter().any(|p| p.coords.norm() < 0.009));
+    assert!(path.len() < 1000);
+}
+
+#[test]
+fn adaptive_steps_resolve_near_source_field_directions() {
+    let triangle = crate::magnets::TriangleMagnet::<f64>::default().with_vertices([
+        Vector3::new(-0.01, -0.008, 0.0),
+        Vector3::new(0.01, -0.008, 0.0),
+        Vector3::new(0.0, 0.01, 0.0),
+    ]);
+    let dipole = Dipole::<f64>::default();
+    for (source, seed) in [
+        (
+            &triangle as &dyn Source<f64>,
+            Point3::new(0.0, -0.002, 0.001),
+        ),
+        (&dipole as &dyn Source<f64>, Point3::new(0.014, 0.0, 0.0)),
+    ] {
+        let options = FieldLineOptions {
+            step_size: 0.0004,
+            max_steps: 1000,
+            bounds: Some([[-0.04, 0.04]; 3]),
+            ..Default::default()
+        };
+        let paths = source.trace_field_lines(&[seed], options).unwrap();
+        for path in paths {
+            for segment in path.windows(2) {
+                let delta = segment[1] - segment[0];
+                if delta.norm() > options.step_size * options.tolerance {
+                    let midpoint = segment[0] + delta / 2.0;
+                    let field = source.compute_B(midpoint);
+                    let alignment = delta.normalize().dot(&field.normalize());
+                    assert!(
+                        alignment > 0.99,
+                        "seed={seed:?}, midpoint={midpoint:?}, alignment={alignment}"
+                    );
+                }
+            }
+        }
+    }
+}

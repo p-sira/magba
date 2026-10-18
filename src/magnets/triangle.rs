@@ -18,6 +18,7 @@ define_source! {
     ///
     /// - Guptasarma, D., and B. Singh. "New scheme for computing the magnetic field resulting from a uniformly magnetized arbitrary polyhedron." Geophysics 64.1 (1999): 70-74.
     /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
+    #[cfg_attr(feature = "graphics-plotly", doc = include_str!("graphics/triangle.md"))]
     TriangleMagnet
     field_fn: triangle_B
     relative_complexity: |_source| 4;
