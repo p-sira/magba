@@ -75,9 +75,9 @@ field lines from three rings of seeds.
 The collection example combines two oppositely polarized magnets and a current
 loop, tracing their total field. All share the output helper in `examples/common`.
 
-Magnet surfaces use grey for neutral faces, red for north, and green for south,
-with pole colors easing smoothly into a grey belt near zero surface charge.
-Sphere colors interpolate between vertices to avoid bands between mesh faces.
+Magnet surfaces blend from green south poles through a grey central belt to red
+north poles along the local polarization direction. The gradient continues across
+face boundaries and indicates local polarity.
 The `graphics` example also shows the optional orange/blue (`OkabeIto`) and
 red/blue (`Trad`) palettes. Run it with `cargo run --example graphics --features graphics-plotly`.
 
@@ -130,3 +130,40 @@ cargo run --example graphics_showcase --features graphics-plotly
 ```
 
 ![Magba graphics showcase](graphics_showcase.png)
+
+## Rustdoc previews
+
+The `rustdoc_*.png` figures show the corresponding code snippets in
+[`graphics::plotly`](../../src/graphics/plotly.rs) and the
+[`GraphicsView`](../../src/graphics/options.rs) documentation:
+
+- `rustdoc_scene.png`: cuboid magnet and circular current, shared by the
+  [graphics module example](../../src/graphics/mod.rs) and the Plotly module example.
+- `rustdoc_appearance.png`: cylinder with the default DIN palette, opacity 0.5, and 96 segments; also illustrates `GraphicsOptions`.
+- `rustdoc_view.png`: f32 cylinder view with opacity 0.5 and 64 segments.
+- `rustdoc_field_lines.png`: sphere magnitude heatmap and projected field line.
+- `rustdoc_field_quiver.png`: reused sphere samples with magnitude and in-plane arrows.
+
+Render the documented plots through Plotly's PNG export at 880 × 600 pixels.
+Use Arial at 16 px, margins of 65/35/45/65 px (left/right/top/bottom), and a
+3D camera eye of (1.9, 1.9, 1.7) to keep geometry and labels within the image.
+Rustdoc uses absolute GitHub `blob/main` URLs with `?raw=true`, following ellip's
+figure convention, so image resolution is independent of the generated page path.
+
+## Magnet type examples
+
+Each magnet type's Graphics section includes a runnable example and its generated
+`magnet_*.png` preview, using the default DIN palette. The examples trace the full
+field; opaque surfaces hide interior line segments.
+
+- [Cuboid](../../src/magnets/graphics/cuboid.md): `magnet_cuboid.png`.
+- [Cylinder](../../src/magnets/graphics/cylinder.md): `magnet_cylinder.png`.
+- [Sphere](../../src/magnets/graphics/sphere.md): `magnet_sphere.png`.
+- [Tetrahedron](../../src/magnets/graphics/tetrahedron.md): `magnet_tetrahedron.png`.
+- [Triangle](../../src/magnets/graphics/triangle.md): `magnet_triangle.png`.
+- [Dipole](../../src/magnets/graphics/dipole.md): `magnet_dipole.png` (point marker).
+- [Mesh](../../src/magnets/graphics/mesh.md): `magnet_mesh.png` (validated octahedron).
+
+Export these figures using the same 880 × 600 layout and camera as the Rustdoc
+previews above. Their source snippets also define each scene's seed positions,
+step size, and integration bounds.

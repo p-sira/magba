@@ -123,7 +123,7 @@ let b_fields = source_assembly.compute_B_batch(&points);
 
 ## Interactive 3D Graphics
 
-![Magba graphics showcase](examples/figures/graphics_showcase.png)
+![Magba graphics showcase](https://github.com/p-sira/magba/blob/main/examples/figures/graphics_showcase.png?raw=true)
 
 Enable visualization with `cargo add magba --features graphics-plotly`:
 

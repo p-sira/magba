@@ -14,6 +14,7 @@ use alloc::vec::Vec;
 
 define_source! {
     /// Triangular mesh with homogeneous magnetic surface charge.
+    #[cfg_attr(feature = "graphics-plotly", doc = include_str!("graphics/mesh.md"))]
     MeshMagnet
     field_fn: mesh_B
     relative_complexity: |source| source.mesh.triangles().len().saturating_mul(4);

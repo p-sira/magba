@@ -155,35 +155,61 @@ fn mesh_objects_use_supplied_triangles_and_world_pose() {
 }
 
 #[test]
-fn magnet_poles_follow_local_polarization_and_keep_neutral_faces_grey() {
+fn magnet_poles_follow_local_polarization_across_face_boundaries() {
     let magnet = CuboidMagnet::<f64>::default();
-    let colors = data(&magnet)["data"][0]["facecolor"].clone();
-    assert_eq!(colors[0], "#00b050");
-    assert_eq!(colors[2], "#e71111");
-    assert!(colors.as_array().unwrap()[4..].iter().all(|c| c == "grey"));
-    assert_eq!(data(&magnet)["data"][0]["color"], "grey");
+    let plot = data(&magnet);
+    let mesh = &plot["data"][0];
+    let intensities = &mesh["intensity"];
+    assert_eq!(
+        *intensities,
+        json!([-1.0, -1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0])
+    );
+    assert_eq!(mesh["intensitymode"], "vertex");
+    assert_eq!(mesh["cmin"], -1.0);
+    assert_eq!(mesh["cmax"], 1.0);
+    assert_eq!(mesh["showscale"], false);
+    assert!(mesh["facecolor"].is_null());
+    assert!(mesh["vertexcolor"].is_null());
+    // Side triangles span both poles. Native intensity interpolation passes
+    // through the grey center, using the original mesh without extra faces.
+    assert_eq!(
+        mesh["intensity"][mesh["i"][4].as_u64().unwrap() as usize],
+        -1.0
+    );
+    assert_eq!(
+        mesh["intensity"][mesh["k"][4].as_u64().unwrap() as usize],
+        1.0
+    );
 
     let rotated = magnet
         .clone()
         .with_orientation(UnitQuaternion::from_axis_angle(
             &Vector3::y_axis(),
             std::f64::consts::FRAC_PI_2,
-        ));
-    assert_eq!(data(&rotated)["data"][0]["facecolor"], colors);
-    let reversed = magnet.clone().with_polarization([0.0, 0.0, -1.0]);
-    assert_eq!(data(&reversed)["data"][0]["facecolor"][0], colors[2]);
-    assert_eq!(data(&reversed)["data"][0]["facecolor"][2], colors[0]);
-    let transverse = magnet.clone().with_polarization([1.0, 0.0, 0.0]);
-    let transverse = data(&transverse);
-    assert_eq!(transverse["data"][0]["facecolor"][0], "grey");
-    assert_eq!(transverse["data"][0]["facecolor"][6], "#e71111");
-    let neutral = magnet.with_polarization([0.0; 3]);
+        ))
+        .with_position([10.0, 20.0, 30.0]);
+    assert_eq!(data(&rotated)["data"][0]["intensity"], *intensities);
+    let reversed = data(&magnet.clone().with_polarization([0.0, 0.0, -1.0]));
+    for (original, reversed) in intensities
+        .as_array()
+        .unwrap()
+        .iter()
+        .zip(reversed["data"][0]["intensity"].as_array().unwrap())
+    {
+        assert_eq!(original.as_f64().unwrap(), -reversed.as_f64().unwrap());
+    }
+    let transverse = data(&magnet.clone().with_polarization([1.0, 0.0, 0.0]));
+    assert_eq!(
+        transverse["data"][0]["intensity"],
+        json!([-1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0, -1.0])
+    );
+    let neutral = data(&magnet.with_polarization([0.0; 3]));
     assert!(
-        data(&neutral)["data"][0]["facecolor"]
+        neutral["data"][0]["intensity"]
             .as_array()
             .unwrap()
             .iter()
-            .all(|c| c == "grey")
+            .all(|v| v == 0.0)
     );
 }
 
@@ -205,10 +231,10 @@ fn optional_palettes_propagate_through_nested_collections_and_arrays() {
         )
         .unwrap();
         for trace in plot["data"].as_array().unwrap() {
-            let colors = trace["facecolor"].as_array().unwrap();
-            for color in [north, south, "grey"] {
-                assert!(colors.iter().any(|c| c == color));
-            }
+            let colors = trace["colorscale"].as_array().unwrap();
+            assert_eq!(colors.first().unwrap()[1], south);
+            assert_eq!(colors.last().unwrap()[1], north);
+            assert!(colors.iter().any(|c| c[1] == "grey"));
         }
         let array = SourceArray::from([SphereMagnet::<f64>::default()]);
         let plot: Value = serde_json::from_str(
@@ -217,13 +243,13 @@ fn optional_palettes_propagate_through_nested_collections_and_arrays() {
                 .to_json(),
         )
         .unwrap();
-        let colors = plot["data"][0]["vertexcolor"].as_array().unwrap();
-        assert!(colors.iter().any(|c| c == north));
-        assert!(colors.iter().any(|c| c == south));
+        let colors = plot["data"][0]["colorscale"].as_array().unwrap();
+        assert_eq!(colors.first().unwrap()[1], south);
+        assert_eq!(colors.last().unwrap()[1], north);
         assert!(
             colors
                 .iter()
-                .any(|c| c.as_str().unwrap().starts_with("rgb("))
+                .any(|c| c[1].as_str().unwrap().starts_with("rgb("))
         );
     }
 }
@@ -231,7 +257,6 @@ fn optional_palettes_propagate_through_nested_collections_and_arrays() {
 #[test]
 fn pole_colors_ease_from_a_grey_belt_to_full_color() {
     use magba::graphics::MagnetColorScheme;
-
     let magnet = CuboidMagnet::<f64>::default().with_polarization([0.5, 0.0, 1.0]);
     for (scheme, north, south) in [
         (MagnetColorScheme::Din, "rgb(166,87,87)", "rgb(81,146,110)"),
@@ -242,71 +267,60 @@ fn pole_colors_ease_from_a_grey_belt_to_full_color() {
         ),
         (MagnetColorScheme::Trad, "rgb(175,81,81)", "rgb(81,81,175)"),
     ] {
-        let plot: Value = serde_json::from_str(
-            &magnet
-                .plot_with_options(&GraphicsOptions::default().with_color_scheme(scheme))
-                .to_json(),
-        )
-        .unwrap();
-        let colors = plot["data"][0]["facecolor"].as_array().unwrap();
-        assert_eq!(colors[6], north);
-        assert!(colors.iter().any(|color| color == south));
-        assert!(colors.iter().any(|color| color == "grey"));
+        let options = GraphicsOptions::default().with_color_scheme(scheme);
+        let plot: Value =
+            serde_json::from_str(&magnet.plot_with_options(&options).to_json()).unwrap();
+        let colors = plot["data"][0]["colorscale"].as_array().unwrap();
+        assert!(colors.contains(&json!([0.75, north])));
+        assert!(colors.contains(&json!([0.25, south])));
+        for stop in [0.425, 0.5, 0.575] {
+            assert!(colors.contains(&json!([stop, "grey"])));
+        }
+        // A tilted polarization changes where the gradient crosses each face.
+        for i in 0..8 {
+            let x = plot["data"][0]["x"][i].as_f64().unwrap();
+            let z = plot["data"][0]["z"][i].as_f64().unwrap();
+            let intensity = plot["data"][0]["intensity"][i].as_f64().unwrap();
+            assert!((intensity - (0.5 * x + z) / 0.75).abs() < 1e-12);
+        }
         let scaled = magnet.clone().with_polarization([5.0, 0.0, 10.0]);
-        let scaled_plot: Value = serde_json::from_str(
-            &scaled
-                .plot_with_options(&GraphicsOptions::default().with_color_scheme(scheme))
-                .to_json(),
-        )
-        .unwrap();
-        assert_eq!(
-            scaled_plot["data"][0]["facecolor"],
-            plot["data"][0]["facecolor"]
-        );
-        let near_neutral = magnet.clone().with_polarization([0.1, 0.0, 1.0]);
-        let neutral_plot: Value = serde_json::from_str(
-            &near_neutral
-                .plot_with_options(&GraphicsOptions::default().with_color_scheme(scheme))
-                .to_json(),
-        )
-        .unwrap();
-        assert_eq!(neutral_plot["data"][0]["facecolor"][6], "grey");
-        assert_eq!(neutral_plot["data"][0]["facecolor"][10], "grey");
-        assert_eq!(
-            neutral_plot["data"][0]["facecolor"][2],
-            plot["data"][0]["facecolor"][2]
-        );
+        let scaled = data(&scaled);
+        for (a, b) in plot["data"][0]["intensity"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .zip(scaled["data"][0]["intensity"].as_array().unwrap())
+        {
+            assert!((a.as_f64().unwrap() - b.as_f64().unwrap()).abs() < 1e-12);
+        }
     }
 }
 
 #[test]
-fn sphere_colors_interpolate_between_vertices_and_follow_local_polarization() {
+fn sphere_intensities_interpolate_and_follow_local_polarization() {
     let magnet = SphereMagnet::<f64>::default();
     let plot = data(&magnet);
     let mesh = &plot["data"][0];
-    let colors = mesh["vertexcolor"].as_array().unwrap();
+    let colors = mesh["intensity"].as_array().unwrap();
     assert_eq!(colors.len(), mesh["x"].as_array().unwrap().len());
     assert!(mesh["facecolor"].is_null());
-    assert_eq!(colors.first().unwrap(), "#e71111");
-    assert_eq!(colors.last().unwrap(), "#00b050");
-    assert_eq!(colors[1 + 11 * 48], "grey");
+    assert_eq!(colors.first().unwrap(), 1.0);
+    assert_eq!(colors.last().unwrap(), -1.0);
+    assert!(colors[1 + 11 * 48].as_f64().unwrap().abs() < 1e-12);
     let rotated = magnet
         .clone()
         .with_orientation(UnitQuaternion::from_axis_angle(
             &Vector3::y_axis(),
             std::f64::consts::FRAC_PI_2,
         ));
-    assert_eq!(
-        data(&rotated)["data"][0]["vertexcolor"],
-        mesh["vertexcolor"]
-    );
+    assert_eq!(data(&rotated)["data"][0]["intensity"], mesh["intensity"]);
     let neutral = magnet.with_polarization([0.0; 3]);
     assert!(
-        data(&neutral)["data"][0]["vertexcolor"]
+        data(&neutral)["data"][0]["intensity"]
             .as_array()
             .unwrap()
             .iter()
-            .all(|c| c == "grey")
+            .all(|c| c == 0.0)
     );
 }
 
@@ -314,9 +328,9 @@ fn sphere_colors_interpolate_between_vertices_and_follow_local_polarization() {
 fn tetrahedron_poles_are_independent_of_vertex_winding() {
     let magnet = TetrahedronMagnet::<f64>::default();
     let plot = data(&magnet);
-    let colors = plot["data"][0]["facecolor"].as_array().unwrap();
-    assert!(colors.iter().any(|c| c == "#e71111"));
-    assert!(colors.iter().any(|c| c == "#00b050"));
+    let colors = plot["data"][0]["intensity"].as_array().unwrap();
+    assert!(colors.iter().any(|c| c == 1.0));
+    assert!(colors.iter().any(|c| c == -1.0));
     let mut vertices = magnet.vertices();
     vertices.swap(2, 3);
     assert_eq!(
@@ -349,15 +363,11 @@ fn curved_magnets_and_enum_entry_points_render_solid_geometry() {
             1.0
         );
         assert!(
-            mesh[if mesh["vertexcolor"].is_array() {
-                "vertexcolor"
-            } else {
-                "facecolor"
-            }]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|color| color == "#e71111")
+            mesh["colorscale"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|stop| stop[1] == "#e71111")
         );
     }
     assert_eq!(
@@ -409,10 +419,10 @@ fn options_and_views_propagate_through_all_geometry_kinds() {
     assert_eq!(traces[0]["x"].as_array().unwrap().len(), 26);
     assert_eq!(traces[1]["x"].as_array().unwrap().len(), 13);
     assert!(
-        traces[0]["facecolor"]
+        traces[0]["colorscale"]
             .as_array()
             .unwrap()
-            .contains(&json!("red"))
+            .contains(&json!([1.0, "red"]))
     );
 
     let mut plot = sources.plot();
@@ -588,5 +598,84 @@ fn custom_collection_geometry_survives_cloning_and_transforms() {
             .next()
             .unwrap()
             .read(&expected)
+    );
+}
+
+#[test]
+fn solid_primitives_use_polarization_gradients_and_planar_sheets_keep_their_pole() {
+    let solids = [
+        Magnet::from(CylinderMagnet::<f64>::default().with_polarization([1.0, 2.0, 3.0])),
+        Magnet::from(CuboidMagnet::default().with_polarization([1.0, 2.0, 3.0])),
+        Magnet::from(SphereMagnet::default().with_polarization([1.0, 2.0, 3.0])),
+        Magnet::from(TetrahedronMagnet::default().with_polarization([1.0, 2.0, 3.0])),
+    ];
+    for source in solids {
+        let value = data(&source);
+        let trace = &value["data"][0];
+        assert_eq!(trace["intensitymode"], "vertex");
+        let intensities: Vec<_> = trace["intensity"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|v| v.as_f64().unwrap())
+            .collect();
+        assert_eq!(intensities.len(), trace["x"].as_array().unwrap().len());
+        assert_eq!(
+            intensities.iter().copied().fold(f64::INFINITY, f64::min),
+            -1.0
+        );
+        assert_eq!(
+            intensities
+                .iter()
+                .copied()
+                .fold(f64::NEG_INFINITY, f64::max),
+            1.0
+        );
+        // Position along the chosen direction must determine color, independently
+        // of face normals. Check against world coordinates at the identity pose.
+        let projections: Vec<_> = (0..intensities.len())
+            .map(|i| {
+                trace["x"][i].as_f64().unwrap()
+                    + 2.0 * trace["y"][i].as_f64().unwrap()
+                    + 3.0 * trace["z"][i].as_f64().unwrap()
+            })
+            .collect();
+        let min = projections.iter().copied().fold(f64::INFINITY, f64::min);
+        let max = projections
+            .iter()
+            .copied()
+            .fold(f64::NEG_INFINITY, f64::max);
+        for (value, projection) in intensities.iter().zip(projections) {
+            assert!((value - (2.0 * (projection - min) / (max - min) - 1.0)).abs() < 1e-12);
+        }
+    }
+    for (polarization, pole) in [([0.0, 0.0, 1.0], 1.0), ([0.0, 0.0, -1.0], -1.0)] {
+        let sheet = data(&TriangleMagnet::<f64>::default().with_polarization(polarization));
+        assert_eq!(sheet["data"][0]["intensitymode"], "cell");
+        assert_eq!(sheet["data"][0]["intensity"], json!([pole]));
+    }
+    let tilted_sheet = TriangleMagnet::<f64>::default()
+        .with_vertices([
+            Vector3::new(0.0, 0.0, 0.0),
+            Vector3::new(1.0, 0.0, -1.0),
+            Vector3::new(0.0, 1.0, -1.0),
+        ])
+        .with_polarization([1.0, 1.0, 1.0]);
+    assert_eq!(data(&tilted_sheet)["data"][0]["intensitymode"], "cell");
+    for magnitude in [1e-300, 1e300] {
+        let tiny_or_large =
+            data(&CuboidMagnet::<f64>::default().with_polarization([0.0, 0.0, magnitude]));
+        assert_eq!(
+            tiny_or_large["data"][0]["intensity"],
+            json!([-1.0, -1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0])
+        );
+    }
+    let flat = data(&CuboidMagnet::<f64>::default().with_dimensions([1.0, 1.0, 0.0]));
+    assert!(
+        flat["data"][0]["intensity"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|v| v.as_f64().unwrap().is_finite())
     );
 }

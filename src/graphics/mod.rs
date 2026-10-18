@@ -12,6 +12,29 @@
 //!
 //! [`GraphicsOptions`] controls object appearance and [`GraphicsView`] stores
 //! options alongside a borrowed object. Neither type depends on Plotly.
+//!
+//! # Example
+//!
+//! Enable `graphics-plotly` to create a scene with a magnet and a current loop:
+//!
+//! ```no_run
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! # #[cfg(feature = "graphics-plotly")]
+//! # {
+//! use magba::prelude::*;
+//!
+//! let magnet = CuboidMagnet::<f64>::default();
+//! let mut plot = magnet.plot();
+//! CircularCurrent::<f64>::default()
+//!     .with_position([0.0, 0.0, 2.0])
+//!     .add_to_plot(&mut plot);
+//! std::fs::write("scene.html", plot.to_html())?;
+//! # }
+//! # Ok(())
+//! # }
+//! ```
+//!
+//! ![Cuboid magnet and circular current scene](https://github.com/p-sira/magba/blob/main/examples/figures/rustdoc_scene.png?raw=true)
 
 #![cfg_attr(
     feature = "graphics-plotly",
@@ -32,7 +55,7 @@ pub mod plotly;
 #[cfg(feature = "graphics-plotly")]
 pub use plotly::{FieldGraphics, Graphics, GraphicsObserver, GraphicsSource};
 
-/// Pole colors used for magnet surfaces, fading to grey as surface charge vanishes.
+/// Pole colors used for magnet surfaces, fading through a grey central belt.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum MagnetColorScheme {
     /// Red north and green south, following DIN SPEC 91411.

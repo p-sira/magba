@@ -21,6 +21,8 @@
 //! # Ok::<(), std::io::Error>(())
 //! ```
 //!
+//! ![Cuboid magnet and circular current scene](https://github.com/p-sira/magba/blob/main/examples/figures/rustdoc_scene.png?raw=true)
+//!
 //! The re-exported Plotly API allows further layout and trace customization.
 //! Sensors, dipoles, and ordinary custom collection components appear as markers.
 //! Use [`SourceComponent::custom_graphics`] or [`ObserverComponent::custom_graphics`]
@@ -29,8 +31,10 @@
 //! # Appearance and borrowed views
 //!
 //! Magnet surfaces are opaque by default. Pole colors follow local polarization
-//! and rotate with the magnet, fading smoothly into grey near zero surface charge.
-//! Spheres interpolate colors between vertices to avoid bands between mesh faces.
+//! and rotate with the magnet. Colors fade along the polarization direction
+//! through a grey central belt, continuously across face boundaries. The gradient
+//! indicates local polarity. A planar magnet polarized
+//! perpendicular to its surface retains a uniform pole color.
 //! [`MagnetColorScheme::Din`] uses red north and green south according to
 //! DIN SPEC 91411. The alternatives are [`MagnetColorScheme::OkabeIto`]
 //! (orange/blue) and [`MagnetColorScheme::Trad`] (red/blue).
@@ -47,13 +51,15 @@
 //! use magba::{graphics::{GraphicsOptions, GraphicsView, MagnetColorScheme}, prelude::*};
 //! let magnet = CylinderMagnet::<f64>::default();
 //! let options = GraphicsOptions::default()
-//!     .with_color_scheme(MagnetColorScheme::OkabeIto)
+//!     .with_color_scheme(MagnetColorScheme::Din)
 //!     .with_opacity(0.5)
 //!     .with_segments(96);
-//! let mut plot = magnet.plot_with_options(&options);
+//! let plot = magnet.plot_with_options(&options);
 //! let view = GraphicsView::new(&magnet).with_options(options);
-//! view.add_to_plot(&mut plot);
+//! let plot = view.plot();
 //! ```
+//!
+//! ![Cylinder with DIN pole colors and half opacity](https://github.com/p-sira/magba/blob/main/examples/figures/rustdoc_appearance.png?raw=true)
 //!
 //! Options apply to geometry and propagate through collections. Views borrow an
 //! object and store its appearance; recreate them after modifying the object.
@@ -89,6 +95,8 @@
 //! # Ok::<(), Box<dyn std::error::Error>>(())
 //! ```
 //!
+//! ![Sphere field magnitude and a projected field line](https://github.com/p-sira/magba/blob/main/examples/figures/rustdoc_field_lines.png?raw=true)
+//!
 //! Reuse sampled fields for heatmaps and arrows without resampling:
 //!
 //! ```no_run
@@ -101,6 +109,8 @@
 //! std::fs::write("field.html", plot.to_html())?;
 //! # Ok::<(), Box<dyn std::error::Error>>(())
 //! ```
+//!
+//! ![Sphere field magnitude with in-plane arrows](https://github.com/p-sira/magba/blob/main/examples/figures/rustdoc_field_quiver.png?raw=true)
 //!
 //! Use [`FieldGraphics::plot_field_2d`] and [`FieldGraphics::plot_quiver_2d`] for
 //! direct plotting. [`FieldGraphics::plot_quiver`] and [`FieldGraphics::add_quiver`]
@@ -125,8 +135,9 @@ mod field;
 pub use field::FieldGraphics;
 
 use ::plotly::{
-    common::{Line, Mode},
+    common::{ColorScale, ColorScaleElement, Line, Mode},
     layout::{AspectMode, Axis, LayoutScene},
+    mesh3d::IntensityMode,
 };
 use nalgebra::{Point3, Vector3};
 
@@ -233,10 +244,9 @@ fn coordinates<T: Float>(object: &impl Transform<T>, vertices: &[Vector3<T>]) ->
     xyz
 }
 
-struct SurfacePoles<'a, T: Float> {
+struct SurfacePoles<T: Float> {
     polarization: Vector3<T>,
     scheme: MagnetColorScheme,
-    vertex_normals: Option<&'a [Vector3<T>]>,
 }
 
 fn surface<T: Float>(
@@ -245,7 +255,7 @@ fn surface<T: Float>(
     vertices: &[Vector3<T>],
     faces: &[[usize; 3]],
     name: &str,
-    poles: Option<SurfacePoles<'_, T>>,
+    poles: Option<SurfacePoles<T>>,
     options: &GraphicsOptions,
 ) {
     if faces.is_empty() {
@@ -270,64 +280,103 @@ fn surface<T: Float>(
     if let Some(SurfacePoles {
         polarization,
         scheme,
-        vertex_normals,
     }) = poles
     {
-        let [north, south] = scheme.poles();
-        // Surface charge is proportional to the outward normal dotted with polarization.
-        // Fade towards grey as charge vanishes. Work in local coordinates
-        // so rotation and translation cannot change a face's pole color.
-        let direction = polarization.try_normalize(T::zero());
-        let charge = |normal: Vector3<T>| {
-            direction
-                .and_then(|p| normal.try_normalize(T::zero()).map(|n| n.dot(&p)))
-                .and_then(|q| q.to_f64())
-                .unwrap_or(0.0)
-        };
-        let charges: Vec<_> = match vertex_normals {
-            Some(normals) => normals.iter().copied().map(charge).collect(),
-            None => faces
-                .iter()
-                .map(|&[a, b, c]| {
-                    charge((vertices[b] - vertices[a]).cross(&(vertices[c] - vertices[a])))
-                })
-                .collect(),
-        };
-        // Scale each pole separately so sloped polyhedra also show both poles.
-        let north_charge = charges.iter().copied().fold(0.0_f64, f64::max);
-        let south_charge = charges.iter().copied().fold(0.0_f64, f64::min);
-        let colors: Vec<_> = charges
-            .into_iter()
-            .map(|charge| {
-                let ((color, rgb), strength) = if charge > 0.0 {
-                    (north, charge / north_charge)
-                } else if charge < 0.0 {
-                    (south, charge / south_charge)
-                } else {
-                    return "grey".to_owned();
-                };
-                // Keep a neutral belt and ease into both grey and the full pole color.
-                let strength = ((strength - 0.15) / 0.85).clamp(0.0, 1.0);
-                let strength = strength * strength * (3.0 - 2.0 * strength);
-                let blended = rgb
-                    .map(|channel| (128.0 + (f64::from(channel) - 128.0) * strength).round() as u8);
-                if blended == rgb {
-                    color.to_owned()
-                } else if blended == [128; 3] {
-                    "grey".to_owned()
-                } else {
-                    format!("rgb({},{},{})", blended[0], blended[1], blended[2])
-                }
-            })
-            .collect();
-        trace = trace.color("grey");
-        trace = if vertex_normals.is_some() {
-            trace.vertex_color(colors)
-        } else {
-            trace.face_color(colors)
-        };
+        let (mode, intensity) = pole_intensity(vertices, faces, polarization);
+        trace = trace
+            .color("grey")
+            .intensity(intensity)
+            .intensity_mode(mode)
+            .c_min(-1.0)
+            .c_max(1.0)
+            .color_scale(pole_colorscale(scheme))
+            .show_scale(false)
+            .hover_template("x: %{x} m<br>y: %{y} m<br>z: %{z} m<extra>%{fullData.name}</extra>");
     }
     plot.add_trace(trace);
+}
+
+/// Position along polarization supplies a continuous gradient across face edges.
+/// Plotly interpolates vertex intensities before applying the shared colorscale.
+fn pole_intensity<T: Float>(
+    vertices: &[Vector3<T>],
+    faces: &[[usize; 3]],
+    polarization: Vector3<T>,
+) -> (IntensityMode, Vec<f64>) {
+    let magnitude = polarization
+        .iter()
+        .copied()
+        .map(num_traits::Float::abs)
+        .fold(T::zero(), num_traits::Float::max);
+    let direction = if magnitude > T::zero() && num_traits::Float::is_finite(magnitude) {
+        (polarization / magnitude).try_normalize(T::zero())
+    } else {
+        None
+    };
+    let Some(direction) = direction else {
+        return (IntensityMode::Vertex, vec![0.0; vertices.len()]);
+    };
+    let projections: Vec<_> = vertices
+        .iter()
+        .map(|v| direction.dot(&(*v - vertices[0])).to_f64().unwrap_or(0.0))
+        .collect();
+    let min = projections.iter().copied().fold(f64::INFINITY, f64::min);
+    let max = projections
+        .iter()
+        .copied()
+        .fold(f64::NEG_INFINITY, f64::max);
+    let extent = vertices
+        .iter()
+        .map(|v| (*v - vertices[0]).norm().to_f64().unwrap_or(0.0))
+        .fold(0.0_f64, f64::max);
+    let tolerance = 16.0 * <T as num_traits::Float>::epsilon().to_f64().unwrap_or(0.0) * extent;
+    if max - min > tolerance {
+        return (
+            IntensityMode::Vertex,
+            projections
+                .into_iter()
+                .map(|p| (2.0 * ((p - min) / (max - min)) - 1.0).clamp(-1.0, 1.0))
+                .collect(),
+        );
+    }
+    // A planar charged sheet has no extent along its normal. Retain its uniform
+    // pole color using the face normal.
+    let intensity = faces
+        .iter()
+        .map(|&[a, b, c]| {
+            (vertices[b] - vertices[a])
+                .cross(&(vertices[c] - vertices[a]))
+                .try_normalize(T::zero())
+                .and_then(|normal| direction.dot(&normal).to_f64())
+                .unwrap_or(0.0)
+        })
+        .collect();
+    (IntensityMode::Cell, intensity)
+}
+
+fn pole_colorscale(scheme: MagnetColorScheme) -> ColorScale {
+    let [north, south] = scheme.poles();
+    let stops = [
+        -1.0_f64, -0.75, -0.5, -0.25, -0.15, 0.0, 0.15, 0.25, 0.5, 0.75, 1.0,
+    ]
+    .into_iter()
+    .map(|level| {
+        let (color, rgb) = if level > 0.0 { north } else { south };
+        let strength = ((level.abs() - 0.15) / 0.85).clamp(0.0, 1.0);
+        let strength = strength * strength * (3.0 - 2.0 * strength);
+        let blended =
+            rgb.map(|channel| (128.0 + (f64::from(channel) - 128.0) * strength).round() as u8);
+        let color = if strength == 0.0 {
+            "grey".to_owned()
+        } else if strength == 1.0 {
+            color.to_owned()
+        } else {
+            format!("rgb({},{},{})", blended[0], blended[1], blended[2])
+        };
+        ColorScaleElement((level + 1.0) / 2.0, color)
+    })
+    .collect();
+    ColorScale::Vector(stops)
 }
 
 fn line<T: Float>(
@@ -421,7 +470,6 @@ impl<T: Float> Graphics<T> for CuboidMagnet<T> {
             Some(SurfacePoles {
                 polarization: self.polarization(),
                 scheme: options.color_scheme(),
-                vertex_normals: None,
             }),
             options,
         );
@@ -478,7 +526,6 @@ impl<T: Float> Graphics<T> for CylinderMagnet<T> {
             Some(SurfacePoles {
                 polarization: self.polarization(),
                 scheme: options.color_scheme(),
-                vertex_normals: None,
             }),
             options,
         );
@@ -525,7 +572,6 @@ impl<T: Float> Graphics<T> for SphereMagnet<T> {
             Some(SurfacePoles {
                 polarization: self.polarization(),
                 scheme: options.color_scheme(),
-                vertex_normals: Some(&vertices),
             }),
             options,
         );
@@ -547,7 +593,6 @@ impl<T: Float> Graphics<T> for TriangleMagnet<T> {
             Some(SurfacePoles {
                 polarization: self.polarization(),
                 scheme: options.color_scheme(),
-                vertex_normals: None,
             }),
             options,
         );
@@ -576,7 +621,6 @@ impl<T: Float> Graphics<T> for TetrahedronMagnet<T> {
             Some(SurfacePoles {
                 polarization: self.polarization(),
                 scheme: options.color_scheme(),
-                vertex_normals: None,
             }),
             options,
         );
@@ -665,7 +709,6 @@ mod mesh {
             poles.map(|polarization| SurfacePoles {
                 polarization,
                 scheme: options.color_scheme(),
-                vertex_normals: None,
             }),
             options,
         );

@@ -16,11 +16,15 @@ use super::MagnetColorScheme;
 /// ```
 /// use magba::graphics::{GraphicsOptions, MagnetColorScheme};
 /// let options = GraphicsOptions::default()
-///     .with_color_scheme(MagnetColorScheme::OkabeIto)
+///     .with_color_scheme(MagnetColorScheme::Din)
 ///     .with_opacity(0.5)
 ///     .with_segments(96);
-/// assert_eq!(options.opacity(), Some(0.5));
+/// # assert_eq!(options.opacity(), Some(0.5));
 /// ```
+///
+/// Rendered with the `graphics-plotly` feature:
+///
+/// ![Cylinder with DIN pole colors and half opacity](https://github.com/p-sira/magba/blob/main/examples/figures/rustdoc_appearance.png?raw=true)
 #[derive(Clone, Copy, Debug, PartialEq, CopyGetters, Setters, WithSetters)]
 #[getset(get_copy = "pub", set = "pub", set_with = "pub")]
 pub struct GraphicsOptions {
@@ -90,9 +94,13 @@ impl GraphicsOptions {
 /// use magba::{graphics::GraphicsView, prelude::*};
 /// let magnet = CylinderMagnet::<f32>::default();
 /// let view = GraphicsView::new(&magnet).with_opacity(0.5).with_segments(64);
-/// assert!(core::ptr::eq(view.object(), &magnet));
-/// assert_eq!(view.options().opacity(), Some(0.5));
+/// # assert!(core::ptr::eq(view.object(), &magnet));
+/// # assert_eq!(view.options().opacity(), Some(0.5));
 /// ```
+///
+/// Rendered with the `graphics-plotly` feature:
+///
+/// ![Cylinder view with half opacity](https://github.com/p-sira/magba/blob/main/examples/figures/rustdoc_view.png?raw=true)
 #[derive(Clone, Debug)]
 pub struct GraphicsView<'a, S: ?Sized> {
     object: &'a S,

@@ -7,6 +7,7 @@
 **New Features**
 
 - Add backend-independent field sampling and adaptive field-line tracing behind the optional `graphics` feature.
+- Blend magnet pole colors continuously across primitive and mesh faces, fading through a grey center along local polarization.
 - Add backend-independent fluent `GraphicsOptions` and borrowed `GraphicsView` for palettes, opacity, visibility, and curved-geometry resolution.
 - Preserve custom source and observer geometry in collections through explicit `custom_graphics` constructors.
 - Add optional `graphics-plotly` visualization for magnets, currents, sensors, and collections, with configurable pole colors, heatmaps, 2D/3D arrows, directed field lines, and offline HTML output.
@@ -14,6 +15,7 @@
 **Documentations**
 
 - Add graphics examples, rendered figures, and guidance for appearance options, borrowed views, and custom collection renderers.
+- Add a Graphics section to every magnet type with a DIN field-line example and generated preview.
 
 ## 0.7
 
