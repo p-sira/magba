@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.8
+
+**New Features**
+
+- Add backend-independent field sampling and adaptive field-line tracing with `std`.
+- Add optional `graphics-plotly` visualization for magnets, currents, sensors, and collections, with configurable pole colors, heatmaps, 2D/3D arrows, directed field lines, and offline HTML output.
+
+**Documentations**
+
+- Add graphics examples and rendered figures.
+
 ## 0.7
 
 ### 0.7.3
