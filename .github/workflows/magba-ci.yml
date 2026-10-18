@@ -32,7 +32,7 @@ jobs:
           restore-keys: |
             cargo-${{ runner.os }}-
       - name: Clippy
-        run: cargo clippy -- -D warnings
+        run: cargo clippy --features graphics-plotly -- -D warnings
 
   test:
     strategy:
@@ -81,6 +81,17 @@ jobs:
         run: RUSTFLAGS="-D warnings" cargo hack test --feature-powerset
           --exclude-features libm,test_force_fail --features std
 
+  msrv:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install minimum supported Rust
+        run: rustup toolchain install 1.88.0 --profile minimal
+      - name: Check minimum supported Rust
+        run: |
+          cargo +1.88.0 check --locked --all-features --lib
+          cargo +1.88.0 check --locked --no-default-features --features libm --lib
+
   check-no-std:
     runs-on: ubuntu-latest
     steps:
@@ -103,7 +114,7 @@ jobs:
         run:
           RUSTFLAGS="-D warnings" cargo hack check --target thumbv7m-none-eabi
           --feature-powerset --exclude-features
-          default,std,rayon,mesh,io-stl,test-utils,test_force_fail,threshold-calibration
+          default,std,rayon,mesh,io-stl,graphics,graphics-plotly,test-utils,test_force_fail,threshold-calibration
           --features libm
 
   doc:

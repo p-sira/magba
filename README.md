@@ -56,19 +56,22 @@ To install Magba using `cargo`, run:
 cargo add magba
 ```
 
-By default, Magba installs with all stable features enabled, including parallelization with Rayon.
+Magba requires Rust 1.88 or later.
+
+By default, Magba enables `std`, `rayon`, and `mesh`. Graphics and file I/O are opt-in.
 
 ### Feature Flags
 
 The available feature flags are:
 - `default`: Enable std, rayon, and mesh.
-- `alloc`: Enable heap allocations, allowing collections and batch processing without the full `std` library.
-- `std`: Use std features, such as magnet and sources structs.
-  Disable the flag to use Magba in `no_std` environments. Without std,
-  you can still access the `fields` module to directly compute the fields.
+- `alloc`: Enable heap allocations for batch processing and `PathCurrent` without the full `std` library.
+- `std`: Enable source and observer collections and dynamically cloned trait objects (enables `alloc`).
+  Disable default features and enable `libm` for `no_std`; magnet, current, and sensor structs remain available, subject to their feature requirements.
 - `rayon`: Parallelization using [Rayon](https://github.com/rayon-rs/rayon).
 - `mesh`: Enable mesh features, such as `MeshMagnet` and `SheetCurrent`.
 - `io-stl`: Enable STL mesh loading features.
+- `graphics`: Enable backend-independent field sampling, tracing, and appearance types (requires `std`).
+- `graphics-plotly`: Enable interactive Plotly visualization (enables `graphics`).
 - `libm`: Use libm as the math backend. Must be enabled when compiling for `no_std`.
 - `unstable`: Enable unstable features. These features may change any time.
 
@@ -118,6 +121,25 @@ let b_fields = source_assembly.compute_B_batch(&points);
 //     [ -1.9136669915278972e-5,  -0.30697154302354923,  0.33360985034592394 ],
 // ]
 ```
+
+## Interactive 3D Graphics
+
+![Magba graphics showcase](https://github.com/p-sira/magba/blob/main/examples/figures/graphics_showcase.png?raw=true)
+
+Enable visualization with `cargo add magba --features graphics-plotly`:
+
+```rust
+use magba::prelude::*;
+
+let magnet = CylinderMagnet::<f64>::default();
+let plot = magnet.plot();
+std::fs::write("scene.html", plot.to_html()).expect("Cannot write scene.html");
+```
+
+Create offline interactive scenes, field heatmaps, arrows, and field lines.
+See the [graphics API documentation](https://docs.rs/magba/latest/magba/graphics/plotly/index.html)
+for styling and custom renderers, and [examples and figures](examples/figures/README.md)
+for runnable demonstrations.
 
 ## Testing
 
