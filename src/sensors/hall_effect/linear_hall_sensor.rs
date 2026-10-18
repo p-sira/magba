@@ -64,12 +64,7 @@ impl<T: Float> LinearHallSensor<T> {
         }
 
         let two = T::from_f64(2.0).unwrap();
-        let axis = sensitive_axis.into();
-        let axis_norm = axis.norm();
-        if axis_norm == T::zero() || !axis_norm.is_finite() {
-            panic!("Sensitive axis must be finite and non-zero.");
-        }
-        let sensitive_axis = axis / axis_norm;
+        let sensitive_axis = super::normalized_axis(sensitive_axis.into());
         let sensitivity_vector = sensitive_axis * sensitivity;
 
         Self {

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.8
+
+### 0.8.0
+
+**Bug Fixes**
+
+- Reject zero or nonfinite sensitive-axis norms and nonfinite thresholds in Hall switch and latch constructors, setters, and builders, preserving sensor state when validation fails.
+
 ## 0.7
 
 ### 0.7.3
