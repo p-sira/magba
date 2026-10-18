@@ -137,9 +137,8 @@ fn mesh_objects_use_supplied_triangles_and_world_pose() {
     let magnet = MeshMagnet::<f64>::default()
         .with_mesh(mesh.clone())
         .with_position([2.0, 3.0, 4.0]);
-    let sheet = SheetCurrent::<f64>::default()
-        .with_mesh(mesh)
-        .with_position([2.0, 3.0, 4.0]);
+    let mut sheet = SheetCurrent::<f64>::default().with_position([2.0, 3.0, 4.0]);
+    sheet.set_mesh_and_current_densities(mesh, vec![Vector3::x()]);
     let options = GraphicsOptions::default().with_opacity(0.25);
     for object in [&magnet as &dyn Graphics, &sheet] {
         let plot: Value =
@@ -386,7 +385,9 @@ fn mesh_enums_render_faces_and_empty_meshes_are_omitted() {
     use magba::base::mesh::TriMesh;
     let mesh = TriMesh::new_unchecked([Vector3::zeros(), Vector3::x(), Vector3::y()], [[0, 1, 2]]);
     let magnet = Magnet::from(MeshMagnet::<f64>::default().with_mesh(mesh.clone()));
-    let current = Current::from(SheetCurrent::<f64>::default().with_mesh(mesh));
+    let mut sheet = SheetCurrent::<f64>::default();
+    sheet.set_mesh_and_current_densities(mesh, vec![Vector3::x()]);
+    let current = Current::from(sheet);
     assert_eq!(data(&magnet)["data"][0]["opacity"], 1.0);
     assert_eq!(data(&current)["data"][0]["opacity"], 0.65);
     assert_eq!(data(&MeshMagnet::<f64>::default())["data"], json!([]));

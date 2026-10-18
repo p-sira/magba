@@ -16,6 +16,9 @@ use crate::{
 };
 
 /// Computes B-field of a current sheet mesh at point in local frame.
+///
+/// # Panics
+/// Panics unless there is exactly one current density per mesh face.
 #[inline]
 #[allow(non_snake_case)]
 pub fn local_sheet_current_B<T: Float>(
@@ -25,8 +28,12 @@ pub fn local_sheet_current_B<T: Float>(
 ) -> Vector3<T> {
     let mut b_total = Vector3::zeros();
 
-    let count = core::cmp::min(current_densities.len(), mesh.triangles().len());
-    for (i, &triangle) in mesh.triangles().iter().take(count).enumerate() {
+    assert_eq!(
+        current_densities.len(),
+        mesh.triangles().len(),
+        "Exactly one current density is required per mesh face."
+    );
+    for (i, &triangle) in mesh.triangles().iter().enumerate() {
         let j = current_densities[i];
         if j != Vector3::zeros() {
             b_total += local_triangle_current_B(point, j, &triangle.vertices());
@@ -37,6 +44,9 @@ pub fn local_sheet_current_B<T: Float>(
 }
 
 /// Computes B-field of a current sheet mesh at point (x, y, z).
+///
+/// # Panics
+/// Panics unless there is exactly one current density per mesh face.
 #[inline]
 #[allow(non_snake_case)]
 pub fn sheet_current_B<T: Float>(
@@ -56,6 +66,9 @@ pub fn sheet_current_B<T: Float>(
 }
 
 /// Computes B-field at points in global frame for a current sheet mesh.
+///
+/// # Panics
+/// Panics on density/face count mismatch or output/input length mismatch.
 #[allow(non_snake_case)]
 pub fn sheet_current_B_batch<T: Float>(
     points: &[Point3<T>],
@@ -65,11 +78,14 @@ pub fn sheet_current_B_batch<T: Float>(
     mesh: &TriMesh<T>,
     out: &mut [Vector3<T>],
 ) {
-    let count = core::cmp::min(current_densities.len(), mesh.triangles().len());
+    assert_eq!(
+        current_densities.len(),
+        mesh.triangles().len(),
+        "Exactly one current density is required per mesh face."
+    );
     let precomputed: alloc::vec::Vec<_> = mesh
         .triangles()
         .iter()
-        .take(count)
         .enumerate()
         .filter_map(|(i, triangle)| {
             let j = current_densities[i];
@@ -97,6 +113,10 @@ pub fn sheet_current_B_batch<T: Float>(
 }
 
 /// Computes B-field at each given points in global frame for multiple current sheet meshes.
+///
+/// # Panics
+/// Panics on density/face count mismatch, mismatched source-list lengths,
+/// or output/input length mismatch.
 #[allow(non_snake_case)]
 pub fn sum_multiple_sheet_current_B<T: Float>(
     points: &[Point3<T>],
@@ -106,6 +126,13 @@ pub fn sum_multiple_sheet_current_B<T: Float>(
     meshes: &[&TriMesh<T>],
     out: &mut [Vector3<T>],
 ) {
+    for (densities, mesh) in current_densities_list.iter().zip(meshes) {
+        assert_eq!(
+            densities.len(),
+            mesh.triangles().len(),
+            "Exactly one current density is required per mesh face."
+        );
+    }
     impl_parallel_sum!(
         out,
         points,

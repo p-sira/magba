@@ -262,6 +262,14 @@ macro_rules! define_source {
     (@pass_arg $arg:expr, val) => { $arg };
     (@pass_arg $arg:expr, ref) => { &$arg };
 
+    // Cross-field checks can use a different expression in setters, where the
+    // other fields belong to the existing source rather than constructor arguments.
+    (@setter_valid $source:ident, $validate:expr) => { $validate };
+    (@setter_valid $source:ident, $validate:expr, |$this:ident| $setter_validate:expr) => {{
+        let $this = &*$source;
+        $setter_validate
+    }};
+
     // MARK: Get, Set, With
     (@getter_ret_type $arg_type:ty) => { $arg_type };
     (@getter_ret_type $arg_type:ty, val) => { $arg_type };
@@ -286,8 +294,7 @@ macro_rules! define_source {
             $arg:ident,
             $arg_type:ty,
             [$(@$is_value:ident)?],
-            [$($validate:expr)?],
-            [$($error:literal)?]
+            [$($validate:expr, $error:literal $(, |$setter_source:ident| $setter_validate:expr)?)?]
         )
     )*) => {
         impl<T: crate::base::Float> $struct_name<T> {
@@ -299,7 +306,7 @@ macro_rules! define_source {
                         let $arg: $arg_type = $crate::crate_utils::define_source!(@arg_into $arg $(, $is_value)?);
                         $(
                             #[allow(clippy::neg_cmp_op_on_partial_ord)]
-                            if !($validate) {
+                            if !$crate::crate_utils::define_source!(@setter_valid self, $validate $(, |$setter_source| $setter_validate)?) {
                                 panic!($error);
                             }
                         )?
@@ -330,7 +337,9 @@ macro_rules! define_source {
         args: {
             $(
                 $arg:ident : $(@$is_value:ident)? $arg_type:ty = $arg_default:expr
-                $(; validate $validate:expr; error $error:literal)?
+                $(; validate $validate:expr; error $error:literal
+                    $(; validate_set |$setter_source:ident| $setter_validate:expr)?
+                )?
             ),* $(,)?
         }
         arg_display: $arg_display:expr;
@@ -356,8 +365,7 @@ macro_rules! define_source {
                 $arg,
                 $arg_type,
                 [$(@$is_value)?],
-                [$($validate)?],
-                [$($error)?]
+                [$($validate, $error $(, |$setter_source| $setter_validate)?)?]
             )
         )*);
 

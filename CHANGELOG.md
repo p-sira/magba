@@ -25,6 +25,17 @@
 - Add graphics examples, rendered figures, and guidance for appearance options, borrowed views, and custom collection renderers.
 - Add concise graphics previews to every magnet type, separate runnable DIN field-line examples, and descriptions of each graphics implementation.
 
+**Bug Fixes**
+
+- Use relative face tolerances for STL import, accepting valid small and multiscale meshes consistently with `TriMesh::new`.
+- Require exactly one current density per sheet-current mesh face in constructors, setters, builders, and field functions; reject invalid updates before mutation.
+- Reject nonfinite and nonpositive linear Hall supply voltages in constructors, setters, and builders, preserving configuration when validation fails.
+- Reject zero or nonfinite sensitive-axis norms and nonfinite thresholds in Hall switch and latch constructors, setters, and builders, preserving sensor state when validation fails.
+
+**API Improvements**
+
+- Add `SheetCurrent::set_mesh_and_current_densities` to replace geometry and per-face densities together while preserving their count invariant.
+
 ## 0.7
 
 ### 0.7.3

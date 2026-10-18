@@ -78,9 +78,9 @@ pub struct TriMesh<T: Float> {
 impl<T: Float + core::iter::Sum> TriMesh<T> {
     /// Construct a [TriMesh] from vertices and faces.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// Panics if the mesh has holes or zero-faces.
+    /// Returns an error if the mesh is invalid, including holes or zero-area faces.
     ///
     /// # Notes
     ///
@@ -108,16 +108,14 @@ impl<T: Float + core::iter::Sum> TriMesh<T> {
     {
         let mesh: openmesh::Mesh<T> =
             openmesh::Mesh::from_stl(reader).map_err(|e| std::io::Error::other(e.to_string()))?;
-        mesh.validate()
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e.to_string()))?;
-
         let vertices: Vec<Vector3<T>> = mesh
             .vertices
             .into_iter()
             .map(|v| Vector3::new(v.0, v.1, v.2))
             .collect();
         let faces: Vec<[usize; 3]> = mesh.faces.into_iter().map(|f| [f.0, f.1, f.2]).collect();
-        Ok(Self::new_unchecked(vertices, faces))
+        Self::new(vertices, faces)
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e.to_string()))
     }
 }
 

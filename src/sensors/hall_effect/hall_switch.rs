@@ -32,18 +32,22 @@ impl_transform!(HallSwitch<T> where T: Float);
 
 impl<T: Float> HallSwitch<T> {
     // MARK: New
+    /// Construct a switch with a finite nonnegative operate point.
+    ///
+    /// # Panics
+    /// Panics if the axis has a zero or nonfinite norm, or the operate point is invalid.
     pub fn new(
         position: impl Into<Point3<T>>,
         orientation: UnitQuaternion<T>,
         sensitive_axis: impl Into<Vector3<T>>,
         b_op: T,
     ) -> Self {
-        if b_op < T::zero() {
-            panic!("B_OP must be non-negative.");
+        if !b_op.is_finite() || b_op < T::zero() {
+            panic!("B_OP must be finite and non-negative.");
         }
         Self {
             pose: Pose::new(position.into(), orientation),
-            sensitive_axis: sensitive_axis.into().normalize(),
+            sensitive_axis: super::normalized_axis(sensitive_axis.into()),
             b_op,
         }
     }
@@ -71,15 +75,17 @@ impl<T: Float> HallSwitch<T> {
 
     // MARK: Setters
 
+    /// Normalize and set the axis. Panics if its norm is zero or nonfinite.
     #[inline]
     pub fn set_sensitive_axis(&mut self, sensitive_axis: impl Into<Vector3<T>>) {
-        self.sensitive_axis = sensitive_axis.into().normalize();
+        self.sensitive_axis = super::normalized_axis(sensitive_axis.into());
     }
 
+    /// Set a finite nonnegative operate point. Panics if invalid.
     #[inline]
     pub fn set_b_op(&mut self, b_op: T) {
-        if b_op < T::zero() {
-            panic!("B_OP must be non-negative.");
+        if !b_op.is_finite() || b_op < T::zero() {
+            panic!("B_OP must be finite and non-negative.");
         }
         self.b_op = b_op;
     }
