@@ -1,5 +1,5 @@
 [workspace.package]
-version = "0.7.3"
+version = "0.8.0"
 authors = ["Sira Pornsiriprasert <code@psira.me>"]
 documentation = "https://docs.rs/magba"
 homepage = "https://github.com/p-sira/magba"
@@ -148,7 +148,8 @@ alloc = ["nalgebra/alloc"]
 rayon = ["std", "dep:rayon", "nalgebra/rayon"]
 libm = ["ellip/libm", "num-traits/libm", "nalgebra/libm", "openmesh/libm"]
 mesh = ["alloc"]
-graphics-plotly = ["std", "dep:plotly"]
+graphics = ["std"]
+graphics-plotly = ["graphics", "dep:plotly"]
 io-stl = ["mesh", "std", "openmesh/stl"]
 test-utils = ["std", "dep:csv", "dep:regex"]
 unstable = []

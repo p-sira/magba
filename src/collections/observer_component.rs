@@ -34,7 +34,7 @@ pub enum ObserverComponent<T: Float = f64> {
 
 impl<T: Float> ObserverComponent<T> {
     /// Preserve a custom object's geometry when rendering a collection.
-    /// Ordinary `Custom` components use a point marker instead.
+    /// Ordinary [`Custom`](Self::Custom) components use a point marker instead.
     ///
     /// ```
     /// # use magba::prelude::*;

@@ -58,7 +58,7 @@ impl Plane {
 /// A validated, uniformly spaced rectangular sampling grid.
 ///
 /// Ranges are inclusive, ordered from low to high. Resolution is `[columns, rows]`.
-/// Coordinates use `f64`; both `f32` and `f64` sources can be sampled.
+/// Coordinates use [`f64`]; both [`f32`] and [`f64`] sources can be sampled.
 #[derive(Debug, Clone)]
 pub struct FieldGrid {
     pub(crate) plane: Plane,
@@ -184,14 +184,14 @@ impl FieldSlice {
 /// Adaptive arc-length RK4 integration settings for field lines.
 ///
 /// Integration runs forwards and backwards from every seed using normalized B.
-/// Each direction stops at `max_steps`, bounds, zero/non-finite B, an unresolved
+/// Each direction stops at [`max_steps`](Self::max_steps), bounds, zero/non-finite B, an unresolved
 /// turn, or a closed loop.
 /// These are visual approximations; decrease the step size to assess convergence.
 #[derive(Debug, Clone, Copy)]
 pub struct FieldLineOptions {
     /// Maximum arc-length step in meters. Must be finite and positive.
     pub step_size: f64,
-    /// Allowed local position error relative to `step_size`. Defaults to 1e-4.
+    /// Allowed local position error relative to [`step_size`](Self::step_size). Defaults to 1e-4.
     /// Steps shrink near rapid field changes, down to one millionth of `step_size`.
     pub tolerance: f64,
     /// Maximum RK4 steps per seed in each direction. Must be nonzero.
@@ -248,7 +248,7 @@ impl FieldLineOptions {
 
 /// Field sampling and trajectory integration for every source, including collections and trait objects.
 ///
-/// Coordinates and integration settings use `f64` meters. Sampling converts coordinates
+/// Coordinates and integration settings use [`f64`] meters. Sampling converts coordinates
 /// to the source's scalar type, reporting unrepresentable inputs. Computed non-finite
 /// fields become heatmap gaps, omitted arrows, or field-line stopping points.
 pub trait FieldSampler<T: Float = f64>: Source<T> {

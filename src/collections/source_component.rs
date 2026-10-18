@@ -41,7 +41,7 @@ pub enum SourceComponent<T: Float = f64> {
 
 impl<T: Float> SourceComponent<T> {
     /// Preserve a custom object's geometry when rendering a collection.
-    /// Ordinary `Custom` components use a point marker instead.
+    /// Ordinary [`Custom`](Self::Custom) components use a point marker instead.
     ///
     /// ```
     /// # use magba::prelude::*;

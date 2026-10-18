@@ -69,7 +69,8 @@ The available feature flags are:
 - `rayon`: Parallelization using [Rayon](https://github.com/rayon-rs/rayon).
 - `mesh`: Enable mesh features, such as `MeshMagnet` and `SheetCurrent`.
 - `io-stl`: Enable STL mesh loading features.
-- `graphics-plotly`: Enable interactive 3D visualization with Plotly (requires `std`).
+- `graphics`: Enable backend-independent field sampling, tracing, and appearance types (requires `std`).
+- `graphics-plotly`: Enable interactive Plotly visualization (enables `graphics`).
 - `libm`: Use libm as the math backend. Must be enabled when compiling for `no_std`.
 - `unstable`: Enable unstable features. These features may change any time.
 
@@ -122,129 +123,22 @@ let b_fields = source_assembly.compute_B_batch(&points);
 
 ## Interactive 3D Graphics
 
+![Magba graphics showcase](examples/figures/graphics_showcase.png)
+
 Enable visualization with `cargo add magba --features graphics-plotly`:
 
-```rust,no_run
+```rust
 use magba::prelude::*;
 
 let magnet = CylinderMagnet::<f64>::default();
-let mut plot = magnet.plot();
-CuboidMagnet::<f64>::default()
-    .with_position([2.0, 0.0, 0.0])
-    .add_to_plot(&mut plot);
+let plot = magnet.plot();
 std::fs::write("scene.html", plot.to_html()).expect("Cannot write scene.html");
 ```
 
-Open the HTML file in a browser to rotate, pan, and zoom. Plotly.js is
-embedded, so viewing works offline. Built-in magnets, currents, sensors,
-and collections support `Graphics`; mesh objects require `mesh` as well.
-Dipoles, sensors, and ordinary custom collection components use point markers.
-Plots capture the objects' current geometry and poses in meters.
-Use the re-exported `magba::graphics::plotly` API to customize a plot.
-
-Magnet surfaces are opaque by default, with grey bodies, red north poles, and
-green south poles, using
-[Magpylib's DIN SPEC 91411 palette](https://magpylib.readthedocs.io/en/stable/_pages/user_guide/docs/docs_styles.html).
-Colors follow local polarization and rotate with the magnet. Neutral surfaces
-remain grey; pole colors ease smoothly into a grey belt near zero surface charge.
-Sphere colors interpolate between vertices to avoid bands between mesh faces.
-Choose orange/blue (`okabe-ito`) or red/blue (`trad`) with
-`MagnetColorScheme::OkabeIto` or `MagnetColorScheme::Trad`:
-
-```rust,no_run
-use magba::{graphics::{GraphicsOptions, GraphicsView, MagnetColorScheme}, prelude::*};
-let magnets = SourceArray::from([CuboidMagnet::<f64>::default()]);
-let options = GraphicsOptions::default()
-    .with_color_scheme(MagnetColorScheme::OkabeIto)
-    .with_opacity(0.5)
-    .with_segments(96);
-let mut plot = magnets.plot_with_options(&options);
-
-// Store a borrowed object together with its appearance for repeated use.
-let view = GraphicsView::new(&magnets).with_options(options);
-view.add_to_plot(&mut plot);
-```
-
-`GraphicsOptions` provides getters, `set_*` methods, and consuming `with_*`
-methods. Opacity setters accept a plain `f64`. The default keeps each object's
-usual opacity; explicit opacity applies to surfaces, lines, and markers.
-`with_visible(false)` emits no traces. Segment counts control circles and curved
-surfaces, with half as many latitude subdivisions for spheres. Rendering panics
-if opacity is nonfinite or outside `[0, 1]`, or segments is below six.
-Options propagate through nested collections and leave field-plot settings unchanged.
-
-`GraphicsView` works with every type implementing `Graphics`, including currents,
-sensors, collections, and custom types. It forwards rendering to the borrowed
-object. Recreate the view after mutating the object; plots remain snapshots.
-
-To preserve custom geometry inside collections, implement `Graphics` alongside
-`Source` or `Observer`, then use `SourceComponent::custom_graphics(object)` or
-`ObserverComponent::custom_graphics(object)`. Existing `Custom` variants retain
-marker rendering. Custom renderers implement
-`add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions)`;
-call `options.validate()` and honor `options.visible()` before emitting traces.
-The core physics traits require no rendering methods.
-
-Run `cargo run --example graphics --features graphics-plotly` for a combined scene.
-
-The [2×2 showcase](examples/graphics_showcase.rs) combines source geometry,
-collections, field magnitude and component heatmaps, 2D/3D arrows, and directed
-streamlines in one interactive figure:
-
-```sh
-cargo run --example graphics_showcase --features graphics-plotly
-```
-
-![Magba graphics showcase](examples/figures/graphics_showcase.png)
-
-The examples skip magnet interiors before computing fields. Interior heatmap
-samples appear as gaps, arrows are omitted, and streamlines stop at the surfaces.
-
-Sampling grids, reusable field slices, and adaptive trajectory integration live
-in `magba::graphics` and are available with `std`, without a rendering dependency.
-Plotly-specific rendering lives in `magba::graphics::plotly` and is enabled by
-`graphics-plotly`. Additional backends can reuse the sampling and tracing layer.
-
-Field plotting is available on every `Source`, including collections:
-
-```rust,no_run
-use magba::prelude::*;
-use magba::graphics::{FieldComponent, FieldGrid, Plane, QuiverOptions};
-
-let magnet = SphereMagnet::<f64>::default().with_diameter(0.02);
-// Sample a plane outside the sphere (y = 0.02 m).
-let grid = FieldGrid::new(Plane::XZ, 0.02, [-0.04, 0.04], [-0.04, 0.04], [21, 21])
-    .expect("Valid grid");
-let slice = magnet.sample_field(&grid).expect("Valid sample positions");
-let mut plot = slice.heatmap(FieldComponent::Magnitude);
-slice.add_quiver(&mut plot, QuiverOptions { scale: 0.002, normalize: true })
-    .expect("Valid arrow scale");
-std::fs::write("field.html", plot.to_html()).expect("Cannot write field.html");
-```
-
-Use `plot_field_2d` and `plot_quiver_2d` for direct plotting, or reuse a
-`FieldSlice` for several views without resampling. `plot_quiver` and
-`add_quiver` draw 3D arrows. `plot_field_lines` and `add_field_lines` trace 3D
-field lines with direction arrowheads; their `_2d` variants draw projected
-streamlines within a grid.
-`trace_field_lines` returns the trajectory coordinates for further analysis.
-All helpers support `f32` and `f64` sources; plotting coordinates use `f64` meters.
-
-See [runnable examples and rendered figures](examples/figures/README.md):
-
-| Example | Plot | Run with `--features graphics-plotly` |
-| --- | --- | --- |
-| [2D field](examples/field_2d.rs) | Magnitude heatmap and streamlines | `cargo run --example field_2d --features graphics-plotly` |
-| [Quiver](examples/field_quiver.rs) | Current-loop field arrows | `cargo run --example field_quiver --features graphics-plotly` |
-| [3D field](examples/field_3d.rs) | Source, field lines, and arrows | `cargo run --example field_3d --features graphics-plotly` |
-| [Cuboid](examples/field_cuboid.rs) | Geometry and 3D field lines | `cargo run --example field_cuboid --features graphics-plotly` |
-| [Cylinder](examples/field_cylinder.rs) | Geometry and 3D field lines | `cargo run --example field_cylinder --features graphics-plotly` |
-| [Tetrahedron](examples/field_tetrahedron.rs) | Geometry and 3D field lines | `cargo run --example field_tetrahedron --features graphics-plotly` |
-| [Triangle](examples/field_triangle.rs) | Geometry and 3D field lines | `cargo run --example field_triangle --features graphics-plotly` |
-| [Dipole](examples/field_dipole.rs) | Geometry and 3D field lines | `cargo run --example field_dipole --features graphics-plotly` |
-| [Path current](examples/field_path_current.rs) | Geometry and 3D field lines | `cargo run --example field_path_current --features graphics-plotly` |
-| [Triangle current](examples/field_triangle_current.rs) | Geometry and 3D field lines | `cargo run --example field_triangle_current --features graphics-plotly` |
-| [Source collection](examples/field_collection.rs) | Geometry and 3D field lines | `cargo run --example field_collection --features graphics-plotly` |
+Create offline interactive scenes, field heatmaps, arrows, and field lines.
+See the [graphics API documentation](https://docs.rs/magba/latest/magba/graphics/plotly/index.html)
+for styling and custom renderers, and [examples and figures](examples/figures/README.md)
+for runnable demonstrations.
 
 ## Testing
 

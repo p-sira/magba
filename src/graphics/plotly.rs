@@ -28,6 +28,21 @@
 //!
 //! # Appearance and borrowed views
 //!
+//! Magnet surfaces are opaque by default. Pole colors follow local polarization
+//! and rotate with the magnet, fading smoothly into grey near zero surface charge.
+//! Spheres interpolate colors between vertices to avoid bands between mesh faces.
+//! [`MagnetColorScheme::Din`] uses red north and green south according to
+//! DIN SPEC 91411. The alternatives are [`MagnetColorScheme::OkabeIto`]
+//! (orange/blue) and [`MagnetColorScheme::Trad`] (red/blue).
+//!
+//! [`GraphicsOptions`] provides getters, mutable setters such as
+//! [`GraphicsOptions::set_opacity`], and consuming builders such as
+//! [`GraphicsOptions::with_opacity`]. Opacity setters accept a plain [`f64`] and override surfaces,
+//! lines, and markers; the default preserves each renderer's usual opacity.
+//! Setting visibility to false emits no traces. Segment counts control circular
+//! geometry, with half as many latitude subdivisions for spheres. Rendering
+//! panics if opacity is nonfinite or outside `[0, 1]`, or segments is below six.
+//!
 //! ```
 //! use magba::{graphics::{GraphicsOptions, GraphicsView, MagnetColorScheme}, prelude::*};
 //! let magnet = CylinderMagnet::<f64>::default();
@@ -44,6 +59,16 @@
 //! object and store its appearance; recreate them after modifying the object.
 //! Rendering validates options even when visibility is disabled. Field plots
 //! retain their separate options.
+//!
+//! # Custom collection renderers
+//!
+//! Implement [`Graphics`] alongside [`Source`] or [`Observer`], then construct
+//! components with [`SourceComponent::custom_graphics`] or
+//! [`ObserverComponent::custom_graphics`]. These retain custom rendering through
+//! cloning and collection transforms. Ordinary [`SourceComponent::Custom`] and [`ObserverComponent::Custom`] components use markers.
+//! In [`Graphics::add_to_plot_with_options`], call [`GraphicsOptions::validate`] and honor
+//! [`GraphicsOptions::visible`] before emitting traces. The core physics traits
+//! require no rendering methods.
 //!
 //! # Field plots
 //!
@@ -63,10 +88,36 @@
 //! std::fs::write("field.html", plot.to_html())?;
 //! # Ok::<(), Box<dyn std::error::Error>>(())
 //! ```
+//!
+//! Reuse sampled fields for heatmaps and arrows without resampling:
+//!
+//! ```no_run
+//! use magba::{prelude::*, graphics::{FieldComponent, FieldGrid, Plane, QuiverOptions}};
+//! let magnet = SphereMagnet::<f64>::default().with_diameter(0.02);
+//! let grid = FieldGrid::new(Plane::XZ, 0.02, [-0.04, 0.04], [-0.04, 0.04], [21, 21])?;
+//! let slice = magnet.sample_field(&grid)?;
+//! let mut plot = slice.heatmap(FieldComponent::Magnitude);
+//! slice.add_quiver(&mut plot, QuiverOptions { scale: 0.002, normalize: true })?;
+//! std::fs::write("field.html", plot.to_html())?;
+//! # Ok::<(), Box<dyn std::error::Error>>(())
+//! ```
+//!
+//! Use [`FieldGraphics::plot_field_2d`] and [`FieldGraphics::plot_quiver_2d`] for
+//! direct plotting. [`FieldGraphics::plot_quiver`] and [`FieldGraphics::add_quiver`]
+//! draw 3D arrows. [`FieldGraphics::plot_field_lines`] and
+//! [`FieldGraphics::add_field_lines`] trace 3D field lines with direction arrows;
+//! [`FieldGraphics::plot_field_lines_2d`] and [`FieldGraphics::add_field_lines_2d`]
+//! trace the field projected into the grid's plane.
+//! [`FieldSampler::trace_field_lines`] returns coordinates for further analysis.
+//! Sources may use [`f32`] or [`f64`]; plotting coordinates use [`f64`] meters.
+//!
+//! The runnable examples mask magnet interiors before field evaluation: heatmaps
+//! show gaps, interior arrows are omitted, and exterior lines stop at surfaces.
+//! This masking is an example-specific choice, separate from the plotting API.
 
 pub use super::{
     FieldComponent, FieldGrid, FieldLineOptions, FieldSampler, FieldSlice, GraphicsError,
-    MagnetColorScheme, Plane, QuiverOptions,
+    GraphicsOptions, GraphicsView, MagnetColorScheme, Plane, QuiverOptions,
 };
 pub use ::plotly::*;
 
@@ -96,8 +147,6 @@ use crate::{
     },
 };
 
-mod options;
-pub use options::{GraphicsOptions, GraphicsView};
 mod custom;
 pub use custom::{GraphicsObserver, GraphicsSource};
 
@@ -131,6 +180,31 @@ pub trait Graphics<T: Float = f64> {
     /// Create an interactive scene using default appearance.
     fn plot(&self) -> Plot {
         self.plot_with_options(&GraphicsOptions::default())
+    }
+}
+
+impl<S: ?Sized> GraphicsView<'_, S> {
+    /// Render a Plotly scene using this view's stored options.
+    ///
+    /// Available with `graphics-plotly` for objects implementing [`Graphics`].
+    pub fn plot<T: Float>(&self) -> Plot
+    where
+        S: Graphics<T>,
+    {
+        self.object().plot_with_options(self.options())
+    }
+
+    /// Append Plotly traces using stored options, preserving the plot layout.
+    ///
+    /// Available with `graphics-plotly` for objects implementing [`Graphics`].
+    pub fn add_to_plot<T: Float>(&self, plot: &mut Plot)
+    where
+        S: Graphics<T>,
+    {
+        self.options().validate();
+        if self.options().visible() {
+            self.object().add_to_plot_with_options(plot, self.options());
+        }
     }
 }
 

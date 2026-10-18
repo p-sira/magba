@@ -3,17 +3,14 @@
  * Copyright 2026 Sira Pornsiriprasert <code@psira.me>
  */
 
-use core::marker::PhantomData;
-
 use getset::{CopyGetters, Setters, WithSetters};
 
-use super::{Graphics, MagnetColorScheme, Plot};
-use crate::base::Float;
+use super::MagnetColorScheme;
 
 /// Appearance shared by object renderers, independently of physical properties.
 ///
 /// Default options preserve each object's usual opacity. Set an explicit override
-/// with `.with_opacity(0.5)`. Options propagate through collections; field plots
+/// with [`with_opacity(0.5)`](Self::with_opacity). Options propagate through collections; field plots
 /// retain their own sampling and rendering settings.
 ///
 /// ```
@@ -86,31 +83,28 @@ impl GraphicsOptions {
 
 /// A borrowed graphical object together with reusable appearance options.
 ///
-/// Supports magnets, currents, sensors, collections, and custom [`Graphics`]
-/// implementations. Rendering delegates to the object's implementation. The
-/// object cannot be mutated while the view's shared borrow remains in use.
+/// Stores any object without depending on a rendering backend. Rendering
+/// methods are supplied by enabled backends. The object cannot be mutated while the view's shared borrow remains in use.
 ///
 /// ```
 /// use magba::{graphics::GraphicsView, prelude::*};
 /// let magnet = CylinderMagnet::<f32>::default();
 /// let view = GraphicsView::new(&magnet).with_opacity(0.5).with_segments(64);
-/// let mut plot = view.plot();
-/// view.add_to_plot(&mut plot);
+/// assert!(core::ptr::eq(view.object(), &magnet));
+/// assert_eq!(view.options().opacity(), Some(0.5));
 /// ```
 #[derive(Clone, Debug)]
-pub struct GraphicsView<'a, S: ?Sized, T: Float = f64> {
+pub struct GraphicsView<'a, S: ?Sized> {
     object: &'a S,
     options: GraphicsOptions,
-    scalar: PhantomData<T>,
 }
 
-impl<'a, S: Graphics<T> + ?Sized, T: Float> GraphicsView<'a, S, T> {
+impl<'a, S: ?Sized> GraphicsView<'a, S> {
     /// Borrow an object using default rendering options.
     pub fn new(object: &'a S) -> Self {
         Self {
             object,
             options: GraphicsOptions::default(),
-            scalar: PhantomData,
         }
     }
 
@@ -149,16 +143,8 @@ impl<'a, S: Graphics<T> + ?Sized, T: Float> GraphicsView<'a, S, T> {
         self
     }
 
-    /// Render a scene using this view's stored options.
-    pub fn plot(&self) -> Plot {
-        self.object.plot_with_options(&self.options)
-    }
-
-    /// Append traces using this view's stored options, preserving layout.
-    pub fn add_to_plot(&self, plot: &mut Plot) {
-        self.options.validate();
-        if self.options.visible() {
-            self.object.add_to_plot_with_options(plot, &self.options);
-        }
+    /// Return the borrowed object for rendering with another backend.
+    pub fn object(&self) -> &'a S {
+        self.object
     }
 }

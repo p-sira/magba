@@ -5,13 +5,21 @@
 
 //! Backend-independent field sampling, grids, and adaptive trajectory integration.
 //!
-//! Available with `std`. Enable `graphics-plotly` for interactive Plotly rendering
-//! through the `plotly` module. Future renderers can reuse `FieldSampler` and
-//! `FieldSlice` without depending on Plotly.
+//! Available with `graphics`, which enables `std`. Enable `graphics-plotly` for
+//! interactive Plotly rendering.
+//! Future renderers can reuse [`FieldSampler`] and [`FieldSlice`] without depending
+//! on Plotly.
 //!
-//! With `graphics-plotly`, `GraphicsOptions` controls object appearance and
-//! `GraphicsView` stores options alongside a borrowed graphical object. See
-//! `graphics::plotly` for scenes, custom collection geometry, and field-plot examples.
+//! [`GraphicsOptions`] controls object appearance and [`GraphicsView`] stores
+//! options alongside a borrowed object. Neither type depends on Plotly.
+
+#![cfg_attr(
+    feature = "graphics-plotly",
+    doc = "See [`plotly`] for scenes, custom collection geometry, and field-plot examples."
+)]
+
+mod options;
+pub use options::{GraphicsOptions, GraphicsView};
 
 mod field;
 pub use field::{
@@ -22,14 +30,12 @@ pub use field::{
 #[cfg(feature = "graphics-plotly")]
 pub mod plotly;
 #[cfg(feature = "graphics-plotly")]
-pub use plotly::{
-    FieldGraphics, Graphics, GraphicsObserver, GraphicsOptions, GraphicsSource, GraphicsView,
-};
+pub use plotly::{FieldGraphics, Graphics, GraphicsObserver, GraphicsSource};
 
 /// Pole colors used for magnet surfaces, fading to grey as surface charge vanishes.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum MagnetColorScheme {
-    /// Red north and green south, following Magpylib's DIN SPEC 91411 palette.
+    /// Red north and green south, following DIN SPEC 91411.
     #[default]
     Din,
     /// Orange north and blue south from the Okabe–Ito palette (`okabe-ito`).

@@ -29,7 +29,16 @@ Python bindings available via [PyMagba](https://github.com/p-sira/pymagba).
 - [Calculating fields directly](fields)
 - [Using f32](base::Float)
 - [Unstable features](fields#internal-functions-unstable)
-- Interactive 3D visualization with the optional `graphics-plotly` feature
+*/
+#![cfg_attr(
+    feature = "graphics",
+    doc = "- [Interactive 3D **visualization**](graphics)"
+)]
+#![cfg_attr(
+    not(feature = "graphics"),
+    doc = "- [Interactive 3D **visualization**](https://docs.rs/magba/latest/magba/graphics/index.html)"
+)]
+/*!
 
 ## Acknowledgment
 
@@ -56,8 +65,8 @@ pub mod currents;
 pub mod magnets;
 pub mod sensors;
 
-#[cfg(feature = "std")]
-#[cfg_attr(docsrs, doc(cfg(feature = "std")))]
+#[cfg(feature = "graphics")]
+#[cfg_attr(docsrs, doc(cfg(feature = "graphics")))]
 pub mod graphics;
 
 need_std!(
@@ -89,7 +98,7 @@ macro_rules! test_force_unreachable {
 pub mod prelude {
     use super::*;
 
-    #[cfg(feature = "std")]
+    #[cfg(feature = "graphics")]
     pub use graphics::FieldSampler;
 
     #[cfg(feature = "graphics-plotly")]
