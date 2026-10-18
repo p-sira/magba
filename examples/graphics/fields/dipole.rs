@@ -1,4 +1,5 @@
 //! Point dipole geometry and 3D field lines.
+#[path = "../common/mod.rs"]
 mod common;
 
 use magba::prelude::*;

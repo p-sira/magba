@@ -194,6 +194,7 @@ pub trait Graphics<T: Float = f64> {
     }
 }
 
+/// Render a borrowed object with its stored graphics options using Plotly.
 impl<S: ?Sized> GraphicsView<'_, S> {
     /// Render a Plotly scene using this view's stored options.
     ///
@@ -422,6 +423,7 @@ fn scalar<T: Float>(n: f64) -> T {
     T::from(n).unwrap()
 }
 
+/// Render the cuboid surface with a pole-color gradient along its polarization.
 impl<T: Float> Graphics<T> for CuboidMagnet<T> {
     fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
         options.validate();
@@ -489,6 +491,7 @@ fn ring<T: Float>(radius: T, height: T, segments: usize) -> Vec<Vector3<T>> {
         .collect()
 }
 
+/// Render a capped cylinder with a pole-color gradient; [`GraphicsOptions::segments`] controls resolution.
 impl<T: Float> Graphics<T> for CylinderMagnet<T> {
     fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
         options.validate();
@@ -532,6 +535,7 @@ impl<T: Float> Graphics<T> for CylinderMagnet<T> {
     }
 }
 
+/// Render a sphere with a pole-color gradient; [`GraphicsOptions::segments`] controls resolution.
 impl<T: Float> Graphics<T> for SphereMagnet<T> {
     fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
         options.validate();
@@ -578,6 +582,7 @@ impl<T: Float> Graphics<T> for SphereMagnet<T> {
     }
 }
 
+/// Render the triangular surface with pole colors determined by its polarization.
 impl<T: Float> Graphics<T> for TriangleMagnet<T> {
     fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
         options.validate();
@@ -598,6 +603,7 @@ impl<T: Float> Graphics<T> for TriangleMagnet<T> {
         );
     }
 }
+/// Render the four triangular faces with a pole-color gradient.
 impl<T: Float> Graphics<T> for TetrahedronMagnet<T> {
     fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
         options.validate();
@@ -626,6 +632,7 @@ impl<T: Float> Graphics<T> for TetrahedronMagnet<T> {
         );
     }
 }
+/// Render a closed circular wire; [`GraphicsOptions::segments`] controls resolution.
 impl<T: Float> Graphics<T> for CircularCurrent<T> {
     fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
         options.validate();
@@ -641,6 +648,7 @@ impl<T: Float> Graphics<T> for CircularCurrent<T> {
         line(plot, self, &vertices, "Circular current", options);
     }
 }
+/// Render connected wire segments through the path vertices.
 impl<T: Float> Graphics<T> for PathCurrent<T> {
     fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
         options.validate();
@@ -650,6 +658,7 @@ impl<T: Float> Graphics<T> for PathCurrent<T> {
         line(plot, self, self.vertices(), "Path current", options);
     }
 }
+/// Render the three edges as a closed triangular wire.
 impl<T: Float> Graphics<T> for TriangleCurrent<T> {
     fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
         options.validate();
@@ -669,6 +678,7 @@ impl<T: Float> Graphics<T> for TriangleCurrent<T> {
 
 macro_rules! markers {
     ($($ty:ident => $name:literal),* $(,)?) => {$(
+        /// Render a point marker at the object position.
         impl<T: Float> Graphics<T> for $ty<T> {
             fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
                 options.validate();
@@ -713,6 +723,7 @@ mod mesh {
             options,
         );
     }
+    /// Render the mesh triangles with a pole-color gradient along the polarization.
     impl<T: Float> Graphics<T> for MeshMagnet<T> {
         fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
             options.validate();
@@ -729,6 +740,7 @@ mod mesh {
             );
         }
     }
+    /// Render the current sheet as a neutral triangular mesh.
     impl<T: Float> Graphics<T> for SheetCurrent<T> {
         fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
             options.validate();
@@ -742,6 +754,7 @@ mod mesh {
 
 macro_rules! dispatch {
     ($ty:ident { $($variant:ident),* $(,)? } $(, mesh: $mesh:ident)?) => {
+        /// Render the active variant with the supplied graphics options.
         impl<T: Float> Graphics<T> for $ty<T> {
             fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
                 options.validate();
@@ -764,6 +777,7 @@ dispatch!(Sensor {
     HallLatch
 });
 
+/// Render the contained source, using a point marker for custom sources without graphics.
 impl<T: Float> Graphics<T> for SourceComponent<T> {
     fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
         options.validate();
@@ -779,6 +793,7 @@ impl<T: Float> Graphics<T> for SourceComponent<T> {
         }
     }
 }
+/// Render the contained observer, using a point marker for custom observers without graphics.
 impl<T: Float> Graphics<T> for ObserverComponent<T> {
     fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
         options.validate();
@@ -792,6 +807,7 @@ impl<T: Float> Graphics<T> for ObserverComponent<T> {
         }
     }
 }
+/// Render all sources in the assembly with the same graphics options.
 impl<T: Float> Graphics<T> for SourceAssembly<T> {
     fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
         options.validate();
@@ -803,6 +819,7 @@ impl<T: Float> Graphics<T> for SourceAssembly<T> {
         }
     }
 }
+/// Render all observers in the assembly with the same graphics options.
 impl<T: Float> Graphics<T> for ObserverAssembly<T> {
     fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
         options.validate();
@@ -814,6 +831,7 @@ impl<T: Float> Graphics<T> for ObserverAssembly<T> {
         }
     }
 }
+/// Render every source in the array with the same graphics options.
 impl<T: Float, S: Source<T> + Graphics<T>, const N: usize> Graphics<T> for SourceArray<S, N, T> {
     fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
         options.validate();
@@ -825,6 +843,7 @@ impl<T: Float, S: Source<T> + Graphics<T>, const N: usize> Graphics<T> for Sourc
         }
     }
 }
+/// Render every observer in the array with the same graphics options.
 impl<T: Float, S: Observer<T> + Graphics<T>, const N: usize> Graphics<T>
     for ObserverArray<S, N, T>
 {

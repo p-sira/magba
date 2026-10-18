@@ -40,6 +40,7 @@ pub struct GraphicsOptions {
     segments: usize,
 }
 
+/// Use the DIN palette, full visibility, and 48 segments for curved geometry.
 impl Default for GraphicsOptions {
     fn default() -> Self {
         Self {
@@ -51,6 +52,7 @@ impl Default for GraphicsOptions {
     }
 }
 
+/// Configure and validate shared graphics appearance.
 impl GraphicsOptions {
     /// Return the explicit opacity override, if any.
     pub fn opacity(&self) -> Option<f64> {
@@ -107,6 +109,7 @@ pub struct GraphicsView<'a, S: ?Sized> {
     options: GraphicsOptions,
 }
 
+/// Borrow an object with independent graphics options.
 impl<'a, S: ?Sized> GraphicsView<'a, S> {
     /// Borrow an object using default rendering options.
     pub fn new(object: &'a S) -> Self {

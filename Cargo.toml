@@ -50,54 +50,102 @@ required-features = ["test-utils", "io-stl"]
 
 [[example]]
 name = "graphics"
+path = "examples/graphics/appearance.rs"
 required-features = ["graphics-plotly"]
 
 [[example]]
 name = "field_2d"
+path = "examples/graphics/fields/2d.rs"
 required-features = ["graphics-plotly"]
 
 [[example]]
 name = "field_quiver"
+path = "examples/graphics/fields/quiver.rs"
 required-features = ["graphics-plotly"]
 
 [[example]]
 name = "field_3d"
+path = "examples/graphics/fields/3d.rs"
 required-features = ["graphics-plotly"]
 
 [[example]]
 name = "field_cuboid"
+path = "examples/graphics/fields/cuboid.rs"
 required-features = ["graphics-plotly"]
 
 [[example]]
 name = "field_cylinder"
+path = "examples/graphics/fields/cylinder.rs"
 required-features = ["graphics-plotly"]
 
 [[example]]
 name = "field_dipole"
+path = "examples/graphics/fields/dipole.rs"
 required-features = ["graphics-plotly"]
 
 [[example]]
 name = "field_tetrahedron"
+path = "examples/graphics/fields/tetrahedron.rs"
 required-features = ["graphics-plotly"]
 
 [[example]]
 name = "field_triangle"
+path = "examples/graphics/fields/triangle.rs"
 required-features = ["graphics-plotly"]
 
 [[example]]
 name = "field_path_current"
+path = "examples/graphics/fields/path_current.rs"
 required-features = ["graphics-plotly"]
 
 [[example]]
 name = "field_triangle_current"
+path = "examples/graphics/fields/triangle_current.rs"
 required-features = ["graphics-plotly"]
 
 [[example]]
 name = "field_collection"
+path = "examples/graphics/fields/collection.rs"
 required-features = ["graphics-plotly"]
 
 [[example]]
 name = "graphics_showcase"
+path = "examples/graphics/showcase.rs"
+required-features = ["graphics-plotly"]
+
+[[example]]
+name = "magnet_cuboid"
+path = "examples/graphics/magnets/cuboid.rs"
+required-features = ["graphics-plotly"]
+
+[[example]]
+name = "magnet_cylinder"
+path = "examples/graphics/magnets/cylinder.rs"
+required-features = ["graphics-plotly"]
+
+[[example]]
+name = "magnet_dipole"
+path = "examples/graphics/magnets/dipole.rs"
+required-features = ["graphics-plotly"]
+
+[[example]]
+name = "magnet_mesh"
+path = "examples/graphics/magnets/mesh.rs"
+required-features = ["graphics-plotly", "mesh"]
+
+[[example]]
+name = "magnet_sphere"
+path = "examples/graphics/magnets/sphere.rs"
+required-features = ["graphics-plotly"]
+
+[[example]]
+name = "magnet_tetrahedron"
+path = "examples/graphics/magnets/tetrahedron.rs"
+required-features = ["graphics-plotly"]
+
+[[example]]
+name = "magnet_triangle"
+path = "examples/graphics/magnets/triangle.rs"
 required-features = ["graphics-plotly"]
 
 [dependencies]

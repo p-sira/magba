@@ -1,4 +1,5 @@
 //! A 3D source scene with true field lines and sampled field arrows.
+#[path = "../common/mod.rs"]
 mod common;
 
 use common::exterior::Exterior;

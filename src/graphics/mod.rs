@@ -68,6 +68,7 @@ pub enum MagnetColorScheme {
 }
 
 #[cfg(feature = "graphics-plotly")]
+/// Resolve north and south pole colors for each palette.
 impl MagnetColorScheme {
     pub(super) fn poles(self) -> [(&'static str, [u8; 3]); 2] {
         match self {

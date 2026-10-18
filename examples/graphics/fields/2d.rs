@@ -1,4 +1,5 @@
 //! Sphere cross-section: sampled magnitude, integrated streamlines, and source outline.
+#[path = "../common/mod.rs"]
 mod common;
 
 use common::exterior::Exterior;

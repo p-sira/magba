@@ -11,11 +11,13 @@ use crate::base::{Float, Source};
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct GraphicsError(pub(crate) &'static str);
 
+/// Display the validation or coordinate-conversion error.
 impl core::fmt::Display for GraphicsError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.write_str(self.0)
     }
 }
+/// Expose graphics failures through the standard error interface.
 impl std::error::Error for GraphicsError {}
 
 /// Coordinate plane used for a field cross-section. Coordinates are in meters.
@@ -29,6 +31,7 @@ pub enum Plane {
     YZ,
 }
 
+/// Convert between plane coordinates and world coordinates.
 impl Plane {
     pub(crate) fn axes(self) -> [usize; 3] {
         match self {
@@ -68,6 +71,7 @@ pub struct FieldGrid {
     pub(crate) resolution: [usize; 2],
 }
 
+/// Construct and inspect a validated field-sampling grid.
 impl FieldGrid {
     /// Create a grid with at least two samples per axis and finite, increasing ranges.
     pub fn new(
@@ -155,6 +159,7 @@ pub struct QuiverOptions {
     /// Give arrows equal length to emphasize direction. Defaults to true.
     pub normalize: bool,
 }
+/// Use normalized arrows with a length of 0.1 meters.
 impl Default for QuiverOptions {
     fn default() -> Self {
         Self {
@@ -170,6 +175,7 @@ pub struct FieldSlice {
     pub(crate) grid: FieldGrid,
     pub(crate) fields: Vec<Vector3<f64>>,
 }
+/// Inspect the sampled grid and magnetic field vectors.
 impl FieldSlice {
     /// Sampling grid.
     pub fn grid(&self) -> &FieldGrid {
@@ -201,6 +207,7 @@ pub struct FieldLineOptions {
     /// Stop when B magnitude is at or below this threshold in tesla.
     pub min_field: f64,
 }
+/// Use adaptive tracing with the default step size and stopping limits.
 impl Default for FieldLineOptions {
     fn default() -> Self {
         Self {
@@ -212,6 +219,7 @@ impl Default for FieldLineOptions {
         }
     }
 }
+/// Validate field-line settings and check trajectory bounds.
 impl FieldLineOptions {
     pub(crate) fn validate(&self) -> Result<(), GraphicsError> {
         if !self.step_size.is_finite()
@@ -275,6 +283,7 @@ pub trait FieldSampler<T: Float = f64>: Source<T> {
         trace_lines(self, seeds, options, None)
     }
 }
+/// Provide field sampling and trajectory integration for all sources.
 impl<T: Float, S: Source<T> + ?Sized> FieldSampler<T> for S {}
 
 pub(crate) fn source_point<T: Float>(point: Point3<f64>) -> Result<Point3<T>, GraphicsError> {

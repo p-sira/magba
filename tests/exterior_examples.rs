@@ -1,5 +1,5 @@
 #![cfg(feature = "graphics-plotly")]
-#[path = "../examples/common/exterior.rs"]
+#[path = "../examples/graphics/common/exterior.rs"]
 mod exterior;
 
 use exterior::{Exterior, Interior};

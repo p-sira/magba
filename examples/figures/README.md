@@ -37,7 +37,7 @@ with a scale factor of 1.25. Titles use 32 px, and legends and subplot titles us
 
 ## 2D magnitude and streamlines
 
-[Source](../field_2d.rs). A sphere magnet with a 20 mm diameter and 1 T polarization
+[Source](../graphics/fields/2d.rs). A sphere magnet with a 20 mm diameter and 1 T polarization
 along z, sampled in the xz plane. Orange lines follow the projected B field and
 the white circle marks the magnet surface.
 
@@ -45,7 +45,7 @@ the white circle marks the magnet surface.
 
 ## 2D quiver
 
-[Source](../field_quiver.rs). A 30 mm current loop carrying 10 A. Equal-length arrows
+[Source](../graphics/fields/quiver.rs). A 30 mm current loop carrying 10 A. Equal-length arrows
 show the in-plane field direction; orange dots mark the wire cross-section.
 Set `QuiverOptions::normalize` to false to make length proportional to field
 magnitude, using `scale` in meters per tesla.
@@ -54,7 +54,7 @@ magnitude, using `scale` in meters per tesla.
 
 ## 3D field lines and quiver
 
-[Source](../field_3d.rs). The same sphere magnet, with trajectories integrated in
+[Source](../graphics/fields/3d.rs). The same sphere magnet, with trajectories integrated in
 both directions from two rings of equatorial seeds (14 and 35 mm radii),
 with four fan directions near each pole and a central axial line.
 Normalized B arrows are sampled above it.
@@ -73,7 +73,7 @@ field component vanishes.
 The cuboid, cylinder, tetrahedron, dipole, and path-current examples each trace
 field lines from three rings of seeds.
 The collection example combines two oppositely polarized magnets and a current
-loop, tracing their total field. All share the output helper in `examples/common`.
+loop, tracing their total field. All share the output helper in `examples/graphics/common`.
 
 Magnet surfaces blend from green south poles through a grey central belt to red
 north poles along the local polarization direction. The gradient continues across
@@ -81,47 +81,47 @@ face boundaries and indicates local polarity.
 The `graphics` example also shows the optional orange/blue (`OkabeIto`) and
 red/blue (`Trad`) palettes. Run it with `cargo run --example graphics --features graphics-plotly`.
 
-[Cuboid magnet source](../field_cuboid.rs)
+[Cuboid magnet source](../graphics/fields/cuboid.rs)
 
 ![Cuboid magnet with 3D field lines](field_cuboid.png)
 
-[Cylinder magnet source](../field_cylinder.rs)
+[Cylinder magnet source](../graphics/fields/cylinder.rs)
 
 ![Cylinder magnet with 3D field lines](field_cylinder.png)
 
-[Tetrahedron magnet source](../field_tetrahedron.rs)
+[Tetrahedron magnet source](../graphics/fields/tetrahedron.rs)
 
 ![Tetrahedron magnet with 3D field lines](field_tetrahedron.png)
 
-[Triangle magnet source](../field_triangle.rs)
+[Triangle magnet source](../graphics/fields/triangle.rs)
 
 The triangle example seeds field lines on both sides of the charged surface.
 Coplanar seeds would keep the trajectories in the triangle's plane.
 
 ![Triangle magnet with 3D field lines](field_triangle.png)
 
-[Point dipole source](../field_dipole.rs)
+[Point dipole source](../graphics/fields/dipole.rs)
 
 ![Point dipole with 3D field lines](field_dipole.png)
 
-[Square current loop source](../field_path_current.rs)
+[Square current loop source](../graphics/fields/path_current.rs)
 
 ![Square current loop with 3D field lines](field_path_current.png)
 
-[Triangular current sheet source](../field_triangle_current.rs)
+[Triangular current sheet source](../graphics/fields/triangle_current.rs)
 
 The sheet carries a uniform surface current of 1000 A/m along x. Six seeds
 outside the sheet trace two loops in each of three planes of constant x.
 
 ![Triangular current sheet with 3D field lines](field_triangle_current.png)
 
-[Mixed source collection source](../field_collection.rs)
+[Mixed source collection source](../graphics/fields/collection.rs)
 
 ![Mixed source collection with 3D field lines](field_collection.png)
 
 ## 2×2 graphics showcase
 
-[Source](../graphics_showcase.rs). Geometry, collections, heatmaps,
+[Source](../graphics/showcase.rs). Geometry, collections, heatmaps,
 normalized 2D/3D quivers, and field lines with direction arrowheads in one figure.
 The sphere panel uses the same equatorial rings, polar fans, and axial line.
 
@@ -152,18 +152,21 @@ figure convention, so image resolution is independent of the generated page path
 
 ## Magnet type examples
 
-Each magnet type's Graphics section includes a runnable example and its generated
-`magnet_*.png` preview, using the default DIN palette. The examples trace the full
+Each magnet type's Graphics section shows a generated `magnet_*.png` preview
+using the default DIN palette. The separate runnable examples trace the full
 field; opaque surfaces hide interior line segments.
 
-- [Cuboid](../../src/magnets/graphics/cuboid.md): `magnet_cuboid.png`.
-- [Cylinder](../../src/magnets/graphics/cylinder.md): `magnet_cylinder.png`.
-- [Sphere](../../src/magnets/graphics/sphere.md): `magnet_sphere.png`.
-- [Tetrahedron](../../src/magnets/graphics/tetrahedron.md): `magnet_tetrahedron.png`.
-- [Triangle](../../src/magnets/graphics/triangle.md): `magnet_triangle.png`.
-- [Dipole](../../src/magnets/graphics/dipole.md): `magnet_dipole.png` (point marker).
-- [Mesh](../../src/magnets/graphics/mesh.md): `magnet_mesh.png` (validated octahedron).
+- [Cuboid](../graphics/magnets/cuboid.rs): `magnet_cuboid.png`.
+- [Cylinder](../graphics/magnets/cylinder.rs): `magnet_cylinder.png`.
+- [Sphere](../graphics/magnets/sphere.rs): `magnet_sphere.png`.
+- [Tetrahedron](../graphics/magnets/tetrahedron.rs): `magnet_tetrahedron.png`.
+- [Triangle](../graphics/magnets/triangle.rs): `magnet_triangle.png`.
+- [Dipole](../graphics/magnets/dipole.rs): `magnet_dipole.png` (point marker).
+- [Mesh](../graphics/magnets/mesh.rs): `magnet_mesh.png` (validated octahedron).
 
 Export these figures using the same 880 × 600 layout and camera as the Rustdoc
-previews above. Their source snippets also define each scene's seed positions,
+previews above. Run
+`cargo run --example magnet_cuboid --features graphics-plotly` to generate a
+scene's HTML; substitute another example name as needed. The mesh example
+also requires `mesh`. The source files define each scene's seed positions,
 step size, and integration bounds.

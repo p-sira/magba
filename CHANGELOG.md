@@ -14,8 +14,9 @@
 
 **Documentations**
 
+- Organize graphics examples by magnets and fields while preserving Cargo command names.
 - Add graphics examples, rendered figures, and guidance for appearance options, borrowed views, and custom collection renderers.
-- Add a Graphics section to every magnet type with a DIN field-line example and generated preview.
+- Add concise graphics previews to every magnet type, separate runnable DIN field-line examples, and descriptions of each graphics implementation.
 
 ## 0.7
 

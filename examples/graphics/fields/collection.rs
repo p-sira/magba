@@ -1,4 +1,5 @@
 //! Combined field of a heterogeneous source collection.
+#[path = "../common/mod.rs"]
 mod common;
 
 use common::exterior::Exterior;

@@ -16,6 +16,7 @@ use ::plotly::{
 };
 use nalgebra::{Point3, Vector3};
 
+/// Validate arrow scaling and compute field-vector displacements.
 impl QuiverOptions {
     pub(crate) fn validate(self) -> Result<(), GraphicsError> {
         if !self.scale.is_finite() || self.scale <= 0.0 {
@@ -37,6 +38,7 @@ impl QuiverOptions {
     }
 }
 
+/// Resolve scalar field values and labels for plotting.
 impl FieldComponent {
     pub(crate) fn value(self, field: Vector3<f64>) -> f64 {
         match self {
@@ -48,6 +50,7 @@ impl FieldComponent {
     }
 }
 
+/// Build a Plotly layout with equal scales and coordinate labels.
 impl Plane {
     fn layout(self) -> Layout {
         let [u, v, _] = self.axes();
@@ -60,6 +63,7 @@ impl Plane {
         )
     }
 }
+/// Resolve scalar field values and labels for plotting.
 impl FieldComponent {
     fn label(self) -> &'static str {
         match self {
@@ -70,6 +74,7 @@ impl FieldComponent {
         }
     }
 }
+/// Render reusable field samples as Plotly heatmaps and quivers.
 impl FieldSlice {
     /// Create a heatmap with equal axis scales. Invalid samples appear as gaps.
     pub fn heatmap(&self, component: FieldComponent) -> Plot {
@@ -142,6 +147,11 @@ impl FieldSlice {
     }
 }
 
+/// Plot magnetic field heatmaps, quivers, and directed field lines with Plotly.
+///
+/// Available for every [`Source`], including collections and trait objects, with
+/// the `graphics-plotly` feature. Use [`super::Graphics`] to add source geometry
+/// and [`FieldSampler`] for backend-independent sampling and integration.
 pub trait FieldGraphics<T: Float = f64>: FieldSampler<T> {
     /// Sample and plot a 2D scalar field heatmap.
     fn plot_field_2d(
@@ -257,6 +267,7 @@ pub trait FieldGraphics<T: Float = f64>: FieldSampler<T> {
         Ok(())
     }
 }
+/// Plot sampled fields and directed field lines for any magnetic source.
 impl<T: Float, S: Source<T> + ?Sized> FieldGraphics<T> for S {}
 
 fn arrow(tail: Point3<f64>, delta: Vector3<f64>, side: Vector3<f64>) -> [Vec<Point3<f64>>; 2] {

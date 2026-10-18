@@ -1,4 +1,5 @@
 //! Current-loop cross-section: normalized arrows show direction, independently of magnitude.
+#[path = "../common/mod.rs"]
 mod common;
 
 use magba::graphics::plotly::{
