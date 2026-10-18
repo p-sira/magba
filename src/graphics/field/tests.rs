@@ -23,6 +23,51 @@ fn field_lines_follow_uniform_field_and_stop_at_bounds() {
 }
 
 #[test]
+fn field_lines_reject_endpoints_in_a_field_gap() {
+    #[derive(Clone, Default)]
+    struct GappedField(crate::base::Pose);
+    impl crate::base::Transform<f64> for GappedField {
+        fn pose(&self) -> &crate::base::Pose {
+            &self.0
+        }
+        fn pose_mut(&mut self) -> &mut crate::base::Pose {
+            &mut self.0
+        }
+    }
+    impl Source<f64> for GappedField {
+        fn compute_B(&self, p: Point3<f64>) -> Vector3<f64> {
+            // The forward RK4 endpoint lies in this gap, while its trial stages
+            // sample on either side. The endpoint must be checked separately.
+            if (1.32574..=1.32575).contains(&p.x) {
+                Vector3::zeros()
+            } else {
+                Vector3::new(1.0, p.x, 0.0)
+            }
+        }
+        fn compute_B_batch(&self, points: &[Point3<f64>]) -> Vec<Vector3<f64>> {
+            points.iter().map(|&p| self.compute_B(p)).collect()
+        }
+    }
+    let source = GappedField::default();
+    let seed = Point3::new(1.0, 0.0, 0.0);
+    let paths = source
+        .trace_field_lines(
+            &[seed],
+            FieldLineOptions {
+                step_size: 0.5,
+                max_steps: 1,
+                ..Default::default()
+            },
+        )
+        .unwrap();
+    assert_eq!(paths.len(), 1);
+    assert_eq!(paths[0].len(), 2);
+    assert!(paths[0][0].x < seed.x);
+    assert_eq!(paths[0][1], seed);
+    assert!(paths[0].iter().all(|&p| source.compute_B(p).norm() > 0.0));
+}
+
+#[test]
 fn rk4_converges_to_analytic_dipole_line() {
     // For a z dipole through (1, 0, 0), r = sin²(theta), hence r³ = x².
     let source = Dipole::<f64>::default();
