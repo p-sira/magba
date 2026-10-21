@@ -15,6 +15,7 @@ num_lazy::declare_nums! {@constant T}
 #[inline]
 #[replace_float_literals(T::from(literal).unwrap())]
 pub(crate) fn cel_axial<T: Float>(kc: T, gamma: T) -> (T, T) {
+    let original_kc = kc;
     let mut kc = Float::abs(kc);
     let mut aa_r: T = 0.0;
     let mut bb_r: T = -1.0;
@@ -54,8 +55,8 @@ pub(crate) fn cel_axial<T: Float>(kc: T, gamma: T) -> (T, T) {
         return (ans_r, ans_z);
     }
     (
-        cel(kc, 1.0, 1.0, -1.0).unwrap(),
-        cel(kc, gamma * gamma, 1.0, gamma).unwrap(),
+        cel(original_kc, 1.0, 1.0, -1.0).unwrap(),
+        cel(original_kc, gamma * gamma, 1.0, gamma).unwrap(),
     )
 }
 
@@ -80,5 +81,11 @@ mod tests {
 
 #[cfg(feature = "test_force_fail")]
 crate::test_force_unreachable! {
-    let _ = cel_axial(0.3, 0.7);
+    for kc in [0.01_f64, 0.3, 0.9] {
+        for gamma in [-0.7_f64, 0.2, 0.7] {
+            let (r, z) = cel_axial(kc, gamma);
+            approx::assert_relative_eq!(r, cel(kc, 1.0, 1.0, -1.0).unwrap(), epsilon = 1e-14);
+            approx::assert_relative_eq!(z, cel(kc, gamma * gamma, 1.0, gamma).unwrap(), epsilon = 1e-14);
+        }
+    }
 }

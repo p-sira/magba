@@ -8,6 +8,10 @@ jobs:
     env:
       CARGO_TERM_COLOR: always
       MAGBA_REQUIRE_TEST_DATA: "1"
+      COVERAGE_FEATURES: graphics-plotly,io-stl,unstable,threshold-calibration
+      # Exclude examples, benchmarks, and test-only support, including standalone
+      # unit-test modules. Keep all runtime library modules in the report.
+      COVERAGE_IGNORE: '(^|/)(benches|examples|tests)/|(^|/)src/testing_util\.rs$|/tests\.rs$'
     steps:
       - uses: actions/checkout@v7
         with:
@@ -16,30 +20,16 @@ jobs:
         run: rustup update stable
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
-      - name: Generate code coverage
-        run: cargo llvm-cov -p magba --features graphics-plotly --lcov --output-path lcov.info --ignore-filename-regex 'benches/.*|examples/.*|src/testing_util\.rs'
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v7
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: lcov.info
-          fail_ci_if_error: true
-
-  force-fail:
-    runs-on: ubuntu-latest
-    env:
-      CARGO_TERM_COLOR: always
-      MAGBA_REQUIRE_TEST_DATA: "1"
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          submodules: recursive
-      - name: Install Rust
-        run: rustup update stable
-      - name: Install cargo-llvm-cov
-        uses: taiki-e/install-action@cargo-llvm-cov
-      - name: Generate code coverage
-        run: cargo llvm-cov -p magba --features graphics-plotly,test_force_fail --lcov --output-path lcov.info --tests --ignore-filename-regex 'benches/.*|examples/.*|src/testing_util\.rs'
+      - name: Test parallel and optional APIs
+        run: |
+          cargo llvm-cov clean --workspace
+          cargo llvm-cov --locked -p magba --features "$COVERAGE_FEATURES" --no-report
+      - name: Test without Rayon
+        run: cargo llvm-cov --locked -p magba --no-default-features --features std,mesh,graphics-plotly,io-stl,unstable --no-report
+      - name: Test convergence fallback
+        run: cargo llvm-cov --locked -p magba --features "$COVERAGE_FEATURES,test_force_fail" --lib --no-report -- force_unreachable
+      - name: Generate combined code coverage
+        run: cargo llvm-cov report --lcov --output-path lcov.info --ignore-filename-regex "$COVERAGE_IGNORE" --fail-under-lines 99.1
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v7
         with:

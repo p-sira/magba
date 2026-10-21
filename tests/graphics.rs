@@ -14,6 +14,68 @@ fn data(object: &impl Graphics) -> Value {
 }
 
 #[test]
+fn hidden_objects_preserve_existing_plot_traces_and_layout() {
+    fn check(object: &impl Graphics) {
+        let mut plot = CuboidMagnet::<f64>::default().plot();
+        let before = plot.to_json();
+        object.add_to_plot_with_options(&mut plot, &GraphicsOptions::default().with_visible(false));
+        assert_eq!(plot.to_json(), before);
+    }
+
+    check(&CuboidMagnet::<f64>::default());
+    check(&CylinderMagnet::<f64>::default());
+    check(&SphereMagnet::<f64>::default());
+    check(&TetrahedronMagnet::<f64>::default());
+    check(&TriangleMagnet::<f64>::default());
+    check(&Dipole::<f64>::default());
+    check(&CircularCurrent::<f64>::default());
+    check(&TriangleCurrent::<f64>::default());
+    check(&PathCurrent::<f64>::default());
+    check(&LinearHallSensor::<f64>::default());
+    check(&HallSwitch::<f64>::default());
+    check(&HallLatch::<f64>::default());
+    check(&Magnet::from(CuboidMagnet::<f64>::default()));
+    check(&Current::from(CircularCurrent::<f64>::default()));
+    check(&Sensor::from(LinearHallSensor::<f64>::default()));
+    check(&SourceComponent::from(Dipole::<f64>::default()));
+    check(&ObserverComponent::from(HallLatch::<f64>::default()));
+    check(&SourceAssembly::from([Dipole::<f64>::default()]));
+    check(&ObserverAssembly::from([HallLatch::<f64>::default()]));
+    check(&SourceArray::from([Dipole::<f64>::default()]));
+    check(&ObserverArray::from([HallLatch::<f64>::default()]));
+    #[cfg(feature = "mesh")]
+    {
+        check(&MeshMagnet::<f64>::default());
+        check(&SheetCurrent::<f64>::default());
+    }
+}
+
+#[test]
+fn boxed_graphics_objects_delegate_pose_mutation_and_debug_formatting() {
+    use magba::{
+        base::Pose,
+        graphics::{GraphicsObserver, GraphicsSource},
+    };
+
+    let mut source: Box<dyn GraphicsSource> = Box::new(Dipole::<f64>::default());
+    source.pose_mut().set_position([1.0, 2.0, 3.0]);
+    let expected = Dipole::<f64>::default().with_position([1.0, 2.0, 3.0]);
+    assert_eq!(format!("{source:?}"), format!("{expected}"));
+    let point = nalgebra::point![4.0, 5.0, 6.0];
+    assert_eq!(source.compute_B(point), expected.compute_B(point));
+
+    let mut observer: Box<dyn GraphicsObserver> = Box::new(LinearHallSensor::<f64>::default());
+    observer.pose_mut().set_position([1.0, 2.0, 3.0]);
+    let expected = LinearHallSensor::<f64>::default().with_position([1.0, 2.0, 3.0]);
+    assert_eq!(format!("{observer:?}"), format!("{expected}"));
+    assert_eq!(observer.read(&source), expected.read(&source));
+    source.set_pose(Pose::default());
+    observer.set_pose(Pose::default());
+    assert_eq!(*source.pose(), Pose::default());
+    assert_eq!(*observer.pose(), Pose::default());
+}
+
+#[test]
 fn cuboid_geometry_uses_dimensions_rotation_and_translation() {
     let magnet = CuboidMagnet::<f64>::default()
         .with_dimensions([2.0, 4.0, 6.0])

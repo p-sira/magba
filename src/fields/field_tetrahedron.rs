@@ -212,6 +212,30 @@ mod tests {
     use super::*;
 
     #[test]
+    fn precomputed_field_rotates_and_translates_local_result() {
+        let vertices = [Vector3::zeros(), Vector3::x(), Vector3::y(), Vector3::z()];
+        let polarization = vector![0.3_f64, -0.2, 0.9];
+        let (vertices, inverse) = precompute_tetrahedron(vertices);
+        let orientation = UnitQuaternion::from_scaled_axis(vector![0.4, -0.3, 0.2]);
+        let position = point![1.0, 2.0, 3.0];
+        for local in [point![0.1, 0.2, 0.3], point![2.0, -1.0, 3.0]] {
+            let world = position + orientation * local.coords;
+            approx::assert_relative_eq!(
+                tetrahedron_B_precomputed(
+                    world,
+                    position,
+                    orientation,
+                    polarization,
+                    vertices,
+                    inverse
+                ),
+                orientation * local_tetrahedron_B(local, polarization, vertices),
+                epsilon = 1e-14
+            );
+        }
+    }
+
+    #[test]
     fn test_sum_multiple_tetrahedron_b() {
         use crate::testing_util::impl_test_sum_multiple;
         let points = &[

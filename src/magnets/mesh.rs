@@ -160,18 +160,56 @@ mod stl_tests {
             1e-11,
         );
     }
+}
+
+#[cfg(all(test, feature = "std"))]
+mod validation_tests {
+    use super::*;
+    use crate::{base::Source, magnets::TetrahedronMagnet};
+    use nalgebra::{Point3, vector};
 
     #[test]
-    fn test_from_vertices_and_faces() {
-        use nalgebra::vector;
-        let vertices = vec![
-            vector![0.0, 0.0, 0.0],
+    fn validated_mesh_matches_tetrahedron_and_rejects_holes() {
+        let vertices = [
+            Vector3::zeros(),
             vector![0.001, 0.0, 0.0],
             vector![0.0, 0.001, 0.0],
             vector![0.0, 0.0, 0.001],
         ];
         let faces = vec![[0, 2, 1], [0, 1, 3], [1, 2, 3], [0, 3, 2]];
-        let magnet = MeshMagnet::from_vertices_and_faces(vertices, faces, [0.0, 0.0, 1.0]);
-        assert!(magnet.is_ok());
+        let polarization = vector![0.2, -0.3, 1.0];
+        let magnet =
+            MeshMagnet::from_vertices_and_faces(vertices.to_vec(), faces.clone(), polarization)
+                .unwrap();
+        assert_eq!(magnet.polarization(), polarization);
+        assert_eq!(magnet.mesh().triangles().len(), 4);
+        let tetrahedron = TetrahedronMagnet::default()
+            .with_vertices(vertices)
+            .with_polarization(polarization);
+        for point in [
+            Point3::new(0.0001, 0.0002, 0.0003),
+            Point3::new(0.002, 0.003, 0.004),
+        ] {
+            approx::assert_relative_eq!(
+                magnet.compute_B(point),
+                tetrahedron.compute_B(point),
+                epsilon = 1e-14
+            );
+        }
+        assert!(
+            MeshMagnet::from_vertices_and_faces(
+                vertices.to_vec(),
+                faces[..3].to_vec(),
+                polarization
+            )
+            .is_err()
+        );
+    }
+
+    #[cfg(feature = "io-stl")]
+    #[test]
+    fn invalid_stl_returns_an_error() {
+        let mut input = std::io::Cursor::new(b"invalid stl");
+        assert!(MeshMagnet::<f64>::from_stl(&mut input, Vector3::z()).is_err());
     }
 }
