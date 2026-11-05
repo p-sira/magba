@@ -10,7 +10,7 @@ use nalgebra::{Matrix3, Point3, UnitQuaternion, Vector3};
 use crate::{
     base::{Float, coordinate::compute_in_local},
     crate_utils::{impl_parallel, impl_parallel_sum},
-    fields::field_triangle::local_triangle_B,
+    fields::field_triangle::PrecomputedMagnetizedTriangle,
 };
 
 pub fn precompute_tetrahedron<T: Float>(
@@ -35,26 +35,42 @@ pub fn precompute_tetrahedron<T: Float>(
 }
 
 #[inline]
+fn precompute_tetrahedron_faces<T: Float>(
+    vertices: [Vector3<T>; 4],
+    polarization: Vector3<T>,
+) -> [Option<PrecomputedMagnetizedTriangle<T>>; 4] {
+    [
+        PrecomputedMagnetizedTriangle::new(polarization, [vertices[0], vertices[2], vertices[1]]),
+        PrecomputedMagnetizedTriangle::new(polarization, [vertices[0], vertices[1], vertices[3]]),
+        PrecomputedMagnetizedTriangle::new(polarization, [vertices[1], vertices[2], vertices[3]]),
+        PrecomputedMagnetizedTriangle::new(polarization, [vertices[0], vertices[3], vertices[2]]),
+    ]
+}
+
+#[inline]
 #[allow(non_snake_case)]
-pub fn local_tetrahedron_B_precomputed<T: Float>(
+fn local_tetrahedron_B_faces_precomputed<T: Float>(
     point: Point3<T>,
     polarization: Vector3<T>,
     vertices: [Vector3<T>; 4],
     mat_inv: Option<Matrix3<T>>,
+    faces: &[Option<PrecomputedMagnetizedTriangle<T>>; 4],
 ) -> Vector3<T> {
-    // Sum over 4 triangular faces
-    let b1 = local_triangle_B(point, polarization, [vertices[0], vertices[2], vertices[1]]);
-    let b2 = local_triangle_B(point, polarization, [vertices[0], vertices[1], vertices[3]]);
-    let b3 = local_triangle_B(point, polarization, [vertices[1], vertices[2], vertices[3]]);
-    let b4 = local_triangle_B(point, polarization, [vertices[0], vertices[3], vertices[2]]);
-
+    let face_field = |face: &Option<PrecomputedMagnetizedTriangle<T>>| {
+        face.as_ref()
+            .map(|f| f.compute_B_with_solid_angle(point).0)
+            .unwrap_or_else(Vector3::zeros)
+    };
+    let b1 = face_field(&faces[0]);
+    let b2 = face_field(&faces[1]);
+    let b3 = face_field(&faces[2]);
+    let b4 = face_field(&faces[3]);
     let mut b_total = b1 + b2 + b3 + b4;
 
-    // Check if observer is inside the tetrahedron using barycentric coordinates
+    // Check if observer is inside the tetrahedron using barycentric coordinates.
     if let Some(mat_inv) = mat_inv {
         let p_rel = point.coords - vertices[0];
         let new_p = mat_inv * p_rel;
-
         if new_p.x >= T::zero()
             && new_p.y >= T::zero()
             && new_p.z >= T::zero()
@@ -68,6 +84,18 @@ pub fn local_tetrahedron_B_precomputed<T: Float>(
     }
 
     b_total
+}
+
+#[inline]
+#[allow(non_snake_case)]
+pub fn local_tetrahedron_B_precomputed<T: Float>(
+    point: Point3<T>,
+    polarization: Vector3<T>,
+    vertices: [Vector3<T>; 4],
+    mat_inv: Option<Matrix3<T>>,
+) -> Vector3<T> {
+    let faces = precompute_tetrahedron_faces(vertices, polarization);
+    local_tetrahedron_B_faces_precomputed(point, polarization, vertices, mat_inv, &faces)
 }
 
 /// Computes B-field of a homogeneously magnetized tetrahedron at point in local frame.
@@ -163,6 +191,7 @@ pub fn tetrahedron_B_batch<T: Float>(
     out: &mut [Vector3<T>],
 ) {
     let (vertices, mat_inv) = precompute_tetrahedron(vertices);
+    let faces = precompute_tetrahedron_faces(vertices, polarization);
     let inv_orientation = orientation.inverse();
     impl_parallel!(
         rayon_threshold: 70,
@@ -170,8 +199,13 @@ pub fn tetrahedron_B_batch<T: Float>(
         output: out,
         |p| {
             let local_point = inv_orientation * Point3::from(p.coords - position.coords);
-            let local_b =
-                local_tetrahedron_B_precomputed(local_point, polarization, vertices, mat_inv);
+            let local_b = local_tetrahedron_B_faces_precomputed(
+                local_point,
+                polarization,
+                vertices,
+                mat_inv,
+                &faces,
+            );
             orientation * local_b
         }
     );
@@ -231,6 +265,42 @@ mod tests {
                 ),
                 orientation * local_tetrahedron_B(local, polarization, vertices),
                 epsilon = 1e-14
+            );
+        }
+    }
+
+    #[test]
+    fn precomputed_tetrahedron_batch_matches_f32_scalar_inside_and_outside() {
+        let vertices = [
+            vector![0.0_f32, 0.0, 0.0],
+            vector![0.3, 0.0, 0.0],
+            vector![0.0, 0.4, 0.0],
+            vector![0.0, 0.0, 0.5],
+        ];
+        let polarization = vector![0.3_f32, 0.7, -0.2];
+        let position = point![0.02_f32, -0.01, 0.03];
+        let orientation = UnitQuaternion::from_scaled_axis(vector![0.1_f32, 0.3, -0.2]);
+        let local_points = [
+            point![0.02_f32, 0.03, 0.04],
+            point![0.7, -0.2, 0.5],
+            point![0.0, 0.0, 0.0],
+        ];
+        let points = local_points.map(|p| position + orientation * p.coords);
+        let mut out = [Vector3::zeros(); 3];
+        tetrahedron_B_batch(
+            &points,
+            position,
+            orientation,
+            polarization,
+            vertices,
+            &mut out,
+        );
+        for (&point, actual) in points.iter().zip(out.iter()) {
+            approx::assert_relative_eq!(
+                *actual,
+                tetrahedron_B(point, position, orientation, polarization, vertices),
+                epsilon = 1e-6,
+                max_relative = 1e-5
             );
         }
     }

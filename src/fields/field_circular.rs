@@ -16,32 +16,29 @@ use crate::{
 
 const MAX_ITER: usize = 10;
 
-/// Computes the Iterative part of Bulirsch cel algorithm.
+/// Computes both Bulirsch cel terms for a circular current in one iteration.
 ///
-/// # Arguments
-///
-/// - `qc`, `p`, `g`, `cc`, `ss`, `em`, `kk`: Parameters of the cel integral
-///
-/// # Returns
-///
-/// - Result of the iterative part of the cel integral
+/// The radial and axial terms have identical modulus, denominator, and
+/// convergence sequence. Only their numerators differ.
 ///
 /// # References
 ///
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 /// - Ortner, Michael, Peter Leitner, and Franz Slanovc. “Numerically Stable and Computationally Efficient Expression for the Magnetic Field of a Current Loop.” Magnetism 3, no. 1 (2023): 11-31. <https://doi.org/10.3390/magnetism3010002>.
 #[replace_float_literals(T::from_f64(literal).unwrap())]
-fn cel_iter<T: Float>(
+fn cel_iter_pair<T: Float>(
     mut qc: T,
     mut p: T,
-    mut g: T,
-    mut cc: T,
-    mut ss: T,
-    mut em: T,
-    mut kk: T,
-) -> T {
+    mut cc_r: T,
+    mut ss_r: T,
+    mut cc_z: T,
+    mut ss_z: T,
+) -> (T, T) {
     let errtol = 1e-8;
     let half_pi = T::pi() / 2.0;
+    let mut g = 1.0;
+    let mut em = p;
+    let mut kk = qc;
 
     for _ in 0..MAX_ITER {
         if NumFloat::abs(g - qc) < qc * errtol {
@@ -50,15 +47,22 @@ fn cel_iter<T: Float>(
 
         qc = NumFloat::sqrt(kk) * 2.0;
         kk = qc * em;
-        let f = cc;
-        cc += ss / p;
+        let f_r = cc_r;
+        let f_z = cc_z;
+        cc_r += ss_r / p;
+        cc_z += ss_z / p;
         g = kk / p;
-        ss = 2.0 * (ss + f * g);
+        ss_r = 2.0 * (ss_r + f_r * g);
+        ss_z = 2.0 * (ss_z + f_z * g);
         p += g;
         g = em;
         em += qc;
     }
-    half_pi * (ss + cc * em) / (em * (em + p))
+    let denominator = em * (em + p);
+    (
+        half_pi * (ss_r + cc_r * em) / denominator,
+        half_pi * (ss_z + cc_z * em) / denominator,
+    )
 }
 
 /// Computes local magnetic field (B) of a circular current loop at point (x, y, z).
@@ -105,16 +109,15 @@ pub fn local_circular_B<T: Float>(point: Point3<T>, diameter: T, current: T) -> 
     let p = 1.0 + q;
     let pf = current / (4.0 * T::pi() * r0 * NumFloat::sqrt(x0) * q2);
 
-    // cel* part
-    let mut cc = k2 * 4.0 * z / x0;
-    let mut ss = 2.0 * cc * q / p;
-    let hr = pf * cel_iter(q, p, 1.0, cc, ss, p, q);
-
-    // cel** part
+    // Radial cel* and axial cel** use the same Landen sequence.
+    let cc_r = k2 * 4.0 * z / x0;
+    let ss_r = 2.0 * cc_r * q / p;
     let k4 = k2 * k2;
-    cc = k4 - (q2 + 1.0) * (4.0 / x0);
-    ss = 2.0 * q * (k4 / p - (4.0 / x0) * p);
-    let hz = -pf * cel_iter(q, p, 1.0, cc, ss, p, q);
+    let cc_z = k4 - (q2 + 1.0) * (4.0 / x0);
+    let ss_z = 2.0 * q * (k4 / p - (4.0 / x0) * p);
+    let (cel_r, cel_z) = cel_iter_pair(q, p, cc_r, ss_r, cc_z, ss_z);
+    let hr = pf * cel_r;
+    let hz = -pf * cel_z;
 
     let (bx, by) = if orig_r > 0.0 {
         let inv_orig_r = 1.0 / orig_r;
@@ -253,6 +256,37 @@ mod tests {
     use nalgebra::{point, vector};
 
     use super::*;
+
+    #[test]
+    fn test_circular_field_against_elliptic_integral_formula() {
+        // Independent Biot-Savart expression in complete Legendre elliptic
+        // integrals. Include points near the wire, where the CEL terms are
+        // sensitive to the shared convergence sequence.
+        let radius: f64 = 1.0;
+        let mu0 = <f64 as Float>::mu0();
+        for (r, z) in [(0.5_f64, 1.0_f64), (0.9, 0.002), (1.1, -0.002)] {
+            let near = (radius - r).powi(2) + z * z;
+            let far = (radius + r).powi(2) + z * z;
+            let m = 4.0 * radius * r / far;
+            let (k, e) = ellip::ellipke(m).unwrap();
+            let common = mu0 / (2.0 * core::f64::consts::PI * far.sqrt());
+            let expected = vector![
+                common * z / r * ((radius * radius + r * r + z * z) / near * e - k),
+                0.0,
+                common * (k + (radius * radius - r * r - z * z) / near * e)
+            ];
+            let actual = local_circular_B(point![r, 0.0, z], 2.0 * radius, 1.0);
+            approx::assert_relative_eq!(actual, expected, epsilon = 1e-14, max_relative = 1e-7);
+        }
+
+        // Axial field has a closed form and avoids the off-axis 1/r factor.
+        let z = 0.8_f64;
+        let expected_z = mu0 * radius * radius / (2.0 * (radius * radius + z * z).powf(1.5));
+        let actual = local_circular_B(point![0.0, 0.0, z], 2.0 * radius, 1.0);
+        approx::assert_relative_eq!(actual.z, expected_z, epsilon = 1e-14);
+        assert_eq!(actual.x, 0.0);
+        assert_eq!(actual.y, 0.0);
+    }
 
     #[test]
     fn test_sum_multiple_circular_b() {
