@@ -85,8 +85,8 @@ pub fn matrix_to_vector_vec<T: RealField + Copy>(matrix: &DMatrix<T>) -> Vec<Vec
 }
 
 pub fn assert_close_vec_vector<T: RealField + Copy + LowerExp>(
-    vecs1: &Vec<Vector3<T>>,
-    vecs2: &Vec<Vector3<T>>,
+    vecs1: &[Vector3<T>],
+    vecs2: &[Vector3<T>],
     rtol: T,
     p95_rtol: T,
 ) {
@@ -205,30 +205,6 @@ pub fn assert_close_vec_vector<T: RealField + Copy + LowerExp>(
             worst_params.0, worst_params.1, worst_params.2, worst_params.3, rtol
         );
         panic!("assert_close_vec_vector")
-    }
-}
-
-#[cfg(test)]
-mod comparison_tests {
-    use super::*;
-
-    #[test]
-    fn zero_vectors_have_zero_relative_distance() {
-        assert_eq!(
-            relative_vec_distance(Vector3::<f64>::zeros(), Vector3::zeros()),
-            0.0
-        );
-    }
-
-    #[test]
-    #[should_panic(expected = "non-finite")]
-    fn rejects_nan_against_finite_reference() {
-        assert_close_vec_vector(
-            &vec![Vector3::new(f64::NAN, 0.0, 0.0)],
-            &vec![Vector3::z()],
-            1e-12,
-            1e-12,
-        );
     }
 }
 
@@ -684,3 +660,27 @@ macro_rules! impl_test_sum_multiple {
 }
 #[allow(unused_imports)]
 pub(crate) use impl_test_sum_multiple;
+
+#[cfg(test)]
+mod comparison_tests {
+    use super::*;
+
+    #[test]
+    fn zero_vectors_have_zero_relative_distance() {
+        assert_eq!(
+            relative_vec_distance(Vector3::<f64>::zeros(), Vector3::zeros()),
+            0.0
+        );
+    }
+
+    #[test]
+    #[should_panic(expected = "non-finite")]
+    fn rejects_nan_against_finite_reference() {
+        assert_close_vec_vector(
+            &[Vector3::new(f64::NAN, 0.0, 0.0)],
+            &[Vector3::z()],
+            1e-12,
+            1e-12,
+        );
+    }
+}

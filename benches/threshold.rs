@@ -5,6 +5,7 @@
 
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use std::{fmt, fmt::Display};
 
 use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
 use magba::fields::*;
@@ -36,15 +37,15 @@ enum ExitCond {
     MaxThres,
 }
 
-impl ExitCond {
-    fn to_string(&self) -> String {
-        match self {
-            Self::None => "-".to_string(),
-            Self::Converged => "Converged".to_string(),
-            Self::MinStep => "Min step size".to_string(),
-            Self::MaxIter => "Max iteration".to_string(),
-            Self::MaxThres => "Max threshold".to_string(),
-        }
+impl Display for ExitCond {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(match self {
+            Self::None => "-",
+            Self::Converged => "Converged",
+            Self::MinStep => "Min step size",
+            Self::MaxIter => "Max iteration",
+            Self::MaxThres => "Max threshold",
+        })
     }
 }
 
@@ -110,7 +111,7 @@ struct Record {
     ser_time: f64,
     #[tabled(rename = "Ratio", display = "format_float")]
     ratio: f64,
-    #[tabled(rename = "Exit Condition", display = "ExitCond::to_string")]
+    #[tabled(rename = "Exit Condition")]
     exit_cond: ExitCond,
 }
 
