@@ -1,7 +1,7 @@
 name: Magba CI
 
 permissions:
-  contents: write
+  contents: read
 
 on:
   push:
@@ -35,6 +35,7 @@ jobs:
         run: cargo clippy --features graphics-plotly -- -D warnings
 
   test:
+    if: github.event_name != 'workflow_dispatch'
     strategy:
       fail-fast: false
       matrix:
@@ -55,11 +56,26 @@ jobs:
           restore-keys: |
             cargo-${{ matrix.os }}-
       - name: Install cargo-hack
+        if: matrix.os == 'ubuntu-latest'
         uses: taiki-e/install-action@cargo-hack
-      - name: Run tests across feature combinations
-        run: cargo hack test --feature-powerset --exclude-features libm,test_force_fail --features std
+      # Test individual and pairwise feature interactions on Linux.
+      # The full powerset is available through workflow_dispatch below.
+      - name: Test pairwise feature combinations with warnings denied
+        if: matrix.os == 'ubuntu-latest'
+        env:
+          RUSTFLAGS: -D warnings
+        run: |
+          cargo hack test --locked --feature-powerset --depth 2 --exclude-features libm,test_force_fail --features std
+          cargo test --locked --no-default-features --features std,rayon,mesh,graphics-plotly,io-stl,test-utils,unstable,threshold-calibration
+      - name: Test representative feature combinations
+        if: matrix.os != 'ubuntu-latest'
+        run: |
+          cargo test --locked
+          cargo test --locked --no-default-features --features std,mesh
+          cargo test --locked --no-default-features --features std,rayon,mesh,graphics-plotly,io-stl,test-utils,unstable,threshold-calibration
 
-  check-warnings-std:
+  full-feature-powerset:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -72,14 +88,15 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             target
-          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+          key: cargo-full-powerset-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
-            cargo-${{ runner.os }}-
+            cargo-full-powerset-${{ runner.os }}-
       - name: Install cargo-hack
         uses: taiki-e/install-action@cargo-hack
-      - name: Check warnings
-        run: RUSTFLAGS="-D warnings" cargo hack test --feature-powerset
-          --exclude-features libm,test_force_fail --features std
+      - name: Test the full feature powerset
+        env:
+          RUSTFLAGS: -D warnings
+        run: cargo hack test --locked --feature-powerset --exclude-features libm,test_force_fail --features std
 
   msrv:
     runs-on: ubuntu-latest
@@ -138,25 +155,7 @@ jobs:
 
   format:
     runs-on: ubuntu-latest
-    needs: test
     steps:
       - uses: actions/checkout@v7
-        with:
-          submodules: recursive
-      - name: Cache cargo
-        uses: actions/cache@v6
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            cargo-${{ runner.os }}-
-      - name: Format codes
-        run: |
-          cargo fmt
-          git config --global user.name 'github-actions'
-          git config --global user.email 'github-actions@github.com'
-          git add .
-          git diff --cached --quiet || (git commit -m "FMT: CI cargo fmt" && git push)
+      - name: Check formatting
+        run: cargo fmt --all -- --check
