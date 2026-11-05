@@ -688,6 +688,10 @@ mod tests {
         // Zero polarization
         let b_zero = local_cylinder_B(point![0.0, 0.0, 5.0], Vector3::zeros(), 1.0, 2.0);
         assert_eq!(b_zero, Vector3::zeros());
+        assert_eq!(
+            angular_reference(point![0.2, -0.3, 0.4], Vector3::zeros(), 1.0, 2.0),
+            Vector3::zeros()
+        );
 
         // Axial polarization with r > 0
         let b_axial_r = local_cylinder_B(point![0.5, 0.0, 5.0], vector![0.0, 0.0, 1.0], 1.0, 2.0);
@@ -705,6 +709,17 @@ mod tests {
         // Point on the cylinder edge: r = 1.0, z = 1.0 with radius = 1.0, height = 2.0 (z0 = 1.0)
         let b_edge = cylinder_B_cyl(1.0, 0.0, 1.0, 1.0, 2.0, 0.0, 1.0);
         assert_eq!(b_edge, Vector3::zeros());
+
+        // On the rim, the Cartesian API preserves the interior polarization
+        // contribution. Just outside, but still within the rim tolerance,
+        // its singular-field convention returns zero instead.
+        let rim_polarization = vector![0.7_f64, -0.2, 0.3];
+        let b_at_rim = local_cylinder_B(point![1.0, 0.0, 1.0], rim_polarization, 1.0, 2.0);
+        assert_eq!(b_at_rim, vector![0.7, -0.2, 0.0]);
+        let just_outside = 1.0 + 2.0 * f64::EPSILON;
+        let b_just_outside_rim =
+            local_cylinder_B(point![just_outside, 0.0, 1.0], rim_polarization, 1.0, 2.0);
+        assert_eq!(b_just_outside_rim, Vector3::zeros());
 
         // Batch with <= 100 points to trigger serial threshold (verified against magpylib)
         let small_points = [

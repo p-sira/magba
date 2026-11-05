@@ -430,17 +430,13 @@ mod tests {
                 + local_cuboid_B(point, vector![0.0, pol.y, 0.0], dimensions)
                 + local_cuboid_B(point, vector![0.0, 0.0, pol.z], dimensions);
             let actual = local_cuboid_B(point, pol, dimensions);
+            // Compare finite values tightly, while treating matching NaNs or
+            // equal signed infinities as equivalent at singular boundaries.
             for (a, e) in actual.iter().zip(expected.iter()) {
-                if e.is_nan() {
-                    assert!(a.is_nan(), "point={point:?} expected NaN, got {a}");
-                } else if e.is_infinite() {
-                    assert_eq!(a, e, "point={point:?}");
-                } else {
-                    assert!(
-                        (a - e).abs() < 1e-12,
-                        "f64 point={point:?}: actual={actual:?} expected={expected:?}"
-                    );
-                }
+                assert!(
+                    (a - e).abs() < 1e-12 || (a.is_nan() && e.is_nan()) || a == e,
+                    "f64 point={point:?}: actual={actual:?} expected={expected:?}"
+                );
             }
 
             let point32 = point.cast::<f32>();
@@ -451,16 +447,10 @@ mod tests {
                 + local_cuboid_B(point32, vector![0.0, 0.0, pol32.z], dimensions32);
             let actual32 = local_cuboid_B(point32, pol32, dimensions32);
             for (a, e) in actual32.iter().zip(expected32.iter()) {
-                if e.is_nan() {
-                    assert!(a.is_nan(), "point={point32:?} expected NaN, got {a}");
-                } else if e.is_infinite() {
-                    assert_eq!(a, e, "point={point32:?}");
-                } else {
-                    assert!(
-                        (a - e).abs() < 3e-6,
-                        "f32 point={point32:?}: actual={actual32:?} expected={expected32:?}"
-                    );
-                }
+                assert!(
+                    (a - e).abs() < 3e-6 || (a.is_nan() && e.is_nan()) || a == e,
+                    "f32 point={point32:?}: actual={actual32:?} expected={expected32:?}"
+                );
             }
         }
     }
@@ -486,16 +476,10 @@ mod tests {
                 + local_cuboid_B(point, vector![0.0, 0.0, pol.z], dimensions);
             let actual = local_cuboid_B(point, pol, dimensions);
             for (a, e) in actual.iter().zip(expected.iter()) {
-                if e.is_nan() {
-                    assert!(a.is_nan(), "point={point:?}, dimensions={dimensions:?}");
-                } else if e.is_infinite() {
-                    assert_eq!(a, e);
-                } else {
-                    assert!(
-                        (a - e).abs() < 1e-12,
-                        "point={point:?}, dimensions={dimensions:?}"
-                    );
-                }
+                assert!(
+                    (a - e).abs() < 1e-12 || (a.is_nan() && e.is_nan()) || a == e,
+                    "point={point:?}, dimensions={dimensions:?} actual={actual:?} expected={expected:?}"
+                );
             }
         }
     }
