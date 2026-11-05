@@ -18,6 +18,18 @@
 
 - Declare Rust 1.88 as the minimum supported version, verify it in CI, and include the changelog in published packages.
 - Correct `alloc`, `std`, and `no_std` feature guidance.
+- Run Ubuntu pairwise feature tests across four parallel CI runners, with broad optional-feature coverage in a separate job.
+- Reduce test build artifact size with line-table-only debug information.
+
+**Performance Improvements**
+
+- Fuse Bulirsch CEL iterations for circular currents and avoid per-point angular conversions for cylinder fields.
+- Reduce cuboid `atan2` evaluations using the diagonal-kernel trace identity for mixed polarization in `f64`, retaining the more accurate direct `f32` path.
+- Precompute face normals, surface charges, and edge geometry for triangle, tetrahedron, and mesh batch field evaluations.
+
+**Testing**
+
+- Add independent cuboid, cylinder, circular-current, and polyhedral field regressions with reproducible quadrature and MagPyLib 6.1.0 references.
 
 **Documentations**
 
