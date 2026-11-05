@@ -156,10 +156,14 @@ pub fn local_cuboid_B<T: RealField + Copy>(
     let ff1z = if pol_z != 0.0 {
         // The trace of the three diagonal cuboid kernels is 8*pi in the
         // interior and zero outside. When all three polarizations are present,
-        // this avoids eight atan2 calls. Retain the direct kernel on surfaces
-        // (which use a half-value) and for degenerate/non-finite geometry.
+        // this avoids eight atan2 calls at f64 precision. In f32, subtracting
+        // the other two diagonal kernels can lose enough relative precision
+        // in weak far-field values to exceed the independent reference tolerance.
+        // Retain the direct kernel for f32, surfaces (which use a half-value),
+        // and degenerate/non-finite geometry.
         if pol_x != 0.0
             && pol_y != 0.0
+            && T::default_epsilon() < 1e-10
             && a > 0.0
             && b > 0.0
             && c > 0.0

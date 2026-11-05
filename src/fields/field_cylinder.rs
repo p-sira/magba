@@ -550,9 +550,18 @@ mod tests {
         } else {
             cart2cyl(polarization.x, polarization.y)
         };
+        // Keep the reference angle in its principal interval. In f32,
+        // sin(-2*pi) has a ~1e-7 rounding residue even though this is
+        // exactly the same direction as zero (e.g. phi=-pi, theta=pi).
+        let mut relative_phi = phi - theta;
+        if relative_phi > T::pi() {
+            relative_phi = relative_phi - T::pi() - T::pi();
+        } else if relative_phi < -T::pi() {
+            relative_phi = relative_phi + T::pi() + T::pi();
+        }
         let b_cyl = cylinder_B_cyl(
             r,
-            phi - theta,
+            relative_phi,
             point.z,
             radius,
             height,
