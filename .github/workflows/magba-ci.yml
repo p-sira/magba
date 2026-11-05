@@ -39,7 +39,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest, ubuntu-24.04-arm]
+        os: [macos-latest, windows-latest, ubuntu-24.04-arm]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
@@ -55,24 +55,63 @@ jobs:
           key: cargo-${{ matrix.os }}-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             cargo-${{ matrix.os }}-
-      - name: Install cargo-hack
-        if: matrix.os == 'ubuntu-latest'
-        uses: taiki-e/install-action@cargo-hack
-      # Test individual and pairwise feature interactions on Linux.
-      # The full powerset is available through workflow_dispatch below.
-      - name: Test pairwise feature combinations with warnings denied
-        if: matrix.os == 'ubuntu-latest'
-        env:
-          RUSTFLAGS: -D warnings
-        run: |
-          cargo hack test --locked --feature-powerset --depth 2 --exclude-features libm,test_force_fail --features std
-          cargo test --locked --no-default-features --features std,rayon,mesh,graphics-plotly,io-stl,test-utils,unstable,threshold-calibration
       - name: Test representative feature combinations
-        if: matrix.os != 'ubuntu-latest'
         run: |
           cargo test --locked
           cargo test --locked --no-default-features --features std,mesh
           cargo test --locked --no-default-features --features std,rayon,mesh,graphics-plotly,io-stl,test-utils,unstable,threshold-calibration
+
+  test-ubuntu-pairwise:
+    if: github.event_name != 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+      # Each shard compiles independently, so avoid restoring/uploading a
+      # multi-gigabyte target directory four times. Cache dependencies only.
+      - name: Cache cargo dependencies
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: cargo-ubuntu-feature-deps-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cargo-ubuntu-feature-deps-
+      - name: Install cargo-hack
+        uses: taiki-e/install-action@cargo-hack
+      # All 43 pairwise combinations are partitioned exactly once across
+      # four independent GitHub-hosted runners: 11/11/11/10 invocations.
+      - name: Test pairwise feature combinations (shard ${{ matrix.shard }}/4)
+        env:
+          RUSTFLAGS: -D warnings
+        run: cargo hack test --locked --feature-powerset --depth 2 --exclude-features libm,test_force_fail --features std --partition ${{ matrix.shard }}/4
+
+  test-ubuntu-broad:
+    if: github.event_name != 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+      - name: Cache cargo dependencies
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: cargo-ubuntu-feature-deps-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cargo-ubuntu-feature-deps-
+      - name: Test broad optional-feature configuration
+        env:
+          RUSTFLAGS: -D warnings
+        run: cargo test --locked --no-default-features --features std,rayon,mesh,graphics-plotly,io-stl,test-utils,unstable,threshold-calibration
 
   full-feature-powerset:
     if: github.event_name == 'workflow_dispatch'
