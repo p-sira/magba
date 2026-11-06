@@ -1,12 +1,13 @@
 ---
 title: 'Magba: Analytical Magnetostatic Computation for Rust'
-subtitle: 'PREPRINT\vspace{-3em}'
+subtitle: 'PREPRINT'
 tags:
   - magnetism
   - magnetic field
   - magnetostatic
   - analytical
   - Rust
+author: Sira Pornsiriprasert
 authors:
   - name: Sira Pornsiriprasert
     orcid: 0000-0002-5636-8870
