@@ -17,7 +17,7 @@ use magba::{
     },
     threshold_calibration::{self, ExecutionMode},
 };
-use nalgebra::{Point3, point, vector};
+use nalgebra::{Point3, UnitQuaternion, point, vector};
 
 const CALIBRATION_THRESHOLD: usize = 40_000;
 const COMPLEXITY_CALIBRATION_OBSERVERS: usize = 5_000;
@@ -50,6 +50,11 @@ fn tetra_mesh(repetitions: usize) -> TriMesh<f64> {
         .flat_map(|_| tetra_faces)
         .collect::<Vec<_>>();
     TriMesh::new_unchecked(vertices, faces)
+}
+
+fn sheet_current(mesh: TriMesh<f64>) -> SheetCurrent<f64> {
+    let densities = vec![vector![1.0, 0.0, 0.0]; mesh.triangles().len()];
+    SheetCurrent::new([0.0; 3], UnitQuaternion::identity(), densities, mesh)
 }
 
 fn workloads() -> Vec<(&'static str, SourceAssembly)> {
@@ -133,24 +138,8 @@ fn workloads() -> Vec<(&'static str, SourceAssembly)> {
             "mesh/32-triangles",
             repeated(MeshMagnet::default().with_mesh(mesh32.clone()), 2),
         ),
-        (
-            "sheet/4-triangles",
-            repeated(
-                SheetCurrent::default()
-                    .with_current_densities(vec![vector![1.0, 0.0, 0.0]; 4])
-                    .with_mesh(mesh4),
-                2,
-            ),
-        ),
-        (
-            "sheet/32-triangles",
-            repeated(
-                SheetCurrent::default()
-                    .with_current_densities(vec![vector![1.0, 0.0, 0.0]; 32])
-                    .with_mesh(mesh32),
-                2,
-            ),
-        ),
+        ("sheet/4-triangles", repeated(sheet_current(mesh4), 2)),
+        ("sheet/32-triangles", repeated(sheet_current(mesh32), 2)),
         ("mixed", mixed),
         ("nested", nested),
     ]
