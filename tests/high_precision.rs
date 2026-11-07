@@ -65,20 +65,6 @@ fn geometry<T: Float, const N: usize>(points: &[[f64; 3]; N]) -> [Vector3<T>; N]
     points.map(|v| vec3(&v))
 }
 
-fn cuboid_f32_tolerance(row: &[f64]) -> (f64, f64) {
-    let mut dimensions = [row[3], row[4], row[5]];
-    dimensions.sort_by(f64::total_cmp);
-    // Long, thin rods lose more f32 precision near their narrow edges.
-    (
-        if dimensions[2] >= 32.0 * dimensions[1] {
-            1e-3
-        } else {
-            5e-5
-        },
-        1e-8,
-    )
-}
-
 fn check<T: Float, S: Source<T>>(
     case: &str,
     precision: &str,
@@ -257,8 +243,8 @@ source_test!(
     ],
     6,
     v[3].min(v[4]).min(v[5]),
-    (3e-12, 1e-15),
-    cuboid_f32_tolerance(v),
+    (1e-12, 1e-15),
+    (5e-5, 1e-8),
     |T, v, pos, rot| CuboidMagnet::<T>::new(pos, rot, vec3(&v[..3]), vec3(&v[3..6]))
 );
 source_test!(
