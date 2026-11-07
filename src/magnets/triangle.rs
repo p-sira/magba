@@ -21,7 +21,7 @@ define_source! {
     #[cfg_attr(feature = "graphics-plotly", doc = include_str!("graphics/triangle.md"))]
     TriangleMagnet
     field_fn: triangle_B
-    relative_complexity: |_source| 4;
+    relative_complexity: |_source| 3;
     args: {
         polarization: Vector3<T> = Vector3::z(),
         vertices: @val [Vector3<T>; 3] = [Vector3::x(), Vector3::y(), Vector3::zeros()],

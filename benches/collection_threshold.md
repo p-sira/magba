@@ -1,86 +1,54 @@
 # Source collection Rayon calibration
 
-Calibration date: 2026-10-05
+## Relative complexity
 
-## Host
+Calibrated on 2026-11-07 from the perf PR (`d5e1d3b`), using an AMD Ryzen 5
+4600H (6 cores / 12 threads), Rust 1.99.1, the bench profile, and locked
+dependencies (`ellip` 1.2.2). Primitive execution stays automatic; only outer
+collection execution is forced serial.
 
-- CPU: AMD Ryzen 5 4600H, 6 cores / 12 hardware threads
-- Rayon worker availability: 12 logical CPUs
-- Rust: `rustc 1.98.1 (48a229cea 2026-09-01)`, LLVM 22.1.8
-- Target: `x86_64-unknown-linux-gnu`
-- Profile: Cargo `bench` (optimized), default Rayon pool
-
-## Method
-
-`collection_threshold.rs` adaptively searches the serial/parallel crossover,
-then benchmarks automatic execution at the selected size. Primitive policies
-stay automatic to isolate collection parallelism. Benchmark IDs include source
-shape, observer count, and complexity score. Results are saved to
-`benches/collection_threshold_results.md`; Criterion retains raw samples under
-`target/criterion`. Run:
+Run the nine representative two-source workloads individually:
 
 ```sh
-cargo bench --bench collection_threshold --features threshold-calibration,mesh
-```
-
-The weights below and `benches/relative_complexity.txt` reflect the previous
-5,000-observer calibration; the adaptive search does not regenerate them.
-To check those weights with less measurement effort, use the original commit
-(`f6a9fb3`), its locked dependencies, and Rust 1.98.1. Run only the nine
-5,000-observer serial cases with 10 samples:
-
-```sh
-git worktree add --detach ../magba-complexity-baseline f6a9fb3
-cd ../magba-complexity-baseline
 for source in sphere/two dipole/two circular/two cylinder/two triangle-magnet/two triangle-current/two cuboid/two tetrahedron/two path/2-segments; do
-  cargo +1.98.1 bench --locked --bench collection_threshold --features threshold-calibration,mesh -- \
-    "collection/$source/serial/points=5000" --sample-size 10 --warm-up-time 0.15 --measurement-time 0.5
+  MAGBA_RELATIVE_COMPLEXITY=1 cargo bench --locked --bench collection_threshold --features threshold-calibration,mesh -- \
+    "collection/$source/serial/points=5000" --sample-size 10 --warm-up-time 1 --measurement-time 2
 done
 ```
 
-Round each median/dipole ratio to an integer (at least 1). For the path, divide
-the ratio by two segments and round up; mesh/sheet scale from the triangle
-weights. This retains the original measurement path without generating code.
+Criterion writes medians to `target/criterion/collection_*/serial/points=5000,score=*/new/estimates.json`.
+For fixed sources, round the median/dipole ratio (minimum 1); for paths,
+divide by the two segments and round up. Mesh and sheet weights scale from
+the corresponding triangle weights.
 
-The workloads include every built-in source category, two path sizes, two
-mesh/sheet sizes, empty/singleton/two/many direct children, mixed sources, and
-flat/nested compositions. Inputs use non-zero field strengths and varied
-observer positions.
-
-## Fitted weights
-
-Weights were rounded from paired, forced-serial timings for two-source batches
-at 5,000 observers, normalized to the dipole. They are deliberately small and
-conservative.
-
-| Source | Median time | Weight |
+| Source | Median time (two passes) | Weight |
 | --- | ---: | ---: |
-| Sphere | 60.6 us | 1 |
-| Dipole | 82.6 us | 1 |
-| Path | 229.5 us (2 segments) | 2 / segment |
-| Circular current | 235.1 us | 3 |
-| Cylinder | 273.7 us | 3 |
-| Triangle magnet | 315.7 us | 4 |
-| Triangle current | 537.0 us | 6 |
-| Cuboid | 551.9 us | 7 |
-| Tetrahedron | 890.1 us | 11 |
-| Mesh | geometry-dependent | 4 / triangle |
-| Sheet current | geometry-dependent | 6 / triangle |
+| Sphere | 116.6 µs | 1 |
+| Dipole | 137.8 µs | 1 |
+| Path (2 segments) | 238.0 µs | 1 / segment |
+| Circular current | 259.8 µs | 2 |
+| Cylinder | 343.8 µs | 2 |
+| Triangle magnet | 406.9 µs | 3 |
+| Triangle current | 537.8 µs | 4 |
+| Cuboid | 650.0 µs | 5 |
+| Tetrahedron | 968.2 µs | 7 |
+| Mesh | geometry-dependent | 3 / triangle |
+| Sheet current | geometry-dependent | 4 / triangle |
 
-The fixed-cost weights come from measured wall time, not from the standalone
-kernel point thresholds. Mesh and sheet weights preserve the ordering of their
-corresponding triangle kernels and scale with current topology.
+These are deliberately coarse work estimates, not primitive Rayon thresholds.
+The earlier weights were measured at commit `f6a9fb3` with its `Cargo.lock`
+and Rust 1.98.1.
 
-## Threshold
+## Outer parallel threshold
 
-The selected threshold is **40,000 work units**, with a strict `>` comparison.
-At 12,500 units, fixed-cost sources other than Sphere were already 16-34%
-faster in the outer-parallel branch, but Sphere and a two-way nested assembly
-still regressed. At 20,000 units Sphere was faster while the nested case was
-not yet stable. At 40,000 units the held-out two-way nested case improved from
-338.7 us serial to 254.5 us automatic (median), so 40,000 was retained as the
-slowest stable crossover.
+`collection_threshold.rs` adaptively benchmarks forced outer-serial and
+outer-parallel execution, then automatic execution at the selected size:
 
-Automatic execution remains serial at the threshold itself. Singleton
-collections remain outer-serial at every score, leaving their child free to
-select its own point-parallel path.
+```sh
+cargo bench --locked --bench collection_threshold --features threshold-calibration,mesh
+```
+
+Benchmark results are saved to `benches/collection_threshold_results.md`.
+The current **40,000 work-unit** threshold (strict `>`) was calibrated on
+2026-10-05 with the older weights; it has **not** yet been refitted to the
+new relative complexities. Singleton collections stay outer-serial.

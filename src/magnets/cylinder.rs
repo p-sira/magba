@@ -18,7 +18,7 @@ define_source! {
     #[cfg_attr(feature = "graphics-plotly", doc = include_str!("graphics/cylinder.md"))]
     CylinderMagnet
     field_fn: cylinder_B
-    relative_complexity: |_source| 3;
+    relative_complexity: |_source| 2;
     args: {
         polarization: Vector3<T> = Vector3::z(),
         diameter: @val T = T::one();
