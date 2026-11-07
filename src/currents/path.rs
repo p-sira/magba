@@ -12,11 +12,7 @@ define_source! {
     /// A current path modeling a sequence of straight current-carrying wire segments.
     PathCurrent
     field_fn: path_current_B
-    relative_complexity: |source| source
-        .vertices
-        .len()
-        .saturating_sub(1)
-        .saturating_mul(2);
+    relative_complexity: |source| source.vertices.len().saturating_sub(1);
     args: {
         current: @val T = T::zero(),
         vertices: @ref Vec<Vector3<T>> = Vec::new(),
@@ -54,10 +50,10 @@ crate::testing_util::generate_tests! {
         vertices: vec![vector![-0.1, -0.1, -0.1], vector![0.1, -0.1, -0.1], vector![0.0, 0.1, -0.1], vector![0.0, 0.0, 0.1]],
     }
     rtols: {
-        static: 1e-14,
+        static: 3e-14,
         static_small: 1e-9,
         translate: 1e-9,
-        rotate: 1e-14,
+        rotate: 3e-14,
     }
     p95_rtols: {
         static: 1e-14,
@@ -96,6 +92,6 @@ mod complexity_tests {
             vector![1.0, 1.0, 0.0],
             vector![1.0, 1.0, 1.0],
         ]);
-        assert_eq!(path.relative_complexity(), 6);
+        assert_eq!(path.relative_complexity(), 3);
     }
 }

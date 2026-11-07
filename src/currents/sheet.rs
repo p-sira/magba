@@ -20,7 +20,7 @@ define_source! {
     /// Use [`Self::set_mesh_and_current_densities`] to change both together.
     SheetCurrent
     field_fn: sheet_current_B
-    relative_complexity: |source| source.mesh.triangles().len().saturating_mul(6);
+    relative_complexity: |source| source.mesh.triangles().len().saturating_mul(4);
     args: {
         current_densities: @ref Vec<Vector3<T>> = Vec::new();
             validate current_densities.len() == mesh.triangles().len();

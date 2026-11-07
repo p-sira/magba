@@ -18,6 +18,19 @@
 
 - Declare Rust 1.88 as the minimum supported version, verify it in CI, and include the changelog in published packages.
 - Correct `alloc`, `std`, and `no_std` feature guidance.
+- Run Ubuntu pairwise feature tests across four parallel CI runners, with broad optional-feature coverage in a separate job.
+- Reduce test build artifact size with line-table-only debug information.
+
+**Performance Improvements**
+
+- Fuse Bulirsch CEL iterations for circular currents and avoid per-point angular conversions for cylinder fields.
+- Reduce cuboid `atan2` evaluations using the diagonal-kernel trace identity for mixed polarization in `f64`, retaining the more accurate direct `f32` path.
+- Precompute face normals, surface charges, and edge geometry for triangle, tetrahedron, and mesh batch field evaluations.
+
+**Testing**
+
+- Add independent cuboid and polyhedral surface-integral regressions, plus analytical cylinder and circular-current invariants.
+- Validate all 11 field-source primitives against 169 high-precision Mathematica/Wolfram references in both `f32` and `f64`, including alternate geometries, boundaries, translations, and rotations.
 
 **Documentations**
 
@@ -32,10 +45,6 @@
 - Require exactly one current density per sheet-current mesh face in constructors, setters, builders, and field functions; reject invalid updates before mutation.
 - Reject nonfinite and nonpositive linear Hall supply voltages in constructors, setters, and builders, preserving configuration when validation fails.
 - Reject zero or nonfinite sensitive-axis norms and nonfinite thresholds in Hall switch and latch constructors, setters, and builders, preserving sensor state when validation fails.
-
-**Testing**
-
-- Validate all 11 field-source primitives against 169 independently generated high-precision Wolfram references in both `f32` and `f64`, including alternate geometries, boundaries, translations, and rotations.
 
 **API Improvements**
 

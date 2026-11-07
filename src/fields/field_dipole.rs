@@ -164,7 +164,7 @@ pub fn dipole_B_batch<T: Float>(
 ) {
     let moment_global = orientation * moment;
     impl_parallel!(
-        rayon_threshold: 6250,
+        rayon_threshold: 5855,
         input: points,
         output: out,
         |p| {

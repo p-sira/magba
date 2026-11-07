@@ -12,7 +12,7 @@ define_source! {
     #[cfg_attr(feature = "graphics-plotly", doc = include_str!("graphics/tetrahedron.md"))]
     TetrahedronMagnet
     field_fn: tetrahedron_B
-    relative_complexity: |_source| 11;
+    relative_complexity: |_source| 7;
     args: {
         polarization: Vector3<T> = Vector3::z(),
         vertices: @val [Vector3<T>; 4] = [Vector3::zeros(), Vector3::x(), Vector3::y(), Vector3::z()],

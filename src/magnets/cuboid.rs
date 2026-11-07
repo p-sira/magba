@@ -16,7 +16,7 @@ define_source! {
     #[cfg_attr(feature = "graphics-plotly", doc = include_str!("graphics/cuboid.md"))]
     CuboidMagnet
     field_fn: cuboid_B
-    relative_complexity: |_source| 7;
+    relative_complexity: |_source| 5;
     args: {
         polarization:Vector3<T> = Vector3::z(),
         dimensions:Vector3<T> = Vector3::from_element(T::one());

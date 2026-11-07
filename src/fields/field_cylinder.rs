@@ -11,10 +11,7 @@ use num_traits::Float as NumFloat;
 use numeric_literals::replace_float_literals;
 
 use crate::{
-    base::{
-        Float,
-        coordinate::{cart2cyl, compute_in_local, vec_cyl2cart},
-    },
+    base::{Float, coordinate::compute_in_local},
     crate_utils::{impl_parallel, impl_parallel_sum},
     fields::bulirsch_cel_axial::cel_axial,
 };
@@ -83,6 +80,21 @@ pub fn unit_axial_cylinder_B_cyl<T: Float>(r: T, z: T, z0: T) -> Vector3<T> {
 #[inline]
 #[replace_float_literals(T::from_f64(literal).unwrap())]
 pub fn unit_diametric_cylinder_B_cyl<T: Float>(r: T, phi: T, z: T, z0: T) -> Vector3<T> {
+    diametric_cylinder_b_cyl_with_factors(r, z, z0, NumFloat::cos(phi), NumFloat::sin(phi))
+}
+
+/// The diametric field with angular factors supplied by the caller. The factors may
+/// include the transverse polarization magnitude; this avoids computing angles
+/// when the observer and polarization are already available in Cartesian form.
+#[inline]
+#[replace_float_literals(T::from_f64(literal).unwrap())]
+fn diametric_cylinder_b_cyl_with_factors<T: Float>(
+    r: T,
+    z: T,
+    z0: T,
+    radial_factor: T,
+    tangential_factor: T,
+) -> Vector3<T> {
     let (zp, zm) = (z + z0, z - z0);
     let (zp2, zm2) = (zp * zp, zm * zm);
     let r2 = r * r;
@@ -107,9 +119,9 @@ pub fn unit_diametric_cylinder_B_cyl<T: Float>(r: T, phi: T, z: T, z0: T) -> Vec
         let term3 =
             ((3.0 - 4.0 * zp2) * frac1 / zpp4 - (3.0 - 4.0 * zm2) * frac2 / zmm4) / 64.0 * r4;
 
-        let br = -NumFloat::cos(phi) / 4.0 * (term1 + 9.0 * term2 + 25.0 * term3);
-        let bphi = NumFloat::sin(phi) / 4.0 * (term1 + 3.0 * term2 + 5.0 * term3);
-        let bz = -NumFloat::cos(phi) / 4.0
+        let br = -radial_factor / 4.0 * (term1 + 9.0 * term2 + 25.0 * term3);
+        let bphi = tangential_factor / 4.0 * (term1 + 3.0 * term2 + 5.0 * term3);
+        let bz = -radial_factor / 4.0
             * (r * (1.0 / zpp / sqrt_p - 1.0 / zmm / sqrt_m)
                 + 3.0 / 8.0
                     * r3
@@ -147,22 +159,29 @@ pub fn unit_diametric_cylinder_B_cyl<T: Float>(r: T, phi: T, z: T, z0: T) -> Vec
     );
 
     // Computes the fields
-    let br = -NumFloat::cos(phi) / (4.0 * T::pi() * r2)
+    let br = -radial_factor / (4.0 * T::pi() * r2)
         * (-zm * am * elle_m + zp * ap * elle_p + zm / am * (2.0 + zm2) * ellk_m
             - zp / ap * (2.0 + zp2) * ellk_p
             + (zm / am * ellpi_m - zp / ap * ellpi_p) * rp * (r2 + 1.0) * one_over_rm);
 
-    let bphi = NumFloat::sin(phi) / (4.0 * T::pi() * r2)
+    let bphi = tangential_factor / (4.0 * T::pi() * r2)
         * (zm * am * elle_m - zp * ap * elle_p - zm / am * (2.0 + zm2 + 2.0 * r2) * ellk_m
             + zp / ap * (2.0 + zp2 + 2.0 * r2) * ellk_p
             + zm / am * rp2 * ellpi_m
             - zp / ap * rp2 * ellpi_p);
 
-    let bz = -NumFloat::cos(phi) / (2.0 * T::pi() * r)
+    let bz = -radial_factor / (2.0 * T::pi() * r)
         * (am * elle_m - ap * elle_p - (1.0 + zm2 + r2) / am * ellk_m
             + (1.0 + zp2 + r2) / ap * ellk_p);
 
     vector![br, bphi, bz]
+}
+
+#[inline]
+#[replace_float_literals(T::from_f64(literal).unwrap())]
+fn cylinder_on_rim<T: Float>(r: T, z: T, z0: T) -> bool {
+    let is_close = |a, b, rtol| NumFloat::abs(a - b) < rtol * NumFloat::abs(b);
+    is_close(r, 1.0, 1e-15) && is_close(NumFloat::abs(z), z0, 1e-15)
 }
 
 /// Computes B-field of a cylindrical magnet at point (r, phi, z) in cylindrical CS.
@@ -206,8 +225,7 @@ pub fn cylinder_B_cyl<T: Float>(
     let z0 = (height / 2.0) / radius;
 
     // Check if point is on Cylinder edge
-    let is_close = |a, b, rtol| NumFloat::abs(a - b) < rtol * NumFloat::abs(b);
-    if is_close(r, 1.0, 1e-15) && is_close(NumFloat::abs(z), z0, 1e-15) {
+    if cylinder_on_rim(r, z, z0) {
         return Vector3::zeros();
     }
 
@@ -281,24 +299,46 @@ pub fn local_cylinder_B<T: Float>(
         return vector![bx, by, b_cyl.z];
     }
 
-    let (r, phi) = cart2cyl(point.x, point.y);
-    let (pol_r, theta) = if polarization.y == T::zero() && polarization.x >= T::zero() {
-        (polarization.x, T::zero())
+    let r = NumFloat::sqrt(point.x * point.x + point.y * point.y);
+    // The azimuth is undefined on the axis. Choose phi=0 there, where the
+    // Taylor-series kernel has a well-defined Cartesian transverse limit.
+    let (cos_phi, sin_phi) = if r > T::zero() {
+        (point.x / r, point.y / r)
     } else {
-        cart2cyl(polarization.x, polarization.y)
+        (T::one(), T::zero())
     };
+    let r_normalized = r / radius;
+    let z_normalized = point.z / radius;
+    let z0 = (height / T::from(2.0).unwrap()) / radius;
 
-    let b_cyl = cylinder_B_cyl(
-        r,
-        phi - theta,
-        point.z,
-        radius,
-        height,
-        pol_r,
-        polarization.z,
+    // The cylindrical API returns zero at the rim. Preserve that convention
+    // before adding the interior magnetization contribution below.
+    if cylinder_on_rim(r_normalized, z_normalized, z0) {
+        if r <= radius && NumFloat::abs(point.z) <= height / T::from(2.0).unwrap() {
+            return vector![polarization.x, polarization.y, T::zero()];
+        }
+        return Vector3::zeros();
+    }
+
+    let mut b_cyl = Vector3::zeros();
+    if polarization.z != T::zero() {
+        b_cyl += unit_axial_cylinder_B_cyl(r_normalized, z_normalized, z0) * polarization.z;
+    }
+
+    // cos(phi-theta) * |pol_xy| and sin(phi-theta) * |pol_xy|, directly
+    // from the local Cartesian point and polarization. No atan2 or sincos.
+    let radial_factor = polarization.x * cos_phi + polarization.y * sin_phi;
+    let tangential_factor = polarization.x * sin_phi - polarization.y * cos_phi;
+    b_cyl += diametric_cylinder_b_cyl_with_factors(
+        r_normalized,
+        z_normalized,
+        z0,
+        radial_factor,
+        tangential_factor,
     );
 
-    let (bx, by) = vec_cyl2cart(b_cyl.x, b_cyl.y, phi);
+    let bx = b_cyl.x * cos_phi - b_cyl.y * sin_phi;
+    let by = b_cyl.x * sin_phi + b_cyl.y * cos_phi;
     // Check if point is in the magnet
     if r <= radius && NumFloat::abs(point.z) <= height / T::from(2.0).unwrap() {
         return vector![bx + polarization.x, by + polarization.y, b_cyl.z];
@@ -438,7 +478,7 @@ pub fn cylinder_B_batch<T: Float>(
     let inv_orientation = orientation.inverse();
     let radius = diameter / T::from(2.0).unwrap();
     impl_parallel!(
-        rayon_threshold: 160,
+        rayon_threshold: 110,
         input: points,
         output: out,
         |p| {
@@ -492,6 +532,129 @@ mod tests {
 
     use super::*;
 
+    // Independent angular reference for the original Cartesian path, using
+    // the public cylindrical field rather than the new projected coefficients.
+    fn angular_reference<T: Float>(
+        point: Point3<T>,
+        polarization: Vector3<T>,
+        radius: T,
+        height: T,
+    ) -> Vector3<T> {
+        if polarization == Vector3::zeros() {
+            return Vector3::zeros();
+        }
+        let cart2cyl = |x: T, y: T| (NumFloat::sqrt(x * x + y * y), NumFloat::atan2(y, x));
+        let (r, phi) = cart2cyl(point.x, point.y);
+        let (pol_r, theta) = if polarization.y == T::zero() && polarization.x >= T::zero() {
+            (polarization.x, T::zero())
+        } else {
+            cart2cyl(polarization.x, polarization.y)
+        };
+        // Keep the reference angle in its principal interval. In f32,
+        // sin(-2*pi) has a ~1e-7 rounding residue even though this is
+        // exactly the same direction as zero (e.g. phi=-pi, theta=pi).
+        let mut relative_phi = phi - theta;
+        if relative_phi > T::pi() {
+            relative_phi = relative_phi - T::pi() - T::pi();
+        } else if relative_phi < -T::pi() {
+            relative_phi = relative_phi + T::pi() + T::pi();
+        }
+        let b_cyl = cylinder_B_cyl(
+            r,
+            relative_phi,
+            point.z,
+            radius,
+            height,
+            pol_r,
+            polarization.z,
+        );
+        let bx = b_cyl.x * NumFloat::cos(phi) - b_cyl.y * NumFloat::sin(phi);
+        let by = b_cyl.x * NumFloat::sin(phi) + b_cyl.y * NumFloat::cos(phi);
+        if r <= radius && NumFloat::abs(point.z) <= height / T::from(2.0).unwrap() {
+            vector![bx + polarization.x, by + polarization.y, b_cyl.z]
+        } else {
+            vector![bx, by, b_cyl.z]
+        }
+    }
+
+    fn verify_cartesian_projection<T: Float>(tolerance: f64) {
+        let tolerance = T::from(tolerance).unwrap();
+        let minimum_scale = T::from(1e-3).unwrap();
+        let radius = T::from(1.0).unwrap();
+        let height = T::from(2.0).unwrap();
+        let polarizations = [
+            [1.0, 0.0, 0.0],
+            [-1.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0],
+            [0.0, -1.0, 0.0],
+            [0.45, 0.3, 0.15],
+            [-0.35, 0.07, -0.4],
+        ];
+        let radii: [f64; 10] = [
+            0.0, 1e-8, 0.01, 0.04999, 0.05001, 0.25, 0.999, 1.0, 1.001, 3.0,
+        ];
+        let azimuths: [f64; 6] = [
+            -core::f64::consts::PI,
+            -2.3,
+            -0.00001,
+            0.0,
+            1.7,
+            core::f64::consts::PI,
+        ];
+        let heights = [-3.0, -1.0, -0.999, 0.0, 0.999, 1.0, 3.0];
+
+        for pol in polarizations {
+            let pol = vector![
+                T::from(pol[0]).unwrap(),
+                T::from(pol[1]).unwrap(),
+                T::from(pol[2]).unwrap(),
+            ];
+            for r in radii {
+                for phi in azimuths {
+                    for z in heights {
+                        let point = point![
+                            T::from(r * phi.cos()).unwrap(),
+                            T::from(r * phi.sin()).unwrap(),
+                            T::from(z).unwrap(),
+                        ];
+                        let reference = angular_reference(point, pol, radius, height);
+                        let projected = local_cylinder_B(point, pol, radius, height);
+                        for i in 0..3 {
+                            if NumFloat::is_nan(reference[i]) {
+                                assert!(
+                                    NumFloat::is_nan(projected[i]),
+                                    "NaN was not preserved at {point:?}, polarization={pol:?}, component={i}: actual={projected:?}, expected={reference:?}"
+                                );
+                                continue;
+                            }
+                            let scale = NumFloat::max(NumFloat::abs(reference[i]), minimum_scale);
+                            let error = NumFloat::abs(projected[i] - reference[i]);
+                            assert!(
+                                error <= tolerance * scale,
+                                "Cartesian projection disagrees at {point:?}, polarization={pol:?}, component={i}: actual={projected:?}, expected={reference:?}, error={error:?}"
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn cartesian_projection_matches_angular_reference_f64() {
+        verify_cartesian_projection::<f64>(5e-10);
+    }
+
+    #[test]
+    fn cartesian_projection_matches_angular_reference_f32() {
+        // This is a same-precision angular-algorithm cross-check, not an f64
+        // physical oracle: f32 atan2/sin have platform-dependent residues of
+        // a few 1e-7 near quadrant boundaries. Independent f64 MagPyLib
+        // accuracy, including the Taylor switch, is tested in the
+        // cylinder_projection_magpylib integration regression.
+        verify_cartesian_projection::<f32>(5e-4);
+    }
+
     #[test]
     fn test_sum_multiple_cylinder_b() {
         use crate::testing_util::impl_test_sum_multiple;
@@ -525,6 +688,10 @@ mod tests {
         // Zero polarization
         let b_zero = local_cylinder_B(point![0.0, 0.0, 5.0], Vector3::zeros(), 1.0, 2.0);
         assert_eq!(b_zero, Vector3::zeros());
+        assert_eq!(
+            angular_reference(point![0.2, -0.3, 0.4], Vector3::zeros(), 1.0, 2.0),
+            Vector3::zeros()
+        );
 
         // Axial polarization with r > 0
         let b_axial_r = local_cylinder_B(point![0.5, 0.0, 5.0], vector![0.0, 0.0, 1.0], 1.0, 2.0);
@@ -542,6 +709,17 @@ mod tests {
         // Point on the cylinder edge: r = 1.0, z = 1.0 with radius = 1.0, height = 2.0 (z0 = 1.0)
         let b_edge = cylinder_B_cyl(1.0, 0.0, 1.0, 1.0, 2.0, 0.0, 1.0);
         assert_eq!(b_edge, Vector3::zeros());
+
+        // On the rim, the Cartesian API preserves the interior polarization
+        // contribution. Just outside, but still within the rim tolerance,
+        // its singular-field convention returns zero instead.
+        let rim_polarization = vector![0.7_f64, -0.2, 0.3];
+        let b_at_rim = local_cylinder_B(point![1.0, 0.0, 1.0], rim_polarization, 1.0, 2.0);
+        assert_eq!(b_at_rim, vector![0.7, -0.2, 0.0]);
+        let just_outside = 1.0 + 2.0 * f64::EPSILON;
+        let b_just_outside_rim =
+            local_cylinder_B(point![just_outside, 0.0, 1.0], rim_polarization, 1.0, 2.0);
+        assert_eq!(b_just_outside_rim, Vector3::zeros());
 
         // Batch with <= 100 points to trigger serial threshold (verified against magpylib)
         let small_points = [

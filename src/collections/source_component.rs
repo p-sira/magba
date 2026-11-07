@@ -177,10 +177,10 @@ mod tests {
             Vector3::z(),
         ]);
         let current: Current = path.into();
-        assert_eq!(current.relative_complexity(), 6);
+        assert_eq!(current.relative_complexity(), 3);
 
         let component: SourceComponent = current.into();
-        assert_eq!(component.relative_complexity(), 6);
+        assert_eq!(component.relative_complexity(), 3);
 
         let magnet: Magnet = Dipole::<f64>::default().into();
         assert_eq!(magnet.relative_complexity(), 1);
@@ -201,10 +201,10 @@ mod tests {
         let mesh = TriMesh::new_unchecked(vertices, faces);
 
         let magnet = MeshMagnet::default().with_mesh(mesh.clone());
-        assert_eq!(magnet.relative_complexity(), 16);
+        assert_eq!(magnet.relative_complexity(), 12);
 
         let mut sheet = SheetCurrent::default();
         sheet.set_mesh_and_current_densities(mesh, vec![Vector3::x(); 4]);
-        assert_eq!(sheet.relative_complexity(), 24);
+        assert_eq!(sheet.relative_complexity(), 16);
     }
 }

@@ -12,13 +12,15 @@ use reproducible::prelude::*;
 use std::error::Error;
 use std::f64::consts::PI;
 
+type BatchEvaluator = Box<dyn Fn(&[Vec<f64>]) -> Vec<Vec<f64>> + Send + Sync>;
+
 /// Extension trait to convert a `Source` into a closure compatible with `reproducible`'s batch API
 trait SourceExt {
-    fn as_batch_evaluator(self) -> Box<dyn Fn(&[Vec<f64>]) -> Vec<Vec<f64>> + Send + Sync>;
+    fn into_batch_evaluator(self) -> BatchEvaluator;
 }
 
 impl<T: magba::base::Float + std::str::FromStr> SourceExt for Box<dyn Source<T> + Send + Sync> {
-    fn as_batch_evaluator(self) -> Box<dyn Fn(&[Vec<f64>]) -> Vec<Vec<f64>> + Send + Sync> {
+    fn into_batch_evaluator(self) -> BatchEvaluator {
         Box::new(move |inputs: &[Vec<f64>]| {
             let points: Vec<Point3<T>> = inputs
                 .iter()
@@ -151,7 +153,7 @@ fn add_magnet_accuracy<T: magba::base::Float + std::str::FromStr>(
     }
 
     Ok(report.with_row(
-        Row::new_batch(name, source.as_batch_evaluator())
+        Row::new_batch(name, source.into_batch_evaluator())
             .with_split_csv_cases(points_path, ref_path)?
             .with_criterion_id(format!("fields_{}/{}", std::any::type_name::<T>(), name)),
     ))
@@ -238,7 +240,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         content = content.replace("{{ERROR_F32}}", report.render_markdown().as_str());
     }
 
-    let _ = std::fs::write("tests/README.md", content).expect("Cannot write the report");
+    std::fs::write("tests/README.md", content).expect("Cannot write the report");
     println!("tests/README.md generated successfully");
     Ok(())
 }

@@ -1,73 +1,77 @@
 # Source collection Rayon calibration
 
-Calibration date: 2026-10-05
+See [performance calibration](perf_calibration/README.md) for the workflow.
 
-## Host
+## Relative complexity
 
-- CPU: AMD Ryzen 5 4600H, 6 cores / 12 hardware threads
-- Rayon worker availability: 12 logical CPUs
-- Rust: `rustc 1.98.1 (48a229cea 2026-09-01)`, LLVM 22.1.8
-- Target: `x86_64-unknown-linux-gnu`
-- Profile: Cargo `bench` (optimized), default Rayon pool
-
-## Method
-
-`collection_threshold.rs` benchmarks forced outer-serial, forced
-outer-parallel, and automatic execution independently. Primitive policies stay
-automatic so the measurement isolates the additional collection iterator.
-Benchmark IDs record source shape, observer count, and complexity score;
-Criterion retains the raw samples under `target/criterion`.
-
-To regenerate ready-to-copy `relative_complexity` clauses from the 5,000
-observer serial medians, run:
+Measure each geometry's cost with outer collection execution forced serial,
+while primitive execution remains automatic as in production:
 
 ```sh
-cargo bench --bench collection_threshold --features threshold-calibration,mesh
-cargo run --example generate_relative_complexity_code
+cargo bench --locked --bench relative_complexity --features threshold-calibration,mesh
 ```
 
-The generated clauses are printed and saved to
-`benches/relative_complexity.txt`.
+The benchmark covers 11 source geometries, 5,000 observers, 10 samples,
+1-second warmup and 2-second measurement. Criterion writes medians under
+`target/criterion/relative_complexity_outer_serial/`. Normalize to dipole and
+round (minimum 1); path, mesh and sheet weights are per segment/triangle.
 
-The matrix includes every built-in source category, two path sizes, two
-mesh/sheet sizes, empty/singleton/two/many direct children, mixed sources, and
-flat/nested compositions. Inputs use non-zero field strengths and varied
-observer positions.
+The existing weights below were calibrated in two passes on 2026-11-07 from
+the perf PR (`d5e1d3b`), using a Ryzen 5 4600H, Rust 1.99.1, the bench
+profile and locked dependencies (`ellip` 1.2.2). Mesh and sheet weights were
+estimated from their corresponding triangle kernels, not independently fitted.
 
-## Fitted weights
-
-Weights were rounded from paired, forced-serial timings for two-source batches
-at 5,000 observers, normalized to the dipole. They are deliberately small and
-conservative.
-
-| Source | Median time | Weight |
+| Source | Median time (two passes) | Weight |
 | --- | ---: | ---: |
-| Sphere | 60.6 us | 1 |
-| Dipole | 82.6 us | 1 |
-| Path | 229.5 us (2 segments) | 2 / segment |
-| Circular current | 235.1 us | 3 |
-| Cylinder | 273.7 us | 3 |
-| Triangle magnet | 315.7 us | 4 |
-| Triangle current | 537.0 us | 6 |
-| Cuboid | 551.9 us | 7 |
-| Tetrahedron | 890.1 us | 11 |
-| Mesh | geometry-dependent | 4 / triangle |
-| Sheet current | geometry-dependent | 6 / triangle |
+| Sphere | 116.6 µs | 1 |
+| Dipole | 137.8 µs | 1 |
+| Path (2 segments) | 238.0 µs | 1 / segment |
+| Circular current | 259.8 µs | 2 |
+| Cylinder | 343.8 µs | 2 |
+| Triangle magnet | 406.9 µs | 3 |
+| Triangle current | 537.8 µs | 4 |
+| Cuboid | 650.0 µs | 5 |
+| Tetrahedron | 968.2 µs | 7 |
+| Mesh | geometry-dependent | 3 / triangle |
+| Sheet current | geometry-dependent | 4 / triangle |
 
-The fixed-cost weights come from measured wall time, not from the standalone
-kernel point thresholds. Mesh and sheet weights preserve the ordering of their
-corresponding triangle kernels and scale with current topology.
+These are deliberately coarse work estimates, not primitive Rayon thresholds.
+The earlier weights were measured at commit `f6a9fb3` with its `Cargo.lock`
+and Rust 1.98.1.
 
-## Threshold
+## Outer parallel threshold
 
-The selected threshold is **40,000 work units**, with a strict `>` comparison.
-At 12,500 units, fixed-cost sources other than Sphere were already 16-34%
-faster in the outer-parallel branch, but Sphere and a two-way nested assembly
-still regressed. At 20,000 units Sphere was faster while the nested case was
-not yet stable. At 40,000 units the held-out two-way nested case improved from
-338.7 us serial to 254.5 us automatic (median), so 40,000 was retained as the
-slowest stable crossover.
+`collection_threshold.rs` adaptively benchmarks forced outer-serial and
+outer-parallel execution, then automatic execution at the selected size:
 
-Automatic execution remains serial at the threshold itself. Singleton
-collections remain outer-serial at every score, leaving their child free to
-select its own point-parallel path.
+```sh
+cargo bench --locked --bench collection_threshold --features threshold-calibration,mesh
+```
+
+The search starts at 50,000 estimated work units, uses approximately 10,000-
+unit steps and searches up to 160,000 units. Each candidate uses 10 Criterion
+samples, 1-second warmup and 2-second measurement. All collection shapes are
+retained, with primitive execution automatic. The resulting crossover is a
+coarse estimate; confirm any selected production threshold with longer runs
+around its boundary.
+
+The full 2026-11-07 calibration is recorded in
+`benches/collection_threshold_results.md`. Most sources favored outer
+parallelism below 20,000 units, but the mesh cases were more conservative:
+4-triangle mesh was 20.7% slower at 39,936 units and 7.0% faster at 49,920;
+32-triangle mesh was approximately tied at 39,936.
+
+A separate fixed-size check at 40k/50k/60k/80k work units (outer serial versus
+parallel, primitives automatic) confirmed these parallel/serial ratios:
+
+| Collection | ~40k | ~50k | ~60k | ~80k |
+| --- | ---: | ---: | ---: | ---: |
+| Mesh, 4 triangles | 1.003 | 0.849 | 0.888 | 0.905 |
+| Mesh, 32 triangles | 0.945 | 0.843 | 0.820 | 0.829 |
+| Mixed | 0.760 | 0.788 | 0.741 | 0.763 |
+
+The selected **50,000 work-unit** production threshold uses strict `>`;
+singleton collections remain outer-serial. Primitive Rayon cutovers make
+timings non-monotonic, so the search's `Min step size` and `Converged` labels
+are not proof of an exact crossover. This conservative threshold avoids the
+mesh regressions around 40k without delaying other sources excessively.

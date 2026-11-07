@@ -15,6 +15,7 @@ keywords = [
 categories = ["science", "simulation", "no-std"]
 
 [package]
+autobenches = false
 name = "magba"
 version.workspace = true
 authors.workspace = true
@@ -43,6 +44,11 @@ required-features = ["unstable", "io-stl"]
 [[bench]]
 harness = false
 name = "collection_threshold"
+required-features = ["threshold-calibration", "mesh"]
+
+[[bench]]
+harness = false
+name = "relative_complexity"
 required-features = ["threshold-calibration", "mesh"]
 
 [[example]]

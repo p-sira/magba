@@ -130,7 +130,8 @@ fn bench_field_functions(c: &mut Criterion) {
             vector![0.1, -0.1, 0.1],
             vector![0.0, 0.2, 0.0],
         ];
-        let triangle = TriangleMagnet::new(pos, ori, pol, vertices_triangle);
+        let triangle_pol = vector![1.0, 0.0, 0.0];
+        let triangle = TriangleMagnet::new(pos, ori, triangle_pol, vertices_triangle);
         group.bench_function("TriangleMagnet", |b| {
             b.iter(|| black_box(triangle.compute_B_batch(&points)))
         });

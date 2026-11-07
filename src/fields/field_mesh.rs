@@ -16,7 +16,7 @@ use crate::{
         mesh::{TriMesh, Triangle},
     },
     crate_utils::{impl_parallel, impl_parallel_sum},
-    fields::field_triangle::local_triangle_B_with_solid_angle,
+    fields::field_triangle::{PrecomputedMagnetizedTriangle, local_triangle_B_with_solid_angle},
 };
 
 /// Computes B-field of a homogeneously magnetized mesh at point in local frame.
@@ -51,6 +51,29 @@ pub fn local_mesh_B<T: Float>(
         b_total += polarization;
     }
 
+    b_total
+}
+
+/// Evaluate a mesh whose source-invariant face geometry was prepared once.
+#[inline]
+#[allow(non_snake_case)]
+fn local_mesh_B_precomputed<T: Float>(
+    point: Point3<T>,
+    polarization: Vector3<T>,
+    faces: &[Option<PrecomputedMagnetizedTriangle<T>>],
+) -> Vector3<T> {
+    let mut b_total = Vector3::zeros();
+    let mut total_solid_angle = T::zero();
+
+    for face in faces.iter().flatten() {
+        let (b_face, omega) = face.compute_B_with_solid_angle(point);
+        b_total += b_face;
+        total_solid_angle += omega;
+    }
+
+    if num_traits::Float::abs(total_solid_angle) > T::pi() * T::from(2.0).unwrap() {
+        b_total += polarization;
+    }
     b_total
 }
 
@@ -105,17 +128,21 @@ pub fn mesh_B_batch<T: Float>(
     out: &mut [Vector3<T>],
 ) {
     let inv_orientation = orientation.inverse();
-    let triangles = mesh.triangles();
+    let faces: alloc::vec::Vec<_> = mesh
+        .triangles()
+        .iter()
+        .map(|triangle| PrecomputedMagnetizedTriangle::new(polarization, triangle.vertices()))
+        .collect();
     // Tuned with a 698-triangle mesh at a 10-observer crossover.
     #[cfg(feature = "rayon")]
     const PARALLEL_WORK_THRESHOLD: usize = 6_980;
     impl_parallel!(
-        rayon_threshold: adaptive_rayon_threshold(PARALLEL_WORK_THRESHOLD, triangles.len()),
+        rayon_threshold: adaptive_rayon_threshold(PARALLEL_WORK_THRESHOLD, faces.len()),
         input: points,
         output: out,
         |p| {
             let local_point = inv_orientation * Point3::from(p.coords - position.coords);
-            let local_b = local_mesh_B(local_point, polarization, triangles);
+            let local_b = local_mesh_B_precomputed(local_point, polarization, &faces);
             orientation * local_b
         }
     );
@@ -221,6 +248,47 @@ mod tests {
         );
 
         assert_relative_eq!(actual, expected, epsilon = 1e-5);
+    }
+
+    #[test]
+    fn precomputed_mesh_batch_matches_scalar_with_degenerate_face_and_rotation() {
+        let vertices = [
+            vector![0.0_f64, 0.0, 0.0],
+            vector![1.0, 0.0, 0.0],
+            vector![0.0, 1.0, 0.0],
+            vector![0.0, 0.0, 1.0],
+        ];
+        let mesh = TriMesh::new_unchecked(
+            vertices,
+            [[0, 2, 1], [0, 1, 3], [1, 2, 3], [0, 3, 2], [0, 1, 1]],
+        );
+        let polarization = vector![0.7, -0.2, 0.4];
+        let position = point![0.2, -0.5, 0.7];
+        let orientation = UnitQuaternion::from_scaled_axis(vector![-0.3, 0.2, 0.1]);
+        let local_points = [
+            point![0.1, 0.1, 0.1],
+            point![2.0, -1.0, 3.0],
+            point![0.25, 0.25, 0.0],
+        ];
+        let points = local_points.map(|p| position + orientation * p.coords);
+        let mut out = [Vector3::zeros(); 3];
+        mesh_B_batch(
+            &points,
+            position,
+            orientation,
+            polarization,
+            &mesh,
+            &mut out,
+        );
+
+        for (&point, actual) in points.iter().zip(out.iter()) {
+            assert_relative_eq!(
+                *actual,
+                mesh_B(point, position, orientation, polarization, &mesh),
+                epsilon = 1e-13,
+                max_relative = 1e-12
+            );
+        }
     }
 
     #[test]

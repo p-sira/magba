@@ -17,7 +17,7 @@ define_source! {
     #[cfg_attr(feature = "graphics-plotly", doc = include_str!("graphics/mesh.md"))]
     MeshMagnet
     field_fn: mesh_B
-    relative_complexity: |source| source.mesh.triangles().len().saturating_mul(4);
+    relative_complexity: |source| source.mesh.triangles().len().saturating_mul(3);
     args: {
         polarization: Vector3<T> = Vector3::z(),
         mesh: @ref TriMesh<T> = TriMesh::new_unchecked(Vec::new(), Vec::new()),
