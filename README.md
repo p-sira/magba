@@ -146,6 +146,8 @@ for runnable demonstrations.
 Results are validated against MagpyLib and reference data.
 See `testing/data` and the accuracy report for details.
 
+For performance benchmarks, numerical safeguards, and Rayon calibration, see the [performance calibration guide](benches/perf_calibration/README.md).
+
 ---
 
 ## Acknowledgment

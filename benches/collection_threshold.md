@@ -1,5 +1,7 @@
 # Source collection Rayon calibration
 
+See [performance calibration](perf_calibration/README.md) for the workflow.
+
 ## Relative complexity
 
 Measure each geometry's cost with outer collection execution forced serial,
