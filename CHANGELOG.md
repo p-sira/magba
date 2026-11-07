@@ -29,7 +29,7 @@
 
 **Testing**
 
-- Add independent cuboid, cylinder, circular-current, and polyhedral field regressions with reproducible quadrature and MagPyLib 6.1.0 references.
+- Add independent cuboid and polyhedral surface-integral regressions, plus analytical cylinder and circular-current invariants.
 - Validate all 11 field-source primitives against 169 high-precision Mathematica/Wolfram references in both `f32` and `f64`, including alternate geometries, boundaries, translations, and rotations.
 
 **Documentations**
