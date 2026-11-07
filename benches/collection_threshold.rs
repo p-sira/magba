@@ -17,7 +17,7 @@ use magba::{
     threshold_calibration::{self, ExecutionMode},
 };
 
-const CALIBRATION_THRESHOLD: usize = 40_000;
+const CALIBRATION_THRESHOLD: usize = 50_000;
 const MAX_WORK: usize = 160_000;
 const STEP_WORK: usize = 10_000;
 const COMPLEXITY_CALIBRATION_OBSERVERS: usize = 5_000;

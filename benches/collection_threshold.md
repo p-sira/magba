@@ -46,14 +46,30 @@ outer-parallel execution, then automatic execution at the selected size:
 cargo bench --locked --bench collection_threshold --features threshold-calibration,mesh
 ```
 
-The search starts at 40,000 estimated work units, uses approximately 10,000-
+The search starts at 50,000 estimated work units, uses approximately 10,000-
 unit steps and searches up to 160,000 units. Each candidate uses 10 Criterion
 samples, 1-second warmup and 2-second measurement. All collection shapes are
 retained, with primitive execution automatic. The resulting crossover is a
 coarse estimate; confirm any selected production threshold with longer runs
 around its boundary.
 
-Benchmark results are saved to `benches/collection_threshold_results.md`.
-The current **40,000 work-unit** threshold (strict `>`) was calibrated on
-2026-10-05 with the older weights; it has **not** yet been refitted to the
-new relative complexities. Singleton collections stay outer-serial.
+The full 2026-11-07 calibration is recorded in
+`benches/collection_threshold_results.md`. Most sources favored outer
+parallelism below 20,000 units, but the mesh cases were more conservative:
+4-triangle mesh was 20.7% slower at 39,936 units and 7.0% faster at 49,920;
+32-triangle mesh was approximately tied at 39,936.
+
+A separate fixed-size check at 40k/50k/60k/80k work units (outer serial versus
+parallel, primitives automatic) confirmed these parallel/serial ratios:
+
+| Collection | ~40k | ~50k | ~60k | ~80k |
+| --- | ---: | ---: | ---: | ---: |
+| Mesh, 4 triangles | 1.003 | 0.849 | 0.888 | 0.905 |
+| Mesh, 32 triangles | 0.945 | 0.843 | 0.820 | 0.829 |
+| Mixed | 0.760 | 0.788 | 0.741 | 0.763 |
+
+The selected **50,000 work-unit** production threshold uses strict `>`;
+singleton collections remain outer-serial. Primitive Rayon cutovers make
+timings non-monotonic, so the search's `Min step size` and `Converged` labels
+are not proof of an exact crossover. This conservative threshold avoids the
+mesh regressions around 40k without delaying other sources excessively.
