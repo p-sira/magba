@@ -9,7 +9,7 @@ use nalgebra::{Matrix3, Point3, UnitQuaternion, Vector3};
 
 use crate::{
     base::{Float, coordinate::compute_in_local},
-    crate_utils::{impl_parallel, impl_parallel_sum},
+    crate_utils::impl_parallel,
     fields::field_triangle::PrecomputedMagnetizedTriangle,
 };
 
@@ -211,34 +211,6 @@ pub fn tetrahedron_B_batch<T: Float>(
     );
 }
 
-/// Computes B-field at each given points in global frame for multiple tetrahedrons.
-///
-/// # Arguments
-///
-/// - `points`: Observer positions (m)
-/// - `positions`: Element positions (m)
-/// - `orientations`: Element orientations in unit quaternion
-/// - `polarizations`: Polarization vectors (T)
-/// - `vertices_list`: List of tetrahedron vertices arrays in local coords (m)
-/// - `out`: Mutable slice to store the net B-field vectors at each observer (T)
-#[allow(non_snake_case)]
-pub fn sum_multiple_tetrahedron_B<T: Float>(
-    points: &[Point3<T>],
-    positions: &[Point3<T>],
-    orientations: &[UnitQuaternion<T>],
-    polarizations: &[Vector3<T>],
-    vertices_list: &[[Vector3<T>; 4]],
-    out: &mut [Vector3<T>],
-) {
-    impl_parallel_sum!(
-        out,
-        points,
-        15, // Derived from triangle having 60
-        [positions, orientations, polarizations, vertices_list],
-        |pos, p, o, pol, vert| tetrahedron_B(*pos, *p, *o, *pol, *vert)
-    )
-}
-
 #[cfg(test)]
 mod tests {
     use nalgebra::{point, vector};
@@ -303,46 +275,6 @@ mod tests {
                 max_relative = 1e-5
             );
         }
-    }
-
-    #[test]
-    fn test_sum_multiple_tetrahedron_b() {
-        use crate::testing_util::impl_test_sum_multiple;
-        let points = &[
-            point![5.0, 6.0, 7.0],
-            point![4.0, 3.0, 2.0],
-            point![0.5, 0.25, 0.125],
-        ];
-        let positions = &[point![1.0, 2.0, 3.0], point![0.0, 0.0, 0.0]];
-        let orientations = &[
-            UnitQuaternion::from_scaled_axis(vector![1.0, 0.6, 0.4]),
-            UnitQuaternion::identity(),
-        ];
-        let polarizations = &[vector![0.45, 0.3, 0.15], vector![1.0, 2.0, 3.0]];
-        let vertices_list = &[
-            [
-                vector![0.0, 0.0, 0.0],
-                vector![0.0, 0.0, 1.0],
-                vector![1.0, 0.0, 0.0],
-                vector![0.0, 1.0, 0.0],
-            ],
-            [
-                vector![-1.0, -1.0, -1.0],
-                vector![1.0, -1.0, -1.0],
-                vector![0.0, 1.0, -1.0],
-                vector![0.0, 0.0, 1.0],
-            ],
-        ];
-
-        impl_test_sum_multiple!(
-            sum_multiple_tetrahedron_B,
-            1e-15,
-            points,
-            positions,
-            orientations,
-            (polarizations, vertices_list),
-            |p, pos, ori, pol, vert| tetrahedron_B(p, pos, ori, pol, vert)
-        );
     }
 
     #[test]

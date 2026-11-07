@@ -91,20 +91,6 @@ pub(crate) fn format_trimesh_count<T: Float>(
     alloc::format!("{}", mesh.triangles().len())
 }
 
-macro_rules! assert_eq_lens {
-    ($str_err:expr, [$ref_vec:expr $(, $vec:expr)+]) => {
-        {
-            let len = $ref_vec.len();
-            $(
-                if $vec.len() != len {
-                    panic!($str_err)
-                }
-            )+
-        }
-    };
-}
-pub(crate) use assert_eq_lens;
-
 /// Converts a total work threshold into an input-count threshold.
 ///
 /// A zero per-input cost keeps execution serial, which avoids dividing by zero
@@ -163,61 +149,6 @@ macro_rules! impl_parallel {
     }};
 }
 pub(crate) use impl_parallel;
-
-// TODO: compare par_bridge with zip -> par_iter
-macro_rules! impl_parallel_sum {
-    ($out:expr, $points:expr, $threshold:expr, [$($vecs:expr),+], |$p:ident, $($args:ident),*| $calc:expr) => {{
-        assert_eq!($out.len(), $points.len(), "Output slice length must match points length.");
-        crate::crate_utils::assert_eq_lens!(
-            "Lengths of input vectors must be equal.",
-            [$($vecs),+]
-        );
-
-        #[cfg(feature = "rayon")]
-        {
-            use rayon::prelude::*;
-
-            #[cfg(feature = "threshold-calibration")]
-            let use_parallel = crate::threshold_calibration::should_parallel(true);
-            #[cfg(not(feature = "threshold-calibration"))]
-            let use_parallel = true;
-
-            if use_parallel {
-                $out.par_iter_mut()
-                    .zip($points.par_iter())
-                    .for_each(|(o, p_ref)| {
-                        let $p = p_ref;
-                        *o = itertools::izip!($($vecs),+)
-                            .fold(nalgebra::Vector3::zeros(), |acc, ($($args),*)| {
-                                acc + $calc
-                            });
-                    });
-            } else {
-                $out.iter_mut()
-                    .zip($points.iter())
-                    .for_each(|(o, p_ref)| {
-                        let $p = p_ref;
-                        *o = itertools::izip!($($vecs),+)
-                            .fold(nalgebra::Vector3::zeros(), |acc, ($($args),*)| {
-                                acc + $calc
-                            });
-                        });
-            }
-        }
-
-        #[cfg(not(feature = "rayon"))]
-        $out.iter_mut()
-            .zip($points.iter())
-            .for_each(|(o, p_ref)| {
-                let $p = p_ref;
-                *o = itertools::izip!($($vecs),+)
-                    .fold(nalgebra::Vector3::zeros(), |acc, ($($args),*)| {
-                        acc + $calc
-                    });
-            });
-    }};
-}
-pub(crate) use impl_parallel_sum;
 
 // MARK: define_source!
 

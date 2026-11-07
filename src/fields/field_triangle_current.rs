@@ -11,7 +11,7 @@ use numeric_literals::replace_float_literals;
 
 use crate::{
     base::{Float, coordinate::compute_in_local},
-    crate_utils::{impl_parallel, impl_parallel_sum},
+    crate_utils::impl_parallel,
 };
 
 #[derive(Clone, Copy)]
@@ -243,67 +243,10 @@ pub fn triangle_current_B_batch<T: Float>(
     );
 }
 
-/// Computes B-field at each given points in global frame for multiple triangles.
-#[allow(non_snake_case)]
-pub fn sum_multiple_triangle_current_B<T: Float>(
-    points: &[Point3<T>],
-    positions: &[Point3<T>],
-    orientations: &[UnitQuaternion<T>],
-    current_densities: &[Vector3<T>],
-    vertices_list: &[[Vector3<T>; 3]],
-    out: &mut [Vector3<T>],
-) {
-    impl_parallel_sum!(
-        out,
-        points,
-        60,
-        [positions, orientations, current_densities, vertices_list],
-        |pos, p, o, pol, vert| triangle_current_B(*pos, *p, *o, *pol, *vert)
-    )
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use nalgebra::{point, vector};
-
-    #[test]
-    fn test_sum_multiple_triangle_current_b() {
-        use crate::testing_util::impl_test_sum_multiple;
-        let points = &[
-            point![5.0, 6.0, 7.0],
-            point![4.0, 3.0, 2.0],
-            point![0.5, 0.25, 0.125],
-        ];
-        let positions = &[point![1.0, 2.0, 3.0], point![0.0, 0.0, 0.0]];
-        let orientations = &[
-            UnitQuaternion::from_scaled_axis(vector![1.0, 0.6, 0.4]),
-            UnitQuaternion::identity(),
-        ];
-        let current_densities = &[vector![0.45, 0.3, 0.15], vector![1.0, 2.0, 3.0]];
-        let vertices_list = &[
-            [
-                vector![0.0, 0.0, 0.0],
-                vector![0.0, 0.0, 1.0],
-                vector![1.0, 0.0, 0.0],
-            ],
-            [
-                vector![0.0, 0.0, 0.0],
-                vector![0.0, 1.0, 0.0],
-                vector![0.0, 0.0, 1.0],
-            ],
-        ];
-
-        impl_test_sum_multiple!(
-            sum_multiple_triangle_current_B,
-            1e-15,
-            points,
-            positions,
-            orientations,
-            (current_densities, vertices_list),
-            |p, pos, ori, pol, vert| triangle_current_B(p, pos, ori, pol, vert)
-        );
-    }
 
     #[test]
     fn test_triangle_current_edge_cases_and_batch() {

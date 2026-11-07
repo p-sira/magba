@@ -4,6 +4,10 @@
 
 ### 0.8.0
 
+**Breaking Changes**
+
+- Remove all `sum_multiple_*` field functions; use source collections to superpose fields from multiple sources.
+
 **New Features**
 
 - Add reusable `FieldMask` exclusion predicates for sampling and tracing without evaluating masked positions.

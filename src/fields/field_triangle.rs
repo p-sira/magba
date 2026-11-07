@@ -11,7 +11,7 @@ use numeric_literals::replace_float_literals;
 
 use crate::{
     base::{Float, coordinate::compute_in_local},
-    crate_utils::{impl_parallel, impl_parallel_sum},
+    crate_utils::impl_parallel,
 };
 
 /// Computes solid angle of a triangle given its local R vectors from observer to vertices.
@@ -312,34 +312,6 @@ pub fn triangle_B_batch<T: Float>(
     );
 }
 
-/// Computes B-field at each given points in global frame for multiple triangles.
-///
-/// # Arguments
-///
-/// - `points`: Observer positions (m)
-/// - `positions`: Element positions (m)
-/// - `orientations`: Element orientations in unit quaternion
-/// - `polarizations`: Polarization vectors (T)
-/// - `vertices_list`: List of triangle vertices arrays `[[P1, P2, P3], ...]` in local coords (m)
-/// - `out`: Mutable slice to store the net B-field vectors at each observer (T)
-#[allow(non_snake_case)]
-pub fn sum_multiple_triangle_B<T: Float>(
-    points: &[Point3<T>],
-    positions: &[Point3<T>],
-    orientations: &[UnitQuaternion<T>],
-    polarizations: &[Vector3<T>],
-    vertices_list: &[[Vector3<T>; 3]],
-    out: &mut [Vector3<T>],
-) {
-    impl_parallel_sum!(
-        out,
-        points,
-        60,
-        [positions, orientations, polarizations, vertices_list],
-        |pos, p, o, pol, vert| triangle_B(*pos, *p, *o, *pol, *vert)
-    )
-}
-
 #[cfg(test)]
 mod tests {
     use approx::assert_relative_eq;
@@ -450,44 +422,6 @@ mod tests {
         assert_eq!(field, Vector3::zeros());
         assert_eq!(triangle.compute_B(point), Vector3::zeros());
         assert!(angle.abs() > 0.0);
-    }
-
-    #[test]
-    fn test_sum_multiple_triangle_b() {
-        use crate::testing_util::impl_test_sum_multiple;
-        let points = &[
-            point![5.0, 6.0, 7.0],
-            point![4.0, 3.0, 2.0],
-            point![0.5, 0.25, 0.125],
-        ];
-        let positions = &[point![1.0, 2.0, 3.0], point![0.0, 0.0, 0.0]];
-        let orientations = &[
-            UnitQuaternion::from_scaled_axis(vector![1.0, 0.6, 0.4]),
-            UnitQuaternion::identity(),
-        ];
-        let polarizations = &[vector![0.45, 0.3, 0.15], vector![1.0, 2.0, 3.0]];
-        let vertices_list = &[
-            [
-                vector![0.0, 0.0, 0.0],
-                vector![0.0, 0.0, 1.0],
-                vector![1.0, 0.0, 0.0],
-            ],
-            [
-                vector![0.0, 0.0, 0.0],
-                vector![0.0, 1.0, 0.0],
-                vector![0.0, 0.0, 1.0],
-            ],
-        ];
-
-        impl_test_sum_multiple!(
-            sum_multiple_triangle_B,
-            1e-15,
-            points,
-            positions,
-            orientations,
-            (polarizations, vertices_list),
-            |p, pos, ori, pol, vert| triangle_B(p, pos, ori, pol, vert)
-        );
     }
 
     #[test]

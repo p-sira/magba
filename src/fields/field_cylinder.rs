@@ -12,7 +12,7 @@ use numeric_literals::replace_float_literals;
 
 use crate::{
     base::{Float, coordinate::compute_in_local},
-    crate_utils::{impl_parallel, impl_parallel_sum},
+    crate_utils::impl_parallel,
     fields::bulirsch_cel_axial::cel_axial,
 };
 
@@ -489,42 +489,6 @@ pub fn cylinder_B_batch<T: Float>(
     );
 }
 
-/// Computes net B-field at each given point in global frame for multiple cylindrical magnets.
-///
-/// # Arguments
-///
-/// - `points`: Observer positions in global frame (m)
-/// - `positions`: Magnet positions (m)
-/// - `orientations`: Magnet orientations as unit quaternions
-/// - `polarizations`: Polarization vectors (T)
-/// - `diameters`: Cylinder diameters (m)
-/// - `heights`: Cylinder heights (m)
-/// - `out`: Mutable slice to store the net B-field vectors at each observer (T)
-///
-/// # References
-///
-/// - Caciagli, Alessio, Roel J. Baars, Albert P. Philipse, and Bonny W. M. Kuipers. “Exact Expression for the Magnetic Field of a Finite Cylinder with Arbitrary Uniform Magnetization.” Journal of Magnetism and Magnetic Materials 456 (June 15, 2018): 423–32. <https://doi.org/10.1016/j.jmmm.2018.02.003>.
-/// - Derby, Norman, and Stanislaw Olbert. “Cylindrical Magnets and Ideal Solenoids.” American Journal of Physics 78, no. 3 (March 1, 2010): 229–35. <https://doi.org/10.1119/1.3256157>.
-/// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
-#[allow(non_snake_case)]
-pub fn sum_multiple_cylinder_B<T: Float>(
-    points: &[Point3<T>],
-    positions: &[Point3<T>],
-    orientations: &[UnitQuaternion<T>],
-    polarizations: &[Vector3<T>],
-    diameters: &[T],
-    heights: &[T],
-    out: &mut [Vector3<T>],
-) {
-    impl_parallel_sum!(
-        out,
-        points,
-        60,
-        [positions, orientations, polarizations, diameters, heights],
-        |pos, p, o, pol, d, h| cylinder_B(*pos, *p, *o, *pol, *d, *h)
-    )
-}
-
 #[cfg(not(feature = "test_force_fail"))]
 #[cfg(test)]
 mod tests {
@@ -653,34 +617,6 @@ mod tests {
         // accuracy, including the Taylor switch, is tested in the
         // cylinder_projection_magpylib integration regression.
         verify_cartesian_projection::<f32>(5e-4);
-    }
-
-    #[test]
-    fn test_sum_multiple_cylinder_b() {
-        use crate::testing_util::impl_test_sum_multiple;
-        let points = &[
-            point![5.0, 6.0, 7.0],
-            point![4.0, 3.0, 2.0],
-            point![0.5, 0.25, 0.125],
-        ];
-        let positions = &[point![1.0, 2.0, 3.0], point![0.0, 0.0, 0.0]];
-        let orientations = &[
-            UnitQuaternion::from_scaled_axis(vector![1.0, 0.6, 0.4]),
-            UnitQuaternion::identity(),
-        ];
-        let polarizations = &[vector![0.45, 0.3, 0.15], vector![1.0, 2.0, 3.0]];
-        let diameters = &[1.0, 2.0];
-        let heights = &[2.0, 3.0];
-
-        impl_test_sum_multiple!(
-            sum_multiple_cylinder_B,
-            1e-12,
-            points,
-            positions,
-            orientations,
-            (polarizations, diameters, heights),
-            |p, pos, ori, pol, d, h| cylinder_B(p, pos, ori, pol, d, h)
-        );
     }
 
     #[test]

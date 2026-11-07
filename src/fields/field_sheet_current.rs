@@ -11,7 +11,7 @@ use nalgebra::{Point3, UnitQuaternion, Vector3};
 use crate::crate_utils::adaptive_rayon_threshold;
 use crate::{
     base::{Float, coordinate::compute_in_local, mesh::TriMesh},
-    crate_utils::{impl_parallel, impl_parallel_sum},
+    crate_utils::impl_parallel,
     fields::field_triangle_current::{PrecomputedTriangleCurrent, local_triangle_current_B},
 };
 
@@ -112,43 +112,13 @@ pub fn sheet_current_B_batch<T: Float>(
     );
 }
 
-/// Computes B-field at each given points in global frame for multiple current sheet meshes.
-///
-/// # Panics
-/// Panics on density/face count mismatch, mismatched source-list lengths,
-/// or output/input length mismatch.
-#[allow(non_snake_case)]
-pub fn sum_multiple_sheet_current_B<T: Float>(
-    points: &[Point3<T>],
-    positions: &[Point3<T>],
-    orientations: &[UnitQuaternion<T>],
-    current_densities_list: &[alloc::vec::Vec<Vector3<T>>],
-    meshes: &[&TriMesh<T>],
-    out: &mut [Vector3<T>],
-) {
-    for (densities, mesh) in current_densities_list.iter().zip(meshes) {
-        assert_eq!(
-            densities.len(),
-            mesh.triangles().len(),
-            "Exactly one current density is required per mesh face."
-        );
-    }
-    impl_parallel_sum!(
-        out,
-        points,
-        10,
-        [positions, orientations, current_densities_list, meshes],
-        |pos, p, o, cds, mesh| sheet_current_B(*pos, *p, *o, cds, mesh)
-    )
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use nalgebra::{point, vector};
 
     #[test]
-    fn test_sheet_current_batch_and_sum_multiple() {
+    fn test_sheet_current_batch() {
         let vertices = vec![
             vector![0.0, 0.0, 0.0],
             vector![0.001, 0.0, 0.0],
@@ -207,33 +177,5 @@ mod tests {
         for (o, e) in small_out.iter().zip(expected.iter()) {
             approx::assert_relative_eq!(o, e, epsilon = 1e-14, max_relative = 1e-10);
         }
-
-        // sum_multiple_sheet_current_B with < 10 points and > 10 points
-        let positions = [point![0.0, 0.0, 0.0], point![0.01, 0.0, 0.0]];
-        let orientations = [UnitQuaternion::identity(), UnitQuaternion::identity()];
-        let cds_list = [current_densities.clone(), current_densities];
-        let meshes = [&mesh, &mesh];
-
-        let mut out_small = vec![Vector3::zeros(); 2];
-        sum_multiple_sheet_current_B(
-            &points[..2],
-            &positions,
-            &orientations,
-            &cds_list,
-            &meshes,
-            &mut out_small,
-        );
-        assert_eq!(out_small.len(), 2);
-
-        let mut out_large = vec![Vector3::zeros(); 15];
-        sum_multiple_sheet_current_B(
-            &points[..15],
-            &positions,
-            &orientations,
-            &cds_list,
-            &meshes,
-            &mut out_large,
-        );
-        assert_eq!(out_large.len(), 15);
     }
 }

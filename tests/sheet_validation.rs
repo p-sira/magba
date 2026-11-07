@@ -3,7 +3,7 @@
 use magba::{
     base::{Source, mesh::TriMesh},
     currents::SheetCurrent,
-    fields::{sheet_current_B, sheet_current_B_batch, sum_multiple_sheet_current_B},
+    fields::{sheet_current_B, sheet_current_B_batch},
 };
 use nalgebra::{Point3, UnitQuaternion, Vector3, point, vector};
 use std::panic::{AssertUnwindSafe, catch_unwind};
@@ -136,18 +136,6 @@ macro_rules! validation_tests {
                                 &densities,
                                 &mesh,
                                 &mut out
-                            )))
-                            .is_err()
-                        );
-                        assert_eq!(out, before);
-                        assert!(
-                            catch_unwind(AssertUnwindSafe(|| sum_multiple_sheet_current_B(
-                                &points,
-                                &[Point3::origin()],
-                                &[UnitQuaternion::identity()],
-                                std::slice::from_ref(&densities),
-                                &[&mesh],
-                                &mut out,
                             )))
                             .is_err()
                         );

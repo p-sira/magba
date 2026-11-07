@@ -8,10 +8,7 @@
 use nalgebra::{Point3, RealField, UnitQuaternion, Vector3, vector};
 use numeric_literals::replace_float_literals;
 
-use crate::{
-    base::coordinate::compute_in_local,
-    crate_utils::{impl_parallel, impl_parallel_sum},
-};
+use crate::{base::coordinate::compute_in_local, crate_utils::impl_parallel};
 
 /// Compute `radius + u` without losing small transverse distances.
 ///
@@ -386,38 +383,6 @@ pub fn cuboid_B_batch<T: RealField + Copy>(
     );
 }
 
-/// Computes net B-field at each given point in global frame for multiple cuboid magnets.
-///
-/// # Arguments
-///
-/// - `points`: Observer positions in global frame (m)
-/// - `positions`: Magnet positions (m)
-/// - `orientations`: Magnet orientations as unit quaternions
-/// - `polarizations`: Polarization vectors (T)
-/// - `dimensions`: Cuboid side lengths (m)
-/// - `out`: Mutable slice to store the net B-field vectors at each observer (T)
-///
-/// # References
-///
-/// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
-#[allow(non_snake_case)]
-pub fn sum_multiple_cuboid_B<T: RealField + Copy>(
-    points: &[Point3<T>],
-    positions: &[Point3<T>],
-    orientations: &[UnitQuaternion<T>],
-    polarizations: &[Vector3<T>],
-    dimensions: &[Vector3<T>],
-    out: &mut [Vector3<T>],
-) {
-    impl_parallel_sum!(
-        out,
-        points,
-        60,
-        [positions, orientations, polarizations, dimensions],
-        |pos, p, o, pol, dim| cuboid_B(*pos, *p, *o, *pol, *dim)
-    )
-}
-
 #[cfg(test)]
 mod tests {
     use nalgebra::{point, vector};
@@ -526,33 +491,6 @@ mod tests {
         assert_eq!(
             local_cuboid_B(point, vector![0.2, -0.3, 0.4], dimensions),
             Vector3::zeros()
-        );
-    }
-
-    #[test]
-    fn test_sum_multiple_cuboid_b() {
-        use crate::testing_util::impl_test_sum_multiple;
-        let points = &[
-            point![5.0, 6.0, 7.0],
-            point![4.0, 3.0, 2.0],
-            point![0.5, 0.25, 0.125],
-        ];
-        let positions = &[point![1.0, 2.0, 3.0], point![0.0, 0.0, 0.0]];
-        let orientations = &[
-            UnitQuaternion::from_scaled_axis(vector![1.0, 0.6, 0.4]),
-            UnitQuaternion::identity(),
-        ];
-        let polarizations = &[vector![0.45, 0.3, 0.15], vector![1.0, 2.0, 3.0]];
-        let dimensions = &[vector![1.0, 2.0, 3.0], vector![2.0, 2.0, 2.0]];
-
-        impl_test_sum_multiple!(
-            sum_multiple_cuboid_B,
-            5e-14,
-            points,
-            positions,
-            orientations,
-            (polarizations, dimensions),
-            |p, pos, ori, pol, dim| cuboid_B(p, pos, ori, pol, dim)
         );
     }
 

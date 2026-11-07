@@ -13,7 +13,7 @@ use numeric_literals::replace_float_literals;
 use crate::crate_utils::adaptive_rayon_threshold;
 use crate::{
     base::{Float, coordinate::compute_in_local},
-    crate_utils::{impl_parallel, impl_parallel_sum},
+    crate_utils::impl_parallel,
 };
 
 /// Computes B-field of a current path (sequence of straight wire segments) at point in local frame.
@@ -221,77 +221,10 @@ pub fn path_current_B_batch<T: Float>(
     );
 }
 
-/// Computes B-field at each given points in global frame for multiple current paths.
-///
-/// # Arguments
-///
-/// - `points`: Observer positions (m)
-/// - `positions`: Element positions (m)
-/// - `orientations`: Element orientations in unit quaternion
-/// - `currents`: Currents (A)
-/// - `vertices_list`: List of vertices defining the current path in local coords (m)
-/// - `out`: Mutable slice to store the net B-field vectors at each observer (T)
-#[allow(non_snake_case)]
-pub fn sum_multiple_path_current_B<T: Float>(
-    points: &[Point3<T>],
-    positions: &[Point3<T>],
-    orientations: &[UnitQuaternion<T>],
-    currents: &[T],
-    vertices_list: &[alloc::vec::Vec<Vector3<T>>],
-    out: &mut [Vector3<T>],
-) {
-    impl_parallel_sum!(
-        out,
-        points,
-        60,
-        [positions, orientations, currents, vertices_list],
-        |pos, p, o, curr, vert| path_current_B(*pos, *p, *o, *curr, vert)
-    )
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use nalgebra::{point, vector};
-
-    #[test]
-    #[allow(non_snake_case)]
-    fn test_sum_multiple_path_current_B() {
-        use crate::testing_util::impl_test_sum_multiple;
-        let points = &[
-            point![5.0, 6.0, 7.0],
-            point![4.0, 3.0, 2.0],
-            point![0.5, 0.25, 0.125],
-        ];
-        let positions = &[point![1.0, 2.0, 3.0], point![0.0, 0.0, 0.0]];
-        let orientations = &[
-            UnitQuaternion::from_scaled_axis(vector![1.0, 0.6, 0.4]),
-            UnitQuaternion::identity(),
-        ];
-        let currents = &[100.0, 200.0];
-        let vertices_list = &[
-            vec![
-                vector![0.0, 0.0, 0.0],
-                vector![0.0, 0.0, 1.0],
-                vector![1.0, 0.0, 0.0],
-            ],
-            vec![
-                vector![0.0, 0.0, 0.0],
-                vector![0.0, 1.0, 0.0],
-                vector![0.0, 0.0, 1.0],
-            ],
-        ];
-
-        impl_test_sum_multiple!(
-            sum_multiple_path_current_B,
-            1e-15,
-            points,
-            positions,
-            orientations,
-            (currents, vertices_list),
-            |p, pos, ori, curr, vert| path_current_B(p, pos, ori, curr, &vert)
-        );
-    }
 
     #[test]
     fn test_path_current_edge_cases_and_batch() {

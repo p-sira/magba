@@ -8,10 +8,7 @@
 use nalgebra::{Point3, UnitQuaternion, Vector3};
 use numeric_literals::replace_float_literals;
 
-use crate::{
-    base::Float,
-    crate_utils::{impl_parallel, impl_parallel_sum},
-};
+use crate::{base::Float, crate_utils::impl_parallel};
 
 /// Computes B-field of a homogeneously magnetized sphere at point (x, y, z) in local frame.
 ///
@@ -123,38 +120,6 @@ pub fn sphere_B_batch<T: Float>(
     );
 }
 
-/// Computes B-field at each given points in global frame for multiple homogeneously magnetized spheres.
-///
-/// # Arguments
-///
-/// - `points`: Observer positions (m)
-/// - `positions`: Sphere centers (m)
-/// - `orientations`: Sphere orientations in unit quaternion
-/// - `polarizations`: Polarization vectors (T)
-/// - `diameters`: Sphere diameters (m)
-/// - `out`: Mutable slice to store the net B-field vectors at each observer (T)
-///
-/// # References
-///
-/// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
-#[allow(non_snake_case)]
-pub fn sum_multiple_sphere_B<T: Float>(
-    points: &[Point3<T>],
-    positions: &[Point3<T>],
-    orientations: &[UnitQuaternion<T>],
-    polarizations: &[Vector3<T>],
-    diameters: &[T],
-    out: &mut [Vector3<T>],
-) {
-    impl_parallel_sum!(
-        out,
-        points,
-        60,
-        [positions, orientations, polarizations, diameters],
-        |pos, p, o, pol, d| sphere_B(*pos, *p, *o, *pol, *d)
-    )
-}
-
 #[cfg(test)]
 mod tests {
     use approx::assert_relative_eq;
@@ -178,32 +143,5 @@ mod tests {
         let b = local_sphere_B(point![0.0, 0.0, 0.0], vector![1.0, 2.0, 3.0], 1.0);
         let expected = vector![1.0, 2.0, 3.0] * (2.0 / 3.0);
         assert_relative_eq!(b, expected, epsilon = 1e-15);
-    }
-
-    #[test]
-    fn test_sum_multiple_sphere_b() {
-        use crate::testing_util::impl_test_sum_multiple;
-        let points = &[
-            point![5.0, 6.0, 7.0],
-            point![4.0, 3.0, 2.0],
-            point![0.5, 0.25, 0.125],
-        ];
-        let positions = &[point![1.0, 2.0, 3.0], point![0.0, 0.0, 0.0]];
-        let orientations = &[
-            UnitQuaternion::from_scaled_axis(vector![1.0, 0.6, 0.4]),
-            UnitQuaternion::identity(),
-        ];
-        let polarizations = &[vector![0.45, 0.3, 0.15], vector![1.0, 2.0, 3.0]];
-        let diameters = &[1.0, 2.0];
-
-        impl_test_sum_multiple!(
-            sum_multiple_sphere_B,
-            1e-15,
-            points,
-            positions,
-            orientations,
-            (polarizations, diameters),
-            |p, pos, ori, pol, d| sphere_B(p, pos, ori, pol, d)
-        );
     }
 }
