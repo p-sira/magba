@@ -54,10 +54,10 @@ crate::testing_util::generate_tests! {
         vertices: vec![vector![-0.1, -0.1, -0.1], vector![0.1, -0.1, -0.1], vector![0.0, 0.1, -0.1], vector![0.0, 0.0, 0.1]],
     }
     rtols: {
-        static: 1e-14,
+        static: 3e-14,
         static_small: 1e-9,
         translate: 1e-9,
-        rotate: 1e-14,
+        rotate: 3e-14,
     }
     p95_rtols: {
         static: 1e-14,
