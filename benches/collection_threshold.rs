@@ -5,6 +5,7 @@
 
 use std::collections::HashSet;
 use std::hint::black_box;
+use std::time::Duration;
 
 use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
 
@@ -18,6 +19,7 @@ use magba::{
 
 const CALIBRATION_THRESHOLD: usize = 40_000;
 const MAX_WORK: usize = 160_000;
+const STEP_WORK: usize = 10_000;
 const COMPLEXITY_CALIBRATION_OBSERVERS: usize = 5_000;
 
 fn bench_collection_threshold(c: &mut Criterion) {
@@ -33,6 +35,9 @@ fn bench_collection_threshold(c: &mut Criterion) {
         // Criterion's on-disk path flattens slashes in benchmark group names.
         let criterion_group = format!("collection_{}", name.replace('/', "_"));
         let mut group = c.benchmark_group(&group_name);
+        group.sample_size(10);
+        group.warm_up_time(Duration::from_secs(1));
+        group.measurement_time(Duration::from_secs(2));
         let mut seen = HashSet::new();
 
         // An empty or singleton assembly cannot use outer parallelism.
@@ -59,7 +64,7 @@ fn bench_collection_threshold(c: &mut Criterion) {
             continue;
         }
 
-        let step = (CALIBRATION_THRESHOLD / complexity / 20).clamp(common::MIN_STEP, 1000);
+        let step = (STEP_WORK / complexity).max(common::MIN_STEP);
         let initial = CALIBRATION_THRESHOLD.div_ceil(complexity).max(step);
         let maximum = MAX_WORK.div_ceil(complexity).max(initial);
         let found = common::find_threshold(initial, maximum, step, |observer_count| {

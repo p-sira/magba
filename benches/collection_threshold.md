@@ -46,6 +46,13 @@ outer-parallel execution, then automatic execution at the selected size:
 cargo bench --locked --bench collection_threshold --features threshold-calibration,mesh
 ```
 
+The search starts at 40,000 estimated work units, uses approximately 10,000-
+unit steps and searches up to 160,000 units. Each candidate uses 10 Criterion
+samples, 1-second warmup and 2-second measurement. All collection shapes are
+retained, with primitive execution automatic. The resulting crossover is a
+coarse estimate; confirm any selected production threshold with longer runs
+around its boundary.
+
 Benchmark results are saved to `benches/collection_threshold_results.md`.
 The current **40,000 work-unit** threshold (strict `>`) was calibrated on
 2026-10-05 with the older weights; it has **not** yet been refitted to the
