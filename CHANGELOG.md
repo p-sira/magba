@@ -30,6 +30,7 @@
 **Testing**
 
 - Add independent cuboid, cylinder, circular-current, and polyhedral field regressions with reproducible quadrature and MagPyLib 6.1.0 references.
+- Validate all 11 field-source primitives against 169 high-precision Mathematica/Wolfram references in both `f32` and `f64`, including alternate geometries, boundaries, translations, and rotations.
 
 **Documentations**
 
@@ -39,6 +40,7 @@
 
 **Bug Fixes**
 
+- Improve cuboid field accuracy near edges of slender magnets by rationalizing cancellation-prone logarithmic terms, including `f32` results.
 - Use relative face tolerances for STL import, accepting valid small and multiscale meshes consistently with `TriMesh::new`.
 - Require exactly one current density per sheet-current mesh face in constructors, setters, builders, and field functions; reject invalid updates before mutation.
 - Reject nonfinite and nonpositive linear Hall supply voltages in constructors, setters, and builders, preserving configuration when validation fails.
