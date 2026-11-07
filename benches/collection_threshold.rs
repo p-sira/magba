@@ -24,6 +24,17 @@ use nalgebra::{Point3, UnitQuaternion, point, vector};
 const CALIBRATION_THRESHOLD: usize = 40_000;
 const MAX_WORK: usize = 160_000;
 const COMPLEXITY_CALIBRATION_OBSERVERS: usize = 5_000;
+const RELATIVE_COMPLEXITY_CASES: [&str; 9] = [
+    "sphere/two",
+    "dipole/two",
+    "circular/two",
+    "cylinder/two",
+    "triangle-magnet/two",
+    "triangle-current/two",
+    "cuboid/two",
+    "tetrahedron/two",
+    "path/2-segments",
+];
 
 fn points(count: usize) -> Vec<Point3<f64>> {
     (0..count)
@@ -149,6 +160,7 @@ fn workloads() -> Vec<(&'static str, SourceAssembly)> {
 }
 
 fn bench_collection_threshold(c: &mut Criterion) {
+    let relative_only = std::env::var("MAGBA_RELATIVE_COMPLEXITY").as_deref() == Ok("1");
     threshold_calibration::set_instrumentation(false);
     threshold_calibration::set_execution_mode(ExecutionMode::Auto);
 
@@ -156,12 +168,34 @@ fn bench_collection_threshold(c: &mut Criterion) {
     let mut results = common::load_results(result_path);
 
     for (name, sources) in workloads() {
+        if relative_only && !RELATIVE_COMPLEXITY_CASES.contains(&name) {
+            continue;
+        }
         let complexity = sources.relative_complexity();
         let group_name = format!("collection/{name}");
         // Criterion's on-disk path flattens slashes in benchmark group names.
         let criterion_group = format!("collection_{}", name.replace('/', "_"));
         let mut group = c.benchmark_group(&group_name);
         let mut seen = HashSet::new();
+
+        if relative_only {
+            let observer_count = COMPLEXITY_CALIBRATION_OBSERVERS;
+            let observers = points(observer_count);
+            threshold_calibration::set_collection_execution_mode(ExecutionMode::Serial);
+            group.bench_with_input(
+                BenchmarkId::new(
+                    "serial",
+                    format!(
+                        "points={observer_count},score={}",
+                        observer_count.saturating_mul(complexity)
+                    ),
+                ),
+                &observer_count,
+                |b, _| b.iter(|| black_box(sources.compute_B_batch(&observers))),
+            );
+            group.finish();
+            continue;
+        }
 
         // An empty or singleton assembly cannot use outer parallelism.
         if sources.components().take(2).count() < 2 || complexity == 0 {
