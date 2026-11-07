@@ -8,10 +8,7 @@
 use nalgebra::{Point3, UnitQuaternion, Vector3};
 use numeric_literals::replace_float_literals;
 
-use crate::{
-    base::Float,
-    crate_utils::{impl_parallel, impl_parallel_sum},
-};
+use crate::{base::Float, crate_utils::impl_parallel};
 
 /// Computes B-field of a magnetic dipole moment at point (x, y, z) in local frame.
 ///
@@ -174,67 +171,11 @@ pub fn dipole_B_batch<T: Float>(
     );
 }
 
-/// Computes B-field at each given points in global frame for multiple magnetic dipole moments.
-///
-/// # Arguments
-///
-/// - `points`: Observer positions (m)
-/// - `positions`: Magnet positions (m)
-/// - `orientations`: Magnet orientations in unit quaternion
-/// - `moments`: Magnetic dipole moment vectors (A·m²)
-/// - `out`: Mutable slice to store the net B-field vectors at each observer (T)
-///
-/// # References
-///
-/// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
-#[allow(non_snake_case)]
-pub fn sum_multiple_dipole_B<T: Float>(
-    points: &[Point3<T>],
-    positions: &[Point3<T>],
-    orientations: &[UnitQuaternion<T>],
-    moments: &[Vector3<T>],
-    out: &mut [Vector3<T>],
-) {
-    impl_parallel_sum!(
-        out,
-        points,
-        60,
-        [positions, orientations, moments],
-        |pos, p, o, m| dipole_B(*pos, *p, *o, *m)
-    )
-}
-
 #[cfg(test)]
 mod tests {
     use nalgebra::{point, vector};
 
     use super::*;
-
-    #[test]
-    fn test_sum_multiple_dipole_b() {
-        use crate::testing_util::impl_test_sum_multiple;
-        let points = &[
-            point![5.0, 6.0, 7.0],
-            point![4.0, 3.0, 2.0],
-            point![0.5, 0.25, 0.125],
-        ];
-        let positions = &[point![1.0, 2.0, 3.0], point![0.0, 0.0, 0.0]];
-        let orientations = &[
-            UnitQuaternion::from_scaled_axis(vector![1.0, 0.6, 0.4]),
-            UnitQuaternion::identity(),
-        ];
-        let moments = &[vector![0.45, 0.3, 0.15], vector![1.0, 2.0, 3.0]];
-
-        impl_test_sum_multiple!(
-            sum_multiple_dipole_B,
-            2e-10,
-            points,
-            positions,
-            orientations,
-            (moments),
-            |p, pos, ori, m| dipole_B(p, pos, ori, m)
-        );
-    }
 
     #[test]
     fn test_dipole_at_origin() {

@@ -15,21 +15,17 @@
 //!
 //! # Batch and Non-Batch Functions
 //!
-//! The field computation functions are available in three variants:
+//! Field functions have two variants:
 //!
 //! - **Non-batch functions** (e.g., [cuboid_B], [dipole_B]):
 //!   Compute the magnetic field at a single observation point.
 //! - **Batch functions** (e.g., [cuboid_B_batch], [dipole_B_batch]):
 //!   Compute the magnetic field at multiple observation points simultaneously.
-//! - **Sum multiple functions** (e.g., [sum_multiple_cuboid_B], [sum_multiple_dipole_B]):
-//!   Compute the magnetic field at a single observation point by summing the
-//!   fields of multiple magnets.
 //!
 //! ## Parallelization
 //!
-//! Batch and sum multiple functions are parallelized if the `rayon` feature is
-//! enabled (default). If the `rayon` feature is disabled, the batch functions
-//! will process the points serially on a single thread.
+//! Batch functions use Rayon when enabled (default) and the work exceeds their
+//! parallelization thresholds. Otherwise, they evaluate points serially.
 //!
 //! To tune Rayon thresholds locally, run
 //! `cargo bench --bench threshold --features unstable,io-stl`, inspect
@@ -76,27 +72,23 @@ mod field_tetrahedron;
 mod field_triangle;
 mod field_triangle_current;
 
-pub use field_circular::{circular_B, circular_B_batch, sum_multiple_circular_B};
-pub use field_cuboid::{cuboid_B, cuboid_B_batch, sum_multiple_cuboid_B};
-pub use field_cylinder::{cylinder_B, cylinder_B_batch, sum_multiple_cylinder_B};
-pub use field_dipole::{dipole_B, dipole_B_batch, sum_multiple_dipole_B};
+pub use field_circular::{circular_B, circular_B_batch};
+pub use field_cuboid::{cuboid_B, cuboid_B_batch};
+pub use field_cylinder::{cylinder_B, cylinder_B_batch};
+pub use field_dipole::{dipole_B, dipole_B_batch};
 #[cfg(feature = "alloc")]
-pub use field_path_current::{path_current_B, path_current_B_batch, sum_multiple_path_current_B};
+pub use field_path_current::{path_current_B, path_current_B_batch};
 #[cfg(feature = "mesh")]
-pub use field_sheet_current::{
-    sheet_current_B, sheet_current_B_batch, sum_multiple_sheet_current_B,
-};
-pub use field_sphere::{sphere_B, sphere_B_batch, sum_multiple_sphere_B};
-pub use field_tetrahedron::{sum_multiple_tetrahedron_B, tetrahedron_B, tetrahedron_B_batch};
-pub use field_triangle::{sum_multiple_triangle_B, triangle_B, triangle_B_batch};
-pub use field_triangle_current::{
-    sum_multiple_triangle_current_B, triangle_current_B, triangle_current_B_batch,
-};
+pub use field_sheet_current::{sheet_current_B, sheet_current_B_batch};
+pub use field_sphere::{sphere_B, sphere_B_batch};
+pub use field_tetrahedron::{tetrahedron_B, tetrahedron_B_batch};
+pub use field_triangle::{triangle_B, triangle_B_batch};
+pub use field_triangle_current::{triangle_current_B, triangle_current_B_batch};
 
 #[cfg(feature = "mesh")]
 mod field_mesh;
 #[cfg(feature = "mesh")]
-pub use field_mesh::{mesh_B, mesh_B_batch, sum_multiple_mesh_B};
+pub use field_mesh::{mesh_B, mesh_B_batch};
 
 crate::crate_utils::need_unstable! {
     pub use field_cuboid::local_cuboid_B;

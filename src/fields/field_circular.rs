@@ -11,7 +11,7 @@ use numeric_literals::replace_float_literals;
 
 use crate::{
     base::{Float, coordinate::compute_in_local},
-    crate_utils::{impl_parallel, impl_parallel_sum},
+    crate_utils::impl_parallel,
 };
 
 const MAX_ITER: usize = 10;
@@ -218,39 +218,6 @@ pub fn circular_B_batch<T: Float>(
     );
 }
 
-/// Computes net B-field at each given point in global frame for multiple circular current loops.
-///
-/// # Arguments
-///
-/// - `points`: Observer positions in global frame (m)
-/// - `positions`: Loop centers (m)
-/// - `orientations`: Loop orientations as unit quaternions
-/// - `diameters`: Loop diameters (m)
-/// - `currents`: Currents flowing in the loops (A)
-/// - `out`: Mutable slice to store the net B-field vectors at each observer (T)
-///
-/// # References
-///
-/// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
-/// - Ortner, Michael, Peter Leitner, and Franz Slanovc. “Numerically Stable and Computationally Efficient Expression for the Magnetic Field of a Current Loop.” Magnetism 3, no. 1 (2023): 11-31. <https://doi.org/10.3390/magnetism3010002>.
-#[allow(non_snake_case)]
-pub fn sum_multiple_circular_B<T: Float>(
-    points: &[Point3<T>],
-    positions: &[Point3<T>],
-    orientations: &[UnitQuaternion<T>],
-    diameters: &[T],
-    currents: &[T],
-    out: &mut [Vector3<T>],
-) {
-    impl_parallel_sum!(
-        out,
-        points,
-        60,
-        [positions, orientations, diameters, currents],
-        |pos, p, o, d, c| circular_B(*pos, *p, *o, *d, *c)
-    )
-}
-
 #[cfg(test)]
 mod tests {
     use nalgebra::{point, vector};
@@ -286,33 +253,6 @@ mod tests {
         approx::assert_relative_eq!(actual.z, expected_z, epsilon = 1e-14);
         assert_eq!(actual.x, 0.0);
         assert_eq!(actual.y, 0.0);
-    }
-
-    #[test]
-    fn test_sum_multiple_circular_b() {
-        use crate::testing_util::impl_test_sum_multiple;
-        let points = &[
-            point![5.0, 6.0, 7.0],
-            point![4.0, 3.0, 2.0],
-            point![0.5, 0.25, 0.125],
-        ];
-        let positions = &[point![1.0, 2.0, 3.0], point![0.0, 0.0, 0.0]];
-        let orientations = &[
-            UnitQuaternion::from_scaled_axis(vector![1.0, 0.6, 0.4]),
-            UnitQuaternion::identity(),
-        ];
-        let diameters = &[1.0, 2.0];
-        let currents = &[1.5, 2.5];
-
-        impl_test_sum_multiple!(
-            sum_multiple_circular_B,
-            1e-15,
-            points,
-            positions,
-            orientations,
-            (diameters, currents),
-            |p, pos, ori, d, c| circular_B(p, pos, ori, d, c)
-        );
     }
 
     #[test]
