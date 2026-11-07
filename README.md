@@ -22,8 +22,8 @@
     <a href="https://app.codspeed.io/p-sira/magba?utm_source=badge" style="text-decoration:none">
         <img src="https://img.shields.io/endpoint?url=https://codspeed.io/badge.json" alt="CodSpeed"/>
     </a>
-    <a href="https://doi.org/10.5281/zenodo.21150887" style="text-decoration:none">
-        <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.21150887.svg" alt="Preprint DOI">
+    <a href="https://doi.org/10.5281/zenodo.21150886" style="text-decoration:none">
+        <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.21150886.svg" alt="Preprint DOI">
     </a>
 </p>
 
