@@ -25,6 +25,22 @@ cargo bench --bench collection_threshold --features threshold-calibration,mesh
 
 The weights below and `benches/relative_complexity.txt` reflect the previous
 5,000-observer calibration; the adaptive search does not regenerate them.
+To check those weights with less measurement effort, use the original commit
+(`f6a9fb3`), its locked dependencies, and Rust 1.98.1. Run only the nine
+5,000-observer serial cases with 10 samples:
+
+```sh
+git worktree add --detach ../magba-complexity-baseline f6a9fb3
+cd ../magba-complexity-baseline
+for source in sphere/two dipole/two circular/two cylinder/two triangle-magnet/two triangle-current/two cuboid/two tetrahedron/two path/2-segments; do
+  cargo +1.98.1 bench --locked --bench collection_threshold --features threshold-calibration,mesh -- \
+    "collection/$source/serial/points=5000" --sample-size 10 --warm-up-time 0.15 --measurement-time 0.5
+done
+```
+
+Round each median/dipole ratio to an integer (at least 1). For the path, divide
+the ratio by two segments and round up; mesh/sheet scale from the triangle
+weights. This retains the original measurement path without generating code.
 
 The workloads include every built-in source category, two path sizes, two
 mesh/sheet sizes, empty/singleton/two/many direct children, mixed sources, and
