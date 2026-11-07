@@ -2,24 +2,22 @@
 
 ## Relative complexity
 
-Calibrated on 2026-11-07 from the perf PR (`d5e1d3b`), using an AMD Ryzen 5
-4600H (6 cores / 12 threads), Rust 1.99.1, the bench profile, and locked
-dependencies (`ellip` 1.2.2). Primitive execution stays automatic; only outer
-collection execution is forced serial.
-
-Run the nine representative two-source workloads individually:
+Measure each geometry's cost with outer collection execution forced serial,
+while primitive execution remains automatic as in production:
 
 ```sh
-for source in sphere/two dipole/two circular/two cylinder/two triangle-magnet/two triangle-current/two cuboid/two tetrahedron/two path/2-segments; do
-  MAGBA_RELATIVE_COMPLEXITY=1 cargo bench --locked --bench collection_threshold --features threshold-calibration,mesh -- \
-    "collection/$source/serial/points=5000" --sample-size 10 --warm-up-time 1 --measurement-time 2
-done
+cargo bench --locked --bench relative_complexity --features threshold-calibration,mesh
 ```
 
-Criterion writes medians to `target/criterion/collection_*/serial/points=5000,score=*/new/estimates.json`.
-For fixed sources, round the median/dipole ratio (minimum 1); for paths,
-divide by the two segments and round up. Mesh and sheet weights scale from
-the corresponding triangle weights.
+The benchmark covers 11 source geometries, 5,000 observers, 10 samples,
+1-second warmup and 2-second measurement. Criterion writes medians under
+`target/criterion/relative_complexity_outer_serial/`. Normalize to dipole and
+round (minimum 1); path, mesh and sheet weights are per segment/triangle.
+
+The existing weights below were calibrated in two passes on 2026-11-07 from
+the perf PR (`d5e1d3b`), using a Ryzen 5 4600H, Rust 1.99.1, the bench
+profile and locked dependencies (`ellip` 1.2.2). Mesh and sheet weights were
+estimated from their corresponding triangle kernels, not independently fitted.
 
 | Source | Median time (two passes) | Weight |
 | --- | ---: | ---: |
