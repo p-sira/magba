@@ -31,14 +31,10 @@
 //! enabled (default). If the `rayon` feature is disabled, the batch functions
 //! will process the points serially on a single thread.
 //!
-//! To automatically tune the threshold for your computation environment,
-//!
-//! 1. Download the source code locally
-//! 2. Run `cargo bench threshold --features unstable`.
-//! 3. Run `cargo run --package magba --example generate_threshold_code`.
-//! 4. Copy the generated code from `benches/impl_parallel.txt` to the function *_B_batch,
-//!    such as `fields::field_cuboid::cuboid_B_batch`.
-//! 5. Recompile and install Magba with the adjusted threshold locally.
+//! To tune Rayon thresholds locally, run
+//! `cargo bench --bench threshold --features unstable,io-stl`, inspect
+//! `benches/par_threshold.md`, then edit the matching `*_B_batch` thresholds.
+//! Path, mesh, and sheet-current thresholds scale with per-point work.
 //!
 //! # Examples
 //!
