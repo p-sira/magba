@@ -477,3 +477,140 @@ fn zero_area_and_reversed_open_mesh_face_preserve_physical_charge() {
     );
     assert_eq!(zero[0], Vector3::zeros());
 }
+
+#[test]
+fn open_mesh_edge_ray_and_near_plane_match_surface_quadrature() {
+    let nodes = gauss_legendre_nodes(QUAD_ORDER);
+    let vertices = [Vector3::zeros(), Vector3::x(), Vector3::y()];
+    let polarization = Vector3::z();
+    let mesh = TriMesh::new_unchecked(vertices, [[0, 1, 2], [0, 1, 1]]);
+    let probes = [
+        point![2.0, 0.0, 0.0], // Exact edge ray: logarithm's zero-denominator branch.
+        point![0.25, 0.32, 0.12],
+        point![0.25, 0.32, -0.12],
+        point![-0.12, -0.09, 0.08], // Near the vertex.
+    ];
+    let mut fields = [Vector3::zeros(); 4];
+    mesh_B_batch(
+        &probes,
+        Point3::origin(),
+        UnitQuaternion::identity(),
+        polarization,
+        &mesh,
+        &mut fields,
+    );
+    for (&probe, &actual) in probes.iter().zip(&fields) {
+        assert_field_f64(
+            actual,
+            charged_face_quadrature(probe, vertices, polarization, &nodes),
+            "open mesh boundary f64",
+        );
+    }
+}
+
+#[test]
+fn closed_polyhedral_near_face_edge_and_vertex_match_surface_quadrature() {
+    let nodes = gauss_legendre_nodes(QUAD_ORDER);
+    let v = tetra_vertices(1.0);
+    let faces = outward_faces(&v);
+    let mesh = TriMesh::new_unchecked(v, faces);
+    let polarization = vector![POLARIZATION[0], POLARIZATION[1], POLARIZATION[2]];
+    let probes = [
+        (v[0] * 0.15 + v[1] * 0.35 + v[2] * 0.30 + v[3] * 0.20, true), // Near face, inside.
+        (v[0] * 0.50 + v[1] * 0.35 + v[2] * 0.30 - v[3] * 0.15, false), // Outside face.
+        (v[0] * 0.40 + v[1] * 0.40 + v[2] * 0.10 + v[3] * 0.10, true), // Near edge.
+        (v[0] * 0.70 + v[1] * 0.10 + v[2] * 0.10 + v[3] * 0.10, true), // Near vertex.
+        (v[0] * 1.30 - v[1] * 0.10 - v[2] * 0.10 - v[3] * 0.10, false), // Exterior.
+    ];
+    let (position, orientation) = pose(1.0);
+    let points = probes.map(|(p, _)| global_point(Point3::from(p), position, orientation));
+    let mut tetra = [Vector3::zeros(); 5];
+    let mut mesh_field = [Vector3::zeros(); 5];
+    tetrahedron_B_batch(&points, position, orientation, polarization, v, &mut tetra);
+    mesh_B_batch(
+        &points,
+        position,
+        orientation,
+        polarization,
+        &mesh,
+        &mut mesh_field,
+    );
+
+    let pos32 = position.cast::<f32>();
+    let rot32 = UnitQuaternion::from_scaled_axis(orientation.scaled_axis().cast::<f32>());
+    let pol32 = polarization.cast::<f32>();
+    let v32 = v.map(|p| p.cast::<f32>());
+    let mesh32 = TriMesh::new_unchecked(v32, faces);
+    let points32 = probes.map(|(p, _)| pos32 + rot32 * p.cast::<f32>());
+    let mut tetra32 = [Vector3::zeros(); 5];
+    let mut mesh_field32 = [Vector3::zeros(); 5];
+    tetrahedron_B_batch(&points32, pos32, rot32, pol32, v32, &mut tetra32);
+    mesh_B_batch(&points32, pos32, rot32, pol32, &mesh32, &mut mesh_field32);
+
+    for (i, &(local, inside)) in probes.iter().enumerate() {
+        let expected = orientation
+            * closed_tetra_reference(Point3::from(local), v, polarization, inside, &nodes);
+        assert_field_f64(tetra[i], expected, "tetra near-boundary f64");
+        assert_field_f64(mesh_field[i], expected, "mesh near-boundary f64");
+        assert_field_f32(tetra32[i], expected, "tetra near-boundary f32");
+        assert_field_f32(mesh_field32[i], expected, "mesh near-boundary f32");
+    }
+}
+
+#[test]
+fn polyhedral_zero_charge_and_nan_observer_have_zero_field() {
+    let vertices = [Vector3::zeros(), Vector3::x(), Vector3::y(), Vector3::z()];
+    let open = TriMesh::new_unchecked(vertices, [[0, 1, 2], [0, 1, 1]]);
+    let closed = TriMesh::new_unchecked(vertices, outward_faces(&vertices));
+    let probes = [
+        point![0.0, 0.0, 0.0], // Vertex.
+        point![0.5, 0.0, 0.0], // Edge.
+        point![0.2, 0.2, 0.0], // Face.
+        point![f64::NAN, 0.0, 0.0],
+    ];
+    let mut mesh_field = [Vector3::repeat(f64::NAN); 4];
+    mesh_B_batch(
+        &probes,
+        Point3::origin(),
+        UnitQuaternion::identity(),
+        Vector3::x(),
+        &open,
+        &mut mesh_field,
+    );
+    assert!(mesh_field.iter().all(|v| *v == Vector3::zeros())); // Normal is Z, so sigma=0.
+    for &p in &probes {
+        assert_eq!(
+            tetrahedron_B(
+                p,
+                Point3::origin(),
+                UnitQuaternion::identity(),
+                Vector3::zeros(),
+                vertices
+            ),
+            Vector3::zeros()
+        );
+    }
+    let nan = probes[3];
+    assert_eq!(
+        mesh_B(
+            nan,
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            Vector3::z(),
+            &closed
+        ),
+        Vector3::zeros()
+    );
+    let v32 = vertices.map(|v| v.cast::<f32>());
+    let nan32 = point![f32::NAN, 0.0, 0.0];
+    assert_eq!(
+        tetrahedron_B(
+            nan32,
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            Vector3::z(),
+            v32
+        ),
+        Vector3::zeros()
+    );
+}

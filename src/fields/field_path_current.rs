@@ -36,7 +36,8 @@ struct PrecomputedSegment<T: Float> {
     p1_n: Vector3<T>,
     p2_n: Vector3<T>,
     p12_n: Vector3<T>,
-    norm_12: T,
+    inv_norm_12: T,
+    norm_p12_n: T,
 }
 
 impl<T: Float> PrecomputedSegment<T> {
@@ -46,14 +47,16 @@ impl<T: Float> PrecomputedSegment<T> {
         if norm_12 == T::zero() {
             return None;
         }
-        let p1_n = p1 / norm_12;
-        let p2_n = p2 / norm_12;
+        let inv_norm_12 = T::one() / norm_12;
+        let p1_n = p1 * inv_norm_12;
+        let p2_n = p2 * inv_norm_12;
         let p12_n = p1_n - p2_n;
         Some(Self {
             p1_n,
             p2_n,
             p12_n,
-            norm_12,
+            inv_norm_12,
+            norm_p12_n: p12_n.norm(),
         })
     }
 
@@ -61,7 +64,7 @@ impl<T: Float> PrecomputedSegment<T> {
     #[allow(non_snake_case)]
     #[replace_float_literals(T::from_f64(literal).unwrap())]
     fn compute_B(&self, po: Vector3<T>, current_term: T) -> Vector3<T> {
-        let po_n = po / self.norm_12;
+        let po_n = po * self.inv_norm_12;
         let t = (po_n - self.p1_n).dot(&self.p12_n);
         let p4_n = self.p1_n + self.p12_n * t;
 
@@ -77,21 +80,11 @@ impl<T: Float> PrecomputedSegment<T> {
 
         let norm_o1 = (po_n - self.p1_n).norm();
         let norm_o2 = (po_n - self.p2_n).norm();
-        let norm_41 = (p4_n - self.p1_n).norm();
-        let norm_42 = (p4_n - self.p2_n).norm();
+        let delta_sin = NumFloat::abs(
+            ((t + 1.0) * self.norm_p12_n) / norm_o2 - (t * self.norm_p12_n) / norm_o1,
+        );
 
-        let sin_th1 = norm_41 / norm_o1;
-        let sin_th2 = norm_42 / norm_o2;
-
-        let delta_sin = if norm_41 > 1.0 && norm_41 > norm_42 {
-            NumFloat::abs(sin_th1 - sin_th2)
-        } else if norm_42 > 1.0 && norm_42 > norm_41 {
-            NumFloat::abs(sin_th2 - sin_th1)
-        } else {
-            NumFloat::abs(sin_th1 + sin_th2)
-        };
-
-        let b_mag = (delta_sin / norm_o4) * (1.0 / self.norm_12) * current_term;
+        let b_mag = (delta_sin / norm_o4) * self.inv_norm_12 * current_term;
         e_b * b_mag
     }
 }

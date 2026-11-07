@@ -58,7 +58,7 @@ fn local_tetrahedron_B_faces_precomputed<T: Float>(
 ) -> Vector3<T> {
     let face_field = |face: &Option<PrecomputedMagnetizedTriangle<T>>| {
         face.as_ref()
-            .map(|f| f.compute_B_with_solid_angle(point).0)
+            .map(|f| f.compute_B(point))
             .unwrap_or_else(Vector3::zeros)
     };
     let b1 = face_field(&faces[0]);
