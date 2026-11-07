@@ -13,6 +13,21 @@ use crate::{
     crate_utils::{impl_parallel, impl_parallel_sum},
 };
 
+/// Compute `radius + u` without losing small transverse distances.
+///
+/// Here `radius = sqrt(u² + transverse_sq)`. Rationalization avoids subtracting
+/// nearly equal quantities near cuboid edges, especially for slender magnets.
+/// Retain the ordinary sum unless `-u` exceeds half the radius: otherwise the
+/// extra division can introduce rounding error without improving cancellation.
+#[inline]
+fn radius_plus<T: RealField + Copy>(radius: T, u: T, transverse_sq: T) -> T {
+    if u < T::zero() && u + u < -radius {
+        transverse_sq / (radius - u)
+    } else {
+        radius + u
+    }
+}
+
 /// Computes B-field of a homogeneous cuboid magnet at point (x, y, z) in the local frame.
 ///
 /// # Arguments
@@ -108,24 +123,44 @@ pub fn local_cuboid_B<T: RealField + Copy>(
     let mpp = (xma2 + ypb2 + zpc2).sqrt();
 
     let ff2x = if pol_y != 0.0 || pol_z != 0.0 {
-        let num = (xma + mmm) * (xpa + ppm) * (xpa + pmp) * (xma + mpp);
-        let den = (xpa + pmm) * (xma + mpm) * (xma + mmp) * (xpa + ppp);
+        let num = radius_plus(mmm, xma, ymb2 + zmc2)
+            * radius_plus(ppm, xpa, ypb2 + zmc2)
+            * radius_plus(pmp, xpa, ymb2 + zpc2)
+            * radius_plus(mpp, xma, ypb2 + zpc2);
+        let den = radius_plus(pmm, xpa, ymb2 + zmc2)
+            * radius_plus(mpm, xma, ypb2 + zmc2)
+            * radius_plus(mmp, xma, ymb2 + zpc2)
+            * radius_plus(ppp, xpa, ypb2 + zpc2);
         (num / den).ln()
     } else {
         0.0
     };
 
     let ff2y = if pol_x != 0.0 || pol_z != 0.0 {
-        let num = (-ymb + mmm) * (-ypb + ppm) * (-ymb + pmp) * (-ypb + mpp);
-        let den = (-ymb + pmm) * (-ypb + mpm) * (ymb - mmp) * (ypb - ppp);
+        let num = radius_plus(mmm, -ymb, xma2 + zmc2)
+            * radius_plus(ppm, -ypb, xpa2 + zmc2)
+            * radius_plus(pmp, -ymb, xpa2 + zpc2)
+            * radius_plus(mpp, -ypb, xma2 + zpc2);
+        // Two negative denominator factors cancel.
+        let den = radius_plus(pmm, -ymb, xpa2 + zmc2)
+            * radius_plus(mpm, -ypb, xma2 + zmc2)
+            * radius_plus(mmp, -ymb, xma2 + zpc2)
+            * radius_plus(ppp, -ypb, xpa2 + zpc2);
         (num / den).ln()
     } else {
         0.0
     };
 
     let ff2z = if pol_x != 0.0 || pol_y != 0.0 {
-        let num = (-zmc + mmm) * (-zmc + ppm) * (-zpc + pmp) * (-zpc + mpp);
-        let den = (-zmc + pmm) * (zmc - mpm) * (-zpc + mmp) * (zpc - ppp);
+        let num = radius_plus(mmm, -zmc, xma2 + ymb2)
+            * radius_plus(ppm, -zmc, xpa2 + ypb2)
+            * radius_plus(pmp, -zpc, xpa2 + ymb2)
+            * radius_plus(mpp, -zpc, xma2 + ypb2);
+        // Two negative denominator factors cancel.
+        let den = radius_plus(pmm, -zmc, xpa2 + ymb2)
+            * radius_plus(mpm, -zmc, xma2 + ypb2)
+            * radius_plus(mmp, -zpc, xma2 + ymb2)
+            * radius_plus(ppp, -zpc, xpa2 + ypb2);
         (num / den).ln()
     } else {
         0.0
@@ -349,6 +384,16 @@ mod tests {
     use nalgebra::{point, vector};
 
     use super::*;
+
+    #[test]
+    fn test_cuboid_f32_edge_convention() {
+        let point = point![0.0_f32, 0.0625, 2.5];
+        let dimensions = vector![0.0625, 0.125, 5.0];
+        assert_eq!(
+            local_cuboid_B(point, vector![0.2, -0.3, 0.4], dimensions),
+            Vector3::zeros()
+        );
+    }
 
     #[test]
     fn test_sum_multiple_cuboid_b() {
