@@ -15,6 +15,7 @@ keywords = [
 categories = ["science", "simulation", "no-std"]
 
 [package]
+autobenches = false
 name = "magba"
 version.workspace = true
 authors.workspace = true

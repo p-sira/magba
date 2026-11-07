@@ -3,10 +3,12 @@
  * Copyright 2025 Sira Pornsiriprasert <code@psira.me>
  */
 
-use std::collections::BTreeSet;
+use std::collections::HashSet;
 use std::hint::black_box;
 
 use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
+
+mod common;
 use magba::{
     base::{Source, mesh::TriMesh},
     collections::{SourceAssembly, SourceComponent},
@@ -20,6 +22,7 @@ use magba::{
 use nalgebra::{Point3, UnitQuaternion, point, vector};
 
 const CALIBRATION_THRESHOLD: usize = 40_000;
+const MAX_WORK: usize = 160_000;
 const COMPLEXITY_CALIBRATION_OBSERVERS: usize = 5_000;
 
 fn points(count: usize) -> Vec<Point3<f64>> {
@@ -149,40 +152,89 @@ fn bench_collection_threshold(c: &mut Criterion) {
     threshold_calibration::set_instrumentation(false);
     threshold_calibration::set_execution_mode(ExecutionMode::Auto);
 
+    let result_path = std::path::Path::new("benches/collection_threshold_results.md");
+    let mut results = common::load_results(result_path);
+
     for (name, sources) in workloads() {
         let complexity = sources.relative_complexity();
-        let observer_counts = if complexity == 0 {
-            BTreeSet::from([0, 1, 100])
-        } else {
-            let mut counts = [
-                CALIBRATION_THRESHOLD.saturating_sub(1),
-                CALIBRATION_THRESHOLD,
-                CALIBRATION_THRESHOLD + 1,
-                CALIBRATION_THRESHOLD * 2,
-            ]
-            .map(|work| work.div_ceil(complexity).max(1))
-            .into_iter()
-            .collect::<BTreeSet<_>>();
-            counts.insert(COMPLEXITY_CALIBRATION_OBSERVERS);
-            counts
-        };
+        let group_name = format!("collection/{name}");
+        // Criterion's on-disk path flattens slashes in benchmark group names.
+        let criterion_group = format!("collection_{}", name.replace('/', "_"));
+        let mut group = c.benchmark_group(&group_name);
+        let mut seen = HashSet::new();
 
-        let mut group = c.benchmark_group(format!("collection/{name}"));
-        for observer_count in observer_counts {
+        // An empty or singleton assembly cannot use outer parallelism.
+        if sources.components().take(2).count() < 2 || complexity == 0 {
+            let observer_count = if complexity == 0 {
+                100
+            } else {
+                COMPLEXITY_CALIBRATION_OBSERVERS
+            };
+            threshold_calibration::set_collection_execution_mode(ExecutionMode::Auto);
             let observers = points(observer_count);
+            group.bench_with_input(
+                BenchmarkId::new(
+                    "auto",
+                    format!(
+                        "points={observer_count},score={}",
+                        observer_count.saturating_mul(complexity)
+                    ),
+                ),
+                &observer_count,
+                |b, _| b.iter(|| black_box(sources.compute_B_batch(&observers))),
+            );
+            group.finish();
+            continue;
+        }
+
+        let step = (CALIBRATION_THRESHOLD / complexity / 20).clamp(common::MIN_STEP, 1000);
+        let initial = CALIBRATION_THRESHOLD.div_ceil(complexity).max(step);
+        let maximum = MAX_WORK.div_ceil(complexity).max(initial);
+        let found = common::find_threshold(initial, maximum, step, |observer_count| {
             let score = observer_count.saturating_mul(complexity);
-            for (mode_name, mode) in [
-                ("serial", ExecutionMode::Serial),
-                ("parallel", ExecutionMode::Parallel),
-                ("auto", ExecutionMode::Auto),
-            ] {
-                threshold_calibration::set_collection_execution_mode(mode);
-                group.bench_with_input(
-                    BenchmarkId::new(mode_name, format!("points={observer_count},score={score}")),
-                    &observer_count,
-                    |b, _| b.iter(|| black_box(sources.compute_B_batch(&observers))),
-                );
+            let id = format!("points={observer_count},score={score}");
+            if seen.insert(observer_count) {
+                let observers = points(observer_count);
+                for (mode_name, mode) in [
+                    ("serial", ExecutionMode::Serial),
+                    ("parallel", ExecutionMode::Parallel),
+                ] {
+                    threshold_calibration::set_collection_execution_mode(mode);
+                    group.bench_with_input(
+                        BenchmarkId::new(mode_name, &id),
+                        &observer_count,
+                        |b, _| b.iter(|| black_box(sources.compute_B_batch(&observers))),
+                    );
+                }
             }
+            Some(common::Timing {
+                serial_ns: common::criterion_mean_ns(&criterion_group, "serial", &id)?,
+                parallel_ns: common::criterion_mean_ns(&criterion_group, "parallel", &id)?,
+            })
+        });
+
+        if let Some(found) = found {
+            let observer_count = found.threshold;
+            let score = observer_count.saturating_mul(complexity);
+            threshold_calibration::set_collection_execution_mode(ExecutionMode::Auto);
+            let observers = points(observer_count);
+            group.bench_with_input(
+                BenchmarkId::new("auto", format!("points={observer_count},score={score}")),
+                &observer_count,
+                |b, _| b.iter(|| black_box(sources.compute_B_batch(&observers))),
+            );
+            common::update_or_push_record(
+                &mut results,
+                common::Record {
+                    function_name: name.to_string(),
+                    threshold: score,
+                    par_time: found.timing.parallel_ns,
+                    ser_time: found.timing.serial_ns,
+                    ratio: found.timing.ratio(),
+                    exit_cond: found.exit,
+                },
+            );
+            common::save_results(result_path, &results);
         }
         group.finish();
     }
