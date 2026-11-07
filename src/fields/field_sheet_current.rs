@@ -94,9 +94,9 @@ pub fn sheet_current_B_batch<T: Float>(
         .collect();
 
     let inv_orientation = orientation.inverse();
-    // Tuned with four active triangles at a 25-observer crossover.
+    // Calibrated at 15 observers with four active triangles (60 work units).
     #[cfg(feature = "rayon")]
-    const PARALLEL_WORK_THRESHOLD: usize = 100;
+    const PARALLEL_WORK_THRESHOLD: usize = 60;
     impl_parallel!(
         rayon_threshold: adaptive_rayon_threshold(PARALLEL_WORK_THRESHOLD, precomputed.len()),
         input: points,

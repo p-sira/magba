@@ -194,7 +194,7 @@ pub fn tetrahedron_B_batch<T: Float>(
     let faces = precompute_tetrahedron_faces(vertices, polarization);
     let inv_orientation = orientation.inverse();
     impl_parallel!(
-        rayon_threshold: 70,
+        rayon_threshold: 45,
         input: points,
         output: out,
         |p| {

@@ -150,17 +150,17 @@ fn bench_thresholds(c: &mut Criterion) {
     let mut results = load_results(&record_file);
 
     find_thresholds!( c, results, record_file => {
-        (circular_B, (pos, ori, diameter, current), 370),
-        (path_current_B, (pos, ori, current, &vertices_path_current), 250),
-        (cuboid_B, (pos, ori, pol, dim), 55),
-        (cylinder_B, (pos, ori, pol, diameter, height), 100),
-        (dipole_B, (pos, ori, moment), 6250),
-        (sphere_B, (pos, ori, pol, diameter), 9060),
-        (triangle_B, (pos, ori, pol, vertices_triangle), 310),
-        (tetrahedron_B_precomputed, (pos, ori, pol, vertices_tetra, mat_inv_tetra), 50),
-        (triangle_current_B, (pos, ori, current_density, vertices_triangle_current), 200),
+        (circular_B, (pos, ori, diameter, current), 320),
+        (path_current_B, (pos, ori, current, &vertices_path_current), 185),
+        (cuboid_B, (pos, ori, pol, dim), 60),
+        (cylinder_B, (pos, ori, pol, diameter, height), 110),
+        (dipole_B, (pos, ori, moment), 5855),
+        (sphere_B, (pos, ori, pol, diameter), 7925),
+        (triangle_B, (pos, ori, pol, vertices_triangle), 1085),
+        (tetrahedron_B_precomputed, (pos, ori, pol, vertices_tetra, mat_inv_tetra), 45),
+        (triangle_current_B, (pos, ori, current_density, vertices_triangle_current), 110),
         (mesh_B, (pos, ori, pol, &mesh), 10),
-        (sheet_current_B, (pos, ori, &sheet_current_densities, &mesh), 45),
+        (sheet_current_B, (pos, ori, &sheet_current_densities, &mesh), 15),
     });
 }
 

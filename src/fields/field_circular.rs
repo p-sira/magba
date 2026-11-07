@@ -207,7 +207,7 @@ pub fn circular_B_batch<T: Float>(
 ) {
     let inv_orientation = orientation.inverse();
     impl_parallel!(
-        rayon_threshold: 340,
+        rayon_threshold: 320,
         input: points,
         output: out,
         |p| {
