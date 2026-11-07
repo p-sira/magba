@@ -388,7 +388,12 @@ fn bench_thresholds(c: &mut Criterion) {
         vector![0.0, 1.0, 0.0],
     ];
     let current_density = vector![1.0, 2.0, 3.0];
-    let sheet_current_densities = vec![vector![1.0, 2.0, 3.0]; 4];
+    // The sheet-current API requires one density per face. Keep only four
+    // active triangles to match the sparse-current threshold workload.
+    let mut sheet_current_densities = vec![Vector3::zeros(); mesh.triangles().len()];
+    for density in sheet_current_densities.iter_mut().take(4) {
+        *density = current_density;
+    }
 
     let record_file = get_record_file();
     let mut results = load_results(&record_file);
