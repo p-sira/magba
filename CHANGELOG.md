@@ -16,23 +16,20 @@
 
 - Declare Rust 1.88 as the minimum supported version and verify it in CI ([#42](https://github.com/p-sira/magba/pull/42)).
 - Correct `alloc`, `std`, and `no_std` feature guidance ([#42](https://github.com/p-sira/magba/pull/42)).
-- Reduce the routine feature matrix while retaining comprehensive manual CI coverage ([#45](https://github.com/p-sira/magba/pull/45)).
-- Run Ubuntu pairwise feature tests across four parallel CI runners, with broad optional-feature coverage in a separate job ([#46](https://github.com/p-sira/magba/pull/46)).
+- Streamline routine CI with Ubuntu pairwise feature tests across four parallel runners, separate broad optional-feature coverage, and comprehensive manual checks ([#45](https://github.com/p-sira/magba/pull/45), [#46](https://github.com/p-sira/magba/pull/46)).
 - Reduce test build artifact size with line-table-only debug information.
 - Upgrade `ellip` to 1.2.4 and `codspeed-criterion-compat` to 6 ([#49](https://github.com/p-sira/magba/pull/49)).
 
 **Performance Improvements**
 
-- Fuse Bulirsch CEL iterations for circular currents and avoid per-point angular conversions for cylinder fields ([#46](https://github.com/p-sira/magba/pull/46)).
-- Reuse the reciprocal across fused circular-current CEL updates ([#50](https://github.com/p-sira/magba/pull/50)).
+- Fuse circular-current Bulirsch CEL iterations with shared reciprocals and avoid per-point angular conversions for cylinder fields ([#46](https://github.com/p-sira/magba/pull/46), [#50](https://github.com/p-sira/magba/pull/50)).
 - Reduce cuboid `atan2` evaluations using the diagonal-kernel trace identity for mixed polarization in `f64`, retaining the more accurate direct `f32` path ([#46](https://github.com/p-sira/magba/pull/46)).
 - Precompute face normals, surface charges, and edge geometry for triangle, tetrahedron, and mesh batch field evaluations ([#46](https://github.com/p-sira/magba/pull/46)).
 
 **Testing**
 
 - Raise the line-coverage gate to 99.1% and correct the axial CEL fallback test ([#44](https://github.com/p-sira/magba/pull/44)).
-- Add independent cuboid and polyhedral surface-integral regressions, plus analytical cylinder and circular-current invariants ([#46](https://github.com/p-sira/magba/pull/46)).
-- Validate all 11 field-source primitives against 169 high-precision Mathematica/Wolfram references in both `f32` and `f64`, including alternate geometries, boundaries, translations, and rotations ([#47](https://github.com/p-sira/magba/pull/47)).
+- Validate all 11 field-source primitives in `f32` and `f64` against 169 high-precision Mathematica/Wolfram references across geometries, boundaries, and transforms, supplemented by independent cuboid and polyhedral surface-integral regressions and analytical cylinder and circular-current invariants ([#46](https://github.com/p-sira/magba/pull/46), [#47](https://github.com/p-sira/magba/pull/47)).
 
 **Documentation**
 
@@ -43,8 +40,7 @@
 - Improve cuboid field accuracy near edges of slender magnets by rationalizing cancellation-prone logarithmic terms, including `f32` results ([#47](https://github.com/p-sira/magba/pull/47)).
 - Use relative face tolerances for STL import, accepting valid small and multiscale meshes consistently with `TriMesh::new` ([#43](https://github.com/p-sira/magba/pull/43)).
 - Require exactly one current density per sheet-current mesh face in constructors, setters, builders, and field functions; reject invalid updates before mutation ([#43](https://github.com/p-sira/magba/pull/43)).
-- Reject nonfinite and nonpositive linear Hall supply voltages in constructors, setters, and builders, preserving configuration when validation fails ([#43](https://github.com/p-sira/magba/pull/43)).
-- Reject zero or nonfinite sensitive-axis norms and nonfinite thresholds in Hall switch and latch constructors, setters, and builders, preserving sensor state when validation fails ([#43](https://github.com/p-sira/magba/pull/43)).
+- Validate linear Hall supply voltages and Hall switch/latch sensitive axes and thresholds in constructors, setters, and builders, rejecting invalid updates before mutation ([#43](https://github.com/p-sira/magba/pull/43)).
 
 **API Improvements**
 
@@ -52,8 +48,7 @@
 
 **Dependencies**
 
-- Replace `num-lazy` and `numeric_literals` with `num-lazy-proc` 0.3.0 for generic float literals and constants ([#52](https://github.com/p-sira/magba/pull/52)).
-- Remove direct dependencies on `derive_more` and `delegate` using internal enum formatting and shared transform implementations ([#53](https://github.com/p-sira/magba/pull/53)).
+- Reduce dependencies by replacing `num-lazy` and `numeric_literals` with `num-lazy-proc` 0.3.0 and replacing `derive_more` and `delegate` with internal enum formatting and shared transform implementations ([#52](https://github.com/p-sira/magba/pull/52), [#53](https://github.com/p-sira/magba/pull/53)).
 
 ## 0.7
 
