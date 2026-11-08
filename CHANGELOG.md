@@ -6,53 +6,49 @@
 
 **Breaking Changes**
 
-- Remove all `sum_multiple_*` field functions; use source collections to superpose fields from multiple sources.
+- Remove all `sum_multiple_*` field functions; use source collections to superpose fields from multiple sources ([#48](https://github.com/p-sira/magba/pull/48)).
 
 **New Features**
 
-- Add reusable `FieldMask` exclusion predicates for sampling and tracing without evaluating masked positions.
-- Expose `FieldGrid` resolution, ranges, and offset for downstream renderers.
-- Add backend-independent field sampling and adaptive field-line tracing behind the optional `graphics` feature.
-- Blend magnet pole colors continuously across primitive and mesh faces, fading through a grey center along local polarization.
-- Add backend-independent fluent `GraphicsOptions` and borrowed `GraphicsView` for palettes, opacity, visibility, and curved-geometry resolution.
-- Preserve custom source and observer geometry in collections through explicit `custom_graphics` constructors.
-- Add optional `graphics-plotly` visualization for magnets, currents, sensors, and collections, with configurable pole colors, heatmaps, 2D/3D arrows, directed field lines, and offline HTML output.
+- Add optional graphics support with masked field sampling, adaptive field-line tracing, configurable views and pole shading, custom collection geometry, and Plotly visualizations with offline HTML export ([#42](https://github.com/p-sira/magba/pull/42)).
 
 **Release Improvements**
 
-- Declare Rust 1.88 as the minimum supported version, verify it in CI, and include the changelog in published packages.
-- Correct `alloc`, `std`, and `no_std` feature guidance.
-- Run Ubuntu pairwise feature tests across four parallel CI runners, with broad optional-feature coverage in a separate job.
+- Declare Rust 1.88 as the minimum supported version and verify it in CI ([#42](https://github.com/p-sira/magba/pull/42)).
+- Correct `alloc`, `std`, and `no_std` feature guidance ([#42](https://github.com/p-sira/magba/pull/42)).
+- Reduce the routine feature matrix while retaining comprehensive manual CI coverage ([#45](https://github.com/p-sira/magba/pull/45)).
+- Run Ubuntu pairwise feature tests across four parallel CI runners, with broad optional-feature coverage in a separate job ([#46](https://github.com/p-sira/magba/pull/46)).
 - Reduce test build artifact size with line-table-only debug information.
+- Upgrade `ellip` to 1.2.4 and `codspeed-criterion-compat` to 6 ([#49](https://github.com/p-sira/magba/pull/49)).
 
 **Performance Improvements**
 
-- Fuse Bulirsch CEL iterations for circular currents and avoid per-point angular conversions for cylinder fields.
-- Reduce cuboid `atan2` evaluations using the diagonal-kernel trace identity for mixed polarization in `f64`, retaining the more accurate direct `f32` path.
-- Precompute face normals, surface charges, and edge geometry for triangle, tetrahedron, and mesh batch field evaluations.
+- Fuse Bulirsch CEL iterations for circular currents and avoid per-point angular conversions for cylinder fields ([#46](https://github.com/p-sira/magba/pull/46)).
+- Reuse the reciprocal across fused circular-current CEL updates ([#50](https://github.com/p-sira/magba/pull/50)).
+- Reduce cuboid `atan2` evaluations using the diagonal-kernel trace identity for mixed polarization in `f64`, retaining the more accurate direct `f32` path ([#46](https://github.com/p-sira/magba/pull/46)).
+- Precompute face normals, surface charges, and edge geometry for triangle, tetrahedron, and mesh batch field evaluations ([#46](https://github.com/p-sira/magba/pull/46)).
 
 **Testing**
 
-- Add independent cuboid and polyhedral surface-integral regressions, plus analytical cylinder and circular-current invariants.
-- Validate all 11 field-source primitives against 169 high-precision Mathematica/Wolfram references in both `f32` and `f64`, including alternate geometries, boundaries, translations, and rotations.
+- Raise the line-coverage gate to 99.1% and correct the axial CEL fallback test ([#44](https://github.com/p-sira/magba/pull/44)).
+- Add independent cuboid and polyhedral surface-integral regressions, plus analytical cylinder and circular-current invariants ([#46](https://github.com/p-sira/magba/pull/46)).
+- Validate all 11 field-source primitives against 169 high-precision Mathematica/Wolfram references in both `f32` and `f64`, including alternate geometries, boundaries, translations, and rotations ([#47](https://github.com/p-sira/magba/pull/47)).
 
-**Documentations**
+**Documentation**
 
-- Organize graphics examples by magnets and fields while preserving Cargo command names.
-- Add graphics examples, rendered figures, and guidance for appearance options, borrowed views, and custom collection renderers.
-- Add concise graphics previews to every magnet type, separate runnable DIN field-line examples, and descriptions of each graphics implementation.
+- Add organized graphics examples, rendered previews, runnable field-line demonstrations, and configuration guidance ([#42](https://github.com/p-sira/magba/pull/42)).
 
 **Bug Fixes**
 
-- Improve cuboid field accuracy near edges of slender magnets by rationalizing cancellation-prone logarithmic terms, including `f32` results.
-- Use relative face tolerances for STL import, accepting valid small and multiscale meshes consistently with `TriMesh::new`.
-- Require exactly one current density per sheet-current mesh face in constructors, setters, builders, and field functions; reject invalid updates before mutation.
-- Reject nonfinite and nonpositive linear Hall supply voltages in constructors, setters, and builders, preserving configuration when validation fails.
-- Reject zero or nonfinite sensitive-axis norms and nonfinite thresholds in Hall switch and latch constructors, setters, and builders, preserving sensor state when validation fails.
+- Improve cuboid field accuracy near edges of slender magnets by rationalizing cancellation-prone logarithmic terms, including `f32` results ([#47](https://github.com/p-sira/magba/pull/47)).
+- Use relative face tolerances for STL import, accepting valid small and multiscale meshes consistently with `TriMesh::new` ([#43](https://github.com/p-sira/magba/pull/43)).
+- Require exactly one current density per sheet-current mesh face in constructors, setters, builders, and field functions; reject invalid updates before mutation ([#43](https://github.com/p-sira/magba/pull/43)).
+- Reject nonfinite and nonpositive linear Hall supply voltages in constructors, setters, and builders, preserving configuration when validation fails ([#43](https://github.com/p-sira/magba/pull/43)).
+- Reject zero or nonfinite sensitive-axis norms and nonfinite thresholds in Hall switch and latch constructors, setters, and builders, preserving sensor state when validation fails ([#43](https://github.com/p-sira/magba/pull/43)).
 
 **API Improvements**
 
-- Add `SheetCurrent::set_mesh_and_current_densities` to replace geometry and per-face densities together while preserving their count invariant.
+- Add `SheetCurrent::set_mesh_and_current_densities` to replace geometry and per-face densities together while preserving their count invariant ([#43](https://github.com/p-sira/magba/pull/43)).
 
 ## 0.7
 
@@ -60,16 +56,16 @@
 
 **Performance Improvements**
 
-- Scale the Rayon parallelization thresholds for path-current, mesh, and sheet-current batch field computations by the number of segments or triangles evaluated per observer.
-- Select serial or parallel source-collection evaluation from observer count, recursive source complexity, and direct child count, avoiding Rayon overhead for small collections.
+- Scale the Rayon parallelization thresholds for path-current, mesh, and sheet-current batch field computations by the number of segments or triangles evaluated per observer ([#38](https://github.com/p-sira/magba/pull/38)).
+- Select serial or parallel source-collection evaluation from observer count, recursive source complexity, and direct child count, avoiding Rayon overhead for small collections ([#39](https://github.com/p-sira/magba/pull/39)).
 
 **API Improvements**
 
-- Add `Source::relative_complexity()` as an overridable scheduling hint, including geometry-aware and recursively aggregated estimates for built-in sources.
+- Add `Source::relative_complexity()` as an overridable scheduling hint, including geometry-aware and recursively aggregated estimates for built-in sources ([#39](https://github.com/p-sira/magba/pull/39)).
 
 **Testing**
 
-- Add calibration-only execution controls and separate primitive/collection branch instrumentation for repeatable Rayon crossover benchmarks.
+- Add calibration-only execution controls and separate primitive/collection branch instrumentation for repeatable Rayon crossover benchmarks ([#39](https://github.com/p-sira/magba/pull/39)).
 
 ### 0.7.2
 
@@ -86,15 +82,15 @@
 
 **Performance Improvements**
 
-- Optimize `local_circular_B` by using direct Cartesian projection, eliminating Cartesian-to-cylindrical transformations, inverse trigonometric functions (`atan2`), and trigonometric projections (`cos`, `sin`).
-- Optimize `local_cuboid_B` by eliminating matrix allocation/multiplication overhead in sign determination, combining paired logarithms into single division evaluations ($\ln(A) - \ln(B) = \ln(A/B)$), and conditionally skipping zero-polarization field components.
-- Optimize `local_cylinder_B` with an axial-polarization fast path, skipping coordinate transformations when transverse polarization components are zero.
-- Optimize `local_dipole_B` and `dipole_B_batch` by pre-rotating dipole moments once in global coordinates, reusing $r^2$ to compute $r$, $1/r^3$, and $1/r^5$ with a single square root, and avoiding per-observer coordinate transformations.
-- Optimize `local_sphere_B` and `sphere_B_batch` by checking squared distance to skip square roots inside the sphere, pre-rotating polarization once in global coordinates, and avoiding per-observer coordinate transformations.
-- Optimize `local_triangle_B` and `local_mesh_B` by returning solid angle from local triangle evaluations, eliminating duplicate displacement, distance, and solid angle calculations across faces in mesh evaluations.
-- Optimize `local_triangle_current_B`, `triangle_current_B_batch`, and `local_sheet_current_B` by precomputing observer-independent local triangle coordinate systems and geometric constants outside observer loops.
-- Optimize `path_current_B_batch` by precomputing line segment parameters outside the observer evaluation loop.
-- Optimize batch field evaluations (`*_B_batch`) across all field sources by precomputing inverse orientation quaternions once outside observer loops.
+- Optimize `local_circular_B` by using direct Cartesian projection, eliminating Cartesian-to-cylindrical transformations, inverse trigonometric functions (`atan2`), and trigonometric projections (`cos`, `sin`) ([#32](https://github.com/p-sira/magba/pull/32)).
+- Optimize `local_cuboid_B` by eliminating matrix allocation/multiplication overhead in sign determination, combining paired logarithms into single division evaluations ($\ln(A) - \ln(B) = \ln(A/B)$), and conditionally skipping zero-polarization field components ([#32](https://github.com/p-sira/magba/pull/32)).
+- Optimize `local_cylinder_B` with an axial-polarization fast path, skipping coordinate transformations when transverse polarization components are zero ([#32](https://github.com/p-sira/magba/pull/32)).
+- Optimize `local_dipole_B` and `dipole_B_batch` by pre-rotating dipole moments once in global coordinates, reusing $r^2$ to compute $r$, $1/r^3$, and $1/r^5$ with a single square root, and avoiding per-observer coordinate transformations ([#32](https://github.com/p-sira/magba/pull/32)).
+- Optimize `local_sphere_B` and `sphere_B_batch` by checking squared distance to skip square roots inside the sphere, pre-rotating polarization once in global coordinates, and avoiding per-observer coordinate transformations ([#32](https://github.com/p-sira/magba/pull/32)).
+- Optimize `local_triangle_B` and `local_mesh_B` by returning solid angle from local triangle evaluations, eliminating duplicate displacement, distance, and solid angle calculations across faces in mesh evaluations ([#32](https://github.com/p-sira/magba/pull/32)).
+- Optimize `local_triangle_current_B`, `triangle_current_B_batch`, and `local_sheet_current_B` by precomputing observer-independent local triangle coordinate systems and geometric constants outside observer loops ([#32](https://github.com/p-sira/magba/pull/32)).
+- Optimize `path_current_B_batch` by precomputing line segment parameters outside the observer evaluation loop ([#32](https://github.com/p-sira/magba/pull/32)).
+- Optimize batch field evaluations (`*_B_batch`) across all field sources by precomputing inverse orientation quaternions once outside observer loops ([#32](https://github.com/p-sira/magba/pull/32)).
 
 ### 0.7.0
 
