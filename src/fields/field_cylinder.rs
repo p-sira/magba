@@ -8,7 +8,6 @@
 use ellip::{bulirsch::cel, ellipke};
 use nalgebra::{Point3, UnitQuaternion, Vector3, vector};
 use num_traits::Float as NumFloat;
-use numeric_literals::replace_float_literals;
 
 use crate::{
     base::{Float, coordinate::compute_in_local},
@@ -34,7 +33,7 @@ use crate::{
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[allow(non_snake_case)]
 #[inline]
-#[replace_float_literals(T::from_f64(literal).unwrap())]
+#[num_lazy_proc::generic_float(T)]
 pub fn unit_axial_cylinder_B_cyl<T: Float>(r: T, z: T, z0: T) -> Vector3<T> {
     let (zp, zm) = (z + z0, z - z0);
     let (rp, rm) = (1.0 + r, 1.0 - r);
@@ -53,11 +52,11 @@ pub fn unit_axial_cylinder_B_cyl<T: Float>(r: T, z: T, z0: T) -> Vector3<T> {
     let (cr_p, cz_p) = cel_axial(kp, gamma);
     let (cr_m, cz_m) = cel_axial(km, gamma);
 
-    let br = (cr_p / sq1 - cr_m / sq0) / T::pi();
-    let bz = (zp * cz_p / sq1 - zm * cz_m / sq0) / (rp * T::pi());
+    let br = (cr_p / sq1 - cr_m / sq0) / PI;
+    let bz = (zp * cz_p / sq1 - zm * cz_m / sq0) / (rp * PI);
 
     // bphi = 0
-    vector![br, 0.0, bz]
+    vector![br, T::zero(), bz]
 }
 
 /// Computes B-field of a cylindrical magnet with unit diametrial (r-axis) polarization
@@ -78,7 +77,7 @@ pub fn unit_axial_cylinder_B_cyl<T: Float>(r: T, z: T, z0: T) -> Vector3<T> {
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[allow(non_snake_case)]
 #[inline]
-#[replace_float_literals(T::from_f64(literal).unwrap())]
+#[num_lazy_proc::generic_float(T)]
 pub fn unit_diametric_cylinder_B_cyl<T: Float>(r: T, phi: T, z: T, z0: T) -> Vector3<T> {
     diametric_cylinder_b_cyl_with_factors(r, z, z0, NumFloat::cos(phi), NumFloat::sin(phi))
 }
@@ -87,7 +86,7 @@ pub fn unit_diametric_cylinder_B_cyl<T: Float>(r: T, phi: T, z: T, z0: T) -> Vec
 /// include the transverse polarization magnitude; this avoids computing angles
 /// when the observer and polarization are already available in Cartesian form.
 #[inline]
-#[replace_float_literals(T::from_f64(literal).unwrap())]
+#[num_lazy_proc::generic_float(T)]
 fn diametric_cylinder_b_cyl_with_factors<T: Float>(
     r: T,
     z: T,
@@ -159,18 +158,18 @@ fn diametric_cylinder_b_cyl_with_factors<T: Float>(
     );
 
     // Computes the fields
-    let br = -radial_factor / (4.0 * T::pi() * r2)
+    let br = -radial_factor / (4.0 * PI * r2)
         * (-zm * am * elle_m + zp * ap * elle_p + zm / am * (2.0 + zm2) * ellk_m
             - zp / ap * (2.0 + zp2) * ellk_p
             + (zm / am * ellpi_m - zp / ap * ellpi_p) * rp * (r2 + 1.0) * one_over_rm);
 
-    let bphi = tangential_factor / (4.0 * T::pi() * r2)
+    let bphi = tangential_factor / (4.0 * PI * r2)
         * (zm * am * elle_m - zp * ap * elle_p - zm / am * (2.0 + zm2 + 2.0 * r2) * ellk_m
             + zp / ap * (2.0 + zp2 + 2.0 * r2) * ellk_p
             + zm / am * rp2 * ellpi_m
             - zp / ap * rp2 * ellpi_p);
 
-    let bz = -radial_factor / (2.0 * T::pi() * r)
+    let bz = -radial_factor / (2.0 * PI * r)
         * (am * elle_m - ap * elle_p - (1.0 + zm2 + r2) / am * ellk_m
             + (1.0 + zp2 + r2) / ap * ellk_p);
 
@@ -178,7 +177,7 @@ fn diametric_cylinder_b_cyl_with_factors<T: Float>(
 }
 
 #[inline]
-#[replace_float_literals(T::from_f64(literal).unwrap())]
+#[num_lazy_proc::generic_float(T)]
 fn cylinder_on_rim<T: Float>(r: T, z: T, z0: T) -> bool {
     let is_close = |a, b, rtol| NumFloat::abs(a - b) < rtol * NumFloat::abs(b);
     is_close(r, 1.0, 1e-15) && is_close(NumFloat::abs(z), z0, 1e-15)
@@ -209,7 +208,7 @@ fn cylinder_on_rim<T: Float>(r: T, z: T, z0: T) -> bool {
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[allow(non_snake_case)]
 #[inline]
-#[replace_float_literals(T::from_f64(literal).unwrap())]
+#[num_lazy_proc::generic_float(T)]
 pub fn cylinder_B_cyl<T: Float>(
     r: T,
     phi: T,

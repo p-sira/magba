@@ -7,7 +7,6 @@
 
 use nalgebra::{Point3, UnitQuaternion, Vector3};
 use num_traits::Float as NumFloat;
-use numeric_literals::replace_float_literals;
 
 use crate::{
     base::{Float, coordinate::compute_in_local},
@@ -25,7 +24,7 @@ const MAX_ITER: usize = 10;
 ///
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 /// - Ortner, Michael, Peter Leitner, and Franz Slanovc. “Numerically Stable and Computationally Efficient Expression for the Magnetic Field of a Current Loop.” Magnetism 3, no. 1 (2023): 11-31. <https://doi.org/10.3390/magnetism3010002>.
-#[replace_float_literals(T::from_f64(literal).unwrap())]
+#[num_lazy_proc::generic_float(T)]
 fn cel_iter_pair<T: Float>(
     mut qc: T,
     mut p: T,
@@ -35,7 +34,7 @@ fn cel_iter_pair<T: Float>(
     mut ss_z: T,
 ) -> (T, T) {
     let errtol = 1e-8;
-    let half_pi = T::pi() / 2.0;
+    let half_pi = PI_2;
     let mut g = 1.0;
     let mut em = p;
     let mut kk = qc;
@@ -82,7 +81,7 @@ fn cel_iter_pair<T: Float>(
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 /// - Ortner, Michael, Peter Leitner, and Franz Slanovc. “Numerically Stable and Computationally Efficient Expression for the Magnetic Field of a Current Loop.” Magnetism 3, no. 1 (2023): 11-31. <https://doi.org/10.3390/magnetism3010002>.
 #[allow(non_snake_case)]
-#[replace_float_literals(T::from_f64(literal).unwrap())]
+#[num_lazy_proc::generic_float(T)]
 pub fn local_circular_B<T: Float>(point: Point3<T>, diameter: T, current: T) -> Vector3<T> {
     let r0 = NumFloat::abs(diameter) / 2.0;
     if r0 == 0.0 {
@@ -107,7 +106,7 @@ pub fn local_circular_B<T: Float>(point: Point3<T>, diameter: T, current: T) -> 
 
     let q = NumFloat::sqrt(q2);
     let p = 1.0 + q;
-    let pf = current / (4.0 * T::pi() * r0 * NumFloat::sqrt(x0) * q2);
+    let pf = current / (4.0 * PI * r0 * NumFloat::sqrt(x0) * q2);
 
     // Radial cel* and axial cel** use the same Landen sequence.
     let cc_r = k2 * 4.0 * z / x0;

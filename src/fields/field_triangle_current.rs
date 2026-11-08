@@ -7,7 +7,6 @@
 
 use nalgebra::{Point3, UnitQuaternion, Vector3};
 use num_traits::Float as NumFloat;
-use numeric_literals::replace_float_literals;
 
 use crate::{
     base::{Float, coordinate::compute_in_local},
@@ -38,7 +37,7 @@ pub(crate) struct PrecomputedTriangleCurrent<T: Float> {
 
 #[allow(non_snake_case)]
 impl<T: Float> PrecomputedTriangleCurrent<T> {
-    #[replace_float_literals(T::from_f64(literal).unwrap())]
+    #[num_lazy_proc::generic_float(T)]
     pub fn new(current_density: Vector3<T>, vertices: &[Vector3<T>; 3]) -> Option<Self> {
         if current_density == Vector3::zeros() {
             return None;
@@ -107,7 +106,7 @@ impl<T: Float> PrecomputedTriangleCurrent<T> {
     }
 
     #[inline]
-    #[replace_float_literals(T::from_f64(literal).unwrap())]
+    #[num_lazy_proc::generic_float(T)]
     pub fn compute_B(&self, point: Point3<T>) -> Vector3<T> {
         let point_trans = point.coords - self.translation;
         let x = point_trans.dot(&self.ex);
@@ -182,7 +181,7 @@ impl<T: Float> PrecomputedTriangleCurrent<T> {
 /// Computes B-field of a triangular current sheet at point in local frame.
 #[inline]
 #[allow(non_snake_case)]
-#[replace_float_literals(T::from_f64(literal).unwrap())]
+#[num_lazy_proc::generic_float(T)]
 pub fn local_triangle_current_B<T: Float>(
     point: Point3<T>,
     current_density: Vector3<T>,

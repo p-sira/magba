@@ -7,7 +7,6 @@
 
 use nalgebra::{Point3, UnitQuaternion, Vector3};
 use num_traits::Float as NumFloat;
-use numeric_literals::replace_float_literals;
 
 use crate::{
     base::{Float, coordinate::compute_in_local},
@@ -20,7 +19,7 @@ use crate::{
 /// Implements vectorized solid angle computation based on Magpylib's implementation.
 #[inline]
 #[allow(non_snake_case)]
-#[replace_float_literals(T::from_f64(literal).unwrap())]
+#[num_lazy_proc::generic_float(T)]
 pub(crate) fn solid_angle<T: Float>(r_vecs: &[Vector3<T>; 3], r_mags: &[T; 3]) -> T {
     let N = r_vecs[2].dot(&r_vecs[1].cross(&r_vecs[0]));
 
@@ -32,7 +31,7 @@ pub(crate) fn solid_angle<T: Float>(r_vecs: &[Vector3<T>; 3], r_mags: &[T; 3]) -
     let result = 2.0 * NumFloat::atan2(N, D);
 
     // Modulus 2pi to avoid jumps on edges in line
-    if NumFloat::abs(result) > 2.0 * T::pi() {
+    if NumFloat::abs(result) > 2.0 * PI {
         T::zero()
     } else {
         result
@@ -104,7 +103,7 @@ impl<T: Float> PrecomputedMagnetizedTriangle<T> {
 
     #[inline]
     #[allow(non_snake_case)]
-    #[replace_float_literals(T::from_f64(literal).unwrap())]
+    #[num_lazy_proc::generic_float(T)]
     pub(crate) fn compute_B_with_solid_angle(&self, point: Point3<T>) -> (Vector3<T>, T) {
         let p = Vector3::from(point.coords);
         let r_vecs = [
@@ -144,7 +143,7 @@ impl<T: Float> PrecomputedMagnetizedTriangle<T> {
                 // near vertices and in far-field cancellation regimes.
                 let next_r = r_mags[(i + 1) % 3];
                 let edge_length = self.edge_lengths[i];
-                let next_r = if T::default_epsilon() < 1e-10
+                let next_r = if EPS < 1e-10
                     || next_r < edge_length * 1e-5
                     || next_r > edge_length * 2.0
                     || !next_r.is_finite()
@@ -162,7 +161,7 @@ impl<T: Float> PrecomputedMagnetizedTriangle<T> {
         }
 
         let mut B = (self.normal * omega - self.normal.cross(&PQR)) * self.sigma;
-        B /= 4.0 * T::pi();
+        B /= 4.0 * PI;
 
         let B = if B.x.is_nan() || B.y.is_nan() || B.z.is_nan() {
             Vector3::zeros()
@@ -195,7 +194,7 @@ impl<T: Float> PrecomputedMagnetizedTriangle<T> {
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[inline]
 #[allow(non_snake_case)]
-#[replace_float_literals(T::from_f64(literal).unwrap())]
+#[num_lazy_proc::generic_float(T)]
 pub(crate) fn local_triangle_B_with_solid_angle<T: Float>(
     point: Point3<T>,
     polarization: Vector3<T>,

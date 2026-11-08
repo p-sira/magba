@@ -7,7 +7,6 @@
 
 use nalgebra::{Point3, UnitQuaternion, Vector3};
 use num_traits::Float as NumFloat;
-use numeric_literals::replace_float_literals;
 
 #[cfg(feature = "rayon")]
 use crate::crate_utils::adaptive_rayon_threshold;
@@ -62,7 +61,7 @@ impl<T: Float> PrecomputedSegment<T> {
 
     #[inline]
     #[allow(non_snake_case)]
-    #[replace_float_literals(T::from_f64(literal).unwrap())]
+    #[num_lazy_proc::generic_float(T)]
     fn compute_B(&self, po: Vector3<T>, current_term: T) -> Vector3<T> {
         let po_n = po * self.inv_norm_12;
         let t = (po_n - self.p1_n).dot(&self.p12_n);
@@ -106,7 +105,7 @@ impl<T: Float> PrecomputedSegment<T> {
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[inline]
 #[allow(non_snake_case)]
-#[replace_float_literals(T::from_f64(literal).unwrap())]
+#[num_lazy_proc::generic_float(T)]
 pub fn local_path_current_B<T: Float>(
     point: Point3<T>,
     current: T,

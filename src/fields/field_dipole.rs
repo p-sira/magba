@@ -6,7 +6,6 @@
 //! Analytical B-field computation for magnet dipole moment.
 
 use nalgebra::{Point3, UnitQuaternion, Vector3};
-use numeric_literals::replace_float_literals;
 
 use crate::{base::Float, crate_utils::impl_parallel};
 
@@ -26,7 +25,7 @@ use crate::{base::Float, crate_utils::impl_parallel};
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[inline]
 #[allow(non_snake_case)]
-#[replace_float_literals(T::from_f64(literal).unwrap())]
+#[num_lazy_proc::generic_float(T)]
 pub fn local_dipole_B<T: Float>(point: Point3<T>, moment: Vector3<T>) -> Vector3<T> {
     let p = Vector3::from(point.coords);
     let r2 = p.norm_squared();

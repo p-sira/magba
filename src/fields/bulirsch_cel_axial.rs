@@ -5,15 +5,12 @@
 
 use ellip::cel;
 use num_traits::Float;
-use numeric_literals::replace_float_literals;
-
-num_lazy::declare_nums! {@constant T}
 
 /// Fused Bulirsch evaluation for axial coordinates:
 /// `(cel(kc, 1.0, 1.0, -1.0), cel(kc, gamma^2, 1.0, gamma))`
 /// simultaneously by sharing the common AGM/Landen sequence for complementary modulus `kc`.
 #[inline]
-#[replace_float_literals(T::from(literal).unwrap())]
+#[num_lazy_proc::generic_float(T)]
 pub(crate) fn cel_axial<T: Float>(kc: T, gamma: T) -> (T, T) {
     let original_kc = kc;
     let mut kc = Float::abs(kc);
@@ -50,8 +47,8 @@ pub(crate) fn cel_axial<T: Float>(kc: T, gamma: T) -> (T, T) {
             e = kc * m;
             continue;
         }
-        let ans_r = pi!() / 4.0 * aa_r / m;
-        let ans_z = (pi!() / 2.0) * (aa_z * m + bb_z) / (m * (m + pp_z));
+        let ans_r = PI_4 * aa_r / m;
+        let ans_z = PI_2 * (aa_z * m + bb_z) / (m * (m + pp_z));
         return (ans_r, ans_z);
     }
     (

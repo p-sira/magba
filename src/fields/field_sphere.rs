@@ -6,7 +6,6 @@
 //! Analytical B-field computation for homogeneously magnetized sphere.
 
 use nalgebra::{Point3, UnitQuaternion, Vector3};
-use numeric_literals::replace_float_literals;
 
 use crate::{base::Float, crate_utils::impl_parallel};
 
@@ -30,7 +29,7 @@ use crate::{base::Float, crate_utils::impl_parallel};
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[inline]
 #[allow(non_snake_case)]
-#[replace_float_literals(T::from_f64(literal).unwrap())]
+#[num_lazy_proc::generic_float(T)]
 pub fn local_sphere_B<T: Float>(
     point: Point3<T>,
     polarization: Vector3<T>,
