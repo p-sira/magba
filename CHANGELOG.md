@@ -53,6 +53,7 @@
 **Dependencies**
 
 - Replace `num-lazy` and `numeric_literals` with `num-lazy-proc` 0.3.0 for generic float literals and constants ([#52](https://github.com/p-sira/magba/pull/52)).
+- Remove direct dependencies on `derive_more` and `delegate` using internal enum formatting and shared transform implementations ([#53](https://github.com/p-sira/magba/pull/53)).
 
 ## 0.7
 
