@@ -49,9 +49,10 @@ fn cel_iter_pair<T: Float>(
         kk = qc * em;
         let f_r = cc_r;
         let f_z = cc_z;
-        cc_r += ss_r / p;
-        cc_z += ss_z / p;
-        g = kk / p;
+        let inv_p = 1.0 / p;
+        cc_r += ss_r * inv_p;
+        cc_z += ss_z * inv_p;
+        g = kk * inv_p;
         ss_r = 2.0 * (ss_r + f_r * g);
         ss_z = 2.0 * (ss_z + f_z * g);
         p += g;
@@ -207,7 +208,7 @@ pub fn circular_B_batch<T: Float>(
 ) {
     let inv_orientation = orientation.inverse();
     impl_parallel!(
-        rayon_threshold: 320,
+        rayon_threshold: 400,
         input: points,
         output: out,
         |p| {
@@ -265,7 +266,7 @@ mod tests {
         let b_wire = local_circular_B(point![1.0, 0.0, 0.0], 2.0, 1.0);
         assert_eq!(b_wire, Vector3::zeros());
 
-        // circular_B_batch with <= 350 points to trigger serial threshold (verified against magpylib)
+        // Small circular_B_batch input uses the serial path (verified against magpylib).
         let small_points = [
             point![0.0, 0.0, 1.0],
             point![0.5, 0.0, 1.0],
@@ -289,9 +290,9 @@ mod tests {
             approx::assert_relative_eq!(o, e, epsilon = 1e-14, max_relative = 1e-12);
         }
 
-        // circular_B_batch with > 350 points to trigger Rayon threshold
-        let points = vec![point![0.0, 0.0, 1.0]; 400];
-        let mut out = vec![Vector3::zeros(); 400];
+        // Above the 400-point threshold, Rayon is selected.
+        let points = vec![point![0.0, 0.0, 1.0]; 401];
+        let mut out = vec![Vector3::zeros(); 401];
         circular_B_batch(
             &points,
             Point3::origin(),
@@ -300,7 +301,7 @@ mod tests {
             1.0,
             &mut out,
         );
-        assert_eq!(out.len(), 400);
+        assert_eq!(out.len(), 401);
         assert!(out[0].z != 0.0);
     }
 }

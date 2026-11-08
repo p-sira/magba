@@ -39,6 +39,13 @@ These are deliberately coarse work estimates, not primitive Rayon thresholds.
 The earlier weights were measured at commit `f6a9fb3` with its `Cargo.lock`
 and Rust 1.98.1.
 
+After the fused circular CEL reciprocal optimization, a 2026-11-08 check on
+Ryzen 5 4600H (Rust 1.99.1, `ellip` 1.2.4, 12 Rayon threads) measured
+approximately 216 µs for two circular currents versus 138 µs for two dipoles.
+The ratio is about 1.57, so the circular weight stays at **2**. The collection
+threshold remains 50,000 work units; it was not recalibrated because its
+conservative setting was determined by mesh workloads.
+
 ## Outer parallel threshold
 
 `collection_threshold.rs` adaptively benchmarks forced outer-serial and

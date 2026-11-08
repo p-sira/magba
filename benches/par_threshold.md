@@ -1,6 +1,6 @@
 | Function                  | Threshold | Parallel Time | Serial Time | Ratio | Exit Condition |
 |---------------------------|-----------|---------------|-------------|-------|----------------|
-| circular_B                | 320       | 23.707 µs     | 23.280 µs   | 1.018 | Converged      |
+| circular_B                | 400       | 27.906 µs     | 28.666 µs   | 0.973 | Converged      |
 | path_current_B            | 185       | 20.733 µs     | 20.778 µs   | 0.998 | Converged      |
 | cuboid_B                  | 60        | 19.452 µs     | 19.974 µs   | 0.974 | Converged      |
 | cylinder_B                | 110       | 19.871 µs     | 19.411 µs   | 1.024 | Converged      |
