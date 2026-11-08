@@ -6,7 +6,6 @@
 //! Analytical B-field computation for cuboid magnets.
 
 use nalgebra::{Point3, RealField, UnitQuaternion, Vector3, vector};
-use numeric_literals::replace_float_literals;
 
 use crate::{base::coordinate::compute_in_local, crate_utils::impl_parallel};
 
@@ -42,7 +41,7 @@ fn radius_plus<T: RealField + Copy>(radius: T, u: T, transverse_sq: T) -> T {
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[allow(non_snake_case)]
 #[inline]
-#[replace_float_literals(T::from_f64(literal).unwrap())]
+#[num_lazy_proc::generic_float(T, convert = T::from_f64(literal).unwrap())]
 pub fn local_cuboid_B<T: RealField + Copy>(
     point: Point3<T>,
     polarization: Vector3<T>,
@@ -207,7 +206,7 @@ pub fn local_cuboid_B<T: RealField + Copy>(
                 .all(|r| r.is_finite() && *r > 0.0)
         {
             let trace = if xma < 0.0 && ypb > 0.0 && zpc > 0.0 {
-                8.0 * T::pi()
+                8.0 * PI
             } else {
                 0.0
             };
@@ -249,7 +248,7 @@ pub fn local_cuboid_B<T: RealField + Copy>(
     let by_tot = by_pol_x + by_pol_y + by_pol_z;
     let bz_tot = bz_pol_x + bz_pol_y + bz_pol_z;
 
-    vector![bx_tot, by_tot, bz_tot] / (4.0 * T::pi())
+    vector![bx_tot, by_tot, bz_tot] / (4.0 * PI)
 }
 
 /// Computes B-field of a homogeneous cuboid magnet at point (x, y, z).

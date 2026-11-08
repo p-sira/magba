@@ -50,6 +50,10 @@
 
 - Add `SheetCurrent::set_mesh_and_current_densities` to replace geometry and per-face densities together while preserving their count invariant ([#43](https://github.com/p-sira/magba/pull/43)).
 
+**Dependencies**
+
+- Replace `num-lazy` and `numeric_literals` with `num-lazy-proc` 0.3.0 for generic float literals and constants ([#52](https://github.com/p-sira/magba/pull/52)).
+
 ## 0.7
 
 ### 0.7.3
