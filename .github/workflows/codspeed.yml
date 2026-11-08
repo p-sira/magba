@@ -24,6 +24,12 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Cache cargo-binstall
+        uses: actions/cache@v6
+        with:
+          path: ~/.cargo/bin/cargo-binstall
+          key: cargo-binstall-${{ runner.os }}-${{ runner.arch }}-${{ env.ImageOS }}-${{ hashFiles('.github/workflows/codspeed.yml') }}
+
       - name: Setup rust toolchain, cache and cargo-codspeed binary
         uses: moonrepo/setup-rust@v1
         with:
