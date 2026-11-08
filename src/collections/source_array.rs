@@ -317,6 +317,14 @@ mod field_tests {
         );
 
         assert_eq!(array[0].position(), point![11.0, 0.0, 0.0]);
+
+        // Boxing must preserve the collection's overridden set_pose behavior.
+        let mut boxed = Box::new(array);
+        Transform::set_pose(
+            &mut boxed,
+            Pose::new([20.0, 0.0, 0.0], UnitQuaternion::identity()),
+        );
+        assert_eq!(boxed[0].position(), point![21.0, 0.0, 0.0]);
     }
 
     #[test]

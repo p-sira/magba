@@ -70,19 +70,8 @@ need_std!(
     use core::fmt::Display;
 
     use dyn_clone::clone_trait_object;
-    use delegate::delegate;
 
-    use crate::base::{Float, Pose};
-
-    impl<T: Float> Transform<T> for Box<dyn Source<T>> {
-        delegate!(
-            to (**self) {
-                fn pose(&self) -> &Pose<T>;
-                fn pose_mut(&mut self) -> &mut Pose<T>;
-                fn set_pose(&mut self, pose: Pose<T>);
-            }
-        );
-    }
+    use crate::base::Float;
 
     clone_trait_object!(<T> Source<T> where T: Float);
 
@@ -93,14 +82,18 @@ need_std!(
     }
 
     impl<T: Float> Source<T> for Box<dyn Source<T>> {
-        delegate!(
-            to (**self) {
-                fn compute_B(&self, point: Point3<T>) -> Vector3<T>;
-                #[cfg(feature = "alloc")]
-                fn compute_B_batch(&self, points: &[Point3<T>]) -> Vec<Vector3<T>>;
-                fn relative_complexity(&self) -> usize;
-            }
-        );
+        fn compute_B(&self, point: Point3<T>) -> Vector3<T> {
+            (**self).compute_B(point)
+        }
+
+        #[cfg(feature = "alloc")]
+        fn compute_B_batch(&self, points: &[Point3<T>]) -> Vec<Vector3<T>> {
+            (**self).compute_B_batch(points)
+        }
+
+        fn relative_complexity(&self) -> usize {
+            (**self).relative_complexity()
+        }
     }
 );
 

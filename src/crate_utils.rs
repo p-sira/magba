@@ -5,6 +5,39 @@
 
 //! Internal utilities for Magba
 
+/// Defines a single-field enum whose display forwards to the contained value.
+/// Variant feature gates also apply to the generated match arms.
+macro_rules! display_enum {
+    (
+        @display
+        $(#[$meta:meta])*
+        $vis:vis enum $name:ident<$t:ident: $bound:path = $default:ty> {
+            $(
+                $(#[cfg($cfg:meta)])*
+                $variant:ident($inner:ty),
+            )*
+        }
+    ) => {
+        #[cfg(feature = "std")]
+        impl<$t: $bound> core::fmt::Display for $name<$t> {
+            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                match self {
+                    $(
+                        $(#[cfg($cfg)])*
+                        Self::$variant(value) => core::fmt::Display::fmt(value, f),
+                    )*
+                }
+            }
+        }
+    };
+    ($($definition:tt)*) => {
+        // Preserve the original tokens for attribute macros such as enum_dispatch.
+        $($definition)*
+        $crate::crate_utils::display_enum!(@display $($definition)*);
+    };
+}
+pub(crate) use display_enum;
+
 macro_rules! need_std {
     ($($body:item)*) => {
         $(
