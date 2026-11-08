@@ -30,7 +30,7 @@ edition = "2024"
 rust-version = "1.88"
 readme = "README.md"
 description = "Magnetic computation library for Rust"
-include = ["/src", "/LICENSE", "/CHANGELOG.md"]
+include = ["/src", "/LICENSE"]
 
 [dependencies]
 concat-idents = "1.1.5"
