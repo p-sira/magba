@@ -87,6 +87,22 @@ pub trait Transform<T: RealField> {
     }
 }
 
+/// Forward transformations to the boxed object, including custom `set_pose` behavior.
+#[cfg(feature = "std")]
+impl<T: RealField, S: Transform<T> + ?Sized> Transform<T> for Box<S> {
+    fn pose(&self) -> &Pose<T> {
+        (**self).pose()
+    }
+
+    fn pose_mut(&mut self) -> &mut Pose<T> {
+        (**self).pose_mut()
+    }
+
+    fn set_pose(&mut self, pose: Pose<T>) {
+        (**self).set_pose(pose);
+    }
+}
+
 macro_rules! impl_transform {
     ($name:ident < $( $args:ty ),* > where $( $bounds:tt )* ) => {
         impl< $( $bounds )* > crate::base::transform::Transform<T> for $name< $( $args ),* > {
@@ -138,13 +154,14 @@ macro_rules! impl_group_transform {
                 crate::base::Transform::set_pose(self, new_pose.into());
             }
 
-            delegate::delegate! {
-                to self.pose {
-                    #[inline]
-                    pub fn position(&self) -> Point3<T>;
-                    #[inline]
-                    pub fn orientation(&self) -> UnitQuaternion<T>;
-                }
+            #[inline]
+            pub fn position(&self) -> Point3<T> {
+                self.pose.position()
+            }
+
+            #[inline]
+            pub fn orientation(&self) -> UnitQuaternion<T> {
+                self.pose.orientation()
             }
 
             #[inline]

@@ -579,13 +579,17 @@ impl<S: Transform<f64>> Transform<f64> for Custom<S> {
 }
 
 impl<S: Source<f64> + Clone> Source<f64> for Custom<S> {
-    delegate::delegate! {
-        to self.0 {
-            fn compute_B(&self, point: nalgebra::Point3<f64>) -> Vector3<f64>;
-            fn compute_B_batch(&self, points: &[nalgebra::Point3<f64>]) -> Vec<Vector3<f64>>;
-            fn relative_complexity(&self) -> usize;
-            fn format(&self, f: &mut core::fmt::Formatter<'_>, indent: &str) -> core::fmt::Result;
-        }
+    fn compute_B(&self, point: nalgebra::Point3<f64>) -> Vector3<f64> {
+        self.0.compute_B(point)
+    }
+    fn compute_B_batch(&self, points: &[nalgebra::Point3<f64>]) -> Vec<Vector3<f64>> {
+        self.0.compute_B_batch(points)
+    }
+    fn relative_complexity(&self) -> usize {
+        self.0.relative_complexity()
+    }
+    fn format(&self, f: &mut core::fmt::Formatter<'_>, indent: &str) -> core::fmt::Result {
+        self.0.format(f, indent)
     }
 }
 

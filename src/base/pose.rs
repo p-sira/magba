@@ -167,26 +167,46 @@ impl<T: RealField + core::fmt::LowerExp> core::fmt::LowerExp for Pose<T> {
     }
 }
 
-macro_rules! delegate_to_pose {
-    () => {
-        delegate::delegate! {
-            to self.pose {
-                pub fn position(&self) -> nalgebra::Point3<T>;
-                pub fn orientation(&self) -> nalgebra::UnitQuaternion<T>;
-                pub fn set_position(&mut self, position: impl Into<nalgebra::Translation3<T>>);
-                pub fn set_orientation(&mut self, orientation: nalgebra::UnitQuaternion<T>);
-                pub fn translate(&mut self, translation: impl Into<nalgebra::Translation3<T>>);
-                pub fn rotate(&mut self, rotation: nalgebra::UnitQuaternion<T>);
-                pub fn rotate_anchor(&mut self, rotation: nalgebra::UnitQuaternion<T>, anchor: impl Into<nalgebra::Point3<T>>);
-            }
-        }
-    };
-}
-pub(crate) use delegate_to_pose;
-
 macro_rules! impl_pose_methods {
     () => {
-        crate::base::pose::delegate_to_pose!();
+        #[inline]
+        pub fn position(&self) -> nalgebra::Point3<T> {
+            self.pose.position()
+        }
+
+        #[inline]
+        pub fn orientation(&self) -> nalgebra::UnitQuaternion<T> {
+            self.pose.orientation()
+        }
+
+        #[inline]
+        pub fn set_position(&mut self, position: impl Into<nalgebra::Translation3<T>>) {
+            self.pose.set_position(position);
+        }
+
+        #[inline]
+        pub fn set_orientation(&mut self, orientation: nalgebra::UnitQuaternion<T>) {
+            self.pose.set_orientation(orientation);
+        }
+
+        #[inline]
+        pub fn translate(&mut self, translation: impl Into<nalgebra::Translation3<T>>) {
+            self.pose.translate(translation);
+        }
+
+        #[inline]
+        pub fn rotate(&mut self, rotation: nalgebra::UnitQuaternion<T>) {
+            self.pose.rotate(rotation);
+        }
+
+        #[inline]
+        pub fn rotate_anchor(
+            &mut self,
+            rotation: nalgebra::UnitQuaternion<T>,
+            anchor: impl Into<nalgebra::Point3<T>>,
+        ) {
+            self.pose.rotate_anchor(rotation, anchor);
+        }
 
         #[inline]
         pub fn set_pose(&mut self, pose: crate::base::Pose<T>) {

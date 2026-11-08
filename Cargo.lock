@@ -972,7 +972,6 @@ dependencies = [
  "codspeed-criterion-compat",
  "concat-idents",
  "csv",
- "delegate",
  "dyn-clone",
  "ellip",
  "enum_dispatch",
