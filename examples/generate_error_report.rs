@@ -5,68 +5,17 @@
 
 use magba::base::mesh::TriMesh;
 use magba::prelude::*;
-use magba::testing_util::*;
-use nalgebra::{Point3, vector};
-use reproducible::metrics;
-use reproducible::prelude::*;
+use nalgebra::{Point3, UnitQuaternion, Vector3, vector};
 use std::error::Error;
 use std::f64::consts::PI;
+use std::path::Path;
 
-type BatchEvaluator = Box<dyn Fn(&[Vec<f64>]) -> Vec<Vec<f64>> + Send + Sync>;
-
-/// Extension trait to convert a `Source` into a closure compatible with `reproducible`'s batch API
-trait SourceExt {
-    fn into_batch_evaluator(self) -> BatchEvaluator;
-}
-
-impl<T: magba::base::Float + std::str::FromStr> SourceExt for Box<dyn Source<T> + Send + Sync> {
-    fn into_batch_evaluator(self) -> BatchEvaluator {
-        Box::new(move |inputs: &[Vec<f64>]| {
-            let points: Vec<Point3<T>> = inputs
-                .iter()
-                .map(|i| {
-                    Point3::new(
-                        T::from(i[0]).unwrap(),
-                        T::from(i[1]).unwrap(),
-                        T::from(i[2]).unwrap(),
-                    )
-                })
-                .collect();
-            self.compute_B_batch(&points)
-                .into_iter()
-                .map(|v| {
-                    vec![
-                        v.x.to_f64().unwrap(),
-                        v.y.to_f64().unwrap(),
-                        v.z.to_f64().unwrap(),
-                    ]
-                })
-                .collect()
-        })
-    }
-}
-
-fn create_magnet<T: magba::base::Float + std::str::FromStr>(
-    name: &str,
-) -> Box<dyn Source<T> + Send + Sync>
-where
-    CylinderMagnet<T>: Source<T>,
-    CuboidMagnet<T>: Source<T>,
-    Dipole<T>: Source<T>,
-    SphereMagnet<T>: Source<T>,
-    TetrahedronMagnet<T>: Source<T>,
-    TriangleMagnet<T>: Source<T>,
-    MeshMagnet<T>: Source<T>,
-    CircularCurrent<T>: Source<T>,
-    PathCurrent<T>: Source<T>,
-    SheetCurrent<T>: Source<T>,
-    TriangleCurrent<T>: Source<T>,
-{
+fn create_source<T: magba::base::Float>(name: &str) -> Box<dyn Source<T>> {
     let f = |v: f64| T::from(v).unwrap();
 
     // Pose used in generate_tests! macro
     let pos = [f(0.1), f(0.2), f(0.3)];
-    let rot = quat_from_rotvec(f(PI / 7.0), f(PI / 6.0), f(PI / 5.0));
+    let rot = UnitQuaternion::from_scaled_axis(vector![f(PI / 7.0), f(PI / 6.0), f(PI / 5.0)]);
     let pol = [f(1.0), f(2.0), f(3.0)];
 
     let tetrahedron_vertices = [
@@ -112,6 +61,12 @@ where
             ],
         )),
         "CylinderMagnet" => Box::new(CylinderMagnet::new(pos, rot, pol, f(0.1), f(0.2))),
+        "CylinderSegmentMagnet" => Box::new(CylinderSegmentMagnet::new(
+            pos,
+            rot,
+            pol,
+            [f(0.01), f(0.03), f(0.02), f(-30.0), f(120.0)],
+        )),
         "CuboidMagnet" => Box::new(CuboidMagnet::new(pos, rot, pol, [f(0.1), f(0.2), f(0.3)])),
         "Dipole" => Box::new(Dipole::new(pos, rot, pol)),
         "SphereMagnet" => Box::new(SphereMagnet::new(pos, rot, pol, f(0.1))),
@@ -139,33 +94,104 @@ where
     }
 }
 
-fn add_magnet_accuracy<T: magba::base::Float + std::str::FromStr>(
-    report: Report,
+fn read_vectors(path: &Path) -> Result<Vec<Vector3<f64>>, Box<dyn Error>> {
+    let mut reader = csv::ReaderBuilder::new()
+        .has_headers(false)
+        .from_path(path)?;
+    reader
+        .records()
+        .enumerate()
+        .map(|(row, record)| {
+            let record = record?;
+            if record.len() != 3 {
+                return Err(format!(
+                    "{} row {}: expected three components",
+                    path.display(),
+                    row + 1
+                )
+                .into());
+            }
+            let mut vector = Vector3::zeros();
+            for (component, raw) in vector.iter_mut().zip(record.iter()) {
+                *component = raw.parse()?;
+            }
+            if !vector.iter().all(|v: &f64| v.is_finite()) {
+                return Err(format!("{} row {}: nonfinite vector", path.display(), row + 1).into());
+            }
+            Ok(vector)
+        })
+        .collect()
+}
+
+fn norm(v: Vector3<f64>) -> f64 {
+    v.x.hypot(v.y).hypot(v.z)
+}
+
+// Keep the dimensionless relative error separate from the absolute error in T.
+// A nonzero error against a zero reference has infinite relative error.
+fn errors(actual: Vector3<f64>, expected: Vector3<f64>) -> (f64, f64) {
+    let absolute = norm(actual - expected);
+    let relative = if absolute == 0.0 {
+        0.0
+    } else {
+        absolute / norm(expected)
+    };
+    (relative, absolute)
+}
+
+fn accuracy_row<T: magba::base::Float>(
     name: &str,
-    source: Box<dyn Source<T> + Send + Sync>,
-    ref_file: &str,
-) -> Result<Report, Box<dyn Error>> {
-    let points_path = std::path::Path::new("./testing/data/points.csv");
-    let ref_path = std::path::Path::new("./testing/data/").join(ref_file);
-
-    if !points_path.exists() || !ref_path.exists() {
-        return Err(format!("Test data not found for {}", name).into());
+    points: &[Vector3<f64>],
+    reference: &[Vector3<f64>],
+) -> Result<String, Box<dyn Error>> {
+    if points.is_empty() || reference.len() != points.len() {
+        return Err(
+            format!("{name}: expected one reference per observer in a nonempty grid").into(),
+        );
     }
-
-    Ok(report.with_row(
-        Row::new_batch(name, source.into_batch_evaluator())
-            .with_split_csv_cases(points_path, ref_path)?
-            .with_criterion_id(format!("fields_{}/{}", std::any::type_name::<T>(), name)),
+    let source = create_source::<T>(name);
+    let observers: Vec<_> = points
+        .iter()
+        .map(|p| Point3::from(p.map(|v| T::from(v).unwrap())))
+        .collect();
+    let actual = source.compute_B_batch(&observers);
+    let mut relative = Vec::with_capacity(points.len());
+    let mut max_absolute = 0.0_f64;
+    let mut worst = 0;
+    let mut max_relative = -1.0_f64;
+    for (i, (got, expected)) in actual.iter().zip(reference).enumerate() {
+        let got = got.map(|v| v.to_f64().unwrap());
+        if !got.iter().all(|v| v.is_finite()) {
+            return Err(format!("{name}: nonfinite field at observer {:?}", points[i]).into());
+        }
+        let (rel, abs) = errors(got, *expected);
+        relative.push(rel);
+        max_absolute = max_absolute.max(abs);
+        if rel > max_relative {
+            max_relative = rel;
+            worst = i;
+        }
+    }
+    relative.sort_by(f64::total_cmp);
+    let p = points[worst];
+    Ok(format!(
+        "| {name} | {:.3e} | {:.3e} | {max_relative:.3e} | {max_absolute:.3e} | ({:.6}, {:.6}, {:.6}) |\n",
+        relative[relative.len() / 2],
+        relative[relative.len() * 95 / 100],
+        p.x,
+        p.y,
+        p.z
     ))
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let magnets = [
+    let sources = [
         ("CircularCurrent", "circularcurrent.csv"),
         ("PathCurrent", "polyline.csv"),
         ("SheetCurrent", "sheetcurrent.csv"),
         ("TriangleCurrent", "trianglecurrent.csv"),
         ("CylinderMagnet", "cylinder.csv"),
+        ("CylinderSegmentMagnet", "cylindersegment.csv"),
         ("CuboidMagnet", "cuboid.csv"),
         ("Dipole", "dipole.csv"),
         ("SphereMagnet", "sphere.csv"),
@@ -173,74 +199,45 @@ fn main() -> Result<(), Box<dyn Error>> {
         ("TriangleMagnet", "triangle.csv"),
         ("MeshMagnet", "triangularmesh.csv"),
     ];
-
-    fn get_report_f64() -> Report {
-        Report::new()
-            .with_float_precision(3)
-            .with_metric(metrics::rel_err)
-            .with_column(Column::accuracy("Median").with_stat(ColumnStat::Median))
-            .with_column(Column::accuracy("Mean").with_stat(ColumnStat::Mean))
-            .with_column(Column::accuracy("P95").with_stat(ColumnStat::P95))
-            .with_column(Column::accuracy("Max").with_stat(ColumnStat::Max))
-            .with_column(
-                Column::<f64>::perf("Performance")
-                    .with_stat(ColumnStat::Mean)
-                    .postprocess(|perf| perf / 1000.0), // Divide by the number of test points
-            )
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let data = root.join("testing/data");
+    let points = read_vectors(&data.join("points.csv"))?;
+    let header = "| Source | Median relative | P95 relative | Max relative | Max absolute (T) | Worst relative observer (m) |\n|---|---:|---:|---:|---:|---|\n";
+    let mut report64 = header.to_owned();
+    let mut report32 = header.to_owned();
+    for (name, file) in sources {
+        let reference = read_vectors(&data.join(file))?;
+        report64.push_str(&accuracy_row::<f64>(name, &points, &reference)?);
+        report32.push_str(&accuracy_row::<f32>(name, &points, &reference)?);
     }
-
-    fn get_report_f32() -> Report {
-        let rel_err_f32_eps = |actual: &[f64], expected: &[f64]| {
-            let err = metrics::rel_err(actual, expected);
-            if let metrics::MetricValue::Numerical(err) = err {
-                metrics::MetricValue::Numerical(err / (f32::EPSILON as f64))
-            } else {
-                err
-            }
-        };
-
-        Report::new()
-            .with_float_precision(3)
-            .with_metric(rel_err_f32_eps)
-            .with_column(Column::accuracy("Median (ε)").with_stat(ColumnStat::Median))
-            .with_column(Column::accuracy("Mean (ε)").with_stat(ColumnStat::Mean))
-            .with_column(Column::accuracy("P95 (ε)").with_stat(ColumnStat::P95))
-            .with_column(Column::accuracy("Max (ε)").with_stat(ColumnStat::Max))
-            .with_column(
-                Column::<f64>::perf("Performance")
-                    .with_stat(ColumnStat::Mean)
-                    .postprocess(|perf| perf / 1000.0), // Divide by the number of test points
-            )
-    }
-
-    let mut content = std::fs::read_to_string("tests/report_template.md")
-        .expect("Cannot read the report template");
-
-    content = content.replace("{{TEST_ENV}}", &current_env!().to_string());
-
-    // f64 report
-    {
-        let mut report = get_report_f64();
-
-        for &(name, ref_file) in &magnets {
-            let magnet = create_magnet::<f64>(name);
-            report = add_magnet_accuracy(report, name, magnet, ref_file)?;
-        }
-        content = content.replace("{{ERROR_F64}}", report.render_markdown().as_str());
-    }
-
-    // f32 report
-    {
-        let mut report = get_report_f32();
-
-        for &(name, ref_file) in &magnets {
-            let magnet = create_magnet::<f32>(name);
-            report = add_magnet_accuracy(report, name, magnet, ref_file)?;
-        }
-        content = content.replace("{{ERROR_F32}}", report.render_markdown().as_str());
-    }
-
-    std::fs::write("tests/README.md", content).expect("Cannot write the report");
+    let content = std::fs::read_to_string(root.join("tests/report_template.md"))?
+        .replace(
+            "{{TEST_ENV}}",
+            &format!(
+                "magba {} ({}, {})",
+                env!("CARGO_PKG_VERSION"),
+                std::env::consts::ARCH,
+                std::env::consts::OS
+            ),
+        )
+        .replace("{{ERROR_F64}}", report64.trim_end())
+        .replace("{{ERROR_F32}}", report32.trim_end());
+    std::fs::write(root.join("tests/README.md"), content)?;
     println!("tests/README.md generated successfully");
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn weak_fields_keep_dimensionless_relative_error() {
+        let expected = Vector3::new(1e-20, 0.0, 0.0);
+        let (relative, absolute) = errors(expected * 1.001, expected);
+        assert!((relative - 1e-3).abs() < 1e-15);
+        assert!((absolute - 1e-23).abs() < 1e-35);
+        assert_eq!(errors(Vector3::zeros(), Vector3::zeros()), (0.0, 0.0));
+        assert!(errors(expected, Vector3::zeros()).0.is_infinite());
+    }
 }
