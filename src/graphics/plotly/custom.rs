@@ -6,7 +6,7 @@
 //! Trait objects that preserve physical behavior and rendering in collections.
 
 use super::Graphics;
-use crate::base::{Float, Observer, Pose, SensorOutput, Source, Transform};
+use crate::base::{Float, Observer, SensorOutput, Source};
 use nalgebra::{Point3, Vector3};
 
 /// A source whose custom geometry is retained inside collections.
@@ -26,18 +26,6 @@ dyn_clone::clone_trait_object!(<T> GraphicsObserver<T> where T: Float);
 
 macro_rules! boxed_graphics {
     ($trait:ident) => {
-        /// Delegate pose access and transformations to the boxed object.
-        impl<T: Float> Transform<T> for Box<dyn $trait<T>> {
-            fn pose(&self) -> &Pose<T> {
-                (**self).pose()
-            }
-            fn pose_mut(&mut self) -> &mut Pose<T> {
-                (**self).pose_mut()
-            }
-            fn set_pose(&mut self, pose: Pose<T>) {
-                (**self).set_pose(pose);
-            }
-        }
         /// Format the boxed object using its physical representation.
         impl<T: Float> core::fmt::Debug for Box<dyn $trait<T>> {
             fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {

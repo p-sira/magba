@@ -167,26 +167,46 @@ impl<T: RealField + core::fmt::LowerExp> core::fmt::LowerExp for Pose<T> {
     }
 }
 
-macro_rules! delegate_to_pose {
-    () => {
-        delegate::delegate! {
-            to self.pose {
-                pub fn position(&self) -> nalgebra::Point3<T>;
-                pub fn orientation(&self) -> nalgebra::UnitQuaternion<T>;
-                pub fn set_position(&mut self, position: impl Into<nalgebra::Translation3<T>>);
-                pub fn set_orientation(&mut self, orientation: nalgebra::UnitQuaternion<T>);
-                pub fn translate(&mut self, translation: impl Into<nalgebra::Translation3<T>>);
-                pub fn rotate(&mut self, rotation: nalgebra::UnitQuaternion<T>);
-                pub fn rotate_anchor(&mut self, rotation: nalgebra::UnitQuaternion<T>, anchor: impl Into<nalgebra::Point3<T>>);
-            }
-        }
-    };
-}
-pub(crate) use delegate_to_pose;
-
 macro_rules! impl_pose_methods {
     () => {
-        crate::base::pose::delegate_to_pose!();
+        #[inline]
+        pub fn position(&self) -> nalgebra::Point3<T> {
+            self.pose.position()
+        }
+
+        #[inline]
+        pub fn orientation(&self) -> nalgebra::UnitQuaternion<T> {
+            self.pose.orientation()
+        }
+
+        #[inline]
+        pub fn set_position(&mut self, position: impl Into<nalgebra::Translation3<T>>) {
+            self.pose.set_position(position);
+        }
+
+        #[inline]
+        pub fn set_orientation(&mut self, orientation: nalgebra::UnitQuaternion<T>) {
+            self.pose.set_orientation(orientation);
+        }
+
+        #[inline]
+        pub fn translate(&mut self, translation: impl Into<nalgebra::Translation3<T>>) {
+            self.pose.translate(translation);
+        }
+
+        #[inline]
+        pub fn rotate(&mut self, rotation: nalgebra::UnitQuaternion<T>) {
+            self.pose.rotate(rotation);
+        }
+
+        #[inline]
+        pub fn rotate_anchor(
+            &mut self,
+            rotation: nalgebra::UnitQuaternion<T>,
+            anchor: impl Into<nalgebra::Point3<T>>,
+        ) {
+            self.pose.rotate_anchor(rotation, anchor);
+        }
 
         #[inline]
         pub fn set_pose(&mut self, pose: crate::base::Pose<T>) {
@@ -249,5 +269,40 @@ mod tests {
         let rot = UnitQuaternion::from_scaled_axis([0.0, 0.0, core::f64::consts::PI].into());
         pose.rotate_anchor(rot, [1.0, 0.0, 0.0]);
         assert_eq!(pose.as_isometry().translation.x, 2.0);
+    }
+
+    #[test]
+    fn anchored_source_rotation_preserves_field_in_rotated_coordinates() {
+        use crate::{base::Source, magnets::Dipole};
+        use approx::assert_relative_eq;
+        use nalgebra::{Vector3, point, vector};
+
+        let orientation =
+            UnitQuaternion::from_axis_angle(&Vector3::x_axis(), core::f64::consts::FRAC_PI_4);
+        let mut dipole = Dipole::default()
+            .with_position([3.0, -1.0, 2.0])
+            .with_orientation(orientation)
+            .with_moment(vector![1.0, 2.0, 3.0]);
+        let point = point![4.0, 2.0, 1.0];
+        let field = dipole.compute_B(point);
+        let anchor = point![1.0, -1.0, 2.0];
+        let rotation =
+            UnitQuaternion::from_axis_angle(&Vector3::z_axis(), core::f64::consts::FRAC_PI_2);
+
+        dipole.rotate_anchor(rotation, anchor);
+
+        assert_relative_eq!(dipole.position(), point![1.0, 1.0, 2.0], epsilon = 1e-14);
+        assert_relative_eq!(
+            dipole.orientation(),
+            rotation * orientation,
+            epsilon = 1e-14
+        );
+        let rotated_point = anchor + rotation * (point - anchor);
+        assert_relative_eq!(
+            dipole.compute_B(rotated_point),
+            rotation * field,
+            max_relative = 1e-13,
+            epsilon = 1e-20
+        );
     }
 }
