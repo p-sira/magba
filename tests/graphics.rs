@@ -299,7 +299,8 @@ fn optional_palettes_propagate_through_nested_collections_and_arrays() {
     use magba::graphics::MagnetColorScheme;
     let assembly = sources!(
         sources!(CuboidMagnet::<f64>::default()),
-        CylinderMagnet::default()
+        CylinderMagnet::default(),
+        CylinderSegmentMagnet::default()
     );
     for (scheme, north, south) in [
         (MagnetColorScheme::OkabeIto, "#E69F00", "#0072B2"),

@@ -593,6 +593,60 @@ mod tests {
     use nalgebra::{point, vector};
 
     #[test]
+    fn degenerate_segments_return_zero_field() {
+        for dims in [
+            vector![0.0, 1.0, 1.0, 0.0, 0.0],
+            vector![0.0, 0.0, 1.0, 0.0, 90.0],
+            vector![0.0, 1.0, 0.0, 0.0, 90.0],
+        ] {
+            assert_eq!(
+                local_cylinder_segment_B(point![2.0, 1.0, 0.0], Vector3::x(), dims),
+                Vector3::zeros(),
+            );
+        }
+    }
+
+    #[test]
+    fn uncharged_radial_wall_preserves_polarization_linearity() {
+        let point = point![2.0, 1.0, 0.0];
+        let dims = vector![0.0, 1.0, 1.0, 0.0, 90.0];
+        let x = local_cylinder_segment_B(point, Vector3::x(), dims);
+        let y = local_cylinder_segment_B(point, Vector3::y(), dims);
+        let combined = local_cylinder_segment_B(point, vector![1.0, 1.0, 0.0], dims);
+        assert!(x.iter().chain(y.iter()).all(|v| v.is_finite()));
+        approx::assert_relative_eq!(x + y, combined, epsilon = 1e-11);
+    }
+
+    #[test]
+    fn empty_integration_intervals_return_zero_without_evaluating() {
+        let f = |_| panic!("empty intervals must not evaluate the integrand");
+        assert_eq!(integrate(&f, 1.0, 1.0), Vector3::zeros());
+        assert_eq!(integrate(&f, 2.0, 1.0), Vector3::zeros());
+    }
+
+    #[test]
+    fn quadrature_rejects_non_finite_estimates() {
+        for value in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+            let result = integrate(&|_| vector![1.0, value, 2.0], 0.0, 1.0);
+            assert!(result.iter().all(|v| v.is_nan()));
+        }
+    }
+
+    #[test]
+    fn quadrature_returns_nan_when_refinement_cannot_converge() {
+        // Simpson's rule is not exact for x^4, so zero tolerance requires
+        // subdivision. With no depth remaining, the estimate must be rejected.
+        let f = |x: f64| Vector3::repeat(x.powi(4));
+        let interval = SimpsonInterval::new(0.0, 1.0, f(0.0), f(0.5), f(1.0));
+        assert!(refine(&f, interval, 0.0, 0).iter().all(|v| v.is_nan()));
+        approx::assert_relative_eq!(
+            integrate(&f, 0.0, 1.0),
+            Vector3::repeat(0.2),
+            epsilon = 1e-12,
+        );
+    }
+
+    #[test]
     fn volume_and_surface_integrals_agree_at_far_field_transition() {
         let direction = vector![7.0, 1.0, 2.0].normalize();
         let pol = vector![0.2, -0.3, 0.4];

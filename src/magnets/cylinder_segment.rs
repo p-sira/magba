@@ -98,6 +98,20 @@ mod tests {
     use super::*;
 
     #[test]
+    fn display_formats_all_dimensions_with_requested_precision() {
+        let magnet = CylinderSegmentMagnet::<f64>::default()
+            .with_dimensions([0.01, 0.03, 0.02, -30.0, 120.0]);
+        assert_eq!(
+            format!("{magnet}"),
+            "CylinderSegmentMagnet (pol=[0.0, 0.0, 1.0], dim=[0.01, 0.03, 0.02, -30.0, 120.0]) at pos=[0.0, 0.0, 0.0], rot=[0.0, 0.0, 0.0]"
+        );
+        assert_eq!(
+            format!("{magnet:.2}"),
+            "CylinderSegmentMagnet (pol=[0.00, 0.00, 1.00], dim=[0.01, 0.03, 0.02, -30.00, 120.00]) at pos=[0.0, 0.0, 0.0], rot=[0.0, 0.0, 0.0]"
+        );
+    }
+
+    #[test]
     fn rejects_invalid_dimensions() {
         let mut magnet = CylinderSegmentMagnet::<f64>::default();
         for dims in [
