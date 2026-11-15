@@ -153,8 +153,8 @@ use crate::{
     },
     currents::{CircularCurrent, Current, PathCurrent, TriangleCurrent},
     magnets::{
-        CuboidMagnet, CylinderMagnet, Dipole, Magnet, SphereMagnet, TetrahedronMagnet,
-        TriangleMagnet,
+        CuboidMagnet, CylinderMagnet, CylinderSegmentMagnet, Dipole, Magnet, SphereMagnet,
+        TetrahedronMagnet, TriangleMagnet,
     },
     sensors::{
         Sensor,
@@ -539,6 +539,77 @@ impl<T: Float> Graphics<T> for CylinderMagnet<T> {
     }
 }
 
+/// Render the curved walls and capped radial faces of a cylindrical ring segment.
+impl<T: Float> Graphics<T> for CylinderSegmentMagnet<T> {
+    fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
+        options.validate();
+        if !options.visible() {
+            return;
+        }
+
+        let dimensions = self.dimensions();
+        let (inner, outer, half) = (dimensions[0], dimensions[1], dimensions[2] / scalar(2.0));
+        let start = dimensions[3].to_f64().unwrap();
+        let sweep = (dimensions[4] - dimensions[3]).to_f64().unwrap();
+        let full = sweep == 360.0;
+        let steps = ((options.segments() as f64 * sweep / 360.0).ceil() as usize).max(2);
+        let count = steps + 1;
+        let mut vertices = Vec::with_capacity(4 * count);
+        for (radius, height) in [(outer, -half), (outer, half), (inner, -half), (inner, half)] {
+            for i in 0..=steps {
+                let angle = (start + sweep * i as f64 / steps as f64).to_radians();
+                vertices.push(Vector3::new(
+                    radius * scalar::<T>(angle.cos()),
+                    radius * scalar::<T>(angle.sin()),
+                    height,
+                ));
+            }
+        }
+        let mut faces = Vec::with_capacity(12 * steps + 4);
+        for i in 0..steps {
+            let (bo, to, bi, ti) = (i, count + i, 2 * count + i, 3 * count + i);
+            // Outer wall, inner wall, lower cap and upper cap.
+            faces.extend([
+                [bo, bo + 1, to + 1],
+                [bo, to + 1, to],
+                [bi, ti + 1, bi + 1],
+                [bi, ti, ti + 1],
+                [bi, bo + 1, bo],
+                [bi, bi + 1, bo + 1],
+                [ti, to, to + 1],
+                [ti, to + 1, ti + 1],
+            ]);
+        }
+        if !full {
+            let end = steps;
+            // The azimuthal cut planes face away from the magnetized sector.
+            faces.extend([
+                [0, count, 3 * count],
+                [0, 3 * count, 2 * count],
+                [end, 2 * count + end, 3 * count + end],
+                [end, 3 * count + end, count + end],
+            ]);
+        }
+        let label = match options.color_scheme() {
+            MagnetColorScheme::Din => "Cylinder segment (DIN)",
+            MagnetColorScheme::OkabeIto => "Cylinder segment (Okabe–Ito)",
+            MagnetColorScheme::Trad => "Cylinder segment (traditional)",
+        };
+        surface(
+            plot,
+            self,
+            &vertices,
+            &faces,
+            label,
+            Some(SurfacePoles {
+                polarization: self.polarization(),
+                scheme: options.color_scheme(),
+            }),
+            options,
+        );
+    }
+}
+
 /// Render a sphere with a pole-color gradient; [`GraphicsOptions::segments`] controls resolution.
 impl<T: Float> Graphics<T> for SphereMagnet<T> {
     fn add_to_plot_with_options(&self, plot: &mut Plot, options: &GraphicsOptions) {
@@ -773,7 +844,7 @@ macro_rules! dispatch {
         }
     };
 }
-dispatch!(Magnet { Cylinder, Cuboid, Dipole, Sphere, Tetrahedron, Triangle }, mesh: Mesh);
+dispatch!(Magnet { Cylinder, CylinderSegment, Cuboid, Dipole, Sphere, Tetrahedron, Triangle }, mesh: Mesh);
 dispatch!(Current { Circular, Path, Triangle }, mesh: Sheet);
 dispatch!(Sensor {
     LinearHall,

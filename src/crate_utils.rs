@@ -96,6 +96,14 @@ need_alloc! {
         }
     }
 
+    pub(crate) fn format_vector5<T: Float>(f: &mut Formatter, v: nalgebra::Vector5<T>) -> alloc::string::String {
+        if let Some(p) = f.precision() {
+            alloc::format!("[{:.p$}, {:.p$}, {:.p$}, {:.p$}, {:.p$}]", v[0], v[1], v[2], v[3], v[4], p = p)
+        } else {
+            alloc::format!("[{:?}, {:?}, {:?}, {:?}, {:?}]", v[0], v[1], v[2], v[3], v[4])
+        }
+    }
+
     pub(crate) fn format_vertices<T: Float>(f: &mut Formatter, v: [Vector3<T>; 3]) -> alloc::string::String {
         if let Some(p) = f.precision() {
             alloc::format!("[({:.p$}, {:.p$}, {:.p$}), ({:.p$}, {:.p$}, {:.p$}), ({:.p$}, {:.p$}, {:.p$})]", v[0].x, v[0].y, v[0].z, v[1].x, v[1].y, v[1].z, v[2].x, v[2].y, v[2].z, p = p)

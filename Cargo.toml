@@ -190,6 +190,11 @@ path = "examples/graphics/magnets/cylinder.rs"
 required-features = ["graphics-plotly"]
 
 [[example]]
+name = "magnet_cylinder_segment"
+path = "examples/graphics/magnets/cylinder_segment.rs"
+required-features = ["graphics-plotly"]
+
+[[example]]
 name = "magnet_dipole"
 path = "examples/graphics/magnets/dipole.rs"
 required-features = ["graphics-plotly"]

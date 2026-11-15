@@ -7,33 +7,12 @@
 **Breaking Changes**
 
 - Remove all `sum_multiple_*` field functions; use source collections to superpose fields from multiple sources ([#48](https://github.com/p-sira/magba/pull/48)).
+- Declare Rust 1.88 as the minimum supported version and verify it in CI ([#42](https://github.com/p-sira/magba/pull/42)).
 
 **New Features**
 
-- Add optional graphics support with masked field sampling, adaptive field-line tracing, configurable views and pole shading, custom collection geometry, and Plotly visualizations with offline HTML export ([#42](https://github.com/p-sira/magba/pull/42)).
-
-**Release Improvements**
-
-- Declare Rust 1.88 as the minimum supported version and verify it in CI ([#42](https://github.com/p-sira/magba/pull/42)).
-- Correct `alloc`, `std`, and `no_std` feature guidance ([#42](https://github.com/p-sira/magba/pull/42)).
-- Streamline routine CI with Ubuntu pairwise feature tests across four parallel runners, separate broad optional-feature coverage, and comprehensive manual checks ([#45](https://github.com/p-sira/magba/pull/45), [#46](https://github.com/p-sira/magba/pull/46)).
-- Reduce test build artifact size with line-table-only debug information.
-- Upgrade `ellip` to 1.2.4 and `codspeed-criterion-compat` to 6 ([#49](https://github.com/p-sira/magba/pull/49)).
-
-**Performance Improvements**
-
-- Fuse circular-current Bulirsch CEL iterations with shared reciprocals and avoid per-point angular conversions for cylinder fields ([#46](https://github.com/p-sira/magba/pull/46), [#50](https://github.com/p-sira/magba/pull/50)).
-- Reduce cuboid `atan2` evaluations using the diagonal-kernel trace identity for mixed polarization in `f64`, retaining the more accurate direct `f32` path ([#46](https://github.com/p-sira/magba/pull/46)).
-- Precompute face normals, surface charges, and edge geometry for triangle, tetrahedron, and mesh batch field evaluations ([#46](https://github.com/p-sira/magba/pull/46)).
-
-**Testing**
-
-- Raise the line-coverage gate to 99.1% and correct the axial CEL fallback test ([#44](https://github.com/p-sira/magba/pull/44)).
-- Validate all 11 field-source primitives in `f32` and `f64` against 169 high-precision Mathematica/Wolfram references across geometries, boundaries, and transforms, supplemented by independent cuboid and polyhedral surface-integral regressions and analytical cylinder and circular-current invariants ([#46](https://github.com/p-sira/magba/pull/46), [#47](https://github.com/p-sira/magba/pull/47)).
-
-**Documentation**
-
-- Add organized graphics examples, rendered previews, runnable field-line demonstrations, and configuration guidance ([#42](https://github.com/p-sira/magba/pull/42)).
+- `CylinderSegmentMagnet`: solid and annular cylindrical sectors ([#54](https://github.com/p-sira/magba/pull/54)).
+- `graphics`: optional graphics support with masked field sampling, adaptive field-line tracing, configurable views and pole shading, custom collection geometry, and Plotly visualizations with offline HTML export. Include organized examples, rendered previews, runnable field-line demonstrations, and configuration guidance ([#42](https://github.com/p-sira/magba/pull/42)).
 
 **Bug Fixes**
 
@@ -46,9 +25,29 @@
 
 - Add `SheetCurrent::set_mesh_and_current_densities` to replace geometry and per-face densities together while preserving their count invariant ([#43](https://github.com/p-sira/magba/pull/43)).
 
+**Performance Improvements**
+
+- Fuse circular-current Bulirsch CEL iterations with shared reciprocals and avoid per-point angular conversions for cylinder fields ([#46](https://github.com/p-sira/magba/pull/46), [#50](https://github.com/p-sira/magba/pull/50)).
+- Reduce cuboid `atan2` evaluations using the diagonal-kernel trace identity for mixed polarization in `f64`, retaining the more accurate direct `f32` path ([#46](https://github.com/p-sira/magba/pull/46)).
+- Precompute face normals, surface charges, and edge geometry for triangle, tetrahedron, and mesh batch field evaluations ([#46](https://github.com/p-sira/magba/pull/46)).
+
+**Documentation**
+
+- Correct `alloc`, `std`, and `no_std` feature guidance ([#42](https://github.com/p-sira/magba/pull/42)).
+
 **Dependencies**
 
 - Reduce dependencies by replacing `num-lazy` and `numeric_literals` with `num-lazy-proc` 0.3.0 and replacing `derive_more` and `delegate` with internal enum formatting and shared transform implementations ([#52](https://github.com/p-sira/magba/pull/52), [#53](https://github.com/p-sira/magba/pull/53)).
+- Upgrade `ellip` to 1.2.4 and `codspeed-criterion-compat` to 6 ([#49](https://github.com/p-sira/magba/pull/49)).
+
+**Release Improvements**
+
+- Streamline routine CI with Ubuntu pairwise feature tests across four parallel runners, separate broad optional-feature coverage, comprehensive manual checks, and smaller test build artifacts using line-table-only debug information ([#45](https://github.com/p-sira/magba/pull/45), [#46](https://github.com/p-sira/magba/pull/46)).
+
+**Testing**
+
+- Raise the line-coverage gate to 99.1% and correct the axial CEL fallback test ([#44](https://github.com/p-sira/magba/pull/44)).
+- Validate all 11 field-source primitives in `f32` and `f64` against 169 high-precision Mathematica/Wolfram references across geometries, boundaries, and transforms, supplemented by independent cuboid and polyhedral surface-integral regressions and analytical cylinder and circular-current invariants ([#46](https://github.com/p-sira/magba/pull/46), [#47](https://github.com/p-sira/magba/pull/47)).
 
 ## 0.7
 

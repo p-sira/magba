@@ -10,7 +10,8 @@ use enum_dispatch::enum_dispatch;
 use crate::{
     base::{Float, Pose, Source, Transform},
     magnets::{
-        CuboidMagnet, CylinderMagnet, Dipole, SphereMagnet, TetrahedronMagnet, TriangleMagnet,
+        CuboidMagnet, CylinderMagnet, CylinderSegmentMagnet, Dipole, SphereMagnet,
+        TetrahedronMagnet, TriangleMagnet,
     },
 };
 
@@ -39,6 +40,7 @@ display_enum! {
     #[enum_dispatch(Source<T>, Transform<T>,)]
     pub enum Magnet<T: Float = f64> {
         Cylinder(CylinderMagnet<T>),
+        CylinderSegment(CylinderSegmentMagnet<T>),
         Cuboid(CuboidMagnet<T>),
         Dipole(Dipole<T>),
         Sphere(SphereMagnet<T>),

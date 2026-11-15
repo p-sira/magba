@@ -54,6 +54,7 @@
 
 mod cuboid;
 mod cylinder;
+mod cylinder_segment;
 mod dipole;
 mod sphere;
 mod tetrahedron;
@@ -61,6 +62,7 @@ mod triangle;
 
 pub use cuboid::CuboidMagnet;
 pub use cylinder::CylinderMagnet;
+pub use cylinder_segment::CylinderSegmentMagnet;
 pub use dipole::Dipole;
 pub use sphere::SphereMagnet;
 pub use tetrahedron::TetrahedronMagnet;
