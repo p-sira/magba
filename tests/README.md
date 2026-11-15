@@ -10,42 +10,50 @@ The observer points are generated using `get_points` and `get_points_small` func
 
 ## Accuracy Report
 
-This report is generated on magba 0.8.0 (x86_64, linux) using the committed MagPyLib 1,000-point grids. Regenerate it with `cargo run --release --example generate_error_report`.
+This report is generated on AMD Ryzen 5 4600H with Radeon Graphics @2.4 GHz RAM 16 GB running x86_64-unknown-linux-gnu rustc 1.99.1 using magba v0.8.0. The performance is benchmarked using Criterion, and the average compute times are divided by the number of test cases (1,000) to get the approximate time to compute the field function for one observer point.
 
-Relative error is `‖B − B_ref‖₂ / ‖B_ref‖₂`; absolute error is `‖B − B_ref‖₂` in teslas. Errors are computed in `f64` without an absolute cutoff or normalization by machine epsilon. Equal zero vectors have zero error; a nonzero result against a zero reference has infinite relative error. The maximum absolute error and worst relative observer can occur at different points. The `f32` results include input rounding and pose transformations.
+The performance column uses the latest local Criterion results; `—` indicates a missing benchmark. Benchmark geometry differs from the accuracy grid.
 
-These grids measure agreement with MagPyLib. Cylinder fields retain native `f32` arithmetic; their percent-level worst-case cancellation remains unresolved. The grid tests complement the independent Wolfram fixtures in `tests/high_precision.rs`, which check both precisions at four poses. Cylinder-segment MagPyLib references can lose accuracy in the far field; independent integral and dipole-limit regressions adjudicate those cases. Run `cargo bench --bench bench` separately for performance; benchmark geometry differs from the accuracy grid.
+Regenerate timings with `cargo bench --bench bench --no-default-features --features std,mesh`, then regenerate this report with `cargo run --release --example generate_error_report`.
+
+Relative error is `‖B − B_ref‖₂ / ‖B_ref‖₂`, computed in `f64` without an absolute cutoff. Equal zero vectors have zero error; a nonzero result against a zero reference has infinite relative error. The `f32` results include input rounding and pose transformations.
+
+These grids measure agreement with MagPyLib. The grid tests complement the independent Wolfram fixtures in `tests/high_precision.rs`, which check both precisions at four poses. Cylinder-segment MagPyLib references can lose accuracy in the far field; independent integral and dipole-limit regressions adjudicate those cases.
 
 ### Relative Error: f64
 
-| Source | Median relative | P95 relative | Max relative | Max absolute (T) | Worst relative observer (m) |
-|---|---:|---:|---:|---:|---|
-| CircularCurrent | 3.608e-16 | 1.461e-15 | 4.162e-14 | 1.710e-18 | (-0.055556, -0.277778, 0.277778) |
-| PathCurrent | 9.036e-16 | 2.944e-15 | 5.019e-14 | 3.964e-20 | (0.166667, 0.166667, 0.388889) |
-| SheetCurrent | 7.119e-15 | 1.431e-13 | 4.770e-12 | 1.060e-19 | (-0.500000, -0.277778, -0.500000) |
-| TriangleCurrent | 6.697e-15 | 1.264e-13 | 2.876e-11 | 6.942e-20 | (0.055556, -0.277778, 0.055556) |
-| CylinderMagnet | 2.852e-13 | 2.049e-12 | 7.113e-11 | 9.064e-14 | (-0.388889, 0.388889, -0.388889) |
-| CylinderSegmentMagnet | 1.101e-7 | 1.390e-6 | 1.822e-5 | 9.181e-10 | (-0.277778, 0.055556, -0.500000) |
-| CuboidMagnet | 1.471e-14 | 7.067e-14 | 2.061e-13 | 4.684e-15 | (0.500000, -0.388889, -0.500000) |
-| Dipole | 3.699e-16 | 9.114e-16 | 1.701e-15 | 2.989e-18 | (0.055556, -0.055556, 0.166667) |
-| SphereMagnet | 3.827e-16 | 9.076e-16 | 1.756e-15 | 1.360e-15 | (0.055556, -0.055556, 0.166667) |
-| TetrahedronMagnet | 6.649e-14 | 6.427e-13 | 5.301e-11 | 7.905e-14 | (-0.388889, -0.277778, 0.388889) |
-| TriangleMagnet | 3.274e-15 | 4.117e-14 | 4.337e-12 | 2.532e-14 | (0.055556, -0.500000, -0.277778) |
-| MeshMagnet | 6.649e-14 | 6.427e-13 | 5.301e-11 | 7.905e-14 | (-0.388889, -0.277778, 0.388889) |
+| Function              | Median    | Mean      | P95       | Max       | Performance |
+|-----------------------|-----------|-----------|-----------|-----------|-------------|
+| CircularCurrent       | 3.607e-16 | 5.664e-16 | 1.455e-15 | 4.162e-14 | 63.5 ns     |
+| PathCurrent           | 9.029e-16 | 1.193e-15 | 2.899e-15 | 5.019e-14 | 51.9 ns     |
+| SheetCurrent          | 7.096e-15 | 5.714e-14 | 1.399e-13 | 4.770e-12 | 345.6 ns    |
+| TriangleCurrent       | 6.691e-15 | 9.978e-14 | 1.220e-13 | 2.876e-11 | 205.9 ns    |
+| CylinderMagnet        | 2.851e-13 | 7.409e-13 | 2.044e-12 | 7.113e-11 | 174.7 ns    |
+| CylinderSegmentMagnet | 1.099e-7  | 4.251e-7  | 1.370e-6  | 1.822e-5  | 8.5 µs      |
+| CuboidMagnet          | 1.468e-14 | 2.188e-14 | 6.847e-14 | 2.061e-13 | 419.5 ns    |
+| Dipole                | 3.697e-16 | 4.288e-16 | 9.060e-16 | 1.701e-15 | 8.0 ns      |
+| SphereMagnet          | 3.824e-16 | 4.341e-16 | 9.009e-16 | 1.756e-15 | 5.8 ns      |
+| TetrahedronMagnet     | 6.640e-14 | 2.881e-13 | 6.224e-13 | 5.301e-11 | 397.3 ns    |
+| TriangleMagnet        | 3.253e-15 | 1.620e-14 | 4.089e-14 | 4.337e-12 | 156.6 ns    |
+| MeshMagnet            | 6.640e-14 | 2.881e-13 | 6.224e-13 | 5.301e-11 | 352.6 ns    |
 
 ### Relative Error: f32
 
-| Source | Median relative | P95 relative | Max relative | Max absolute (T) | Worst relative observer (m) |
-|---|---:|---:|---:|---:|---|
-| CircularCurrent | 2.117e-7 | 7.572e-7 | 1.900e-5 | 7.806e-10 | (-0.055556, -0.277778, 0.277778) |
-| PathCurrent | 2.752e-7 | 7.406e-7 | 5.747e-6 | 4.538e-12 | (0.166667, 0.166667, 0.388889) |
-| SheetCurrent | 4.250e-7 | 1.715e-6 | 2.080e-5 | 6.920e-13 | (-0.277778, -0.166667, -0.500000) |
-| TriangleCurrent | 4.290e-7 | 1.659e-6 | 1.527e-5 | 1.193e-13 | (0.166667, -0.500000, -0.055556) |
-| CylinderMagnet | 2.623e-5 | 3.112e-4 | 3.177e-2 | 3.167e-5 | (-0.500000, 0.500000, -0.500000) |
-| CylinderSegmentMagnet | 2.651e-7 | 1.422e-6 | 1.831e-5 | 5.590e-9 | (-0.277778, 0.055556, -0.500000) |
-| CuboidMagnet | 6.085e-6 | 2.696e-5 | 9.380e-5 | 5.554e-7 | (-0.500000, 0.500000, -0.500000) |
-| Dipole | 1.234e-7 | 3.062e-7 | 5.281e-7 | 5.378e-10 | (0.166667, 0.277778, 0.277778) |
-| SphereMagnet | 1.153e-7 | 2.834e-7 | 5.084e-7 | 2.638e-7 | (0.055556, 0.166667, 0.055556) |
-| TetrahedronMagnet | 3.667e-6 | 1.119e-5 | 2.277e-5 | 2.775e-7 | (0.500000, -0.388889, -0.277778) |
-| TriangleMagnet | 4.777e-7 | 1.187e-6 | 1.927e-6 | 2.251e-7 | (0.388889, 0.166667, -0.500000) |
-| MeshMagnet | 3.667e-6 | 1.119e-5 | 2.277e-5 | 2.775e-7 | (0.500000, -0.388889, -0.277778) |
+> [!NOTE]
+> Reference solutions are computed in 64-bit double precision (`f64`). For single precision (`f32`), the machine epsilon is $\epsilon \approx 1.192 \times 10^{-7}$ ($2^{-23}$). Errors below are scaled by `f32::EPSILON` and expressed in units of machine epsilon ($\epsilon$).
+> Cylinder fields compute in native `f32` arithmetic, which can introduce cancellation, as evidenced by the results below.
+
+| Function              | Median (ε) | Mean (ε) | P95 (ε)  | Max (ε) | Performance |
+|-----------------------|------------|----------|----------|---------|-------------|
+| CircularCurrent       | 1.773      | 2.688    | 6.244    | 159.370 | 58.1 ns     |
+| PathCurrent           | 2.308      | 2.867    | 6.212    | 48.206  | 49.8 ns     |
+| SheetCurrent          | 3.563      | 5.239    | 14.210   | 174.457 | 260.4 ns    |
+| TriangleCurrent       | 3.596      | 5.224    | 13.769   | 128.081 | 133.9 ns    |
+| CylinderMagnet        | 219.031    | 1632.625 | 2549.053 | 2.665e5 | 99.3 ns     |
+| CylinderSegmentMagnet | 2.221      | 4.558    | 11.930   | 153.607 | 7.1 µs      |
+| CuboidMagnet          | 50.929     | 75.300   | 226.043  | 786.855 | 192.8 ns    |
+| Dipole                | 1.034      | 1.183    | 2.562    | 4.430   | 7.7 ns      |
+| SphereMagnet          | 0.967      | 1.117    | 2.369    | 4.265   | 3.0 ns      |
+| TetrahedronMagnet     | 30.729     | 37.439   | 93.598   | 190.986 | 177.6 ns    |
+| TriangleMagnet        | 4.005      | 4.560    | 9.929    | 16.162  | 82.1 ns     |
+| MeshMagnet            | 30.729     | 37.439   | 93.598   | 190.986 | 197.1 ns    |
