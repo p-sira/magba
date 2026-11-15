@@ -6,7 +6,7 @@
 //! Testing utilities.
 
 use csv::ReaderBuilder;
-use nalgebra::{DMatrix, Point3, RealField, UnitQuaternion, Vector3, distance, point, vector};
+use nalgebra::{DMatrix, Point3, RealField, UnitQuaternion, Vector3, Vector5, distance, point, vector};
 use std::{
     fmt::{Debug, LowerExp},
     fs::File,
@@ -333,6 +333,16 @@ impl<T: Float> ScaleParam<T> for T {
 impl<T: Float> ScaleParam<T> for Vector3<T> {
     fn scale_param(self, scale: T) -> Self {
         self / scale
+    }
+}
+
+// Cylinder segment dimensions: scale only lengths, leaving azimuth angles in degrees.
+impl<T: Float> ScaleParam<T> for Vector5<T> {
+    fn scale_param(mut self, scale: T) -> Self {
+        for dimension in self.fixed_rows_mut::<3>(0).iter_mut() {
+            *dimension /= scale;
+        }
+        self
     }
 }
 

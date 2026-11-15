@@ -112,8 +112,8 @@ pub mod prelude {
     #[cfg(feature = "mesh")]
     pub use currents::SheetCurrent;
     pub use magnets::{
-        CuboidMagnet, CylinderMagnet, Dipole, Magnet, SphereMagnet, TetrahedronMagnet,
-        TriangleMagnet,
+        CuboidMagnet, CylinderMagnet, CylinderSegmentMagnet, Dipole, Magnet, SphereMagnet,
+        TetrahedronMagnet, TriangleMagnet,
     };
     pub use sensors::{Sensor, hall_effect};
 

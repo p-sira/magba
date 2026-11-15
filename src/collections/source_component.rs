@@ -10,8 +10,8 @@ use crate::{
     collections::{SourceArray, SourceAssembly},
     currents::{CircularCurrent, Current, PathCurrent, TriangleCurrent},
     magnets::{
-        CuboidMagnet, CylinderMagnet, Dipole, Magnet, SphereMagnet, TetrahedronMagnet,
-        TriangleMagnet,
+        CuboidMagnet, CylinderMagnet, CylinderSegmentMagnet, Dipole, Magnet, SphereMagnet,
+        TetrahedronMagnet, TriangleMagnet,
     },
 };
 
@@ -118,6 +118,7 @@ macro_rules! impl_transitive_from_current {
 
 impl_transitive_from_magnet!(
     CylinderMagnet,
+    CylinderSegmentMagnet,
     CuboidMagnet,
     Dipole,
     SphereMagnet,

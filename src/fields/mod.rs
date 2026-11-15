@@ -62,6 +62,7 @@ mod bulirsch_cel_axial;
 mod field_circular;
 mod field_cuboid;
 mod field_cylinder;
+mod field_cylinder_segment;
 mod field_dipole;
 #[cfg(feature = "alloc")]
 mod field_path_current;
@@ -75,6 +76,7 @@ mod field_triangle_current;
 pub use field_circular::{circular_B, circular_B_batch};
 pub use field_cuboid::{cuboid_B, cuboid_B_batch};
 pub use field_cylinder::{cylinder_B, cylinder_B_batch};
+pub use field_cylinder_segment::{cylinder_segment_B, cylinder_segment_B_batch};
 pub use field_dipole::{dipole_B, dipole_B_batch};
 #[cfg(feature = "alloc")]
 pub use field_path_current::{path_current_B, path_current_B_batch};
@@ -95,6 +97,7 @@ crate::crate_utils::need_unstable! {
     pub use field_cylinder::{
         cylinder_B_cyl, local_cylinder_B, unit_axial_cylinder_B_cyl, unit_diametric_cylinder_B_cyl,
     };
+    pub use field_cylinder_segment::local_cylinder_segment_B;
     pub use field_dipole::local_dipole_B;
     pub use field_sphere::local_sphere_B;
     pub use field_tetrahedron::{local_tetrahedron_B, tetrahedron_B_precomputed, precompute_tetrahedron};

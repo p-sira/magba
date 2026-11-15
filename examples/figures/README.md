@@ -152,12 +152,14 @@ figure convention, so image resolution is independent of the generated page path
 
 ## Magnet type examples
 
-Each magnet type's Graphics section shows a generated `magnet_*.png` preview
-using the default DIN palette. The separate runnable examples trace the full
-field; opaque surfaces hide interior line segments.
+Each magnet type's Graphics section shows a generated `magnet_*.png` preview.
+Most use the default DIN palette; the cylinder segment preview additionally
+demonstrates Okabe–Ito. The runnable examples trace the full field; opaque
+surfaces hide interior line segments.
 
 - [Cuboid](../graphics/magnets/cuboid.rs): `magnet_cuboid.png`.
 - [Cylinder](../graphics/magnets/cylinder.rs): `magnet_cylinder.png`.
+- [Cylinder segment](../graphics/magnets/cylinder_segment.rs): `magnet_cylinder_segment.png` (two broad DIN sectors flanking a smaller 40° Okabe–Ito sector).
 - [Sphere](../graphics/magnets/sphere.rs): `magnet_sphere.png`.
 - [Tetrahedron](../graphics/magnets/tetrahedron.rs): `magnet_tetrahedron.png`.
 - [Triangle](../graphics/magnets/triangle.rs): `magnet_triangle.png`.

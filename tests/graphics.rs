@@ -24,6 +24,7 @@ fn hidden_objects_preserve_existing_plot_traces_and_layout() {
 
     check(&CuboidMagnet::<f64>::default());
     check(&CylinderMagnet::<f64>::default());
+    check(&CylinderSegmentMagnet::<f64>::default());
     check(&SphereMagnet::<f64>::default());
     check(&TetrahedronMagnet::<f64>::default());
     check(&TriangleMagnet::<f64>::default());
@@ -96,6 +97,24 @@ fn cuboid_geometry_uses_dimensions_rotation_and_translation() {
 }
 
 #[test]
+fn cylinder_segment_geometry_renders_angular_and_radial_boundaries() {
+    let options = GraphicsOptions::default().with_segments(12);
+    let sector =
+        CylinderSegmentMagnet::<f64>::default().with_dimensions([1.0, 2.0, 2.0, 0.0, 90.0]);
+    let plot: Value = serde_json::from_str(&sector.plot_with_options(&options).to_json()).unwrap();
+    let trace = &plot["data"][0];
+    // Three angular subdivisions, four arcs (inner/outer x upper/lower).
+    assert_eq!(trace["x"].as_array().unwrap().len(), 16);
+    assert_eq!(trace["i"].as_array().unwrap().len(), 28);
+    assert!((trace["x"][0].as_f64().unwrap() - 2.0).abs() < 1e-12);
+    assert!((trace["y"][3].as_f64().unwrap() - 2.0).abs() < 1e-12);
+
+    let ring = sector.with_dimensions([1.0, 2.0, 2.0, 0.0, 360.0]);
+    let plot: Value = serde_json::from_str(&ring.plot_with_options(&options).to_json()).unwrap();
+    assert_eq!(plot["data"][0]["i"].as_array().unwrap().len(), 96);
+}
+
+#[test]
 fn nested_assemblies_apply_parent_transforms_once() {
     let magnet = TriangleMagnet::<f64>::default();
     let mut assembly = sources!(sources!(magnet.clone()));
@@ -113,6 +132,7 @@ fn built_in_variants_and_arrays_produce_traces() {
     let sources = sources!(
         CuboidMagnet::<f64>::default(),
         CylinderMagnet::default(),
+        CylinderSegmentMagnet::default(),
         SphereMagnet::default(),
         Dipole::default(),
         TriangleMagnet::default(),
@@ -123,7 +143,7 @@ fn built_in_variants_and_arrays_produce_traces() {
     );
     let plot = data(&sources);
     let traces = plot["data"].as_array().unwrap();
-    assert_eq!(traces.len(), 9);
+    assert_eq!(traces.len(), 10);
     for trace in traces {
         for axis in ["x", "y", "z"] {
             assert!(
