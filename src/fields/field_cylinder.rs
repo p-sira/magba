@@ -35,6 +35,16 @@ use crate::{
 #[inline]
 #[num_lazy_proc::generic_float(T)]
 pub fn unit_axial_cylinder_B_cyl<T: Float>(r: T, z: T, z0: T) -> Vector3<T> {
+    // The endpoint CEL values can nearly agree outside a small magnet.
+    if EPS > 1e-10 {
+        return unit_axial_cylinder_B_cyl(
+            r.to_f64().unwrap(),
+            z.to_f64().unwrap(),
+            z0.to_f64().unwrap(),
+        )
+        .map(|v| T::from(v).unwrap());
+    }
+
     let (zp, zm) = (z + z0, z - z0);
     let (rp, rm) = (1.0 + r, 1.0 - r);
 
@@ -94,6 +104,19 @@ fn diametric_cylinder_b_cyl_with_factors<T: Float>(
     radial_factor: T,
     tangential_factor: T,
 ) -> Vector3<T> {
+    // Transverse elliptic terms and near-axis Taylor endpoint differences
+    // cancel strongly. Keep intermediates in f64 for f32 callers.
+    if EPS > 1e-10 {
+        let b = diametric_cylinder_b_cyl_with_factors(
+            r.to_f64().unwrap(),
+            z.to_f64().unwrap(),
+            z0.to_f64().unwrap(),
+            radial_factor.to_f64().unwrap(),
+            tangential_factor.to_f64().unwrap(),
+        );
+        return b.map(|v| T::from(v).unwrap());
+    }
+
     let (zp, zm) = (z + z0, z - z0);
     let (zp2, zm2) = (zp * zp, zm * zm);
     let r2 = r * r;
