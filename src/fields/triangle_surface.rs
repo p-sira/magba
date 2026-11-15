@@ -35,12 +35,17 @@ impl<T: Float> TriangleSurface<T> {
         })
     }
 
-    /// Integral of R/|R|³ divided by 4π, and the oriented solid angle.
+    /// Oriented solid angle without the edge integrals needed for a field.
     #[inline]
-    #[num_lazy_proc::generic_float(T)]
-    pub fn field_with_solid_angle(&self, point: Point3<T>) -> (Vector3<T>, T) {
+    pub fn solid_angle(&self, point: Point3<T>) -> T {
         let r = self.vertices.map(|v| v - point.coords);
         let distances = r.map(|v| v.norm());
+        self.solid_angle_from_vectors(&r, &distances)
+    }
+
+    #[inline]
+    #[num_lazy_proc::generic_float(T)]
+    fn solid_angle_from_vectors(&self, r: &[Vector3<T>; 3], distances: &[T; 3]) -> T {
         // Use source edges for the determinant. Cross products of distant
         // observer-to-vertex vectors discard the triangle's small area.
         let numerator = -r[0].dot(&self.area_vector);
@@ -53,8 +58,16 @@ impl<T: Float> TriangleSurface<T> {
             + r[2].dot(&r[1]) * distances[0]
             + r[2].dot(&r[0]) * distances[1]
             + r[1].dot(&r[0]) * distances[2];
-        let omega = 2.0 * NumFloat::atan2(numerator, denominator);
+        2.0 * NumFloat::atan2(numerator, denominator)
+    }
 
+    /// Integral of R/|R|³ divided by 4π, and the oriented solid angle.
+    #[inline]
+    #[num_lazy_proc::generic_float(T)]
+    pub fn field_with_solid_angle(&self, point: Point3<T>) -> (Vector3<T>, T) {
+        let r = self.vertices.map(|v| v - point.coords);
+        let distances = r.map(|v| v.norm());
+        let omega = self.solid_angle_from_vectors(&r, &distances);
         let mut edge_integral = Vector3::zeros();
         for i in 0..3 {
             let length = self.lengths[i];

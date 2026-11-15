@@ -42,6 +42,11 @@ impl<T: Float> PrecomputedMagnetizedTriangle<T> {
     #[inline]
     #[allow(non_snake_case)]
     pub(crate) fn compute_B_with_solid_angle(&self, point: Point3<T>) -> (Vector3<T>, T) {
+        // Uncharged faces still contribute to mesh containment, but their
+        // field is zero and needs no edge logarithms or asinh evaluations.
+        if self.sigma == T::zero() {
+            return (Vector3::zeros(), self.surface.solid_angle(point));
+        }
         let (field, omega) = self.surface.field_with_solid_angle(point);
         let field = field * self.sigma;
         let field = if field.iter().any(|v| v.is_nan()) {
