@@ -1,5 +1,8 @@
 //! Generate the mesh magnet Rustdoc field-line preview.
 
+#[path = "../common/mod.rs"]
+mod common;
+
 use magba::{graphics::FieldLineOptions, prelude::*};
 use nalgebra::{point, vector};
 
@@ -40,6 +43,5 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             ..Default::default()
         },
     )?;
-    std::fs::write("mesh_field.html", plot.to_html())?;
-    Ok(())
+    common::save_preview(plot, "mesh_field.html")
 }

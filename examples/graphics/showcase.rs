@@ -15,12 +15,12 @@ use magba::{
     prelude::*,
     sources,
 };
-use serde_json::{Value, json};
+use serde_json::json;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let sphere = SphereMagnet::<f64>::default().with_diameter(0.02);
     let sphere = exterior(sphere);
-    let grid = FieldGrid::new(Plane::XZ, 0.0, [-0.035, 0.035], [-0.035, 0.035], [101, 101])?;
+    let grid = FieldGrid::new(Plane::XZ, 0.0, [-0.035, 0.035], [-0.035, 0.035], [181, 181])?;
     let slice = sphere.sample_field(&grid)?;
     let lines = FieldLineOptions {
         step_size: 0.0004,
@@ -52,7 +52,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     let mut components = slice.heatmap(FieldComponent::Z);
-    let arrows = FieldGrid::new(Plane::XZ, 0.0, [-0.032, 0.032], [-0.032, 0.032], [17, 17])?;
+    components.add_trace(
+        Scatter::new(
+            angles.iter().map(|t| 0.01 * t.cos()).collect(),
+            angles.iter().map(|t| 0.01 * t.sin()).collect(),
+        )
+        .mode(Mode::Lines)
+        .line(Line::new().color("white").width(2.0))
+        .show_legend(false),
+    );
+    let arrows = FieldGrid::new(Plane::XZ, 0.0, [-0.032, 0.032], [-0.032, 0.032], [13, 13])?;
     sphere.sample_field(&arrows)?.add_quiver(
         &mut components,
         QuiverOptions {
@@ -97,22 +106,23 @@ fn subplot_html(panels: [Plot; 4]) -> Result<String, Box<dyn std::error::Error>>
     let mut layout = json!({
         "title": {
             "text": "Magba · Magnetic fields in four views", "x": 0.5,
-            "font": {"size": 32},
+            "font": {"size": 30, "color": "#263445"},
         },
         "width": 1400, "height": 1100,
         "margin": {"l": 75, "r": 110, "t": 100, "b": 90},
-        "font": {"family": "Arial, sans-serif", "size": 14},
+        "font": {"family": "Arial, sans-serif", "size": 17, "color": "#263445"},
         "showlegend": false,
+        "paper_bgcolor": "white", "plot_bgcolor": "#f8fafc",
         "annotations": [],
     });
     let titles = [
-        "3D geometry and directed field lines",
-        "Field magnitude and streamlines",
-        "Bz and in-plane field arrows",
-        "Collection and 3D field arrows",
+        "<b>A</b>  Sphere field lines",
+        "<b>B</b>  Magnitude and streamlines",
+        "<b>C</b>  Axial field and direction",
+        "<b>D</b>  Combined sources and field",
     ];
     for (i, panel) in panels.into_iter().enumerate() {
-        let panel: Value = serde_json::from_str(&panel.to_json())?;
+        let panel = common::styled_figure(&panel)?;
         let x = if i % 2 == 0 {
             [0.0, 0.41]
         } else {
@@ -128,7 +138,7 @@ fn subplot_html(panels: [Plot; 4]) -> Result<String, Box<dyn std::error::Error>>
         if i == 0 || i == 3 {
             layout[scene] = panel["layout"]["scene"].clone();
             layout[scene]["domain"] = json!({"x": x, "y": y});
-            layout[scene]["camera"] = json!({"eye": {"x": 1.4, "y": 1.4, "z": 1.15}});
+            layout[scene]["camera"]["center"]["z"] = json!(-0.16);
         } else {
             layout[xlayout] = panel["layout"]["xaxis"].clone();
             layout[ylayout] = panel["layout"]["yaxis"].clone();
@@ -160,9 +170,21 @@ fn subplot_html(panels: [Plot; 4]) -> Result<String, Box<dyn std::error::Error>>
                     if i == 1 {
                         trace["zmin"] = json!(0.0);
                         trace["zmax"] = json!(0.2);
+                        trace["colorbar"]["tickvals"] = json!([0, 0.05, 0.1, 0.15, 0.2]);
+                        trace["colorbar"]["ticktext"] =
+                            json!(["0", "0.05", "0.10", "0.15", "≥0.20"]);
                     } else {
                         trace["zmin"] = json!(-0.15);
                         trace["zmax"] = json!(0.15);
+                        trace["colorscale"] = json!([
+                            [0.0, "#2166ac"],
+                            [0.25, "#92c5de"],
+                            [0.5, "#f7f7f7"],
+                            [0.75, "#f4a582"],
+                            [1.0, "#b2182b"]
+                        ]);
+                        trace["colorbar"]["tickvals"] = json!([-0.15, 0, 0.15]);
+                        trace["colorbar"]["ticktext"] = json!(["≤−0.15", "0", "≥0.15"]);
                     }
                 }
             }
@@ -174,18 +196,9 @@ fn subplot_html(panels: [Plot; 4]) -> Result<String, Box<dyn std::error::Error>>
             .push(json!({
                 "text": titles[i], "x": (x[0]+x[1])/2.0, "y": y[1]+0.035,
                 "xref": "paper", "yref": "paper", "showarrow": false,
-                "xanchor": "center", "font": {"size": 24},
+                "xanchor": "center", "font": {"size": 22},
             }));
     }
     let figure = json!({"data": data, "layout": layout});
-    let script = format!(
-        r#"<script>
-window.addEventListener('load', async () => {{
-    const figure = {figure};
-    await Plotly.react(document.querySelector('.js-plotly-plot'), figure.data, figure.layout, {{responsive: true}});
-    window.magbaShowcaseReady = true;
-}});
-</script></body>"#
-    );
-    Ok(Plot::new().to_html().replace("</body>", &script))
+    Ok(common::figure_html(&figure))
 }

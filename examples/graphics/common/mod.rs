@@ -1,30 +1,141 @@
 #[allow(dead_code)]
 pub mod exterior;
 
-use magba::graphics::plotly::{
-    Plot,
-    common::{Font, Orientation, Title},
-    layout::{Legend, Margin},
-};
+use magba::graphics::plotly::Plot;
+use serde_json::{Value, json};
 
-pub fn save(mut plot: Plot, title: &str, filename: &str) -> Result<(), Box<dyn std::error::Error>> {
-    plot.set_layout(
-        plot.layout()
-            .clone()
-            .title(Title::with_text(title).font(Font::new().size(32)))
-            .width(1100)
-            .height(800)
-            .margin(Margin::new().top(140))
-            .font(Font::new().family("Arial, sans-serif").size(15))
-            .legend(
-                Legend::new()
-                    .font(Font::new().size(24))
-                    .orientation(Orientation::Horizontal)
-                    .x(0.0)
-                    .y(1.08),
-            ),
+/// Shared presentation for field examples; coordinates and field samples stay in SI units.
+pub fn styled_figure(plot: &Plot) -> Result<Value, Box<dyn std::error::Error>> {
+    let mut figure: Value = serde_json::from_str(&plot.to_json())?;
+    // Leave room between the outermost ticks and the corners of the 3D box.
+    for coordinate in ["x", "y", "z"] {
+        let values = figure["data"]
+            .as_array()
+            .into_iter()
+            .flatten()
+            .filter_map(|trace| trace[coordinate].as_array())
+            .flatten()
+            .filter_map(Value::as_f64)
+            .filter(|value| value.is_finite());
+        let (min, max) = values.fold((f64::INFINITY, f64::NEG_INFINITY), |(min, max), value| {
+            (min.min(value), max.max(value))
+        });
+        if figure["layout"]["scene"].is_object() && min < max {
+            let padding = (max - min) * 0.08;
+            figure["layout"]["scene"][format!("{coordinate}axis")]["range"] =
+                json!([min - padding, max + padding]);
+        }
+    }
+    let layout = &mut figure["layout"];
+    layout["font"] = json!({"family": "Arial, sans-serif", "size": 18, "color": "#263445"});
+    layout["paper_bgcolor"] = json!("white");
+    if layout["xaxis"].is_object() {
+        layout["plot_bgcolor"] = json!("#f8fafc");
+    }
+    for name in ["xaxis", "yaxis"] {
+        if layout[name].is_object() {
+            style_axis(&mut layout[name]);
+            layout[name]["constrain"] = json!("domain");
+        }
+    }
+    if layout["scene"].is_object() {
+        let scene = &mut layout["scene"];
+        scene["camera"] =
+            json!({"eye": {"x": 1.4, "y": 1.4, "z": 1.2}, "center": {"x": 0, "y": 0, "z": -0.08}});
+        for name in ["xaxis", "yaxis", "zaxis"] {
+            style_axis(&mut scene[name]);
+            scene[name]["tickfont"]["size"] = json!(13);
+            scene[name]["showbackground"] = json!(true);
+            scene[name]["backgroundcolor"] = json!("#f8fafc");
+        }
+    }
+    let heatmap = figure["data"]
+        .as_array()
+        .is_some_and(|data| data.iter().any(|trace| trace["type"] == "heatmap"));
+    if heatmap {
+        for name in ["xaxis", "yaxis"] {
+            figure["layout"][name]["showgrid"] = json!(false);
+        }
+    }
+    for trace in figure["data"].as_array_mut().ok_or("Missing plot traces")? {
+        match trace["name"].as_str() {
+            Some("Field lines") => {
+                trace["line"]["width"] = json!(if heatmap { 2.2 } else { 4.0 });
+            }
+            Some("B direction") => {
+                trace["line"]["color"] = json!(if heatmap { "#172554" } else { "#1d4ed8" });
+                trace["line"]["width"] = json!(2.2);
+            }
+            _ => {}
+        }
+        if trace["type"] == "heatmap" {
+            trace["colorbar"]["x"] = json!(0.88);
+            trace["colorbar"]["outlinewidth"] = json!(0);
+            trace["colorbar"]["thickness"] = json!(18);
+            trace["colorbar"]["tickfont"] = json!({"size": 16});
+        }
+    }
+    Ok(figure)
+}
+
+fn style_axis(axis: &mut Value) {
+    axis["showgrid"] = json!(true);
+    axis["gridcolor"] = json!("#dce3eb");
+    axis["zeroline"] = json!(false);
+    axis["showline"] = json!(true);
+    axis["linecolor"] = json!("#a8b4c3");
+    axis["tickfont"] = json!({"size": 15});
+    axis["tickformat"] = json!(".3~f");
+    axis["nticks"] = json!(5);
+    axis["title"]["font"] = json!({"size": 18});
+}
+
+#[allow(dead_code)]
+pub fn save(plot: Plot, title: &str, filename: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let mut figure = styled_figure(&plot)?;
+    let layout = &mut figure["layout"];
+    layout["title"] = json!({"text": title, "x": 0.06, "xanchor": "left", "font": {"size": 25}});
+    layout["width"] = json!(1100);
+    layout["height"] = json!(800);
+    layout["margin"] = json!({"l": 85, "r": 90, "t": 125, "b": 80});
+    layout["legend"] = json!({
+        "font": {"size": 17}, "orientation": "h", "x": 0.0, "y": 1.025,
+        "yanchor": "bottom", "itemsizing": "constant",
+    });
+    save_html(&figure_html(&figure), filename)
+}
+
+/// Compact, consistently styled previews for each magnet type's documentation.
+#[allow(dead_code)]
+pub fn save_preview(plot: Plot, filename: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let mut figure = styled_figure(&plot)?;
+    let layout = &mut figure["layout"];
+    layout["width"] = json!(880);
+    layout["height"] = json!(600);
+    layout["margin"] = json!({"l": 45, "r": 45, "t": 65, "b": 45});
+    layout["font"]["size"] = json!(16);
+    layout["legend"] = json!({
+        "font": {"size": 15}, "orientation": "h", "x": 0.0, "y": 1.03,
+        "yanchor": "bottom", "itemsizing": "constant",
+    });
+    save_html(&figure_html(&figure), filename)
+}
+
+/// Keep Plotly embedded for offline viewing and use the same figure for PNG export.
+pub fn figure_html(figure: &Value) -> String {
+    let script = format!(
+        r#"<script>
+window.addEventListener('load', async () => {{
+    const figure = {figure};
+    await Plotly.react(document.querySelector('.js-plotly-plot'), figure.data, figure.layout, {{
+        responsive: true,
+        toImageButtonOptions: {{format: 'png', width: figure.layout.width, height: figure.layout.height, scale: 1.5}}
+    }});
+    window.magbaFigureReady = true;
+}});
+</script></body>"#
     );
-    save_html(&plot.to_html(), filename)
+    Plot::new().to_html().replace("</body>", &script)
 }
 
 pub fn save_html(html: &str, filename: &str) -> Result<(), Box<dyn std::error::Error>> {
