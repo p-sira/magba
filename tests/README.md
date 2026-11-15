@@ -10,7 +10,7 @@ The observer points are generated using `get_points` and `get_points_small` func
 
 ## Accuracy Report
 
-This report is generated on AMD Ryzen 5 4600H with Radeon Graphics @1.4 GHz RAM 16 GB running x86_64-unknown-linux-gnu rustc 1.99.1 using magba v0.8.0. The performance is benchmarked using Criterion, and the average compute times are divided by the number of test cases (1,000) to get the approximate time to compute the field function for one observer point.
+This report is generated on AMD Ryzen 5 4600H with Radeon Graphics @2.4 GHz RAM 16 GB running x86_64-unknown-linux-gnu rustc 1.99.1 using magba v0.8.0. The performance is benchmarked using Criterion, and the average compute times are divided by the number of test cases (1,000) to get the approximate time to compute the field function for one observer point.
 
 The performance column uses the latest local Criterion results; `—` indicates a missing benchmark. Benchmark geometry differs from the accuracy grid.
 
@@ -29,7 +29,7 @@ These grids measure agreement with MagPyLib. The grid tests complement the indep
 | SheetCurrent          | 7.096e-15 | 5.714e-14 | 1.399e-13 | 4.770e-12 | 345.6 ns    |
 | TriangleCurrent       | 6.691e-15 | 9.978e-14 | 1.220e-13 | 2.876e-11 | 205.9 ns    |
 | CylinderMagnet        | 2.851e-13 | 7.409e-13 | 2.044e-12 | 7.113e-11 | 174.7 ns    |
-| CylinderSegmentMagnet | 1.099e-7  | 4.251e-7  | 1.370e-6  | 1.822e-5  | —           |
+| CylinderSegmentMagnet | 1.099e-7  | 4.251e-7  | 1.370e-6  | 1.822e-5  | 8.5 µs      |
 | CuboidMagnet          | 1.468e-14 | 2.188e-14 | 6.847e-14 | 2.061e-13 | 419.5 ns    |
 | Dipole                | 3.697e-16 | 4.288e-16 | 9.060e-16 | 1.701e-15 | 8.0 ns      |
 | SphereMagnet          | 3.824e-16 | 4.341e-16 | 9.009e-16 | 1.756e-15 | 5.8 ns      |
@@ -50,7 +50,7 @@ These grids measure agreement with MagPyLib. The grid tests complement the indep
 | SheetCurrent          | 3.563      | 5.239    | 14.210   | 174.457 | 260.4 ns    |
 | TriangleCurrent       | 3.596      | 5.224    | 13.769   | 128.081 | 133.9 ns    |
 | CylinderMagnet        | 219.031    | 1632.625 | 2549.053 | 2.665e5 | 99.3 ns     |
-| CylinderSegmentMagnet | 2.221      | 4.558    | 11.930   | 153.607 | —           |
+| CylinderSegmentMagnet | 2.221      | 4.558    | 11.930   | 153.607 | 7.1 µs      |
 | CuboidMagnet          | 50.929     | 75.300   | 226.043  | 786.855 | 192.8 ns    |
 | Dipole                | 1.034      | 1.183    | 2.562    | 4.430   | 7.7 ns      |
 | SphereMagnet          | 0.967      | 1.117    | 2.369    | 4.265   | 3.0 ns      |
