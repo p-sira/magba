@@ -124,23 +124,23 @@ crate::testing_util::generate_tests! {
         rotate: 1e-10,
     }
     f32_rtols: {
-        static: 5e-2,
-        static_small: 0.2,
-        translate: 5e-2,
-        rotate: 1e-2,
+        static: 1e-4,
+        static_small: 1e-4,
+        translate: 1e-4,
+        rotate: 1e-4,
     }
     f32_p95_rtols: {
-        static: 1e-3,
-        static_small: 1e-3,
-        translate: 1e-3,
-        rotate: 1e-3,
+        static: 5e-5,
+        static_small: 5e-5,
+        translate: 5e-5,
+        rotate: 5e-5,
     }
 }
 
 #[cfg(all(test, feature = "io-stl"))]
 mod stl_tests {
     use super::*;
-    use crate::testing_util::*;
+    use crate::{base::Source, testing_util::*};
 
     #[test]
     fn test_suzanne() {
@@ -156,8 +156,27 @@ mod stl_tests {
             &mesh,
             &base_path.join("points.csv").to_string_lossy(),
             &base_path.join("suzanne-stl.csv").to_string_lossy(),
+            // The MagPyLib value at observer 420 loses ~2.7e-11 relatively;
+            // the extended-precision integral below checks that point directly.
+            5e-11,
             1e-11,
-            1e-11,
+        );
+        // Analytic surface integrals evaluated independently in NumPy longdouble
+        // (64-bit significand), using exact STL vertices. Regeneration/verification
+        // is included in tests/data/field_stability_generator.py.
+        let field = mesh.compute_B(nalgebra::Point3::new(
+            -0.2777777777777778,
+            -0.05555555555555558,
+            -0.5,
+        ));
+        approx::assert_relative_eq!(
+            field,
+            Vector3::new(
+                0.19765997606671456,
+                0.029222810867144054,
+                0.2582644043044949
+            ),
+            epsilon = 1e-13
         );
     }
 }

@@ -614,3 +614,34 @@ fn polyhedral_zero_charge_and_nan_observer_have_zero_field() {
         Vector3::zeros()
     );
 }
+
+#[test]
+fn observer_on_near_edge_extension_matches_surface_integral() {
+    let vertices = [Vector3::zeros(), Vector3::x(), Vector3::y()];
+    let observer = point![1.1, 0.0, 0.0];
+    let expected = charged_face_quadrature(
+        observer,
+        vertices,
+        Vector3::z(),
+        &gauss_legendre_nodes(QUAD_ORDER),
+    );
+    let actual = triangle_B(
+        observer,
+        Point3::origin(),
+        UnitQuaternion::identity(),
+        Vector3::z(),
+        vertices,
+    );
+    assert!(
+        (actual - expected).norm() < 2e-13 * expected.norm(),
+        "{actual:?} != {expected:?}"
+    );
+    let single = triangle_B(
+        observer.cast::<f32>(),
+        Point3::origin(),
+        UnitQuaternion::identity(),
+        Vector3::z(),
+        vertices.map(|v| v.cast::<f32>()),
+    );
+    assert!((single.cast::<f64>() - expected).norm() < 2e-6 * expected.norm());
+}
