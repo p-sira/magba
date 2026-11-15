@@ -10,13 +10,15 @@ The observer points are generated using `get_points` and `get_points_small` func
 
 ## Accuracy Report
 
-This report is generated on {{TEST_ENV}}. Performance is benchmarked using Criterion; mean batch times are divided by the benchmark's observer count to get the approximate time per observer. The performance column uses the latest local Criterion results; `—` indicates a missing benchmark. Benchmark geometry differs from the accuracy grid.
+This report is generated on {{TEST_ENV}}. The performance is benchmarked using Criterion, and the average compute times are divided by the number of test cases (1,000) to get the approximate time to compute the field function for one observer point.
 
-Regenerate timings with `cargo bench --bench bench`, then regenerate this report with `cargo run --release --example generate_error_report`.
+The performance column uses the latest local Criterion results; `—` indicates a missing benchmark. Benchmark geometry differs from the accuracy grid.
+
+Regenerate timings with `cargo bench --bench bench --no-default-features --features std,mesh`, then regenerate this report with `cargo run --release --example generate_error_report`.
 
 Relative error is `‖B − B_ref‖₂ / ‖B_ref‖₂`, computed in `f64` without an absolute cutoff. Equal zero vectors have zero error; a nonzero result against a zero reference has infinite relative error. The `f32` results include input rounding and pose transformations.
 
-These grids measure agreement with MagPyLib. Cylinder fields retain native `f32` arithmetic; their percent-level worst-case cancellation remains unresolved. The grid tests complement the independent Wolfram fixtures in `tests/high_precision.rs`, which check both precisions at four poses. Cylinder-segment MagPyLib references can lose accuracy in the far field; independent integral and dipole-limit regressions adjudicate those cases.
+These grids measure agreement with MagPyLib. The grid tests complement the independent Wolfram fixtures in `tests/high_precision.rs`, which check both precisions at four poses. Cylinder-segment MagPyLib references can lose accuracy in the far field; independent integral and dipole-limit regressions adjudicate those cases.
 
 ### Relative Error: f64
 
@@ -26,5 +28,6 @@ These grids measure agreement with MagPyLib. Cylinder fields retain native `f32`
 
 > [!NOTE]
 > Reference solutions are computed in 64-bit double precision (`f64`). For single precision (`f32`), the machine epsilon is $\epsilon \approx 1.192 \times 10^{-7}$ ($2^{-23}$). Errors below are scaled by `f32::EPSILON` and expressed in units of machine epsilon ($\epsilon$).
+> Cylinder fields compute in native `f32` arithmetic, which can introduce cancellation, as evidenced by the results below.
 
 {{ERROR_F32}}
