@@ -68,13 +68,13 @@ fn f32_endpoints_reversal_and_batch() {
 
     for (point, batched) in points.into_iter().zip(batch) {
         let expected = reference(point.cast::<f64>(), 2.5);
-        close(batched.cast::<f64>(), expected, 8e-3, 2e-13);
+        close(batched.cast::<f64>(), expected, 2e-6, 1e-20);
         for (wire, sign) in [(&vertices[..], 1.0), (&reverse[..], -1.0)] {
             close(
                 path_current_B(point, position, rotation, 2.5, wire).cast::<f64>(),
                 expected * sign,
-                8e-3,
-                2e-13,
+                2e-6,
+                1e-20,
             );
         }
     }
@@ -105,4 +105,34 @@ fn near_wire_and_cutoff_for_both_precisions() {
         1e-9,
     );
     assert_eq!(field32(Point3::new(1e-16, 0.0, 0.5)), Vector3::zeros());
+}
+
+#[test]
+fn distant_endpoint_fields_remain_nonzero_in_both_precisions() {
+    for z in [-1000.0_f32, -100.0, -20.0, 21.0, 100.0, 1000.0] {
+        let point = Point3::new(0.1_f32, 0.0, z);
+        let expected = reference(point.cast(), 1.0);
+        let vertices = [Vector3::zeros(), Vector3::z()];
+        let actual = path_current_B(
+            point,
+            Point3::origin(),
+            UnitQuaternion::identity(),
+            1.0,
+            &vertices,
+        );
+        close(actual.cast(), expected, 2e-6, 0.0);
+        let vertices64 = vertices.map(|v| v.cast::<f64>());
+        close(
+            path_current_B(
+                point.cast(),
+                Point3::origin(),
+                UnitQuaternion::identity(),
+                1.0,
+                &vertices64,
+            ),
+            expected,
+            2e-14,
+            0.0,
+        );
+    }
 }

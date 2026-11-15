@@ -16,6 +16,8 @@
 
 **Bug Fixes**
 
+- Stabilize finite-wire endpoint differences so distant `f32` path-current fields remain nonzero ([#55](https://github.com/p-sira/magba/pull/55)).
+- Share stable triangle surface integrals across magnet and current-sheet fields, reducing cancellation in `f32` triangle, sheet, tetrahedron, and mesh evaluations ([#55](https://github.com/p-sira/magba/pull/55)).
 - Improve cuboid field accuracy near edges of slender magnets by rationalizing cancellation-prone logarithmic terms, including `f32` results ([#47](https://github.com/p-sira/magba/pull/47)).
 - Use relative face tolerances for STL import, accepting valid small and multiscale meshes consistently with `TriMesh::new` ([#43](https://github.com/p-sira/magba/pull/43)).
 - Require exactly one current density per sheet-current mesh face in constructors, setters, builders, and field functions; reject invalid updates before mutation ([#43](https://github.com/p-sira/magba/pull/43)).
@@ -37,6 +39,7 @@
 
 **Dependencies**
 
+- Remove `reproducible`; compute accuracy metrics directly and read Criterion estimates with the existing `serde_json` dependency ([#55](https://github.com/p-sira/magba/pull/55)).
 - Reduce dependencies by replacing `num-lazy` and `numeric_literals` with `num-lazy-proc` 0.3.0 and replacing `derive_more` and `delegate` with internal enum formatting and shared transform implementations ([#52](https://github.com/p-sira/magba/pull/52), [#53](https://github.com/p-sira/magba/pull/53)).
 - Upgrade `ellip` to 1.2.4 and `codspeed-criterion-compat` to 6 ([#49](https://github.com/p-sira/magba/pull/49)).
 
@@ -45,6 +48,8 @@
 - Streamline routine CI with Ubuntu pairwise feature tests across four parallel runners, separate broad optional-feature coverage, comprehensive manual checks, and smaller test build artifacts using line-table-only debug information ([#45](https://github.com/p-sira/magba/pull/45), [#46](https://github.com/p-sira/magba/pull/46)).
 
 **Testing**
+
+- Add independent integral regressions at former accuracy-grid failures, tighten `f32` accuracy gates, and report absolute and relative errors with worst observer coordinates for all 12 primitives.
 
 - Raise the line-coverage gate to 99.1% and correct the axial CEL fallback test ([#44](https://github.com/p-sira/magba/pull/44)).
 - Validate all 11 field-source primitives in `f32` and `f64` against 169 high-precision Mathematica/Wolfram references across geometries, boundaries, and transforms, supplemented by independent cuboid and polyhedral surface-integral regressions and analytical cylinder and circular-current invariants ([#46](https://github.com/p-sira/magba/pull/46), [#47](https://github.com/p-sira/magba/pull/47)).

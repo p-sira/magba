@@ -58,6 +58,7 @@
 //! ```
 
 mod bulirsch_cel_axial;
+mod triangle_surface;
 
 mod field_circular;
 mod field_cuboid;

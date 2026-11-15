@@ -6,89 +6,27 @@
 //! Analytical B-field computation for homogeneously magnetized triangular surface.
 
 use nalgebra::{Point3, UnitQuaternion, Vector3};
-use num_traits::Float as NumFloat;
 
 use crate::{
     base::{Float, coordinate::compute_in_local},
     crate_utils::impl_parallel,
 };
 
-/// Computes solid angle of a triangle given its local R vectors from observer to vertices.
-/// Vector elements are (R1, R2, R3).
-///
-/// Implements vectorized solid angle computation based on Magpylib's implementation.
-#[inline]
-#[allow(non_snake_case)]
-#[num_lazy_proc::generic_float(T)]
-pub(crate) fn solid_angle<T: Float>(r_vecs: &[Vector3<T>; 3], r_mags: &[T; 3]) -> T {
-    let N = r_vecs[2].dot(&r_vecs[1].cross(&r_vecs[0]));
-
-    let D = r_mags[0] * r_mags[1] * r_mags[2]
-        + r_vecs[2].dot(&r_vecs[1]) * r_mags[0]
-        + r_vecs[2].dot(&r_vecs[0]) * r_mags[1]
-        + r_vecs[1].dot(&r_vecs[0]) * r_mags[2];
-
-    let result = 2.0 * NumFloat::atan2(N, D);
-
-    // Modulus 2pi to avoid jumps on edges in line
-    if NumFloat::abs(result) > 2.0 * PI {
-        T::zero()
-    } else {
-        result
-    }
-}
+use super::triangle_surface::TriangleSurface;
 
 /// Observer-independent geometry and surface charge for a magnetized triangle.
-///
-/// A zero-area triangle has no field contribution. Keep that distinction in
-/// `Option` so the zero-area early return also preserves its solid-angle value.
 #[derive(Clone, Copy)]
 pub(crate) struct PrecomputedMagnetizedTriangle<T: Float> {
-    vertices: [Vector3<T>; 3],
-    normal: Vector3<T>,
+    surface: TriangleSurface<T>,
     sigma: T,
-    edges: [Vector3<T>; 3],
-    edge_sq: [T; 3],
-    edge_lengths: [T; 3],
 }
 
 impl<T: Float> PrecomputedMagnetizedTriangle<T> {
     #[inline]
     pub(crate) fn new(polarization: Vector3<T>, vertices: [Vector3<T>; 3]) -> Option<Self> {
-        let a = vertices[1] - vertices[0];
-        let b = vertices[2] - vertices[0];
-        let n_cross = a.cross(&b);
-        let n_norm = n_cross.norm();
-        if n_norm == T::zero() {
-            return None;
-        }
-        let normal = n_cross / n_norm;
-        let sigma = normal.dot(&polarization);
-
-        let edges = [
-            vertices[1] - vertices[0],
-            vertices[2] - vertices[1],
-            vertices[0] - vertices[2],
-        ];
-        let edge_sq = [
-            edges[0].norm_squared(),
-            edges[1].norm_squared(),
-            edges[2].norm_squared(),
-        ];
-        let edge_lengths = [
-            NumFloat::sqrt(edge_sq[0]),
-            NumFloat::sqrt(edge_sq[1]),
-            NumFloat::sqrt(edge_sq[2]),
-        ];
-
-        Some(Self {
-            vertices,
-            normal,
-            sigma,
-            edges,
-            edge_sq,
-            edge_lengths,
-        })
+        let surface = TriangleSurface::new(vertices)?;
+        let sigma = surface.normal.dot(&polarization);
+        Some(Self { surface, sigma })
     }
 
     #[inline]
@@ -103,72 +41,20 @@ impl<T: Float> PrecomputedMagnetizedTriangle<T> {
 
     #[inline]
     #[allow(non_snake_case)]
-    #[num_lazy_proc::generic_float(T)]
     pub(crate) fn compute_B_with_solid_angle(&self, point: Point3<T>) -> (Vector3<T>, T) {
-        let p = Vector3::from(point.coords);
-        let r_vecs = [
-            self.vertices[0] - p,
-            self.vertices[1] - p,
-            self.vertices[2] - p,
-        ];
-        let r_sq = [
-            r_vecs[0].norm_squared(),
-            r_vecs[1].norm_squared(),
-            r_vecs[2].norm_squared(),
-        ];
-        let r_mags = [
-            NumFloat::sqrt(r_sq[0]),
-            NumFloat::sqrt(r_sq[1]),
-            NumFloat::sqrt(r_sq[2]),
-        ];
-
-        let omega = solid_angle(&r_vecs, &r_mags);
-        // Meshes still need the solid angle for inside/outside classification.
+        // Uncharged faces still contribute to mesh containment, but their
+        // field is zero and needs no edge logarithms or asinh evaluations.
         if self.sigma == T::zero() {
-            return (Vector3::zeros(), omega);
+            return (Vector3::zeros(), self.surface.solid_angle(point));
         }
-
-        let b_vals = [
-            r_vecs[0].dot(&self.edges[0]),
-            r_vecs[1].dot(&self.edges[1]),
-            r_vecs[2].dot(&self.edges[2]),
-        ];
-        let mut PQR = Vector3::zeros();
-        for i in 0..3 {
-            let bl_val = b_vals[i] / self.edge_lengths[i];
-            let ind = NumFloat::abs(r_mags[i] + bl_val);
-            let I = if ind > 1.0e-12 {
-                // For nearby well-conditioned points, the next vertex distance
-                // is already available. Preserve the original edge expression
-                // near vertices and in far-field cancellation regimes.
-                let next_r = r_mags[(i + 1) % 3];
-                let edge_length = self.edge_lengths[i];
-                let next_r = if EPS < 1e-10
-                    || next_r < edge_length * 1e-5
-                    || next_r > edge_length * 2.0
-                    || !next_r.is_finite()
-                {
-                    NumFloat::sqrt(self.edge_sq[i] + 2.0 * b_vals[i] + r_sq[i])
-                } else {
-                    next_r
-                };
-                (1.0 / self.edge_lengths[i]) * NumFloat::ln((next_r + edge_length + bl_val) / ind)
-            } else {
-                -(1.0 / self.edge_lengths[i])
-                    * NumFloat::ln(NumFloat::abs(self.edge_lengths[i] - r_mags[i]) / r_mags[i])
-            };
-            PQR += self.edges[i] * I;
-        }
-
-        let mut B = (self.normal * omega - self.normal.cross(&PQR)) * self.sigma;
-        B /= 4.0 * PI;
-
-        let B = if B.x.is_nan() || B.y.is_nan() || B.z.is_nan() {
+        let (field, omega) = self.surface.field_with_solid_angle(point);
+        let field = field * self.sigma;
+        let field = if field.iter().any(|v| v.is_nan()) {
             Vector3::zeros()
         } else {
-            B
+            field
         };
-        (B, omega)
+        (field, omega)
     }
 }
 
@@ -438,7 +324,7 @@ mod tests {
         assert_eq!(b_collinear, Vector3::zeros());
 
         // Observer collinear with an edge ray
-        let b_edge_ext = local_triangle_B(
+        let b_edge_ext = local_triangle_B::<f64>(
             point![2.0, 0.0, 0.0],
             vector![0.0, 0.0, 1.0],
             [

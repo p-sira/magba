@@ -26,3 +26,13 @@ fields, rotated sources, near-wire points, and cylinder rims.
 
 The cuboid generator runs offline. The separate `testing/` submodule holds
 reproducible independent Mathematica/Wolfram reference generators and CSVs.
+
+## Field stability regressions
+
+`field_stability_generator.py` uses independent 96/144-node surface-charge and
+Biot–Savart quadrature for former `f32` grid failures. Run it with `--write` or
+`--verify` using NumPy and SciPy. Rust consumes `field_stability_reference.csv`
+without Python. The generator also verifies the Suzanne STL grid's observer
+420 with analytic surface integrals in extended-precision NumPy `longdouble`
+(at least 64 significand bits). This confirms the MagPyLib reference's relative
+error of approximately `2.7e-11` at that observer.

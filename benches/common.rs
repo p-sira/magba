@@ -140,7 +140,11 @@ pub fn criterion_mean_ns(group: &str, mode: &str, id: &str) -> Option<f64> {
         .join(mode)
         .join(id)
         .join("new/estimates.json");
-    reproducible::benchmark::extract_criterion_mean_ns(&path).ok()
+    let file = std::fs::File::open(path).ok()?;
+    let estimates: serde_json::Value = serde_json::from_reader(file).ok()?;
+    estimates["mean"]["point_estimate"]
+        .as_f64()
+        .filter(|value| value.is_finite() && *value >= 0.0)
 }
 
 fn format_float(val: &f64) -> String {

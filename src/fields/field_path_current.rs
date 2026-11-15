@@ -6,7 +6,6 @@
 //! Analytical B-field computation for a current path (a sequence of straight wire segments).
 
 use nalgebra::{Point3, UnitQuaternion, Vector3};
-use num_traits::Float as NumFloat;
 
 #[cfg(feature = "rayon")]
 use crate::crate_utils::adaptive_rayon_threshold;
@@ -32,30 +31,23 @@ use crate::{
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[derive(Clone, Copy)]
 struct PrecomputedSegment<T: Float> {
-    p1_n: Vector3<T>,
-    p2_n: Vector3<T>,
-    p12_n: Vector3<T>,
-    inv_norm_12: T,
-    norm_p12_n: T,
+    start: Vector3<T>,
+    direction: Vector3<T>,
+    inv_length: T,
 }
 
 impl<T: Float> PrecomputedSegment<T> {
-    fn from_points(p1: Vector3<T>, p2: Vector3<T>) -> Option<Self> {
-        let p12 = p1 - p2;
-        let norm_12 = p12.norm();
-        if norm_12 == T::zero() {
+    fn from_points(start: Vector3<T>, end: Vector3<T>) -> Option<Self> {
+        let delta = end - start;
+        let length = delta.norm();
+        if length == T::zero() {
             return None;
         }
-        let inv_norm_12 = T::one() / norm_12;
-        let p1_n = p1 * inv_norm_12;
-        let p2_n = p2 * inv_norm_12;
-        let p12_n = p1_n - p2_n;
+        let inv_length = T::one() / length;
         Some(Self {
-            p1_n,
-            p2_n,
-            p12_n,
-            inv_norm_12,
-            norm_p12_n: p12_n.norm(),
+            start,
+            direction: delta * inv_length,
+            inv_length,
         })
     }
 
@@ -63,28 +55,31 @@ impl<T: Float> PrecomputedSegment<T> {
     #[allow(non_snake_case)]
     #[num_lazy_proc::generic_float(T)]
     fn compute_B(&self, po: Vector3<T>, current_term: T) -> Vector3<T> {
-        let po_n = po * self.inv_norm_12;
-        let t = (po_n - self.p1_n).dot(&self.p12_n);
-        let p4_n = self.p1_n + self.p12_n * t;
-
-        let po_p4 = po_n - p4_n;
-        let norm_o4 = po_p4.norm();
-        if norm_o4 < 1e-15 {
+        // Subtract before scaling so large vertex offsets do not consume the
+        // precision of a short segment's geometry.
+        let displacement = (po - self.start) * self.inv_length;
+        let along = displacement.dot(&self.direction);
+        let cross = self.direction.cross(&displacement);
+        let perpendicular_squared = cross.norm_squared();
+        if perpendicular_squared < 1e-30 {
             return Vector3::zeros();
         }
-
-        let cros = (self.p2_n - self.p1_n).cross(&po_p4);
-        let norm_cros = cros.norm();
-        let e_b = cros / norm_cros;
-
-        let norm_o1 = (po_n - self.p1_n).norm();
-        let norm_o2 = (po_n - self.p2_n).norm();
-        let delta_sin = NumFloat::abs(
-            ((t + 1.0) * self.norm_p12_n) / norm_o2 - (t * self.norm_p12_n) / norm_o1,
-        );
-
-        let b_mag = (delta_sin / norm_o4) * self.inv_norm_12 * current_term;
-        e_b * b_mag
+        let first = num_traits::Float::sqrt(along * along + perpendicular_squared);
+        let other = along - 1.0;
+        let second = num_traits::Float::sqrt(other * other + perpendicular_squared);
+        let factor = if along < 0.0 || along > 1.0 {
+            // Beyond an endpoint the cosines nearly agree. Rationalize their
+            // difference; far² - near² = far + near for a unit-length segment.
+            let (near, far, a, b) = if along < 0.0 {
+                (-along, 1.0 - along, first, second)
+            } else {
+                (along - 1.0, along, second, first)
+            };
+            (far + near) / (a * b * (far * a + near * b))
+        } else {
+            (along / first + (1.0 - along) / second) / perpendicular_squared
+        };
+        cross * (factor * self.inv_length * current_term)
     }
 }
 

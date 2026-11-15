@@ -73,15 +73,15 @@ crate::testing_util::generate_tests! {
         rotate: 1e-11,
     }
     f32_rtols: {
-        static: 1e-3,
-        static_small: 1e-3,
-        translate: 1e-3,
-        rotate: 2e-3,
+        static: 1e-5,
+        static_small: 1e-5,
+        translate: 1e-5,
+        rotate: 1e-5,
     }
     f32_p95_rtols: {
-        static: 1e-3,
-        static_small: 1e-3,
-        translate: 1e-3,
-        rotate: 1e-3,
+        static: 5e-6,
+        static_small: 5e-6,
+        translate: 5e-6,
+        rotate: 5e-6,
     }
 }
