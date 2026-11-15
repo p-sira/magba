@@ -1,5 +1,8 @@
 //! Generate the sphere magnet Rustdoc field-line preview.
 
+#[path = "../common/mod.rs"]
+mod common;
+
 use magba::{graphics::FieldLineOptions, prelude::*};
 use nalgebra::point;
 
@@ -22,6 +25,5 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             ..Default::default()
         },
     )?;
-    std::fs::write("sphere_field.html", plot.to_html())?;
-    Ok(())
+    common::save_preview(plot, "sphere_field.html")
 }

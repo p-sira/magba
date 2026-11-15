@@ -16,6 +16,9 @@ use ::plotly::{
 };
 use nalgebra::{Point3, Vector3};
 
+// Magba orange, shared with the logo.
+const FIELD_LINE_COLOR: &str = "#ff5d1c";
+
 /// Validate arrow scaling and compute field-vector displacements.
 impl QuiverOptions {
     pub(crate) fn validate(self) -> Result<(), GraphicsError> {
@@ -229,7 +232,7 @@ pub trait FieldGraphics<T: Float = f64>: FieldSampler<T> {
     ) -> Result<(), GraphicsError> {
         let mut paths = self.trace_field_lines(seeds, options)?;
         add_line_arrowheads(&mut paths, options.step_size, None);
-        add_paths_3d(plot, &paths, "Field lines", "#ea580c");
+        add_paths_3d(plot, &paths, "Field lines", FIELD_LINE_COLOR);
         Ok(())
     }
 
@@ -263,7 +266,7 @@ pub trait FieldGraphics<T: Float = f64>: FieldSampler<T> {
             .collect();
         let mut paths = trace_lines(self, &seeds, options, Some(grid))?;
         add_line_arrowheads(&mut paths, options.step_size, Some(grid.plane));
-        add_paths_2d(plot, grid.plane, &paths, "Field lines", "#ea580c");
+        add_paths_2d(plot, grid.plane, &paths, "Field lines", FIELD_LINE_COLOR);
         Ok(())
     }
 }
