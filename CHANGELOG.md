@@ -49,9 +49,6 @@
 
 **Testing**
 
-- Preserve the original accuracy-table columns and full test environment context using `sysinfo` directly for hardware metadata.
-- Add independent integral regressions at former accuracy-grid failures, tighten `f32` accuracy gates, and report accuracy for all 12 primitives.
-
 - Raise the line-coverage gate to 99.1% and correct the axial CEL fallback test ([#44](https://github.com/p-sira/magba/pull/44)).
 - Validate all 11 field-source primitives in `f32` and `f64` against 169 high-precision Mathematica/Wolfram references across geometries, boundaries, and transforms, supplemented by independent cuboid and polyhedral surface-integral regressions and analytical cylinder and circular-current invariants ([#46](https://github.com/p-sira/magba/pull/46), [#47](https://github.com/p-sira/magba/pull/47)).
 
