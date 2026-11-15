@@ -18,7 +18,6 @@
 
 - Stabilize finite-wire endpoint differences so distant `f32` path-current fields remain nonzero ([#55](https://github.com/p-sira/magba/pull/55)).
 - Share stable triangle surface integrals across magnet and current-sheet fields, reducing cancellation in `f32` triangle, sheet, tetrahedron, and mesh evaluations ([#55](https://github.com/p-sira/magba/pull/55)).
-- Evaluate cylinder kernel intermediates in `f64` for `f32` callers to avoid cancellation between elliptic-integral and endpoint terms ([#55](https://github.com/p-sira/magba/pull/55)).
 - Improve cuboid field accuracy near edges of slender magnets by rationalizing cancellation-prone logarithmic terms, including `f32` results ([#47](https://github.com/p-sira/magba/pull/47)).
 - Use relative face tolerances for STL import, accepting valid small and multiscale meshes consistently with `TriMesh::new` ([#43](https://github.com/p-sira/magba/pull/43)).
 - Require exactly one current density per sheet-current mesh face in constructors, setters, builders, and field functions; reject invalid updates before mutation ([#43](https://github.com/p-sira/magba/pull/43)).

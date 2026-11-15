@@ -14,7 +14,7 @@ This report is generated on magba 0.8.0 (x86_64, linux) using the committed MagP
 
 Relative error is `‖B − B_ref‖₂ / ‖B_ref‖₂`; absolute error is `‖B − B_ref‖₂` in teslas. Errors are computed in `f64` without an absolute cutoff or normalization by machine epsilon. Equal zero vectors have zero error; a nonzero result against a zero reference has infinite relative error. The maximum absolute error and worst relative observer can occur at different points. The `f32` results include input rounding and pose transformations.
 
-These grids measure agreement with MagPyLib. They complement the independent Wolfram fixtures in `tests/high_precision.rs`, which check both precisions at four poses. Cylinder-segment MagPyLib references can lose accuracy in the far field; independent integral and dipole-limit regressions adjudicate those cases. Run `cargo bench --bench bench` separately for performance; benchmark geometry differs from the accuracy grid.
+These grids measure agreement with MagPyLib. Cylinder fields retain native `f32` arithmetic; their percent-level worst-case cancellation remains unresolved. The grid tests complement the independent Wolfram fixtures in `tests/high_precision.rs`, which check both precisions at four poses. Cylinder-segment MagPyLib references can lose accuracy in the far field; independent integral and dipole-limit regressions adjudicate those cases. Run `cargo bench --bench bench` separately for performance; benchmark geometry differs from the accuracy grid.
 
 ### Relative Error: f64
 
@@ -41,7 +41,7 @@ These grids measure agreement with MagPyLib. They complement the independent Wol
 | PathCurrent | 2.752e-7 | 7.406e-7 | 5.747e-6 | 4.538e-12 | (0.166667, 0.166667, 0.388889) |
 | SheetCurrent | 4.250e-7 | 1.715e-6 | 2.080e-5 | 6.920e-13 | (-0.277778, -0.166667, -0.500000) |
 | TriangleCurrent | 4.290e-7 | 1.659e-6 | 1.527e-5 | 1.193e-13 | (0.166667, -0.500000, -0.055556) |
-| CylinderMagnet | 1.557e-7 | 3.741e-7 | 7.284e-7 | 2.777e-7 | (0.166667, 0.277778, 0.166667) |
+| CylinderMagnet | 2.623e-5 | 3.112e-4 | 3.177e-2 | 3.167e-5 | (-0.500000, 0.500000, -0.500000) |
 | CylinderSegmentMagnet | 2.651e-7 | 1.422e-6 | 1.831e-5 | 5.590e-9 | (-0.277778, 0.055556, -0.500000) |
 | CuboidMagnet | 6.085e-6 | 2.696e-5 | 9.380e-5 | 5.554e-7 | (-0.500000, 0.500000, -0.500000) |
 | Dipole | 1.234e-7 | 3.062e-7 | 5.281e-7 | 5.378e-10 | (0.166667, 0.277778, 0.277778) |

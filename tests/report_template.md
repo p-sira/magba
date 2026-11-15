@@ -14,7 +14,7 @@ This report is generated on {{TEST_ENV}} using the committed MagPyLib 1,000-poin
 
 Relative error is `‖B − B_ref‖₂ / ‖B_ref‖₂`; absolute error is `‖B − B_ref‖₂` in teslas. Errors are computed in `f64` without an absolute cutoff or normalization by machine epsilon. Equal zero vectors have zero error; a nonzero result against a zero reference has infinite relative error. The maximum absolute error and worst relative observer can occur at different points. The `f32` results include input rounding and pose transformations.
 
-These grids measure agreement with MagPyLib. They complement the independent Wolfram fixtures in `tests/high_precision.rs`, which check both precisions at four poses. Cylinder-segment MagPyLib references can lose accuracy in the far field; independent integral and dipole-limit regressions adjudicate those cases. Run `cargo bench --bench bench` separately for performance; benchmark geometry differs from the accuracy grid.
+These grids measure agreement with MagPyLib. Cylinder fields retain native `f32` arithmetic; their percent-level worst-case cancellation remains unresolved. The grid tests complement the independent Wolfram fixtures in `tests/high_precision.rs`, which check both precisions at four poses. Cylinder-segment MagPyLib references can lose accuracy in the far field; independent integral and dipole-limit regressions adjudicate those cases. Run `cargo bench --bench bench` separately for performance; benchmark geometry differs from the accuracy grid.
 
 ### Relative Error: f64
 

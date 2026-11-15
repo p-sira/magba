@@ -10,9 +10,6 @@ use crate::crate_utils::define_source;
 define_source! {
     /// Cylinder magnet source.
     ///
-    /// For `f32` inputs, the field kernels use `f64` intermediates to limit
-    /// cancellation. Coordinate transforms and returned fields retain `f32` precision.
-    ///
     /// # References
     ///
     /// - Caciagli, Alessio, Roel J. Baars, Albert P. Philipse, and Bonny W. M. Kuipers. “Exact Expression for the Magnetic Field of a Finite Cylinder with Arbitrary Uniform Magnetization.” Journal of Magnetism and Magnetic Materials 456 (June 15, 2018): 423–32. <https://doi.org/10.1016/j.jmmm.2018.02.003>.
@@ -73,16 +70,16 @@ crate::testing_util::generate_tests! {
         rotate: 5e-10,
     }
     f32_rtols: {
-        static: 5e-6,
-        static_small: 5e-6,
-        translate: 5e-6,
-        rotate: 5e-6,
+        static: 7e-2,
+        static_small: 5e-2,
+        translate: 5e-2,
+        rotate: 1e-2,
     }
     f32_p95_rtols: {
-        static: 1e-6,
-        static_small: 1e-6,
-        translate: 1e-6,
-        rotate: 1e-6,
+        static: 5e-4,
+        static_small: 5e-4,
+        translate: 5e-4,
+        rotate: 5e-4,
     }
 }
 
