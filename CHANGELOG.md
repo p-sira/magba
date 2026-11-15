@@ -10,7 +10,7 @@
 
 **New Features**
 
-- `CylinderSegmentMagnet`: solid and annular cylindrical sectors.
+- `CylinderSegmentMagnet`: solid and annular cylindrical sectors ([#54](https://github.com/p-sira/magba/pull/54)).
 - `graphics`: optional graphics support with masked field sampling, adaptive field-line tracing, configurable views and pole shading, custom collection geometry, and Plotly visualizations with offline HTML export ([#42](https://github.com/p-sira/magba/pull/42)).
 
 **Release Improvements**
