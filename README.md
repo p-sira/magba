@@ -22,8 +22,8 @@
     <a href="https://app.codspeed.io/p-sira/magba?utm_source=badge" style="text-decoration:none">
         <img src="https://img.shields.io/endpoint?url=https://codspeed.io/badge.json" alt="CodSpeed"/>
     </a>
-    <a href="https://doi.org/10.5281/zenodo.21150887" style="text-decoration:none">
-        <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.21150887.svg" alt="Preprint DOI">
+    <a href="https://doi.org/10.5281/zenodo.21150886" style="text-decoration:none">
+        <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.21150886.svg" alt="Preprint DOI">
     </a>
 </p>
 
@@ -56,19 +56,22 @@ To install Magba using `cargo`, run:
 cargo add magba
 ```
 
-By default, Magba installs with all stable features enabled, including parallelization with Rayon.
+Magba requires Rust 1.88 or later.
+
+By default, Magba enables `std`, `rayon`, and `mesh`. Graphics and file I/O are opt-in.
 
 ### Feature Flags
 
 The available feature flags are:
 - `default`: Enable std, rayon, and mesh.
-- `alloc`: Enable heap allocations, allowing collections and batch processing without the full `std` library.
-- `std`: Use std features, such as magnet and sources structs.
-  Disable the flag to use Magba in `no_std` environments. Without std,
-  you can still access the `fields` module to directly compute the fields.
+- `alloc`: Enable heap allocations for batch processing and `PathCurrent` without the full `std` library.
+- `std`: Enable source and observer collections and dynamically cloned trait objects (enables `alloc`).
+  Disable default features and enable `libm` for `no_std`; magnet, current, and sensor structs remain available, subject to their feature requirements.
 - `rayon`: Parallelization using [Rayon](https://github.com/rayon-rs/rayon).
 - `mesh`: Enable mesh features, such as `MeshMagnet` and `SheetCurrent`.
 - `io-stl`: Enable STL mesh loading features.
+- `graphics`: Enable backend-independent field sampling, tracing, and appearance types (requires `std`).
+- `graphics-plotly`: Enable interactive Plotly visualization (enables `graphics`).
 - `libm`: Use libm as the math backend. Must be enabled when compiling for `no_std`.
 - `unstable`: Enable unstable features. These features may change any time.
 
@@ -119,10 +122,31 @@ let b_fields = source_assembly.compute_B_batch(&points);
 // ]
 ```
 
+## Interactive 3D Graphics
+
+![Magba graphics showcase](https://github.com/p-sira/magba/blob/main/examples/figures/graphics_showcase.png?raw=true)
+
+Enable visualization with `cargo add magba --features graphics-plotly`:
+
+```rust
+use magba::prelude::*;
+
+let magnet = CylinderMagnet::<f64>::default();
+let plot = magnet.plot();
+std::fs::write("scene.html", plot.to_html()).expect("Cannot write scene.html");
+```
+
+Create offline interactive scenes, field heatmaps, arrows, and field lines.
+See the [graphics API documentation](https://docs.rs/magba/latest/magba/graphics/plotly/index.html)
+for styling and custom renderers, and [examples and figures](examples/figures/README.md)
+for runnable demonstrations.
+
 ## Testing
 
 Results are validated against MagpyLib and reference data.
 See `testing/data` and the accuracy report for details.
+
+For performance benchmarks, numerical safeguards, and Rayon calibration, see the [performance calibration guide](benches/perf_calibration/README.md).
 
 ---
 

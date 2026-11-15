@@ -6,7 +6,7 @@
 /// Estimated work at which distributing a collection's direct children is
 /// expected to repay Rayon scheduling and reduction overhead.
 #[cfg(any(feature = "rayon", test))]
-pub(crate) const COLLECTION_RAYON_THRESHOLD: usize = 40_000;
+pub(crate) const COLLECTION_RAYON_THRESHOLD: usize = 50_000;
 
 #[inline]
 #[cfg(any(feature = "rayon", test))]

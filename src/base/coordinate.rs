@@ -7,21 +7,6 @@
 
 use nalgebra::{Point3, RealField, UnitQuaternion, Vector3};
 
-/// Convert Cartesian coordinates *(x, y)* to cylindrical coordinates *(r, phi)*.
-pub fn cart2cyl<T: RealField + Copy>(x: T, y: T) -> (T, T) {
-    let r = (x * x + y * y).sqrt();
-    let phi = y.atan2(x);
-    (r, phi)
-}
-
-/// Convert vector with component *(r, phi)* in cylindrical to Cartesian CS.
-/// - `theta`: Angle of the vector on XY plane
-pub fn vec_cyl2cart<T: RealField + Copy>(r: T, phi: T, theta: T) -> (T, T) {
-    let x = r * theta.cos() - phi * theta.sin();
-    let y = r * theta.sin() + phi * theta.cos();
-    (x, y)
-}
-
 /// Convenience macro for transforming function arguments to local frame
 /// and convert back the result to global frame.
 macro_rules! compute_in_local {

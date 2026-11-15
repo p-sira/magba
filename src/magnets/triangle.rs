@@ -18,9 +18,10 @@ define_source! {
     ///
     /// - Guptasarma, D., and B. Singh. "New scheme for computing the magnetic field resulting from a uniformly magnetized arbitrary polyhedron." Geophysics 64.1 (1999): 70-74.
     /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
+    #[cfg_attr(feature = "graphics-plotly", doc = include_str!("graphics/triangle.md"))]
     TriangleMagnet
     field_fn: triangle_B
-    relative_complexity: |_source| 4;
+    relative_complexity: |_source| 3;
     args: {
         polarization: Vector3<T> = Vector3::z(),
         vertices: @val [Vector3<T>; 3] = [Vector3::x(), Vector3::y(), Vector3::zeros()],
@@ -72,15 +73,15 @@ crate::testing_util::generate_tests! {
         rotate: 1e-11,
     }
     f32_rtols: {
-        static: 1e-3,
-        static_small: 1e-3,
-        translate: 1e-3,
-        rotate: 2e-3,
+        static: 1e-5,
+        static_small: 1e-5,
+        translate: 1e-5,
+        rotate: 1e-5,
     }
     f32_p95_rtols: {
-        static: 1e-3,
-        static_small: 1e-3,
-        translate: 1e-3,
-        rotate: 1e-3,
+        static: 5e-6,
+        static_small: 5e-6,
+        translate: 5e-6,
+        rotate: 5e-6,
     }
 }

@@ -11,7 +11,7 @@ define_source! {
     /// A single triangular current sheet with homogeneous surface current density.
     TriangleCurrent
     field_fn: triangle_current_B
-    relative_complexity: |_source| 6;
+    relative_complexity: |_source| 4;
     args: {
         current_density: Vector3<T> = Vector3::zeros(),
         vertices: @val [Vector3<T>; 3] = [Vector3::x(), Vector3::y(), Vector3::zeros()],
@@ -67,15 +67,15 @@ crate::testing_util::generate_tests! {
         rotate: 1e-10,
     }
     f32_rtols: {
-        static: 2e-2,
-        static_small: 5e-2,
-        translate: 2e-2,
-        rotate: 2e-2,
+        static: 5e-5,
+        static_small: 5e-5,
+        translate: 5e-5,
+        rotate: 5e-5,
     }
     f32_p95_rtols: {
-        static: 1e-4,
-        static_small: 1e-4,
-        translate: 1e-4,
-        rotate: 1e-4,
+        static: 5e-6,
+        static_small: 5e-6,
+        translate: 5e-6,
+        rotate: 5e-6,
     }
 }

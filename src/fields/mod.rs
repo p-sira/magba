@@ -15,30 +15,22 @@
 //!
 //! # Batch and Non-Batch Functions
 //!
-//! The field computation functions are available in three variants:
+//! Field functions have two variants:
 //!
 //! - **Non-batch functions** (e.g., [cuboid_B], [dipole_B]):
 //!   Compute the magnetic field at a single observation point.
 //! - **Batch functions** (e.g., [cuboid_B_batch], [dipole_B_batch]):
 //!   Compute the magnetic field at multiple observation points simultaneously.
-//! - **Sum multiple functions** (e.g., [sum_multiple_cuboid_B], [sum_multiple_dipole_B]):
-//!   Compute the magnetic field at a single observation point by summing the
-//!   fields of multiple magnets.
 //!
 //! ## Parallelization
 //!
-//! Batch and sum multiple functions are parallelized if the `rayon` feature is
-//! enabled (default). If the `rayon` feature is disabled, the batch functions
-//! will process the points serially on a single thread.
+//! Batch functions use Rayon when enabled (default) and the work exceeds their
+//! parallelization thresholds. Otherwise, they evaluate points serially.
 //!
-//! To automatically tune the threshold for your computation environment,
-//!
-//! 1. Download the source code locally
-//! 2. Run `cargo bench threshold --features unstable`.
-//! 3. Run `cargo run --package magba --example generate_threshold_code`.
-//! 4. Copy the generated code from `benches/impl_parallel.txt` to the function *_B_batch,
-//!    such as `fields::field_cuboid::cuboid_B_batch`.
-//! 5. Recompile and install Magba with the adjusted threshold locally.
+//! To tune Rayon thresholds locally, run
+//! `cargo bench --bench threshold --features unstable,io-stl`, inspect
+//! `benches/par_threshold.md`, then edit the matching `*_B_batch` thresholds.
+//! Path, mesh, and sheet-current thresholds scale with per-point work.
 //!
 //! # Examples
 //!
@@ -66,10 +58,12 @@
 //! ```
 
 mod bulirsch_cel_axial;
+mod triangle_surface;
 
 mod field_circular;
 mod field_cuboid;
 mod field_cylinder;
+mod field_cylinder_segment;
 mod field_dipole;
 #[cfg(feature = "alloc")]
 mod field_path_current;
@@ -80,33 +74,31 @@ mod field_tetrahedron;
 mod field_triangle;
 mod field_triangle_current;
 
-pub use field_circular::{circular_B, circular_B_batch, sum_multiple_circular_B};
-pub use field_cuboid::{cuboid_B, cuboid_B_batch, sum_multiple_cuboid_B};
-pub use field_cylinder::{cylinder_B, cylinder_B_batch, sum_multiple_cylinder_B};
-pub use field_dipole::{dipole_B, dipole_B_batch, sum_multiple_dipole_B};
+pub use field_circular::{circular_B, circular_B_batch};
+pub use field_cuboid::{cuboid_B, cuboid_B_batch};
+pub use field_cylinder::{cylinder_B, cylinder_B_batch};
+pub use field_cylinder_segment::{cylinder_segment_B, cylinder_segment_B_batch};
+pub use field_dipole::{dipole_B, dipole_B_batch};
 #[cfg(feature = "alloc")]
-pub use field_path_current::{path_current_B, path_current_B_batch, sum_multiple_path_current_B};
+pub use field_path_current::{path_current_B, path_current_B_batch};
 #[cfg(feature = "mesh")]
-pub use field_sheet_current::{
-    sheet_current_B, sheet_current_B_batch, sum_multiple_sheet_current_B,
-};
-pub use field_sphere::{sphere_B, sphere_B_batch, sum_multiple_sphere_B};
-pub use field_tetrahedron::{sum_multiple_tetrahedron_B, tetrahedron_B, tetrahedron_B_batch};
-pub use field_triangle::{sum_multiple_triangle_B, triangle_B, triangle_B_batch};
-pub use field_triangle_current::{
-    sum_multiple_triangle_current_B, triangle_current_B, triangle_current_B_batch,
-};
+pub use field_sheet_current::{sheet_current_B, sheet_current_B_batch};
+pub use field_sphere::{sphere_B, sphere_B_batch};
+pub use field_tetrahedron::{tetrahedron_B, tetrahedron_B_batch};
+pub use field_triangle::{triangle_B, triangle_B_batch};
+pub use field_triangle_current::{triangle_current_B, triangle_current_B_batch};
 
 #[cfg(feature = "mesh")]
 mod field_mesh;
 #[cfg(feature = "mesh")]
-pub use field_mesh::{mesh_B, mesh_B_batch, sum_multiple_mesh_B};
+pub use field_mesh::{mesh_B, mesh_B_batch};
 
 crate::crate_utils::need_unstable! {
     pub use field_cuboid::local_cuboid_B;
     pub use field_cylinder::{
         cylinder_B_cyl, local_cylinder_B, unit_axial_cylinder_B_cyl, unit_diametric_cylinder_B_cyl,
     };
+    pub use field_cylinder_segment::local_cylinder_segment_B;
     pub use field_dipole::local_dipole_B;
     pub use field_sphere::local_sphere_B;
     pub use field_tetrahedron::{local_tetrahedron_B, tetrahedron_B_precomputed, precompute_tetrahedron};

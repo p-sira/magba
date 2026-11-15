@@ -59,6 +59,10 @@ impl<T: Float> Eq for HallLatch<T> {}
 
 impl<T: Float> HallLatch<T> {
     // MARK: New
+    /// Construct a latch with finite thresholds and `B_OP > B_RP`.
+    ///
+    /// # Panics
+    /// Panics if the axis has a zero or nonfinite norm, or the thresholds are invalid.
     pub fn new(
         position: impl Into<Point3<T>>,
         orientation: UnitQuaternion<T>,
@@ -66,12 +70,10 @@ impl<T: Float> HallLatch<T> {
         b_op: T,
         b_rp: T,
     ) -> Self {
-        if b_op <= b_rp {
-            panic!("B_OP must be greater than B_RP.");
-        }
+        validate_thresholds(b_op, b_rp);
         Self {
             pose: Pose::new(position.into(), orientation),
-            sensitive_axis: sensitive_axis.into().normalize(),
+            sensitive_axis: super::normalized_axis(sensitive_axis.into()),
             b_op,
             b_rp,
             state: AtomicBool::new(false),
@@ -119,24 +121,23 @@ impl<T: Float> HallLatch<T> {
 
     // MARK: Setters
 
+    /// Normalize and set the axis. Panics if its norm is zero or nonfinite.
     #[inline]
     pub fn set_sensitive_axis(&mut self, sensitive_axis: impl Into<Vector3<T>>) {
-        self.sensitive_axis = sensitive_axis.into().normalize();
+        self.sensitive_axis = super::normalized_axis(sensitive_axis.into());
     }
 
+    /// Set a finite threshold while preserving `B_OP > B_RP`. Panics if invalid.
     #[inline]
     pub fn set_b_op(&mut self, b_op: T) {
-        if b_op <= self.b_rp {
-            panic!("B_OP must be greater than B_RP.");
-        }
+        validate_thresholds(b_op, self.b_rp);
         self.b_op = b_op;
     }
 
+    /// Set a finite threshold while preserving `B_OP > B_RP`. Panics if invalid.
     #[inline]
     pub fn set_b_rp(&mut self, b_rp: T) {
-        if self.b_op <= b_rp {
-            panic!("B_OP must be greater than B_RP.");
-        }
+        validate_thresholds(self.b_op, b_rp);
         self.b_rp = b_rp;
     }
 
@@ -199,6 +200,13 @@ impl<T: Float> Display for HallLatch<T> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         <Self as Observer<T>>::format(self, f, "")
     }
+}
+
+fn validate_thresholds<T: Float>(b_op: T, b_rp: T) {
+    assert!(
+        b_op.is_finite() && b_rp.is_finite() && b_op > b_rp,
+        "B_OP and B_RP must be finite, with B_OP greater than B_RP."
+    );
 }
 
 #[cfg(test)]

@@ -49,20 +49,7 @@ impl<T: Float> core::fmt::Display for dyn Observer<T> {
 need_std!(
     use core::fmt::Display;
 
-    use delegate::delegate;
     use dyn_clone::clone_trait_object;
-
-    use crate::base::Pose;
-
-    impl<T: Float> Transform<T> for Box<dyn Observer<T>> {
-        delegate!(
-            to (**self) {
-                fn pose(&self) -> &Pose<T>;
-                fn pose_mut(&mut self) -> &mut Pose<T>;
-                fn set_pose(&mut self, pose: Pose<T>);
-            }
-        );
-    }
 
     clone_trait_object!(<T> Observer<T> where T: Float);
 
@@ -73,11 +60,9 @@ need_std!(
     }
 
     impl<T: Float> Observer<T> for Box<dyn Observer<T>> {
-        delegate!(
-            to (**self) {
-                fn read(&self, source: &dyn Source<T>) -> SensorOutput<T>;
-            }
-        );
+        fn read(&self, source: &dyn Source<T>) -> SensorOutput<T> {
+            (**self).read(source)
+        }
     }
 );
 

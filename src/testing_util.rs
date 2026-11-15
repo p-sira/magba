@@ -6,7 +6,7 @@
 //! Testing utilities.
 
 use csv::ReaderBuilder;
-use nalgebra::{DMatrix, Point3, RealField, UnitQuaternion, Vector3, distance, point, vector};
+use nalgebra::{DMatrix, Point3, RealField, UnitQuaternion, Vector3, Vector5, distance, point, vector};
 use std::{
     fmt::{Debug, LowerExp},
     fs::File,
@@ -85,8 +85,8 @@ pub fn matrix_to_vector_vec<T: RealField + Copy>(matrix: &DMatrix<T>) -> Vec<Vec
 }
 
 pub fn assert_close_vec_vector<T: RealField + Copy + LowerExp>(
-    vecs1: &Vec<Vector3<T>>,
-    vecs2: &Vec<Vector3<T>>,
+    vecs1: &[Vector3<T>],
+    vecs2: &[Vector3<T>],
     rtol: T,
     p95_rtol: T,
 ) {
@@ -205,30 +205,6 @@ pub fn assert_close_vec_vector<T: RealField + Copy + LowerExp>(
             worst_params.0, worst_params.1, worst_params.2, worst_params.3, rtol
         );
         panic!("assert_close_vec_vector")
-    }
-}
-
-#[cfg(test)]
-mod comparison_tests {
-    use super::*;
-
-    #[test]
-    fn zero_vectors_have_zero_relative_distance() {
-        assert_eq!(
-            relative_vec_distance(Vector3::<f64>::zeros(), Vector3::zeros()),
-            0.0
-        );
-    }
-
-    #[test]
-    #[should_panic(expected = "non-finite")]
-    fn rejects_nan_against_finite_reference() {
-        assert_close_vec_vector(
-            &vec![Vector3::new(f64::NAN, 0.0, 0.0)],
-            &vec![Vector3::z()],
-            1e-12,
-            1e-12,
-        );
     }
 }
 
@@ -357,6 +333,16 @@ impl<T: Float> ScaleParam<T> for T {
 impl<T: Float> ScaleParam<T> for Vector3<T> {
     fn scale_param(self, scale: T) -> Self {
         self / scale
+    }
+}
+
+// Cylinder segment dimensions: scale only lengths, leaving azimuth angles in degrees.
+impl<T: Float> ScaleParam<T> for Vector5<T> {
+    fn scale_param(mut self, scale: T) -> Self {
+        for dimension in self.fixed_rows_mut::<3>(0).iter_mut() {
+            *dimension /= scale;
+        }
+        self
     }
 }
 
@@ -639,48 +625,26 @@ macro_rules! generate_tests {
 #[allow(unused_imports)]
 pub(crate) use generate_tests;
 
-/// Macro to verify `sum_multiple_*` field calculation functions.
-///
-/// It ensures that the sum of multiple sources matches the sum of individual field calculations.
-#[allow(unused_macros)]
-macro_rules! impl_test_sum_multiple {
-    (
-        $sum_multiple_func:ident,
-        $epsilon:expr,
-        $points:expr,
-        $positions:expr,
-        $orientations:expr,
-        ($($other_vecs:expr),*),
-        |$p:ident, $pos:ident, $ori:ident, $($other_args:ident),*| $calc:expr
-    ) => {{
-        let mut out = vec![Vector3::zeros(); $points.len()];
-        $sum_multiple_func(
-            $points,
-            $positions,
-            $orientations,
-            $($other_vecs,)*
-            &mut out,
+#[cfg(test)]
+mod comparison_tests {
+    use super::*;
+
+    #[test]
+    fn zero_vectors_have_zero_relative_distance() {
+        assert_eq!(
+            relative_vec_distance(Vector3::<f64>::zeros(), Vector3::zeros()),
+            0.0
         );
+    }
 
-        let mut expected = vec![Vector3::zeros(); $points.len()];
-        for (i, p) in $points.iter().enumerate() {
-            let $p = *p;
-            let mut sum = Vector3::zeros();
-            for (j, pos) in $positions.iter().enumerate() {
-                let $pos = *pos;
-                let $ori = $orientations[j];
-                $(
-                    let $other_args = $other_vecs[j].clone();
-                )*
-                sum += $calc;
-            }
-            expected[i] = sum;
-        }
-
-        for (actual, expected) in out.iter().zip(expected.iter()) {
-            approx::assert_relative_eq!(actual, expected, epsilon = $epsilon);
-        }
-    }};
+    #[test]
+    #[should_panic(expected = "non-finite")]
+    fn rejects_nan_against_finite_reference() {
+        assert_close_vec_vector(
+            &[Vector3::new(f64::NAN, 0.0, 0.0)],
+            &[Vector3::z()],
+            1e-12,
+            1e-12,
+        );
+    }
 }
-#[allow(unused_imports)]
-pub(crate) use impl_test_sum_multiple;

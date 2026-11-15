@@ -10,8 +10,8 @@ use crate::{
     collections::{SourceArray, SourceAssembly},
     currents::{CircularCurrent, Current, PathCurrent, TriangleCurrent},
     magnets::{
-        CuboidMagnet, CylinderMagnet, Dipole, Magnet, SphereMagnet, TetrahedronMagnet,
-        TriangleMagnet,
+        CuboidMagnet, CylinderMagnet, CylinderSegmentMagnet, Dipole, Magnet, SphereMagnet,
+        TetrahedronMagnet, TriangleMagnet,
     },
 };
 
@@ -34,6 +34,26 @@ pub enum SourceComponent<T: Float = f64> {
     Current(Current<T>),
     Assembly(SourceAssembly<T>),
     Custom(Box<dyn Source<T>>),
+    /// Custom physical object retaining its graphics inside collections.
+    #[cfg(feature = "graphics-plotly")]
+    CustomGraphics(Box<dyn crate::graphics::GraphicsSource<T>>),
+}
+
+impl<T: Float> SourceComponent<T> {
+    /// Preserve a custom object's geometry when rendering a collection.
+    /// Ordinary [`Custom`](Self::Custom) components use a point marker instead.
+    ///
+    /// ```
+    /// # use magba::prelude::*;
+    /// let object = CylinderMagnet::<f64>::default();
+    /// // The same constructor accepts your own Source + Graphics implementation.
+    /// let component = SourceComponent::custom_graphics(object);
+    /// let plot = component.plot();
+    /// ```
+    #[cfg(feature = "graphics-plotly")]
+    pub fn custom_graphics(object: impl crate::graphics::GraphicsSource<T> + 'static) -> Self {
+        Self::CustomGraphics(Box::new(object))
+    }
 }
 
 impl<T: Float> PartialEq for SourceComponent<T> {
@@ -98,6 +118,7 @@ macro_rules! impl_transitive_from_current {
 
 impl_transitive_from_magnet!(
     CylinderMagnet,
+    CylinderSegmentMagnet,
     CuboidMagnet,
     Dipole,
     SphereMagnet,
@@ -157,10 +178,10 @@ mod tests {
             Vector3::z(),
         ]);
         let current: Current = path.into();
-        assert_eq!(current.relative_complexity(), 6);
+        assert_eq!(current.relative_complexity(), 3);
 
         let component: SourceComponent = current.into();
-        assert_eq!(component.relative_complexity(), 6);
+        assert_eq!(component.relative_complexity(), 3);
 
         let magnet: Magnet = Dipole::<f64>::default().into();
         assert_eq!(magnet.relative_complexity(), 1);
@@ -181,9 +202,10 @@ mod tests {
         let mesh = TriMesh::new_unchecked(vertices, faces);
 
         let magnet = MeshMagnet::default().with_mesh(mesh.clone());
-        assert_eq!(magnet.relative_complexity(), 16);
+        assert_eq!(magnet.relative_complexity(), 12);
 
-        let sheet = SheetCurrent::default().with_mesh(mesh);
-        assert_eq!(sheet.relative_complexity(), 24);
+        let mut sheet = SheetCurrent::default();
+        sheet.set_mesh_and_current_densities(mesh, vec![Vector3::x(); 4]);
+        assert_eq!(sheet.relative_complexity(), 16);
     }
 }

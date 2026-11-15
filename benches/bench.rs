@@ -115,6 +115,13 @@ fn bench_field_functions(c: &mut Criterion) {
             b.iter(|| black_box(cylinder.compute_B_batch(&points)))
         });
 
+        // Partial annular sector exercises the segment integration kernels.
+        let cylinder_segment =
+            CylinderSegmentMagnet::new(pos, ori, pol, [0.01, 0.03, height, -30.0, 120.0]);
+        group.bench_function("CylinderSegmentMagnet", |b| {
+            b.iter(|| black_box(cylinder_segment.compute_B_batch(&points)))
+        });
+
         let dipole = Dipole::new(pos, ori, moment);
         group.bench_function("Dipole", |b| {
             b.iter(|| black_box(dipole.compute_B_batch(&points)))
@@ -130,7 +137,8 @@ fn bench_field_functions(c: &mut Criterion) {
             vector![0.1, -0.1, 0.1],
             vector![0.0, 0.2, 0.0],
         ];
-        let triangle = TriangleMagnet::new(pos, ori, pol, vertices_triangle);
+        let triangle_pol = vector![1.0, 0.0, 0.0];
+        let triangle = TriangleMagnet::new(pos, ori, triangle_pol, vertices_triangle);
         group.bench_function("TriangleMagnet", |b| {
             b.iter(|| black_box(triangle.compute_B_batch(&points)))
         });
@@ -233,6 +241,13 @@ fn bench_field_functions(c: &mut Criterion) {
         let cylinder = CylinderMagnet::new(pos, ori, pol, diameter, height);
         group.bench_function("CylinderMagnet", |b| {
             b.iter(|| black_box(cylinder.compute_B_batch(&points)))
+        });
+
+        // Partial annular sector exercises the segment integration kernels.
+        let cylinder_segment =
+            CylinderSegmentMagnet::new(pos, ori, pol, [0.01, 0.03, height, -30.0, 120.0]);
+        group.bench_function("CylinderSegmentMagnet", |b| {
+            b.iter(|| black_box(cylinder_segment.compute_B_batch(&points)))
         });
 
         let dipole = Dipole::new(pos, ori, moment);

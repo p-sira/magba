@@ -5,6 +5,39 @@
 
 //! Internal utilities for Magba
 
+/// Defines a single-field enum whose display forwards to the contained value.
+/// Variant feature gates also apply to the generated match arms.
+macro_rules! display_enum {
+    (
+        @display
+        $(#[$meta:meta])*
+        $vis:vis enum $name:ident<$t:ident: $bound:path = $default:ty> {
+            $(
+                $(#[cfg($cfg:meta)])*
+                $variant:ident($inner:ty),
+            )*
+        }
+    ) => {
+        #[cfg(feature = "std")]
+        impl<$t: $bound> core::fmt::Display for $name<$t> {
+            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                match self {
+                    $(
+                        $(#[cfg($cfg)])*
+                        Self::$variant(value) => core::fmt::Display::fmt(value, f),
+                    )*
+                }
+            }
+        }
+    };
+    ($($definition:tt)*) => {
+        // Preserve the original tokens for attribute macros such as enum_dispatch.
+        $($definition)*
+        $crate::crate_utils::display_enum!(@display $($definition)*);
+    };
+}
+pub(crate) use display_enum;
+
 macro_rules! need_std {
     ($($body:item)*) => {
         $(
@@ -63,6 +96,14 @@ need_alloc! {
         }
     }
 
+    pub(crate) fn format_vector5<T: Float>(f: &mut Formatter, v: nalgebra::Vector5<T>) -> alloc::string::String {
+        if let Some(p) = f.precision() {
+            alloc::format!("[{:.p$}, {:.p$}, {:.p$}, {:.p$}, {:.p$}]", v[0], v[1], v[2], v[3], v[4], p = p)
+        } else {
+            alloc::format!("[{:?}, {:?}, {:?}, {:?}, {:?}]", v[0], v[1], v[2], v[3], v[4])
+        }
+    }
+
     pub(crate) fn format_vertices<T: Float>(f: &mut Formatter, v: [Vector3<T>; 3]) -> alloc::string::String {
         if let Some(p) = f.precision() {
             alloc::format!("[({:.p$}, {:.p$}, {:.p$}), ({:.p$}, {:.p$}, {:.p$}), ({:.p$}, {:.p$}, {:.p$})]", v[0].x, v[0].y, v[0].z, v[1].x, v[1].y, v[1].z, v[2].x, v[2].y, v[2].z, p = p)
@@ -90,20 +131,6 @@ pub(crate) fn format_trimesh_count<T: Float>(
 ) -> alloc::string::String {
     alloc::format!("{}", mesh.triangles().len())
 }
-
-macro_rules! assert_eq_lens {
-    ($str_err:expr, [$ref_vec:expr $(, $vec:expr)+]) => {
-        {
-            let len = $ref_vec.len();
-            $(
-                if $vec.len() != len {
-                    panic!($str_err)
-                }
-            )+
-        }
-    };
-}
-pub(crate) use assert_eq_lens;
 
 /// Converts a total work threshold into an input-count threshold.
 ///
@@ -164,61 +191,6 @@ macro_rules! impl_parallel {
 }
 pub(crate) use impl_parallel;
 
-// TODO: compare par_bridge with zip -> par_iter
-macro_rules! impl_parallel_sum {
-    ($out:expr, $points:expr, $threshold:expr, [$($vecs:expr),+], |$p:ident, $($args:ident),*| $calc:expr) => {{
-        assert_eq!($out.len(), $points.len(), "Output slice length must match points length.");
-        crate::crate_utils::assert_eq_lens!(
-            "Lengths of input vectors must be equal.",
-            [$($vecs),+]
-        );
-
-        #[cfg(feature = "rayon")]
-        {
-            use rayon::prelude::*;
-
-            #[cfg(feature = "threshold-calibration")]
-            let use_parallel = crate::threshold_calibration::should_parallel(true);
-            #[cfg(not(feature = "threshold-calibration"))]
-            let use_parallel = true;
-
-            if use_parallel {
-                $out.par_iter_mut()
-                    .zip($points.par_iter())
-                    .for_each(|(o, p_ref)| {
-                        let $p = p_ref;
-                        *o = itertools::izip!($($vecs),+)
-                            .fold(nalgebra::Vector3::zeros(), |acc, ($($args),*)| {
-                                acc + $calc
-                            });
-                    });
-            } else {
-                $out.iter_mut()
-                    .zip($points.iter())
-                    .for_each(|(o, p_ref)| {
-                        let $p = p_ref;
-                        *o = itertools::izip!($($vecs),+)
-                            .fold(nalgebra::Vector3::zeros(), |acc, ($($args),*)| {
-                                acc + $calc
-                            });
-                        });
-            }
-        }
-
-        #[cfg(not(feature = "rayon"))]
-        $out.iter_mut()
-            .zip($points.iter())
-            .for_each(|(o, p_ref)| {
-                let $p = p_ref;
-                *o = itertools::izip!($($vecs),+)
-                    .fold(nalgebra::Vector3::zeros(), |acc, ($($args),*)| {
-                        acc + $calc
-                    });
-            });
-    }};
-}
-pub(crate) use impl_parallel_sum;
-
 // MARK: define_source!
 
 /// Generates a struct representing a magnetic source.
@@ -262,6 +234,14 @@ macro_rules! define_source {
     (@pass_arg $arg:expr, val) => { $arg };
     (@pass_arg $arg:expr, ref) => { &$arg };
 
+    // Cross-field checks can use a different expression in setters, where the
+    // other fields belong to the existing source rather than constructor arguments.
+    (@setter_valid $source:ident, $validate:expr) => { $validate };
+    (@setter_valid $source:ident, $validate:expr, |$this:ident| $setter_validate:expr) => {{
+        let $this = &*$source;
+        $setter_validate
+    }};
+
     // MARK: Get, Set, With
     (@getter_ret_type $arg_type:ty) => { $arg_type };
     (@getter_ret_type $arg_type:ty, val) => { $arg_type };
@@ -286,8 +266,7 @@ macro_rules! define_source {
             $arg:ident,
             $arg_type:ty,
             [$(@$is_value:ident)?],
-            [$($validate:expr)?],
-            [$($error:literal)?]
+            [$($validate:expr, $error:literal $(, |$setter_source:ident| $setter_validate:expr)?)?]
         )
     )*) => {
         impl<T: crate::base::Float> $struct_name<T> {
@@ -299,7 +278,7 @@ macro_rules! define_source {
                         let $arg: $arg_type = $crate::crate_utils::define_source!(@arg_into $arg $(, $is_value)?);
                         $(
                             #[allow(clippy::neg_cmp_op_on_partial_ord)]
-                            if !($validate) {
+                            if !$crate::crate_utils::define_source!(@setter_valid self, $validate $(, |$setter_source| $setter_validate)?) {
                                 panic!($error);
                             }
                         )?
@@ -330,7 +309,9 @@ macro_rules! define_source {
         args: {
             $(
                 $arg:ident : $(@$is_value:ident)? $arg_type:ty = $arg_default:expr
-                $(; validate $validate:expr; error $error:literal)?
+                $(; validate $validate:expr; error $error:literal
+                    $(; validate_set |$setter_source:ident| $setter_validate:expr)?
+                )?
             ),* $(,)?
         }
         arg_display: $arg_display:expr;
@@ -356,8 +337,7 @@ macro_rules! define_source {
                 $arg,
                 $arg_type,
                 [$(@$is_value)?],
-                [$($validate)?],
-                [$($error)?]
+                [$($validate, $error $(, |$setter_source| $setter_validate)?)?]
             )
         )*);
 

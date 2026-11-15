@@ -6,36 +6,55 @@
 //! Analytical B-field computation for homogeneously magnetized triangular surface.
 
 use nalgebra::{Point3, UnitQuaternion, Vector3};
-use num_traits::Float as NumFloat;
-use numeric_literals::replace_float_literals;
 
 use crate::{
     base::{Float, coordinate::compute_in_local},
-    crate_utils::{impl_parallel, impl_parallel_sum},
+    crate_utils::impl_parallel,
 };
 
-/// Computes solid angle of a triangle given its local R vectors from observer to vertices.
-/// Vector elements are (R1, R2, R3).
-///
-/// Implements vectorized solid angle computation based on Magpylib's implementation.
-#[inline]
-#[allow(non_snake_case)]
-#[replace_float_literals(T::from_f64(literal).unwrap())]
-pub(crate) fn solid_angle<T: Float>(r_vecs: &[Vector3<T>; 3], r_mags: &[T; 3]) -> T {
-    let N = r_vecs[2].dot(&r_vecs[1].cross(&r_vecs[0]));
+use super::triangle_surface::TriangleSurface;
 
-    let D = r_mags[0] * r_mags[1] * r_mags[2]
-        + r_vecs[2].dot(&r_vecs[1]) * r_mags[0]
-        + r_vecs[2].dot(&r_vecs[0]) * r_mags[1]
-        + r_vecs[1].dot(&r_vecs[0]) * r_mags[2];
+/// Observer-independent geometry and surface charge for a magnetized triangle.
+#[derive(Clone, Copy)]
+pub(crate) struct PrecomputedMagnetizedTriangle<T: Float> {
+    surface: TriangleSurface<T>,
+    sigma: T,
+}
 
-    let result = 2.0 * NumFloat::atan2(N, D);
+impl<T: Float> PrecomputedMagnetizedTriangle<T> {
+    #[inline]
+    pub(crate) fn new(polarization: Vector3<T>, vertices: [Vector3<T>; 3]) -> Option<Self> {
+        let surface = TriangleSurface::new(vertices)?;
+        let sigma = surface.normal.dot(&polarization);
+        Some(Self { surface, sigma })
+    }
 
-    // Modulus 2pi to avoid jumps on edges in line
-    if NumFloat::abs(result) > 2.0 * T::pi() {
-        T::zero()
-    } else {
-        result
+    #[inline]
+    #[allow(non_snake_case)]
+    pub(crate) fn compute_B(&self, point: Point3<T>) -> Vector3<T> {
+        if self.sigma == T::zero() {
+            Vector3::zeros()
+        } else {
+            self.compute_B_with_solid_angle(point).0
+        }
+    }
+
+    #[inline]
+    #[allow(non_snake_case)]
+    pub(crate) fn compute_B_with_solid_angle(&self, point: Point3<T>) -> (Vector3<T>, T) {
+        // Uncharged faces still contribute to mesh containment, but their
+        // field is zero and needs no edge logarithms or asinh evaluations.
+        if self.sigma == T::zero() {
+            return (Vector3::zeros(), self.surface.solid_angle(point));
+        }
+        let (field, omega) = self.surface.field_with_solid_angle(point);
+        let field = field * self.sigma;
+        let field = if field.iter().any(|v| v.is_nan()) {
+            Vector3::zeros()
+        } else {
+            field
+        };
+        (field, omega)
     }
 }
 
@@ -61,95 +80,16 @@ pub(crate) fn solid_angle<T: Float>(r_vecs: &[Vector3<T>; 3], r_mags: &[T; 3]) -
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[inline]
 #[allow(non_snake_case)]
-#[replace_float_literals(T::from_f64(literal).unwrap())]
+#[num_lazy_proc::generic_float(T)]
 pub(crate) fn local_triangle_B_with_solid_angle<T: Float>(
     point: Point3<T>,
     polarization: Vector3<T>,
     vertices: [Vector3<T>; 3],
 ) -> (Vector3<T>, T) {
-    let p = Vector3::from(point.coords);
-
-    // Normal vector
-    let a = vertices[1] - vertices[0];
-    let b = vertices[2] - vertices[0];
-    let n_cross = a.cross(&b);
-    let n_norm = n_cross.norm();
-
-    if n_norm == T::zero() {
-        return (Vector3::zeros(), T::zero());
+    match PrecomputedMagnetizedTriangle::new(polarization, vertices) {
+        Some(precomputed) => precomputed.compute_B_with_solid_angle(point),
+        None => (Vector3::zeros(), T::zero()),
     }
-    let n = n_cross / n_norm;
-
-    let sigma = n.dot(&polarization);
-
-    // vertex <-> observer
-    let r_vecs = [vertices[0] - p, vertices[1] - p, vertices[2] - p];
-    let r_sq = [
-        r_vecs[0].norm_squared(),
-        r_vecs[1].norm_squared(),
-        r_vecs[2].norm_squared(),
-    ];
-    let r_mags = [
-        NumFloat::sqrt(r_sq[0]),
-        NumFloat::sqrt(r_sq[1]),
-        NumFloat::sqrt(r_sq[2]),
-    ];
-
-    let omega = solid_angle(&r_vecs, &r_mags);
-
-    // vertex <-> vertex
-    let L = [
-        vertices[1] - vertices[0],
-        vertices[2] - vertices[1],
-        vertices[0] - vertices[2],
-    ];
-    let l_sq = [
-        L[0].norm_squared(),
-        L[1].norm_squared(),
-        L[2].norm_squared(),
-    ];
-    let l_mags = [
-        NumFloat::sqrt(l_sq[0]),
-        NumFloat::sqrt(l_sq[1]),
-        NumFloat::sqrt(l_sq[2]),
-    ];
-
-    let b_vals = [
-        r_vecs[0].dot(&L[0]),
-        r_vecs[1].dot(&L[1]),
-        r_vecs[2].dot(&L[2]),
-    ];
-
-    let mut PQR = Vector3::zeros();
-
-    for i in 0..3 {
-        let bl_val = b_vals[i] / l_mags[i];
-        let ind = NumFloat::abs(r_mags[i] + bl_val);
-
-        let I = if ind > 1.0e-12 {
-            (1.0 / l_mags[i])
-                * NumFloat::ln(
-                    (NumFloat::sqrt(l_sq[i] + 2.0 * b_vals[i] + r_sq[i]) + l_mags[i] + bl_val)
-                        / ind,
-                )
-        } else {
-            -(1.0 / l_mags[i]) * NumFloat::ln(NumFloat::abs(l_mags[i] - r_mags[i]) / r_mags[i])
-        };
-
-        // Accumulate I * L
-        PQR += L[i] * I;
-    }
-
-    let mut B = (n * omega - n.cross(&PQR)) * sigma;
-    B /= 4.0 * T::pi();
-
-    let B = if B.x.is_nan() || B.y.is_nan() || B.z.is_nan() {
-        Vector3::zeros()
-    } else {
-        B
-    };
-
-    (B, omega)
 }
 
 /// Computes B-field of a homogeneously magnetized triangular surface at point in local frame.
@@ -232,45 +172,29 @@ pub fn triangle_B_batch<T: Float>(
     vertices: [Vector3<T>; 3],
     out: &mut [Vector3<T>],
 ) {
+    let precomputed = match PrecomputedMagnetizedTriangle::new(polarization, vertices) {
+        Some(precomputed) => precomputed,
+        None => {
+            assert_eq!(
+                out.len(),
+                points.len(),
+                "Output slice length must match input vectors length."
+            );
+            out.fill(Vector3::zeros());
+            return;
+        }
+    };
     let inv_orientation = orientation.inverse();
     impl_parallel!(
-        rayon_threshold: 310,
+        rayon_threshold: 1085,
         input: points,
         output: out,
         |p| {
             let local_point = inv_orientation * Point3::from(p.coords - position.coords);
-            let local_b = local_triangle_B(local_point, polarization, vertices);
+            let local_b = precomputed.compute_B(local_point);
             orientation * local_b
         }
     );
-}
-
-/// Computes B-field at each given points in global frame for multiple triangles.
-///
-/// # Arguments
-///
-/// - `points`: Observer positions (m)
-/// - `positions`: Element positions (m)
-/// - `orientations`: Element orientations in unit quaternion
-/// - `polarizations`: Polarization vectors (T)
-/// - `vertices_list`: List of triangle vertices arrays `[[P1, P2, P3], ...]` in local coords (m)
-/// - `out`: Mutable slice to store the net B-field vectors at each observer (T)
-#[allow(non_snake_case)]
-pub fn sum_multiple_triangle_B<T: Float>(
-    points: &[Point3<T>],
-    positions: &[Point3<T>],
-    orientations: &[UnitQuaternion<T>],
-    polarizations: &[Vector3<T>],
-    vertices_list: &[[Vector3<T>; 3]],
-    out: &mut [Vector3<T>],
-) {
-    impl_parallel_sum!(
-        out,
-        points,
-        60,
-        [positions, orientations, polarizations, vertices_list],
-        |pos, p, o, pol, vert| triangle_B(*pos, *p, *o, *pol, *vert)
-    )
 }
 
 #[cfg(test)]
@@ -311,41 +235,78 @@ mod tests {
     }
 
     #[test]
-    fn test_sum_multiple_triangle_b() {
-        use crate::testing_util::impl_test_sum_multiple;
-        let points = &[
-            point![5.0, 6.0, 7.0],
-            point![4.0, 3.0, 2.0],
-            point![0.5, 0.25, 0.125],
+    fn precomputed_triangle_batch_preserves_rotated_f32_and_zero_area() {
+        let vertices = [
+            vector![0.0_f32, 0.0, 0.0],
+            vector![0.3, 0.0, 0.0],
+            vector![0.05, 0.4, 0.0],
         ];
-        let positions = &[point![1.0, 2.0, 3.0], point![0.0, 0.0, 0.0]];
-        let orientations = &[
-            UnitQuaternion::from_scaled_axis(vector![1.0, 0.6, 0.4]),
-            UnitQuaternion::identity(),
+        let polarization = vector![0.2_f32, -0.4, 0.9];
+        let position = point![0.02_f32, -0.03, 0.04];
+        let orientation = UnitQuaternion::from_scaled_axis(vector![0.3_f32, -0.2, 0.4]);
+        let points = [
+            point![0.2_f32, 0.3, 0.5],
+            point![-0.2, 0.1, 0.04],
+            point![0.04, -0.03, -0.4],
+            point![f32::NAN, 0.0, 0.0],
         ];
-        let polarizations = &[vector![0.45, 0.3, 0.15], vector![1.0, 2.0, 3.0]];
-        let vertices_list = &[
-            [
-                vector![0.0, 0.0, 0.0],
-                vector![0.0, 0.0, 1.0],
-                vector![1.0, 0.0, 0.0],
-            ],
-            [
-                vector![0.0, 0.0, 0.0],
-                vector![0.0, 1.0, 0.0],
-                vector![0.0, 0.0, 1.0],
-            ],
-        ];
-
-        impl_test_sum_multiple!(
-            sum_multiple_triangle_B,
-            1e-15,
-            points,
-            positions,
-            orientations,
-            (polarizations, vertices_list),
-            |p, pos, ori, pol, vert| triangle_B(p, pos, ori, pol, vert)
+        let mut out = [Vector3::zeros(); 4];
+        triangle_B_batch(
+            &points,
+            position,
+            orientation,
+            polarization,
+            vertices,
+            &mut out,
         );
+
+        for (&point, actual) in points.iter().zip(out.iter()) {
+            assert_relative_eq!(
+                *actual,
+                triangle_B(point, position, orientation, polarization, vertices),
+                epsilon = 1e-7,
+                max_relative = 1e-5
+            );
+        }
+
+        let zero_area = [vertices[0], vertices[1], vertices[1] * 2.0];
+        triangle_B_batch(
+            &points,
+            position,
+            orientation,
+            polarization,
+            zero_area,
+            &mut out,
+        );
+        assert!(out.iter().all(|value| *value == Vector3::zeros()));
+    }
+
+    #[test]
+    fn invalid_geometry_keeps_original_nan_solid_angle_behavior() {
+        let vertices = [
+            vector![f64::NAN, 0.0, 0.0],
+            vector![1.0, 0.0, 0.0],
+            vector![0.0, 1.0, 0.0],
+        ];
+        let (field, angle) =
+            local_triangle_B_with_solid_angle(point![0.0, 0.0, 1.0], Vector3::z(), vertices);
+        assert_eq!(field, Vector3::zeros());
+        assert!(angle.is_nan());
+    }
+
+    #[test]
+    fn zero_surface_charge_keeps_solid_angle_for_meshes() {
+        let vertices = [
+            vector![0.0_f64, 0.0, 0.0],
+            vector![1.0, 0.0, 0.0],
+            vector![0.0, 1.0, 0.0],
+        ];
+        let triangle = PrecomputedMagnetizedTriangle::new(Vector3::x(), vertices).unwrap();
+        let point = point![0.2, 0.2, 0.5];
+        let (field, angle) = triangle.compute_B_with_solid_angle(point);
+        assert_eq!(field, Vector3::zeros());
+        assert_eq!(triangle.compute_B(point), Vector3::zeros());
+        assert!(angle.abs() > 0.0);
     }
 
     #[test]
@@ -363,7 +324,7 @@ mod tests {
         assert_eq!(b_collinear, Vector3::zeros());
 
         // Observer collinear with an edge ray
-        let b_edge_ext = local_triangle_B(
+        let b_edge_ext = local_triangle_B::<f64>(
             point![2.0, 0.0, 0.0],
             vector![0.0, 0.0, 1.0],
             [

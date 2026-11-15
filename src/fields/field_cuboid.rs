@@ -6,12 +6,23 @@
 //! Analytical B-field computation for cuboid magnets.
 
 use nalgebra::{Point3, RealField, UnitQuaternion, Vector3, vector};
-use numeric_literals::replace_float_literals;
 
-use crate::{
-    base::coordinate::compute_in_local,
-    crate_utils::{impl_parallel, impl_parallel_sum},
-};
+use crate::{base::coordinate::compute_in_local, crate_utils::impl_parallel};
+
+/// Compute `radius + u` without losing small transverse distances.
+///
+/// Here `radius = sqrt(u² + transverse_sq)`. Rationalization avoids subtracting
+/// nearly equal quantities near cuboid edges, especially for slender magnets.
+/// Retain the ordinary sum unless `-u` exceeds half the radius: otherwise the
+/// extra division can introduce rounding error without improving cancellation.
+#[inline]
+fn radius_plus<T: RealField + Copy>(radius: T, u: T, transverse_sq: T) -> T {
+    if u < T::zero() && u + u < -radius {
+        transverse_sq / (radius - u)
+    } else {
+        radius + u
+    }
+}
 
 /// Computes B-field of a homogeneous cuboid magnet at point (x, y, z) in the local frame.
 ///
@@ -30,7 +41,7 @@ use crate::{
 /// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
 #[allow(non_snake_case)]
 #[inline]
-#[replace_float_literals(T::from_f64(literal).unwrap())]
+#[num_lazy_proc::generic_float(T, convert = T::from_f64(literal).unwrap())]
 pub fn local_cuboid_B<T: RealField + Copy>(
     point: Point3<T>,
     polarization: Vector3<T>,
@@ -108,66 +119,125 @@ pub fn local_cuboid_B<T: RealField + Copy>(
     let mpp = (xma2 + ypb2 + zpc2).sqrt();
 
     let ff2x = if pol_y != 0.0 || pol_z != 0.0 {
-        let num = (xma + mmm) * (xpa + ppm) * (xpa + pmp) * (xma + mpp);
-        let den = (xpa + pmm) * (xma + mpm) * (xma + mmp) * (xpa + ppp);
+        let num = radius_plus(mmm, xma, ymb2 + zmc2)
+            * radius_plus(ppm, xpa, ypb2 + zmc2)
+            * radius_plus(pmp, xpa, ymb2 + zpc2)
+            * radius_plus(mpp, xma, ypb2 + zpc2);
+        let den = radius_plus(pmm, xpa, ymb2 + zmc2)
+            * radius_plus(mpm, xma, ypb2 + zmc2)
+            * radius_plus(mmp, xma, ymb2 + zpc2)
+            * radius_plus(ppp, xpa, ypb2 + zpc2);
         (num / den).ln()
     } else {
         0.0
     };
 
     let ff2y = if pol_x != 0.0 || pol_z != 0.0 {
-        let num = (-ymb + mmm) * (-ypb + ppm) * (-ymb + pmp) * (-ypb + mpp);
-        let den = (-ymb + pmm) * (-ypb + mpm) * (ymb - mmp) * (ypb - ppp);
+        let num = radius_plus(mmm, -ymb, xma2 + zmc2)
+            * radius_plus(ppm, -ypb, xpa2 + zmc2)
+            * radius_plus(pmp, -ymb, xpa2 + zpc2)
+            * radius_plus(mpp, -ypb, xma2 + zpc2);
+        // Two negative denominator factors cancel.
+        let den = radius_plus(pmm, -ymb, xpa2 + zmc2)
+            * radius_plus(mpm, -ypb, xma2 + zmc2)
+            * radius_plus(mmp, -ymb, xma2 + zpc2)
+            * radius_plus(ppp, -ypb, xpa2 + zpc2);
         (num / den).ln()
     } else {
         0.0
     };
 
     let ff2z = if pol_x != 0.0 || pol_y != 0.0 {
-        let num = (-zmc + mmm) * (-zmc + ppm) * (-zpc + pmp) * (-zpc + mpp);
-        let den = (-zmc + pmm) * (zmc - mpm) * (-zpc + mmp) * (zpc - ppp);
+        let num = radius_plus(mmm, -zmc, xma2 + ymb2)
+            * radius_plus(ppm, -zmc, xpa2 + ypb2)
+            * radius_plus(pmp, -zpc, xpa2 + ymb2)
+            * radius_plus(mpp, -zpc, xma2 + ypb2);
+        // Two negative denominator factors cancel.
+        let den = radius_plus(pmm, -zmc, xpa2 + ymb2)
+            * radius_plus(mpm, -zmc, xma2 + ypb2)
+            * radius_plus(mmp, -zpc, xma2 + ymb2)
+            * radius_plus(ppp, -zpc, xpa2 + ypb2);
         (num / den).ln()
     } else {
         0.0
     };
 
-    let (bx_pol_x, by_pol_x, bz_pol_x) = if pol_x != 0.0 {
-        let ff1x = (ymb * zmc).atan2(xma * mmm)
-            - (ymb * zmc).atan2(xpa * pmm)
-            - (ypb * zmc).atan2(xma * mpm)
+    let ff1x = if pol_x != 0.0 {
+        (ymb * zmc).atan2(xma * mmm) - (ymb * zmc).atan2(xpa * pmm) - (ypb * zmc).atan2(xma * mpm)
             + (ypb * zmc).atan2(xpa * ppm)
             - (ymb * zpc).atan2(xma * mmp)
             + (ymb * zpc).atan2(xpa * pmp)
             + (ypb * zpc).atan2(xma * mpp)
-            - (ypb * zpc).atan2(xpa * ppp);
-        (pol_x * ff1x, pol_x * ff2z * q01, pol_x * ff2y * q02)
+            - (ypb * zpc).atan2(xpa * ppp)
     } else {
-        (0.0, 0.0, 0.0)
+        0.0
     };
 
-    let (bx_pol_y, by_pol_y, bz_pol_y) = if pol_y != 0.0 {
-        let ff1y = (xma * zmc).atan2(ymb * mmm)
-            - (xpa * zmc).atan2(ymb * pmm)
-            - (xma * zmc).atan2(ypb * mpm)
+    let ff1y = if pol_y != 0.0 {
+        (xma * zmc).atan2(ymb * mmm) - (xpa * zmc).atan2(ymb * pmm) - (xma * zmc).atan2(ypb * mpm)
             + (xpa * zmc).atan2(ypb * ppm)
             - (xma * zpc).atan2(ymb * mmp)
             + (xpa * zpc).atan2(ymb * pmp)
             + (xma * zpc).atan2(ypb * mpp)
-            - (xpa * zpc).atan2(ypb * ppp);
+            - (xpa * zpc).atan2(ypb * ppp)
+    } else {
+        0.0
+    };
+
+    let ff1z = if pol_z != 0.0 {
+        // The trace of the three diagonal cuboid kernels is 8*pi in the
+        // interior and zero outside. When all three polarizations are present,
+        // this avoids eight atan2 calls at f64 precision. In f32, subtracting
+        // the other two diagonal kernels can lose enough relative precision
+        // in weak far-field values to exceed the independent reference tolerance.
+        // Retain the direct kernel for f32, surfaces (which use a half-value),
+        // and degenerate/non-finite geometry.
+        if pol_x != 0.0
+            && pol_y != 0.0
+            && T::default_epsilon() < 1e-10
+            && a > 0.0
+            && b > 0.0
+            && c > 0.0
+            && xma != 0.0
+            && ypb != 0.0
+            && zpc != 0.0
+            && [mmm, pmm, mpm, ppm, mmp, pmp, mpp, ppp]
+                .iter()
+                .all(|r| r.is_finite() && *r > 0.0)
+        {
+            let trace = if xma < 0.0 && ypb > 0.0 && zpc > 0.0 {
+                8.0 * PI
+            } else {
+                0.0
+            };
+            trace - ff1x - ff1y
+        } else {
+            (xma * ymb).atan2(zmc * mmm)
+                - (xpa * ymb).atan2(zmc * pmm)
+                - (xma * ypb).atan2(zmc * mpm)
+                + (xpa * ypb).atan2(zmc * ppm)
+                - (xma * ymb).atan2(zpc * mmp)
+                + (xpa * ymb).atan2(zpc * pmp)
+                + (xma * ypb).atan2(zpc * mpp)
+                - (xpa * ypb).atan2(zpc * ppp)
+        }
+    } else {
+        0.0
+    };
+
+    // Preserve the zero-polarization branches: zero times a singular logarithm
+    // must not turn a finite field component into NaN.
+    let (bx_pol_x, by_pol_x, bz_pol_x) = if pol_x != 0.0 {
+        (pol_x * ff1x, pol_x * ff2z * q01, pol_x * ff2y * q02)
+    } else {
+        (0.0, 0.0, 0.0)
+    };
+    let (bx_pol_y, by_pol_y, bz_pol_y) = if pol_y != 0.0 {
         (pol_y * ff2z * q01, pol_y * ff1y, -pol_y * ff2x * q12)
     } else {
         (0.0, 0.0, 0.0)
     };
-
     let (bx_pol_z, by_pol_z, bz_pol_z) = if pol_z != 0.0 {
-        let ff1z = (xma * ymb).atan2(zmc * mmm)
-            - (xpa * ymb).atan2(zmc * pmm)
-            - (xma * ypb).atan2(zmc * mpm)
-            + (xpa * ypb).atan2(zmc * ppm)
-            - (xma * ymb).atan2(zpc * mmp)
-            + (xpa * ymb).atan2(zpc * pmp)
-            + (xma * ypb).atan2(zpc * mpp)
-            - (xpa * ypb).atan2(zpc * ppp);
         (pol_z * ff2y * q02, -pol_z * ff2x * q12, pol_z * ff1z)
     } else {
         (0.0, 0.0, 0.0)
@@ -178,7 +248,7 @@ pub fn local_cuboid_B<T: RealField + Copy>(
     let by_tot = by_pol_x + by_pol_y + by_pol_z;
     let bz_tot = bz_pol_x + bz_pol_y + bz_pol_z;
 
-    vector![bx_tot, by_tot, bz_tot] / (4.0 * T::pi())
+    vector![bx_tot, by_tot, bz_tot] / (4.0 * PI)
 }
 
 /// Computes B-field of a homogeneous cuboid magnet at point (x, y, z).
@@ -301,7 +371,7 @@ pub fn cuboid_B_batch<T: RealField + Copy>(
 ) {
     let inv_orientation = orientation.inverse();
     impl_parallel!(
-        rayon_threshold: 80,
+        rayon_threshold: 60,
         input: points,
         output: out,
         |p| {
@@ -312,38 +382,6 @@ pub fn cuboid_B_batch<T: RealField + Copy>(
     );
 }
 
-/// Computes net B-field at each given point in global frame for multiple cuboid magnets.
-///
-/// # Arguments
-///
-/// - `points`: Observer positions in global frame (m)
-/// - `positions`: Magnet positions (m)
-/// - `orientations`: Magnet orientations as unit quaternions
-/// - `polarizations`: Polarization vectors (T)
-/// - `dimensions`: Cuboid side lengths (m)
-/// - `out`: Mutable slice to store the net B-field vectors at each observer (T)
-///
-/// # References
-///
-/// - Ortner, Michael, and Lucas Gabriel Coliado Bandeira. “Magpylib: A Free Python Package for Magnetic Field Computation.” SoftwareX 11 (January 1, 2020): 100466. <https://doi.org/10.1016/j.softx.2020.100466>.
-#[allow(non_snake_case)]
-pub fn sum_multiple_cuboid_B<T: RealField + Copy>(
-    points: &[Point3<T>],
-    positions: &[Point3<T>],
-    orientations: &[UnitQuaternion<T>],
-    polarizations: &[Vector3<T>],
-    dimensions: &[Vector3<T>],
-    out: &mut [Vector3<T>],
-) {
-    impl_parallel_sum!(
-        out,
-        points,
-        60,
-        [positions, orientations, polarizations, dimensions],
-        |pos, p, o, pol, dim| cuboid_B(*pos, *p, *o, *pol, *dim)
-    )
-}
-
 #[cfg(test)]
 mod tests {
     use nalgebra::{point, vector};
@@ -351,29 +389,107 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_sum_multiple_cuboid_b() {
-        use crate::testing_util::impl_test_sum_multiple;
-        let points = &[
-            point![5.0, 6.0, 7.0],
-            point![4.0, 3.0, 2.0],
-            point![0.5, 0.25, 0.125],
+    fn test_cuboid_trace_reduction_matches_individual_polarizations() {
+        // One nonzero polarization evaluates its diagonal kernel directly.
+        // Combining three such results is an independent reference for the
+        // trace shortcut taken when all polarization components are nonzero.
+        let dimensions = vector![0.02_f64, 0.04, 0.06];
+        let pol = vector![1.3_f64, -0.7, 0.4];
+        let mut points = vec![
+            point![0.0, 0.0, 0.0],
+            point![0.01, 0.0, 0.0],
+            point![-0.01, 0.0, 0.0],
+            point![0.01, 0.02, 0.0],
+            point![0.01, 0.02, 0.03],
+            point![0.0, 0.02, -0.03],
+            point![0.11, -0.08, 0.13],
+            point![-0.03, 0.01, -0.02],
         ];
-        let positions = &[point![1.0, 2.0, 3.0], point![0.0, 0.0, 0.0]];
-        let orientations = &[
-            UnitQuaternion::from_scaled_axis(vector![1.0, 0.6, 0.4]),
-            UnitQuaternion::identity(),
-        ];
-        let polarizations = &[vector![0.45, 0.3, 0.15], vector![1.0, 2.0, 3.0]];
-        let dimensions = &[vector![1.0, 2.0, 3.0], vector![2.0, 2.0, 2.0]];
 
-        impl_test_sum_multiple!(
-            sum_multiple_cuboid_B,
-            5e-14,
-            points,
-            positions,
-            orientations,
-            (polarizations, dimensions),
-            |p, pos, ori, pol, dim| cuboid_B(p, pos, ori, pol, dim)
+        for &offset in &[-2e-12, -1e-14, 0.0, 1e-14, 2e-12] {
+            for &sign in &[-1.0, 1.0] {
+                points.push(point![sign * (0.01 + offset), 0.003, -0.017]);
+                points.push(point![0.003, sign * (0.02 + offset), -0.017]);
+                points.push(point![0.003, -0.007, sign * (0.03 + offset)]);
+            }
+        }
+
+        // Deterministic points sample all octants, the interior and exterior.
+        let mut seed: u64 = 0x0e53_5a7b_eef0_9123;
+        for _ in 0..4_000 {
+            let mut next = || {
+                seed = seed.wrapping_mul(6364136223846793005).wrapping_add(1);
+                ((seed >> 32) as f64 / (u32::MAX as f64) - 0.5) * 0.2
+            };
+            points.push(point![next(), next(), next()]);
+        }
+
+        for point in points {
+            let expected = local_cuboid_B(point, vector![pol.x, 0.0, 0.0], dimensions)
+                + local_cuboid_B(point, vector![0.0, pol.y, 0.0], dimensions)
+                + local_cuboid_B(point, vector![0.0, 0.0, pol.z], dimensions);
+            let actual = local_cuboid_B(point, pol, dimensions);
+            // Compare finite values tightly, while treating matching NaNs or
+            // equal signed infinities as equivalent at singular boundaries.
+            for (a, e) in actual.iter().zip(expected.iter()) {
+                assert!(
+                    (a - e).abs() < 1e-12 || (a.is_nan() && e.is_nan()) || a == e,
+                    "f64 point={point:?}: actual={actual:?} expected={expected:?}"
+                );
+            }
+
+            let point32 = point.cast::<f32>();
+            let dimensions32 = dimensions.cast::<f32>();
+            let pol32 = pol.cast::<f32>();
+            let expected32 = local_cuboid_B(point32, vector![pol32.x, 0.0, 0.0], dimensions32)
+                + local_cuboid_B(point32, vector![0.0, pol32.y, 0.0], dimensions32)
+                + local_cuboid_B(point32, vector![0.0, 0.0, pol32.z], dimensions32);
+            let actual32 = local_cuboid_B(point32, pol32, dimensions32);
+            for (a, e) in actual32.iter().zip(expected32.iter()) {
+                assert!(
+                    (a - e).abs() < 3e-6 || (a.is_nan() && e.is_nan()) || a == e,
+                    "f32 point={point32:?}: actual={actual32:?} expected={expected32:?}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn test_cuboid_trace_fallback_for_degenerate_and_nonfinite_geometry() {
+        let pol = vector![1.0_f64, -2.0, 3.0];
+        let cases = [
+            (point![0.1, 0.1, 0.1], vector![0.0, 0.02, 0.03]),
+            (point![0.1, 0.1, 0.1], vector![-0.01, 0.02, 0.03]),
+            (point![0.1, 0.1, 0.1], vector![0.01, f64::NAN, 0.03]),
+            (point![f64::NAN, 0.1, 0.1], vector![0.01, 0.02, 0.03]),
+            (point![f64::INFINITY, 0.1, 0.1], vector![0.01, 0.02, 0.03]),
+            (point![1e160, 0.1, 0.1], vector![0.01, 0.02, 0.03]),
+            (
+                point![0.2e-200, -0.4e-200, 0.3e-200],
+                vector![1e-200, 2e-200, 3e-200],
+            ),
+        ];
+        for (point, dimensions) in cases {
+            let expected = local_cuboid_B(point, vector![pol.x, 0.0, 0.0], dimensions)
+                + local_cuboid_B(point, vector![0.0, pol.y, 0.0], dimensions)
+                + local_cuboid_B(point, vector![0.0, 0.0, pol.z], dimensions);
+            let actual = local_cuboid_B(point, pol, dimensions);
+            for (a, e) in actual.iter().zip(expected.iter()) {
+                assert!(
+                    (a - e).abs() < 1e-12 || (a.is_nan() && e.is_nan()) || a == e,
+                    "point={point:?}, dimensions={dimensions:?} actual={actual:?} expected={expected:?}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn test_cuboid_f32_edge_convention() {
+        let point = point![0.0_f32, 0.0625, 2.5];
+        let dimensions = vector![0.0625, 0.125, 5.0];
+        assert_eq!(
+            local_cuboid_B(point, vector![0.2, -0.3, 0.4], dimensions),
+            Vector3::zeros()
         );
     }
 
