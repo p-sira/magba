@@ -49,8 +49,10 @@ crate::testing_util::generate_tests! {
         current: 1.0,
         vertices: vec![vector![-0.1, -0.1, -0.1], vector![0.1, -0.1, -0.1], vector![0.0, 0.1, -0.1], vector![0.0, 0.0, 0.1]],
     }
+    // The rationalized endpoint expression differs from the MagPyLib grid by
+    // ~5e-14 at a nearly collinear observer; independent wire integrals cover it.
     rtols: {
-        static: 3e-14,
+        static: 1e-13,
         static_small: 1e-9,
         translate: 1e-9,
         rotate: 3e-14,
@@ -62,16 +64,16 @@ crate::testing_util::generate_tests! {
         rotate: 1e-14,
     }
     f32_rtols: {
-        static: 5e-2,
-        static_small: 0.2,
-        translate: 5e-2,
-        rotate: 1e-2,
+        static: 1e-5,
+        static_small: 1e-5,
+        translate: 1e-5,
+        rotate: 1e-5,
     }
     f32_p95_rtols: {
-        static: 1e-3,
-        static_small: 1e-3,
-        translate: 1e-3,
-        rotate: 1e-3,
+        static: 2e-6,
+        static_small: 2e-6,
+        translate: 2e-6,
+        rotate: 2e-6,
     }
 }
 
